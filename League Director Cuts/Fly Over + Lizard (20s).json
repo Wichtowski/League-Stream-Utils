@@ -1,0 +1,157 @@
+{
+    "cameraPosition": [
+        {
+            "blend": "linear",
+            "time": 0.0,
+            "value": {
+                "x": 378.6011962890625,
+                "y": 2007.2769775390625,
+                "z": 177.28590393066406
+            }
+        },
+        {
+            "blend": "linear",
+            "time": 0.0,
+            "value": {
+                "x": -1244.8985595703125,
+                "y": 3520.219482421875,
+                "z": -1222.759033203125
+            }
+        },
+        {
+            "blend": "linear",
+            "time": 0.7587,
+            "value": {
+                "x": -1244.8985595703125,
+                "y": 3520.219482421875,
+                "z": -1222.759033203125
+            }
+        },
+        {
+            "blend": "linear",
+            "time": 4.7175,
+            "value": {
+                "x": 11974.1376953125,
+                "y": 3737.45849609375,
+                "z": 2932.91552734375
+            }
+        },
+        {
+            "blend": "linear",
+            "time": 9.8128,
+            "value": {
+                "x": 15230.78515625,
+                "y": 3904.200439453125,
+                "z": 15229.126953125
+            }
+        },
+        {
+            "blend": "linear",
+            "time": 14.7605,
+            "value": {
+                "x": -502.11724853515625,
+                "y": 3381.527587890625,
+                "z": 14859.013671875
+            }
+        },
+        {
+            "blend": "linear",
+            "time": 20.5334,
+            "value": {
+                "x": 5149.1494140625,
+                "y": 113.80872344970703,
+                "z": 12843.421875
+            }
+        }
+    ],
+    "cameraRotation": [
+        {
+            "blend": "linear",
+            "time": 0.0,
+            "value": {
+                "x": 43.310977935791016,
+                "y": 17.845972061157227,
+                "z": 0.0
+            }
+        },
+        {
+            "blend": "linear",
+            "time": 0.0,
+            "value": {
+                "x": 43.886741638183594,
+                "y": 22.11797523498535,
+                "z": 0.0
+            }
+        },
+        {
+            "blend": "linear",
+            "time": 0.7587,
+            "value": {
+                "x": 43.886741638183594,
+                "y": 22.11797523498535,
+                "z": 0.0
+            }
+        },
+        {
+            "blend": "linear",
+            "time": 4.7175,
+            "value": {
+                "x": 310.8970031738281,
+                "y": 32.906368255615234,
+                "z": 0.0
+            }
+        },
+        {
+            "blend": "linear",
+            "time": 9.8128,
+            "value": {
+                "x": 224.89682006835938,
+                "y": 34.999996185302734,
+                "z": 0.0
+            }
+        },
+        {
+            "blend": "linear",
+            "time": 14.7605,
+            "value": {
+                "x": 132.3795623779297,
+                "y": 22.84596824645996,
+                "z": 0.0
+            }
+        },
+        {
+            "blend": "linear",
+            "time": 20.5334,
+            "value": {
+                "x": 272.8285217285156,
+                "y": 25.508621215820312,
+                "z": 0.0
+            }
+        }
+    ],
+    "depthFogColor": [],
+    "depthFogEnabled": [],
+    "depthFogEnd": [],
+    "depthFogIntensity": [],
+    "depthFogStart": [],
+    "depthOfFieldCircle": [],
+    "depthOfFieldEnabled": [],
+    "depthOfFieldFar": [],
+    "depthOfFieldMid": [],
+    "depthOfFieldNear": [],
+    "depthOfFieldWidth": [],
+    "farClip": [],
+    "fieldOfView": [],
+    "heightFogColor": [],
+    "heightFogEnabled": [],
+    "heightFogEnd": [],
+    "heightFogIntensity": [],
+    "heightFogStart": [],
+    "navGridOffset": [],
+    "nearClip": [],
+    "playbackSpeed": [],
+    "skyboxOffset": [],
+    "skyboxRadius": [],
+    "skyboxRotation": [],
+    "sunDirection": []
+}

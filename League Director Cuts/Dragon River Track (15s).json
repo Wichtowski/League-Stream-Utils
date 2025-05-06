@@ -1,0 +1,175 @@
+{
+    "cameraPosition": [
+        {
+            "blend": "linear",
+            "time": 0.0,
+            "value": {
+                "x": 378.6011962890625,
+                "y": 2007.2769775390625,
+                "z": 177.28590393066406
+            }
+        },
+        {
+            "blend": "linear",
+            "time": 0.0,
+            "value": {
+                "x": -1244.8985595703125,
+                "y": 3520.219482421875,
+                "z": -1222.759033203125
+            }
+        },
+        {
+            "blend": "linear",
+            "time": 1.0515,
+            "value": {
+                "x": 15381.0302734375,
+                "y": 1034.179931640625,
+                "z": 720.4317626953125
+            }
+        },
+        {
+            "blend": "linear",
+            "time": 4.1062,
+            "value": {
+                "x": 12344.0224609375,
+                "y": 352.74432373046875,
+                "z": 2715.527587890625
+            }
+        },
+        {
+            "blend": "linear",
+            "time": 6.2159,
+            "value": {
+                "x": 11617.3173828125,
+                "y": 264.8631896972656,
+                "z": 3799.199462890625
+            }
+        },
+        {
+            "blend": "linear",
+            "time": 8.5635,
+            "value": {
+                "x": 11064.205078125,
+                "y": 210.46665954589844,
+                "z": 5199.54296875
+            }
+        },
+        {
+            "blend": "linear",
+            "time": 12.8702,
+            "value": {
+                "x": 9368.6591796875,
+                "y": 206.42007446289062,
+                "z": 5873.494140625
+            }
+        },
+        {
+            "blend": "linear",
+            "time": 16.2246,
+            "value": {
+                "x": 10997.2021484375,
+                "y": 665.6405029296875,
+                "z": 6135.96435546875
+            }
+        }
+    ],
+    "cameraRotation": [
+        {
+            "blend": "linear",
+            "time": 0.0,
+            "value": {
+                "x": 43.310977935791016,
+                "y": 17.845972061157227,
+                "z": 0.0
+            }
+        },
+        {
+            "blend": "linear",
+            "time": 0.0,
+            "value": {
+                "x": 43.886741638183594,
+                "y": 22.11797523498535,
+                "z": 0.0
+            }
+        },
+        {
+            "blend": "linear",
+            "time": 1.0515,
+            "value": {
+                "x": 301.71014404296875,
+                "y": 19.886926651000977,
+                "z": 0.0
+            }
+        },
+        {
+            "blend": "linear",
+            "time": 4.1062,
+            "value": {
+                "x": 321.114990234375,
+                "y": 8.28282642364502,
+                "z": 0.0
+            }
+        },
+        {
+            "blend": "linear",
+            "time": 6.2159,
+            "value": {
+                "x": 334.14825439453125,
+                "y": 5.282826900482178,
+                "z": 0.0
+            }
+        },
+        {
+            "blend": "linear",
+            "time": 8.5635,
+            "value": {
+                "x": 281.14825439453125,
+                "y": 3.108818531036377,
+                "z": 0.0
+            }
+        },
+        {
+            "blend": "linear",
+            "time": 12.8702,
+            "value": {
+                "x": 308.14837646484375,
+                "y": 0.10881838947534561,
+                "z": 0.0
+            }
+        },
+        {
+            "blend": "linear",
+            "time": 16.2246,
+            "value": {
+                "x": 75.1492919921875,
+                "y": 35.922061920166016,
+                "z": 0.0
+            }
+        }
+    ],
+    "depthFogColor": [],
+    "depthFogEnabled": [],
+    "depthFogEnd": [],
+    "depthFogIntensity": [],
+    "depthFogStart": [],
+    "depthOfFieldCircle": [],
+    "depthOfFieldEnabled": [],
+    "depthOfFieldFar": [],
+    "depthOfFieldMid": [],
+    "depthOfFieldNear": [],
+    "depthOfFieldWidth": [],
+    "farClip": [],
+    "fieldOfView": [],
+    "heightFogColor": [],
+    "heightFogEnabled": [],
+    "heightFogEnd": [],
+    "heightFogIntensity": [],
+    "heightFogStart": [],
+    "navGridOffset": [],
+    "nearClip": [],
+    "playbackSpeed": [],
+    "skyboxOffset": [],
+    "skyboxRadius": [],
+    "skyboxRotation": [],
+    "sunDirection": []
+}

@@ -1,0 +1,30 @@
+.show-center-container {
+    background-color: #000000 !important;
+}
+
+#blue_ban_1,
+#blue_ban_2,
+#blue_ban_3,
+#blue_ban_4,
+#blue_ban_5 {
+    background-color: #B9861B !important;
+}
+
+#red_ban_1,
+#red_ban_2,
+#red_ban_3,
+#red_ban_4,
+#red_ban_5 {
+    background-color: #B9861B !important;
+}
+
+#app>div>div.flex.flex-col.absolute.gap-4.left-0.top-0,
+#app>div>div.flex.flex-col.absolute.right-0.top-0.gap-4 {
+    opacity: 0 !important;
+}
+
+#app>div>div.cs-mask.flex.flex-col.items-center.show-cs>div.w-full.h-auto.flex.flex-row.justify-between.z-0.items-end.coach-content.show-coaches>div p {
+    color: #ffffff !important;
+    background: rgba(0, 0, 0, 0) !important;
+    font-size: 1.5rem !important;
+}
