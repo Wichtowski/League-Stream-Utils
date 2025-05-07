@@ -1,3 +1,7 @@
+* {
+  font-family: 'Yolk';
+}
+
 /* BOTTOM STATS & ITEMS */
 /* GOLD */
 .right__kda p:has(+ p),
@@ -52,6 +56,8 @@
 .flex:has(.team-icon-container) {
   background: black !important;
   height: 8rem !important;
+  justify-content: center !important;
+  align-items: center !important;
 }
 
 /* LEFT */
@@ -60,7 +66,6 @@
 .flex:has(.team-icon-container) {
   height: 6rem !important;
   color: #B9861B !important;
-
 }
 
 #top-row>div.team-container.red-team>div.flex.relative.text-white>div,
@@ -76,11 +81,31 @@
   width: 100% !important;
 }
 
-.scoreboard-top-row .kills {}
+.scoreboard-top-row .kills p {
+  font-size: 4.5rem !important;
+}
+
+.scoreboard-top-row .towers,
+.scoreboard-top-row .kills,
+.scoreboard-top-row .gold-section {
+  height: 90px !important;
+}
 
 .scoreboard-top-row .towers {}
 
 .scoreboard-top-row .gold-section {}
+
+img.object-contain[src*="gold.png"] {
+  height: 24px !important;
+  width: 24px !important;
+  max-height: 24px !important;
+}
+
+#top-row>div.team-container.blue-team>div.team-scores-container.px-4.h-full.w-full.bg-main.h-full.text-left>div.score-item.gold-section>div>div:nth-child(1),
+#top-row>div.team-container.red-team>div.team-scores-container.px-4.h-full.w-full.bg-main.h-full.text-right>div.score-item.gold-section>div>div:nth-child(1) {
+  width: 24px !important;
+  padding-top: 8px !important;
+}
 
 .red-team,
 .blue-team {
@@ -126,7 +151,7 @@ img[src*="mainIcon.png"] {
 /* GRUBS */
 /* Count */
 .center-container>div>div>p {
-  font-size: 1.5rem;
+  font-size: 1.3rem;
 }
 
 /* Image */
@@ -265,6 +290,7 @@ div.champion.relative>div>div>p {
 }
 
 /* 2560 x 1440 FIXES FOR THE MISSALIGNED LOGO*/
+/*
 .red-team {
   margin-left: -1px !important;
 }
@@ -287,4 +313,5 @@ div.champion.relative>div>div>p {
 
 .center-container>div>div.flex.flex-row.text-white:first-child {
   margin-left: 1px !important;
-}
+} 
+*/
