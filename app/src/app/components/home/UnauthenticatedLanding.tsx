@@ -50,17 +50,6 @@ export default function UnauthenticatedLanding() {
                             <h3 className="text-xl font-bold text-white mb-2">Champions</h3>
                             <p className="text-gray-400">Manage champion selections and data</p>
                         </Link>
-
-                        <Link
-                            href="/modules/cameras/stream"
-                            className="cursor-pointer inline-flex items-center px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition-colors"
-                        >
-                            <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center mx-auto mb-4 group-hover:bg-purple-500/30 transition-colors">
-                                <span className="text-purple-400 text-2xl">📺</span>
-                            </div>
-                            <h3 className="text-xl font-bold text-white mb-2">Stream View</h3>
-                            <p className="text-gray-400">Live tournament streaming interface</p>
-                        </Link>
                     </div>
                 </div>
             </div>
