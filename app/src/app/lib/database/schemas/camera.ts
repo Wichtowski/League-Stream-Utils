@@ -1,0 +1,28 @@
+import mongoose from 'mongoose';
+
+export const CameraTeamSchema = new mongoose.Schema({
+    teamId: { type: String, required: true },
+    teamName: { type: String, required: true },
+    players: [{
+        playerId: { type: String, required: true },
+        playerName: { type: String, required: true },
+        role: { type: String, required: true },
+        url: { type: String, default: '' },
+        imagePath: { type: String, default: '' }
+    }]
+});
+
+export const CameraPlayerSchema = new mongoose.Schema({
+    playerId: { type: String, required: true },
+    playerName: { type: String, required: true },
+    role: { type: String, required: true },
+    url: { type: String, default: '' },
+    imagePath: { type: String, default: '' }
+});
+
+export const CameraSettingsSchema = new mongoose.Schema({
+    userId: { type: String, required: true, unique: true },
+    teams: [CameraTeamSchema],
+    createdAt: { type: Date, default: Date.now },
+    updatedAt: { type: Date, default: Date.now }
+}); 

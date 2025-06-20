@@ -1,0 +1,37 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { createGameSession, getAllSessions } from '@lib/game-logic';
+import { cleanupOldSessions } from '@lib/database';
+
+export async function GET() {
+  // Cleanup old sessions (24+ hours) before returning active ones
+  try {
+    await cleanupOldSessions(24);
+  } catch (error) {
+    console.error('Cleanup error during session fetch:', error);
+    // Continue even if cleanup fails
+  }
+  
+  const sessions = await getAllSessions();
+  return NextResponse.json(sessions);
+}
+
+export async function POST(request: NextRequest) {
+  const session = await createGameSession();
+  
+  const baseUrl = request.nextUrl.origin;
+  const configUrl = `${baseUrl}/config/${session.id}`;
+  const blueTeamUrl = `${baseUrl}/game/${session.id}?team=blue`;
+  const redTeamUrl = `${baseUrl}/game/${session.id}?team=red`;
+  
+  return NextResponse.json({
+    sessionId: session.id,
+    session,
+    urls: {
+      config: configUrl,
+      blue: blueTeamUrl,
+      red: redTeamUrl,
+      spectator: `${baseUrl}/game/${session.id}`,
+      obs: `${baseUrl}/obs/${session.id}`
+    }
+  });
+}
