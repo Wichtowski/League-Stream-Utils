@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { connectToDatabase } from './connection';
-import { TournamentTeam } from './models';
-import type { Team, CreateTeamRequest, Player, Staff } from '@lib/types';
+import { Team as TeamModel } from './models';
+import type { Team, CreateTeamRequest, Player, RiotPlayerData } from '@lib/types';
 
 // Create a new team
 export async function createTeam(userId: string, teamData: CreateTeamRequest): Promise<Team> {
@@ -36,7 +36,7 @@ export async function createTeam(userId: string, teamData: CreateTeamRequest): P
         staff.manager = { ...teamData.staff.manager, id: uuidv4() };
     }
 
-    const newTeam = new TournamentTeam({
+    const newTeam = new TeamModel({
         id: uuidv4(),
         name: teamData.name,
         tag: teamData.tag,
@@ -64,14 +64,14 @@ export async function createTeam(userId: string, teamData: CreateTeamRequest): P
 // Get teams by user ID
 export async function getUserTeams(userId: string): Promise<Team[]> {
     await connectToDatabase();
-    const teams = await TournamentTeam.find({ userId }).sort({ createdAt: -1 });
+    const teams = await TeamModel.find({ userId }).sort({ createdAt: -1 });
     return teams.map(team => team.toObject());
 }
 
 // Get team by ID
 export async function getTeamById(teamId: string): Promise<Team | null> {
     await connectToDatabase();
-    const team = await TournamentTeam.findOne({ id: teamId });
+    const team = await TeamModel.findOne({ id: teamId });
     return team ? team.toObject() : null;
 }
 
@@ -80,7 +80,7 @@ export async function updateTeam(teamId: string, userId: string, updates: Partia
     await connectToDatabase();
 
     // Find the team and verify ownership
-    const team = await TournamentTeam.findOne({ id: teamId, userId });
+    const team = await TeamModel.findOne({ id: teamId, userId });
     if (!team) {
         return null;
     }
@@ -98,7 +98,7 @@ export async function updateTeam(teamId: string, userId: string, updates: Partia
     if (updates.players) {
         const mainPlayers: Player[] = updates.players.main.map(player => ({
             ...player,
-            id: player.id || uuidv4(),
+            id: uuidv4(),
             verified: false,
             createdAt: new Date(),
             updatedAt: new Date()
@@ -106,7 +106,7 @@ export async function updateTeam(teamId: string, userId: string, updates: Partia
 
         const substitutePlayers: Player[] = updates.players.substitutes.map(player => ({
             ...player,
-            id: player.id || uuidv4(),
+            id: uuidv4(),
             verified: false,
             createdAt: new Date(),
             updatedAt: new Date()
@@ -141,22 +141,22 @@ export async function updateTeam(teamId: string, userId: string, updates: Partia
 // Delete team
 export async function deleteTeam(teamId: string, userId: string): Promise<boolean> {
     await connectToDatabase();
-    const result = await TournamentTeam.deleteOne({ id: teamId, userId });
+    const result = await TeamModel.deleteOne({ id: teamId, userId });
     return result.deletedCount > 0;
 }
 
 // Get teams by IDs (for tournament team selection)
 export async function getTeamsByIds(teamIds: string[]): Promise<Team[]> {
     await connectToDatabase();
-    const teams = await TournamentTeam.find({ id: { $in: teamIds } });
+    const teams = await TeamModel.find({ id: { $in: teamIds } });
     return teams.map(team => team.toObject());
 }
 
 // Verify team players (update player verification status)
-export async function verifyTeamPlayers(teamId: string, playerUpdates: { playerId: string; verified: boolean; riotData?: any }[]): Promise<Team | null> {
+export async function verifyTeamPlayers(teamId: string, playerUpdates: { playerId: string; verified: boolean; riotData?: RiotPlayerData }[]): Promise<Team | null> {
     await connectToDatabase();
 
-    const team = await TournamentTeam.findOne({ id: teamId });
+    const team = await TeamModel.findOne({ id: teamId });
     if (!team) {
         return null;
     }
@@ -164,7 +164,7 @@ export async function verifyTeamPlayers(teamId: string, playerUpdates: { playerI
     // Update player verification status
     playerUpdates.forEach(update => {
         // Check main players
-        const mainPlayer = team.players.main.find(p => p.id === update.playerId);
+        const mainPlayer = team.players.main.find((p: Player) => p.id === update.playerId);
         if (mainPlayer) {
             mainPlayer.verified = update.verified;
             if (update.verified) {
@@ -179,7 +179,7 @@ export async function verifyTeamPlayers(teamId: string, playerUpdates: { playerI
         }
 
         // Check substitute players
-        const subPlayer = team.players.substitutes.find(p => p.id === update.playerId);
+        const subPlayer = team.players.substitutes.find((p: Player) => p.id === update.playerId);
         if (subPlayer) {
             subPlayer.verified = update.verified;
             if (update.verified) {
@@ -206,8 +206,8 @@ export async function checkTeamAvailability(name: string, tag: string, excludeTe
     const query = excludeTeamId ? { id: { $ne: excludeTeamId } } : {};
 
     const [nameExists, tagExists] = await Promise.all([
-        TournamentTeam.findOne({ ...query, name }),
-        TournamentTeam.findOne({ ...query, tag })
+        TeamModel.findOne({ ...query, name }),
+        TeamModel.findOne({ ...query, tag })
     ]);
 
     return {

@@ -3,12 +3,13 @@ import {
     TrophyIcon,
     UserGroupIcon,
     CameraIcon,
-    PlayCircleIcon,
     Cog6ToothIcon,
     ComputerDesktopIcon
 } from '@heroicons/react/24/outline';
+import { useAuth } from '@lib/contexts/AuthContext';
 
 export default function QuickAccessTools() {
+    const { user } = useAuth();
     const tools = [
         {
             name: 'Create Tournament',
@@ -28,19 +29,13 @@ export default function QuickAccessTools() {
             icon: CameraIcon,
             description: 'Configure team cameras'
         },
-        {
-            name: 'Stream Control',
-            description: 'Manage live stream cameras and player feeds',
-            icon: PlayCircleIcon,
-            href: '/modules/cameras/stream',
-            color: 'from-purple-600 to-pink-600'
-        },
-        {
+
+        ...(typeof window !== 'undefined' && (window.electronAPI?.isElectron || user?.isAdmin) ? [{
             name: 'Settings',
             href: '/settings',
             icon: Cog6ToothIcon,
             description: 'Configure Riot API, OBS & more'
-        }
+        }] : [])
     ];
 
     // Add desktop-specific tool if in Electron
@@ -56,7 +51,7 @@ export default function QuickAccessTools() {
     return (
         <div className="bg-gray-800/40 backdrop-blur-md rounded-xl p-6 mb-8 border border-gray-700/50">
             <h2 className="text-xl font-semibold mb-4 text-white">Tournament Management</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 ${user?.isAdmin ? 'lg:grid-cols-4' : 'lg:grid-cols-3'}`}>
                 {tools.map((tool) => (
                     <Link
                         key={tool.name}

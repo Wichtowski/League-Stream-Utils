@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getGameSession, updateGameSession } from '@/lib/game-logic';
+import { getGameSession, updateGameSession } from '@lib/game-logic';
 
 export async function POST(
   req: NextRequest,

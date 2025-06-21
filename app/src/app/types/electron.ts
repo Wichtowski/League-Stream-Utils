@@ -1,21 +1,34 @@
+import { Tournament } from '@lib/types/tournament';
+import { Champion } from '@lib/types/game';
+
+export interface TournamentData {
+    tournament: Tournament;
+    teams: string[];
+    settings: Record<string, string | number | boolean>;
+}
+
+export interface ChampionsData {
+    champions: Champion[];
+    version: string;
+    lastUpdated: string;
+}
+
 export interface ElectronAPI {
     // Platform info
     isElectron: boolean;
     platform: string;
 
     // File operations
-    saveTournamentFile: (data: any) => Promise<{ success: boolean; filePath?: string; error?: string }>;
-    saveChampionsCache: (data: any) => Promise<{ success: boolean; filePath?: string; error?: string }>;
-    loadChampionsCache: () => Promise<{ success: boolean; data?: any; error?: string }>;
+    saveTournamentFile: (data: TournamentData) => Promise<{ success: boolean; filePath?: string; error?: string }>;
+    saveChampionsCache: (data: ChampionsData) => Promise<{ success: boolean; filePath?: string; error?: string }>;
+    loadChampionsCache: () => Promise<{ success: boolean; data?: ChampionsData; error?: string }>;
     copyAssetFile: (sourcePath: string, fileName: string) => Promise<{ success: boolean; localPath?: string; error?: string }>;
-    saveCameraUpload: (fileBuffer: Buffer, fileName: string) => Promise<{ success: boolean; localPath?: string; publicPath?: string; error?: string }>;
-    getUserDataPath: () => Promise<string>;
     saveCameraUpload: (fileBuffer: Buffer, fileName: string) => Promise<{ success: boolean; localPath?: string; publicPath?: string; error?: string }>;
     getUserDataPath: () => Promise<string>;
 
     // Menu event listeners
     onCreateTournament: (callback: () => void) => void;
-    onLoadTournament: (callback: (data: any) => void) => void;
+    onLoadTournament: (callback: (data: TournamentData) => void) => void;
     onSaveTournament: (callback: () => void) => void;
     onImportLogos: (callback: (filePaths: string[]) => void) => void;
     onExportTournament: (callback: (filePath: string) => void) => void;

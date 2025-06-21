@@ -87,6 +87,7 @@ export default function BracketManager({ tournament, isOwner }: BracketManagerPr
                 });
             }
         } catch (error) {
+            console.error('Error generating bracket:', error);
             await showAlert({
                 type: 'error',
                 message: 'Failed to generate bracket'
@@ -132,6 +133,7 @@ export default function BracketManager({ tournament, isOwner }: BracketManagerPr
                 });
             }
         } catch (error) {
+            console.error('Error updating match result:', error);
             await showAlert({
                 type: 'error',
                 message: 'Failed to update match result'
@@ -163,6 +165,7 @@ export default function BracketManager({ tournament, isOwner }: BracketManagerPr
                 });
             }
         } catch (error) {
+            console.error('Error deleting bracket:', error);
             await showAlert({
                 type: 'error',
                 message: 'Failed to delete bracket'

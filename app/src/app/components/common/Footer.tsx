@@ -3,9 +3,11 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useNavigation } from "@lib/contexts/NavigationContext";
+import { usePathname } from "next/navigation";
 
 export default function Footer() {
   const { activeModule } = useNavigation();
+  const pathname = usePathname();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
@@ -14,6 +16,12 @@ export default function Footer() {
     const userData = localStorage.getItem('user');
     setIsAuthenticated(!!(token && userData));
   }, []);
+
+  // Don't show footer on the main page
+  if (pathname === '/' || pathname === '/auth') {
+    return null;
+  }
+
   return (
     <footer className="mt-auto">
       <div className="max-w-7xl mx-auto p-8">

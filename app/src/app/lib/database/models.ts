@@ -4,14 +4,14 @@ import {
   UserSchema,
   CameraTeamSchema,
   ChampionsCacheSchema,
-  TournamentTeamSchema,
+  TeamSchema,
   TournamentSchema,
   BracketSchema,
-  BracketNodeSchema,
-  TimerSchema,
-  TeamSchema,
-  GameConfigSchema,
-  CameraPlayerSchema,
+  // BracketNodeSchema,
+  // TimerSchema,
+  // TeamSchema,
+  // GameConfigSchema,
+  // CameraPlayerSchema,
   CameraSettingsSchema
 } from './schemas';
 
@@ -27,8 +27,8 @@ export const CameraTeam = mongoose.models.CameraTeam ||
 export const ChampionsCache = mongoose.models.ChampionsCache ||
   mongoose.model('ChampionsCache', ChampionsCacheSchema);
 
-export const TournamentTeam = mongoose.models.TournamentTeam ||
-  mongoose.model('TournamentTeam', TournamentTeamSchema);
+export const Team = mongoose.models.Team ||
+  mongoose.model('Team', TeamSchema);
 
 export const Tournament = mongoose.models.Tournament ||
   mongoose.model('Tournament', TournamentSchema);

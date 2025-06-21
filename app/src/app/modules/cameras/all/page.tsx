@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from "next/navigation";
 import Image from 'next/image';
 import { useNavigation } from '@lib/contexts/NavigationContext';
@@ -14,7 +14,6 @@ export default function AllCamerasPage() {
     const [loading, setLoading] = useState(true);
     const [authChecked, setAuthChecked] = useState(false);
     const [streamErrors, setStreamErrors] = useState<Set<string>>(new Set());
-    const currentTeam = useRef<Team | null>(null);
 
     useEffect(() => {
         setActiveModule('cameras');

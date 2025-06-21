@@ -53,8 +53,8 @@ export default function RegisterForm({ onSuccess, onError, onSwitchToLogin }: Re
       } else {
         onError(data.error);
       }
-    } catch (err) {
-      console.warn(err);
+    } catch (error) {
+      console.warn(error);
       onError('Registration failed. Please try again.');
     } finally {
       setLoading(false);

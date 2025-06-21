@@ -1,43 +1,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Cog6ToothIcon, CloudIcon, VideoCameraIcon, DocumentDuplicateIcon, ShieldCheckIcon } from '@heroicons/react/24/outline';
+import { Cog6ToothIcon, CloudIcon, DocumentDuplicateIcon, ShieldCheckIcon } from '@heroicons/react/24/outline';
+import { useModal } from '@lib/contexts/ModalContext';
 import riotAPI from '../../lib/services/riot-api';
-import obsIntegration from '../../lib/services/obs-integration';
-import tournamentTemplates from '../../lib/services/tournament-templates';
-
-interface ElectronAPI {
-    isElectron: boolean;
-    platform: string;
-    saveTournamentFile: (data: any) => Promise<any>;
-    saveChampionsCache: (data: any) => Promise<any>;
-    loadChampionsCache: () => Promise<any>;
-    copyAssetFile: (sourcePath: string, fileName: string) => Promise<any>;
-    onUpdateChampions: (callback: () => void) => void;
-    onChampionsCacheCleared: (callback: () => void) => void;
-    onOpenOBSControl: (callback: () => void) => void;
-    removeAllListeners: (channel: string) => void;
-}
-
-declare global {
-    interface Window {
-        electronAPI?: ElectronAPI;
-    }
-}
+import tournamentTemplates, { type TournamentTemplate } from '../../lib/services/tournament-templates';
 
 interface RiotAPISettings {
     apiKey: string;
     defaultRegion: string;
     cacheEnabled: boolean;
     rateLimitEnabled: boolean;
-}
-
-interface OBSSettings {
-    host: string;
-    port: number;
-    password: string;
-    autoConnect: boolean;
-    autoSceneSwitching: boolean;
 }
 
 interface CacheStats {
@@ -47,6 +20,7 @@ interface CacheStats {
 }
 
 export default function ElectronSettings() {
+    const { showAlert } = useModal();
     const [activeTab, setActiveTab] = useState('riot-api');
     const [isElectron, setIsElectron] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -59,24 +33,14 @@ export default function ElectronSettings() {
         rateLimitEnabled: true
     });
 
-    // OBS settings
-    const [obsSettings, setOBSSettings] = useState<OBSSettings>({
-        host: 'localhost',
-        port: 4455,
-        password: '',
-        autoConnect: true,
-        autoSceneSwitching: true
-    });
-
     // State management
-    const [obsConnected, setOBSConnected] = useState(false);
     const [cacheStats, setCacheStats] = useState<CacheStats>({
         champions: { count: 0, lastUpdated: 'Never' },
         players: { count: 0, memoryUsage: '0 MB' },
         matches: { count: 0, memoryUsage: '0 MB' }
     });
 
-    const [templates, setTemplates] = useState<any[]>([]);
+    const [templates, setTemplates] = useState<TournamentTemplate[]>([]);
     const [championsVersion, setChampionsVersion] = useState('');
 
     useEffect(() => {
@@ -94,26 +58,17 @@ export default function ElectronSettings() {
                     champions: { count: 0, lastUpdated: 'Never' }
                 }));
             });
-
-            window.electronAPI.onOpenOBSControl(() => {
-                setActiveTab('obs');
-            });
         }
 
         // Load initial data
         loadCacheStats();
         loadTemplates();
 
-        // Set up OBS event listeners
-        obsIntegration.on('connected', () => setOBSConnected(true));
-        obsIntegration.on('disconnected', () => setOBSConnected(false));
-
         return () => {
             // Cleanup
             if (window.electronAPI) {
                 window.electronAPI.removeAllListeners('update-champions');
                 window.electronAPI.removeAllListeners('champions-cache-cleared');
-                window.electronAPI.removeAllListeners('open-obs-control');
             }
         };
     }, []);
@@ -157,58 +112,26 @@ export default function ElectronSettings() {
         try {
             await riotAPI.getAllChampions();
             await loadCacheStats();
-            alert('Champions database updated successfully!');
+            await showAlert({ type: 'success', message: 'Champions database updated successfully!' });
         } catch (error) {
             console.error('Failed to update champions:', error);
-            alert('Failed to update champions database. Please check your API key and internet connection.');
+            await showAlert({ type: 'error', message: 'Failed to update champions database. Please check your API key and internet connection.' });
         } finally {
             setLoading(false);
         }
     };
 
-    const handleClearCache = () => {
+    const handleClearCache = async () => {
         riotAPI.clearCache();
         setCacheStats({
             champions: { count: 0, lastUpdated: 'Never' },
             players: { count: 0, memoryUsage: '0 MB' },
             matches: { count: 0, memoryUsage: '0 MB' }
         });
-        alert('Cache cleared successfully!');
+        await showAlert({ type: 'success', message: 'Cache cleared successfully!' });
     };
 
-    const handleConnectOBS = async () => {
-        setLoading(true);
-        try {
-            const success = await obsIntegration.connect({
-                address: obsSettings.host,
-                port: obsSettings.port,
-                password: obsSettings.password
-            });
-
-            if (success) {
-                setOBSConnected(true);
-                alert('Connected to OBS successfully!');
-            } else {
-                alert('Failed to connect to OBS. Please check your settings.');
-            }
-        } catch (error) {
-            console.error('OBS connection failed:', error);
-            alert('Failed to connect to OBS.');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleTestOBS = async () => {
-        try {
-            const scenes = await obsIntegration.getScenes();
-            alert(`OBS Test Successful!\nFound ${scenes.length} scenes: ${scenes.map(s => s.sceneName).join(', ')}`);
-        } catch (error) {
-            alert('OBS test failed. Please ensure OBS is running and WebSocket is enabled.');
-        }
-    };
-
-    const handleExportTemplate = async (templateId: string) => {
+    const handleExportTemplate = async (templateId: string): Promise<void> => {
         try {
             const blob = await tournamentTemplates.exportTemplate(templateId);
             if (blob) {
@@ -221,13 +144,12 @@ export default function ElectronSettings() {
             }
         } catch (error) {
             console.error('Failed to export template:', error);
-            alert('Failed to export template.');
+            await showAlert({ type: 'error', message: 'Failed to export template.' });
         }
     };
 
     const tabs = [
         { id: 'riot-api', name: 'Riot API', icon: ShieldCheckIcon },
-        { id: 'obs', name: 'OBS Integration', icon: VideoCameraIcon },
         { id: 'templates', name: 'Tournament Templates', icon: DocumentDuplicateIcon },
         { id: 'cache', name: 'Cache Management', icon: CloudIcon }
     ];
@@ -245,7 +167,7 @@ export default function ElectronSettings() {
                     )}
                 </div>
                 <p className="text-gray-600">
-                    Configure Riot API integration, OBS automation, and tournament templates for professional esports production.
+                    Configure Riot API integration, tournament templates for professional esports production.
                 </p>
             </div>
 
@@ -367,109 +289,6 @@ export default function ElectronSettings() {
                 </div>
             )}
 
-            {/* OBS Integration */}
-            {activeTab === 'obs' && (
-                <div className="space-y-6">
-                    <div className="bg-white shadow rounded-lg p-6">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-medium text-gray-900">OBS WebSocket Settings</h3>
-                            <div className={`px-3 py-1 rounded-full text-xs font-medium ${obsConnected ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                                }`}>
-                                {obsConnected ? 'Connected' : 'Disconnected'}
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Host
-                                </label>
-                                <input
-                                    type="text"
-                                    value={obsSettings.host}
-                                    onChange={(e) => setOBSSettings(prev => ({ ...prev, host: e.target.value }))}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Port
-                                </label>
-                                <input
-                                    type="number"
-                                    value={obsSettings.port}
-                                    onChange={(e) => setOBSSettings(prev => ({ ...prev, port: parseInt(e.target.value) }))}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                />
-                            </div>
-
-                            <div className="md:col-span-2">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Password (optional)
-                                </label>
-                                <input
-                                    type="password"
-                                    value={obsSettings.password}
-                                    onChange={(e) => setOBSSettings(prev => ({ ...prev, password: e.target.value }))}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="mt-6 space-y-4">
-                            <div className="flex items-center">
-                                <input
-                                    type="checkbox"
-                                    checked={obsSettings.autoConnect}
-                                    onChange={(e) => setOBSSettings(prev => ({ ...prev, autoConnect: e.target.checked }))}
-                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                />
-                                <label className="ml-2 block text-sm text-gray-900">
-                                    Auto-connect on startup
-                                </label>
-                            </div>
-
-                            <div className="flex items-center">
-                                <input
-                                    type="checkbox"
-                                    checked={obsSettings.autoSceneSwitching}
-                                    onChange={(e) => setOBSSettings(prev => ({ ...prev, autoSceneSwitching: e.target.checked }))}
-                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                />
-                                <label className="ml-2 block text-sm text-gray-900">
-                                    Enable automatic scene switching during tournaments
-                                </label>
-                            </div>
-                        </div>
-
-                        <div className="mt-6 flex gap-3">
-                            <button
-                                onClick={handleConnectOBS}
-                                disabled={loading || obsConnected}
-                                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium disabled:opacity-50"
-                            >
-                                {obsConnected ? 'Connected' : 'Connect to OBS'}
-                            </button>
-
-                            <button
-                                onClick={handleTestOBS}
-                                disabled={!obsConnected}
-                                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium disabled:opacity-50"
-                            >
-                                Test Connection
-                            </button>
-                        </div>
-
-                        <div className="mt-4 p-3 bg-blue-50 rounded-md">
-                            <p className="text-sm text-blue-800">
-                                <strong>Setup:</strong> Enable WebSocket server in OBS (Tools → WebSocket Server Settings)
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            )}
-
             {/* Tournament Templates */}
             {activeTab === 'templates' && (
                 <div className="space-y-6">
@@ -563,7 +382,6 @@ export default function ElectronSettings() {
                                     <li>• Persistent local champion database</li>
                                     <li>• Local tournament template storage</li>
                                     <li>• Asset file management</li>
-                                    <li>• Enhanced OBS integration</li>
                                 </ul>
                             </div>
                         )}

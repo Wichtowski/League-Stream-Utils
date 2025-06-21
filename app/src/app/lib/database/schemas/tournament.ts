@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import { ImageStorageSchema, PlayerSchema, StaffSchema } from './common';
 import { Player } from '../../types';
 
-export const TournamentTeamSchema = new mongoose.Schema({
+export const TeamSchema = new mongoose.Schema({
     id: { type: String, required: true, unique: true },
     name: { type: String, required: true },
     tag: { type: String, required: true },
@@ -80,10 +80,11 @@ export const TournamentSchema = new mongoose.Schema({
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now }
 });
-TournamentTeamSchema.index({ userId: 1 });
-TournamentTeamSchema.index({ name: 1 });
-TournamentTeamSchema.index({ tag: 1 });
-TournamentTeamSchema.index({ 'players.main.puuid': 1 });
+
+TeamSchema.index({ userId: 1 });
+TeamSchema.index({ name: 1 });
+TeamSchema.index({ tag: 1 });
+TeamSchema.index({ 'players.main.puuid': 1 });
 
 TournamentSchema.index({ userId: 1 });
 TournamentSchema.index({ status: 1 });

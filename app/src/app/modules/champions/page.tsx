@@ -44,7 +44,7 @@ const languages = [
 
 const CHAMP_LIST_URL = (lang: string) => `${DDRAGON_CDN}/${VERSION}/data/${lang}/champion.json`;
 const ICON_URL = (champ: string) => `${DDRAGON_CDN}/${VERSION}/img/champion/${champ}.png`;
-const CHAMP_DETAIL_URL = (champ: string, lang: string) => `${DDRAGON_CDN}/cdn/${VERSION}/data/${lang}/champion/${champ}.json`;
+const CHAMP_DETAIL_URL = (champ: string, lang: string) => `${DDRAGON_CDN}/${VERSION}/data/${lang}/champion/${champ}.json`;
 const SPELL_ICON_URL = (img: string) => `${DDRAGON_CDN}/${VERSION}/img/spell/${img}`;
 
 export default function App() {

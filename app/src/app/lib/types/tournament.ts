@@ -11,6 +11,13 @@ export interface ImageStorage {
     format: 'png' | 'jpg' | 'webp';
 }
 
+export interface TournamentTemplate {
+    id: string;
+    name: string;
+    description: string;
+    logo: ImageStorage;
+}
+
 export interface Player {
     id: string;
     role: PlayerRole;

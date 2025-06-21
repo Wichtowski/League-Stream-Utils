@@ -1,4 +1,5 @@
-import { MatchFormat } from "@lib/types/tournament";
+import { MatchFormat, Tournament } from "@lib/types/tournament";
+import { TournamentData } from "../../types/electron";
 
 interface TournamentTemplate {
     id: string;
@@ -30,7 +31,7 @@ interface TournamentTemplate {
             sources: Array<{
                 name: string;
                 type: string;
-                settings: Record<string, any>;
+                settings: Record<string, string | number | boolean>;
             }>;
         }>;
         transitions: Array<{
@@ -311,15 +312,7 @@ class TournamentTemplateService {
     async saveTemplate(template: TournamentTemplate): Promise<void> {
         template.lastModified = new Date();
         this.templates.set(template.id, template);
-
-        // Save to Electron storage if available
-        if (this.isElectron) {
-            try {
-                await window.electronAPI?.saveTournamentFile(template);
-            } catch (error) {
-                console.warn('Failed to save template to Electron storage:', error);
-            }
-        }
+        // Note: Templates are stored in memory only, not persisted to Electron storage
     }
 
     async deleteTemplate(id: string): Promise<boolean> {
@@ -329,34 +322,29 @@ class TournamentTemplateService {
     async createTournamentFromTemplate(
         templateId: string,
         settings: TournamentSettings
-    ): Promise<any> {
+    ): Promise<TournamentData> {
         const template = await this.getTemplate(templateId);
         if (!template) {
             throw new Error(`Template ${templateId} not found`);
         }
 
-        // Merge template with settings
-        const tournament = {
-            ...settings,
-            template: {
-                ...template,
-                // Apply overrides
+        // Create tournament data structure
+        const tournamentData: TournamentData = {
+            tournament: {
+                ...settings,
+                id: `tournament_${Date.now()}`,
+                createdAt: new Date(),
+                updatedAt: new Date()
+            } as Tournament, // TODO: Implement proper Tournament type conversion
+            teams: [],
+            settings: {
+                templateId: template.id,
                 format: settings.format || template.format,
-                fearlessDraft: settings.fearlessDraft ?? template.fearlessDraft,
-                theme: {
-                    ...template.theme,
-                    ...settings.customTheme
-                },
-                obs: {
-                    ...template.obs,
-                    ...settings.customOBSSettings
-                }
-            },
-            createdAt: new Date(),
-            id: `tournament_${Date.now()}`
+                fearlessDraft: settings.fearlessDraft ?? template.fearlessDraft
+            }
         };
 
-        return tournament;
+        return tournamentData;
     }
 
     async exportTemplate(id: string): Promise<Blob | null> {
@@ -385,7 +373,7 @@ class TournamentTemplateService {
     }
 
     // Utility methods for asset management
-    async validateAssets(template: TournamentTemplate): Promise<{
+    async validateAssets(_template: TournamentTemplate): Promise<{
         valid: boolean;
         missingAssets: string[];
     }> {
@@ -406,7 +394,7 @@ class TournamentTemplateService {
         };
     }
 
-    async copyAssetsToUserData(template: TournamentTemplate): Promise<void> {
+    async copyAssetsToUserData(_template: TournamentTemplate): Promise<void> {
         if (!this.isElectron) return;
 
         // TODO: Copy template assets to user data directory

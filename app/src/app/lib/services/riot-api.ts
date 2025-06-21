@@ -3,6 +3,19 @@ import { Champion } from '../types';
 import { config } from '@lib/config';
 import { SummonerData, RankedData, ChampionMastery, MatchData, RiotPlayer } from '@lib/types/riot';
 
+interface DataDragonChampion {
+    id: string;
+    key: string;
+    name: string;
+    image: {
+        full: string;
+    };
+}
+
+interface DataDragonResponse {
+    data: Record<string, DataDragonChampion>;
+}
+
 class RiotAPIService {
     private cache: NodeCache;
     private rateLimiter: Map<string, number[]> = new Map();
@@ -59,11 +72,14 @@ class RiotAPIService {
                 }
             });
             return response.json();
-        } catch (error: any) {
-            if (error.response?.status === 429) {
-                const retryAfter = error.response.headers['retry-after'] || 1;
-                await new Promise(resolve => setTimeout(resolve, retryAfter * 1000));
-                return this.makeRequest<T>(url, region);
+        } catch (error: unknown) {
+            if (error instanceof Error && 'response' in error) {
+                const errorWithResponse = error as Error & { response?: { status: number; headers: Record<string, string> } };
+                if (errorWithResponse.response?.status === 429) {
+                    const retryAfter = parseInt(errorWithResponse.response.headers['retry-after'] || '1');
+                    await new Promise(resolve => setTimeout(resolve, retryAfter * 1000));
+                    return this.makeRequest<T>(url, region);
+                }
             }
             throw error;
         }
@@ -103,9 +119,9 @@ class RiotAPIService {
             const response = await fetch(
                 `https://ddragon.leagueoflegends.com/cdn/${version}/data/en_US/champion.json`
             );
-            const data = await response.json();
+            const data: DataDragonResponse = await response.json();
 
-            const champions: Champion[] = Object.values(data.data).map((champ: any) => ({
+            const champions: Champion[] = Object.values(data.data).map((champ: DataDragonChampion) => ({
                 id: parseInt(champ.key),
                 name: champ.name,
                 key: champ.id,
@@ -120,8 +136,7 @@ class RiotAPIService {
                 window.electronAPI.saveChampionsCache({
                     version,
                     champions,
-                    lastUpdated: new Date(),
-                    expiresAt: new Date(Date.now() + 86400000)
+                    lastUpdated: new Date().toISOString()
                 });
             }
 
@@ -133,7 +148,7 @@ class RiotAPIService {
             if (typeof window !== 'undefined' && window.electronAPI) {
                 try {
                     const electronCache = await window.electronAPI.loadChampionsCache();
-                    if (electronCache.success && electronCache.data.champions) {
+                    if (electronCache.success && electronCache.data?.champions) {
                         return electronCache.data.champions;
                     }
                 } catch (e) {
@@ -268,11 +283,11 @@ class RiotAPIService {
                 summoner,
                 rankedData
             };
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Player verification failed:', error);
             return {
                 verified: false,
-                error: error.response?.status === 404 ? 'Player not found' : 'Verification failed'
+                error: error instanceof Error ? error.message : 'Verification failed'
             };
         }
     }

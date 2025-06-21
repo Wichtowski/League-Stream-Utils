@@ -55,7 +55,6 @@ app/
 ├── src/app/
 │   ├── lib/services/           # Phase 2 services
 │   │   ├── riot-api.ts         # Riot API integration
-│   │   ├── obs-integration.ts  # OBS WebSocket control
 │   │   └── tournament-templates.ts # Template management
 │   ├── components/settings/    # Configuration UI
 │   │   └── ElectronSettings.tsx
@@ -80,16 +79,7 @@ app/
 - Electron cache integration for offline access
 ```
 
-#### 📹 OBS Integration Service (`obs-integration.ts`)
-```typescript
-// Key capabilities:
-- connect(config) // WebSocket connection management
-- setCurrentScene(sceneName) // Automated scene switching
-- setupChampionSelectScene(teams) // Tournament-ready scenes
-- setupInGameScene() // Live match configuration
-- getStreamingStats() // Real-time stream monitoring
-- Event-driven architecture for real-time updates
-```
+
 
 #### 🏆 Tournament Templates Service (`tournament-templates.ts`)
 ```typescript
@@ -106,7 +96,6 @@ app/
 ### Prerequisites
 - Node.js 18+ (for Next.js 15)
 - MongoDB (for data persistence)
-- OBS Studio with WebSocket plugin (optional, for streaming)
 - Riot Games API key (optional, for player verification)
 
 ### Development Setup

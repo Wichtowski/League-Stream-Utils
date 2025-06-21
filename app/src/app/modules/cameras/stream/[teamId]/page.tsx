@@ -2,9 +2,9 @@
 
 import React, { useEffect, useState, Suspense, useCallback } from 'react';
 import { useRouter, useParams } from "next/navigation";
-import Image from 'next/image';
 import { useNavigation } from '@lib/contexts/NavigationContext';
-import { CameraPlayer } from '@lib/types';
+import { CameraPlayer, CameraTeam } from '@lib/types';
+import Image from 'next/image';
 
 export default function TeamCameraStreamPage() {
     const router = useRouter();
@@ -17,6 +17,7 @@ export default function TeamCameraStreamPage() {
     const [authChecked, setAuthChecked] = useState(false);
     const [randomMode, setRandomMode] = useState(false);
     const [teamName, setTeamName] = useState<string>('');
+    const [teamLogo, setTeamLogo] = useState<string>('');
     const [accessDenied, setAccessDenied] = useState(false);
     const [accessReason, setAccessReason] = useState<string>('');
 
@@ -88,11 +89,11 @@ export default function TeamCameraStreamPage() {
                     const data = await response.json();
                     const teams = data.teams || [];
 
-                    // Find the specific team
-                    const team = teams.find((t: any) => t.teamId === teamId);
+                    const team = teams.find((t: CameraTeam) => t.teamId === teamId);
 
                     if (team) {
                         setTeamName(team.teamName);
+                        setTeamLogo(team.teamLogo || '');
                         setPlayers(team.players || []);
                     } else {
                         console.error('Team not found');
@@ -221,64 +222,54 @@ export default function TeamCameraStreamPage() {
         <Suspense fallback={<div>Loading...</div>}>
             <div className="min-h-screen bg-black">
 
-                {/* Controls Help */}
-                <div className="absolute bottom-4 left-4 z-10 bg-black/70 text-white px-4 py-2 rounded-lg text-sm">
-                    <div>Space: Random Player | R: Toggle Random Mode | 1-{Math.min(players.length, 9)}: Select Player</div>
-                </div>
-
-                {/* Player Selection */}
-                <div className="absolute bottom-4 right-4 z-10 bg-black/70 text-white px-4 py-2 rounded-lg">
-                    <div className="text-xs text-gray-400 mb-2">Individual Players</div>
-                    <div className="flex flex-wrap gap-1">
-                        {players.map((player, index) => (
-                            <button
-                                key={`${player.inGameName || player.playerName || 'player'}-${index}`}
-                                onClick={() => router.push(`/modules/cameras/stream/${teamId}/${encodeURIComponent(player.inGameName || '')}`)}
-                                className="bg-gray-600 hover:bg-gray-500 text-white px-2 py-1 rounded text-xs transition-colors"
-                                title={`${player.inGameName} (${player.role})`}
-                            >
-                                {index + 1}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Back Button */}
-                <div className="absolute top-4 right-4 z-10">
-                    <button
-                        onClick={() => router.push('/modules/cameras')}
-                        className="bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded-lg text-sm transition-colors"
-                    >
-                        Camera Hub
-                    </button>
-                </div>
-
                 <div className="relative w-full aspect-video">
-                    {currentPlayer?.imagePath && !streamFailed ? (
+                    {/* Preload all streams as hidden iframes - only for players with valid URLs */}
+                    {players.filter(player => player.imagePath && player.imagePath.trim() !== '').map((player) => (
                         <iframe
-                            src={currentPlayer.imagePath}
-                            className="w-full h-full"
+                            key={`stream-${player.playerId || player.inGameName}`}
+                            src={player.imagePath}
+                            className={`absolute inset-0 w-full h-full ${
+                                currentPlayer?.playerId === player.playerId || 
+                                (currentPlayer?.inGameName === player.inGameName && player.inGameName)
+                                    ? 'block' 
+                                    : 'hidden'
+                            }`}
                             allow="autoplay; fullscreen"
                             onError={handleStreamError}
+                            title={`${player.inGameName || player.playerName} camera feed`}
                         />
-                    ) : currentPlayer?.imagePath ? (
-                        <Image
-                            src={currentPlayer.imagePath}
-                            alt={currentPlayer.inGameName || ''}
-                            fill
-                            className="object-cover"
-                        />
-                    ) : (
-                        <div className="w-full h-full bg-gray-800 flex items-end justify-center pb-8">
+                    ))}
+                    
+                    {/* Fallback display when no stream is available */}
+                    {(!currentPlayer?.imagePath || streamFailed) && (
+                        <div className="absolute inset-0 w-full h-full bg-gray-800 flex items-center justify-center">
                             <div className="text-center">
-                                <h2 className="text-6xl font-bold text-white drop-shadow-lg">
-                                    {currentPlayer?.inGameName}
-                                </h2>
-                                {currentPlayer?.inGameName && (
-                                    <p className="text-2xl text-gray-300 drop-shadow-lg mt-2">
-                                        {currentPlayer.inGameName}
-                                    </p>
+                                {teamLogo ? (
+                                    <Image 
+                                        src={teamLogo} 
+                                        alt={teamName}
+                                        width={128}
+                                        height={128}
+                                        className="w-32 h-32 object-contain mx-auto mb-4 opacity-50"
+                                    />
+                                ) : (
+                                    <div className="text-gray-400 text-6xl mb-4">📹</div>
                                 )}
+                                <h2 className="text-2xl font-bold text-white mb-2">No Stream Available</h2>
+                                <p className="text-gray-400">
+                                    {currentPlayer?.inGameName || currentPlayer?.playerName || 'Player'} stream is not configured
+                                </p>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Player Name Overlay - Full width bottom centered */}
+                    {currentPlayer && (
+                        <div className="absolute bottom-0 left-0 right-0 z-10 bg-gradient-to-t from-black via-black/70 to-transparent py-8 px-4">
+                            <div className="text-center">
+                                <h2 className="text-4xl font-bold text-white drop-shadow-lg">
+                                    {currentPlayer.inGameName || currentPlayer.playerName || 'Unknown Player'}
+                                </h2>
                             </div>
                         </div>
                     )}
@@ -292,6 +283,24 @@ export default function TeamCameraStreamPage() {
                         </div>
                     </div>
                 )}
+                <div className="bottom-4 right-4 z-10 space-y-2">
+                    {/* Player Controls */}
+                    <div className="bg-black/70 text-white px-4 py-2 rounded-lg">
+                        <div className="text-xs text-gray-400 mb-2">Individual Players</div>
+                        <div className="flex flex-wrap gap-1 font-bold text-white ">
+                            {players.map((player, index) => (
+                                <button
+                                    key={`${player.inGameName || player.playerName || 'player'}-${index}`}
+                                    onClick={() => router.push(`/modules/cameras/stream/${teamId}/${encodeURIComponent(player.inGameName || '')}`)}
+                                    className="bg-gray-600 hover:bg-gray-500 text-white px-2 py-1 rounded text-xs transition-colors"
+                                    title={`${player.inGameName} (${player.role})`}
+                                >
+                                    {index + 1}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </div>
             </div>
         </Suspense>
     );

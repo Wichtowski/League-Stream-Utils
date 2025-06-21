@@ -4,7 +4,13 @@ import { connectToDatabase } from '@lib/database/connection';
 import { CameraSettings } from '@lib/database/models';
 import { getUserTeams } from '@lib/database/team';
 import { JWTPayload } from '@lib/types/auth';
-import type { Team } from '@lib/types';
+import type { Player, Team } from '@lib/types';
+
+interface CameraTeam {
+    teamId: string;
+    teamName: string;
+    players?: Player[];
+}
 
 export const GET = withAuth(async (req: NextRequest, user: JWTPayload) => {
     try {
@@ -20,10 +26,19 @@ export const GET = withAuth(async (req: NextRequest, user: JWTPayload) => {
             if (userId) {
                 settings = await CameraSettings.findOne({ userId });
             } else {
-                settings = await CameraSettings.find({});
+                // Get all camera settings and merge them for admin view
+                const allSettings = await CameraSettings.find({});
+                
+                // Merge all teams from all users into one response
+                const allTeams = allSettings.flatMap(s => s.teams || []);
+                settings = {
+                    userId: 'admin',
+                    teams: allTeams,
+                    createdAt: new Date(),
+                    updatedAt: new Date()
+                };
             }
         } else {
-            // Regular users can only see their own camera settings
             settings = await CameraSettings.findOne({ userId: user.userId });
         }
 
@@ -31,14 +46,14 @@ export const GET = withAuth(async (req: NextRequest, user: JWTPayload) => {
             return NextResponse.json({ teams: [] });
         }
 
-        // For regular users, filter teams to only show teams they own
         if (!user.isAdmin && Array.isArray(settings.teams)) {
             const userTeams = await getUserTeams(user.userId);
             const userTeamIds = userTeams.map((team: Team) => team.id);
 
-            settings.teams = settings.teams.filter((team: any) =>
-                userTeamIds.includes(team.teamId)
-            );
+            settings.teams = settings.teams.filter((team: CameraTeam) => {
+                const hasAccess = userTeamIds.includes(team.teamId);
+                return hasAccess;
+            });
         }
 
         return NextResponse.json(settings);
@@ -59,14 +74,14 @@ export const POST = withAuth(async (req: NextRequest, user: JWTPayload) => {
             const userTeams = await getUserTeams(user.userId);
             const userTeamIds = userTeams.map((team: Team) => team.id);
 
-            const invalidTeams = teams.filter((team: any) =>
+            const invalidTeams = teams.filter((team: CameraTeam) =>
                 !userTeamIds.includes(team.teamId)
             );
 
             if (invalidTeams.length > 0) {
                 return NextResponse.json({
                     error: 'You can only configure cameras for teams you own',
-                    invalidTeams: invalidTeams.map((t: any) => t.teamName)
+                    invalidTeams: invalidTeams.map((t: CameraTeam) => t.teamName)
                 }, { status: 403 });
             }
         }

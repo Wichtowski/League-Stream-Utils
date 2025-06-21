@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { useUser } from '@lib/contexts/AuthContext';
-import type { Team, CreateTeamRequest } from '@lib/types';
+import type { Team, CreateTeamRequest, TeamTier } from '@lib/types';
 import { useModal } from '@lib/contexts/ModalContext';
 
 export default function TeamsPage() {
@@ -89,10 +90,11 @@ export default function TeamsPage() {
                 setShowCreateForm(false);
                 resetForm();
             } else {
-                alert(data.error || 'Failed to create team');
+                await showAlert({ type: 'error', message: data.error || 'Failed to create team' });
             }
         } catch (error) {
-            alert('Failed to create team');
+            console.error('Failed to create team:', error);
+            await showAlert({ type: 'error', message: 'Failed to create team' });
         } finally {
             setCreating(false);
         }
@@ -115,18 +117,18 @@ export default function TeamsPage() {
         if (!file) return;
 
         if (!file.type.startsWith('image/')) {
-            alert('Please select an image file');
+            await showAlert({ type: 'warning', message: 'Please select an image file' });
             return;
         }
 
         if (file.size > 5 * 1024 * 1024) { // 5MB
-            alert('Image must be smaller than 5MB');
+            await showAlert({ type: 'warning', message: 'Image must be smaller than 5MB' });
             return;
         }
 
         const format = file.type.split('/')[1] as 'png' | 'jpg' | 'webp' | 'jpeg';
         if (!['png', 'jpg', 'jpeg', 'webp'].includes(format)) {
-            alert('Supported formats: PNG, JPG, WEBP');
+            await showAlert({ type: 'warning', message: 'Supported formats: PNG, JPG, WEBP' });
             return;
         }
 
@@ -315,6 +317,14 @@ export default function TeamsPage() {
                 <div className="flex justify-between items-center mb-8">
                     <h1 className="text-3xl font-bold">My Teams</h1>
                     <p>You are logged in as {user.username}</p>
+                    { teams.length > 0 && (
+                        <button
+                            onClick={() => setShowCreateForm(true)}
+                            className="cursor-pointer bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-lg"
+                        >
+                            Create Team
+                        </button>
+                    )}
                 </div>
 
                 {showCreateForm && (
@@ -359,7 +369,7 @@ export default function TeamsPage() {
                                     <label className="block text-sm font-medium mb-2">Tier</label>
                                     <select
                                         value={formData.tier}
-                                        onChange={(e) => setFormData({ ...formData, tier: e.target.value as any })}
+                                        onChange={(e) => setFormData({ ...formData, tier: e.target.value as TeamTier })}
                                         className="w-full bg-gray-700 rounded px-3 py-2"
                                     >
                                         <option value="amateur">Amateur</option>
@@ -397,7 +407,7 @@ export default function TeamsPage() {
                                 {logoPreview && (
                                     <div className="mt-4 flex justify-center">
                                         <div className="bg-gray-700 rounded-lg p-4">
-                                            <img
+                                            <Image
                                                 src={logoPreview}
                                                 alt="Logo preview"
                                                 width={100}
@@ -607,6 +617,7 @@ export default function TeamsPage() {
 
                                                         if (confirmed) {
                                                             try {
+
                                                                 const response = await fetch(`/api/v1/teams/${team.id}/verify`, {
                                                                     method: 'POST',
                                                                     headers: {
@@ -620,9 +631,12 @@ export default function TeamsPage() {
                                                                     await showAlert({ type: 'success', message: 'Team verified successfully!' });
                                                                     await fetchUserTeams();
                                                                 } else {
-                                                                    await showAlert({ type: 'error', message: 'Failed to verify team' });
+                                                                    const errorData = await response.json();
+                                                                    console.error('Verification failed:', errorData);
+                                                                    await showAlert({ type: 'error', message: `Failed to verify team: ${errorData.error || 'Unknown error'}` });
                                                                 }
                                                             } catch (error) {
+                                                                console.error('Failed to verify team:', error);
                                                                 await showAlert({ type: 'error', message: 'Failed to verify team' });
                                                             }
                                                         }

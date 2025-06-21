@@ -4,7 +4,7 @@ import React, { useEffect, useState, Suspense } from 'react';
 import { useRouter, useParams } from "next/navigation";
 import { useNavigation } from '@lib/contexts/NavigationContext';
 import { CameraFeed, CameraNavigation, PlayerInfoHeader, CameraLayout } from '@components/cameras';
-import type { CameraPlayer } from '@lib/types';
+import type { CameraPlayer, CameraTeam } from '@lib/types';
 
 export default function PlayerCameraStreamPage() {
     const router = useRouter();
@@ -64,13 +64,13 @@ export default function PlayerCameraStreamPage() {
                     const teams = data.teams || [];
 
                     // Find the specific team
-                    const team = teams.find((t: any) => t.teamId === teamId);
+                    const team = teams.find((t: CameraTeam) => t.teamId === teamId);
 
                     if (team) {
                         setTeamName(team.teamName);
 
                         // Find the specific player
-                        const foundPlayer = team.players.find((p: any) => p.playerName === playerName);
+                        const foundPlayer = team.players.find((p: CameraPlayer) => p.playerName === playerName);
 
                         if (foundPlayer) {
                             setPlayer({

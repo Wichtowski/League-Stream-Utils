@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@lib/auth';
 import { connectToDatabase } from '@lib/database/connection';
-import { TournamentTeam } from '@lib/database/models';
+import { Team as TeamModel } from '@lib/database/models';
 import type { JWTPayload } from '@lib/types/auth';
+import { Player, Team } from '@lib/types';
 
 export const POST = withAuth(async (req: NextRequest, user: JWTPayload) => {
     try {
@@ -25,7 +26,7 @@ export const POST = withAuth(async (req: NextRequest, user: JWTPayload) => {
 
         for (const teamId of teamIds) {
             try {
-                const team = await TournamentTeam.findOne({ id: teamId });
+                const team = await TeamModel.findOne({ id: teamId });
                 if (!team) {
                     results.failed.push({ teamId, error: 'Team not found' });
                     continue;
@@ -37,12 +38,12 @@ export const POST = withAuth(async (req: NextRequest, user: JWTPayload) => {
                 }
 
                 if (verifyPlayers && verified) {
-                    team.players.main.forEach((player: any) => {
+                    team.players.main.forEach((player: Player) => {
                         player.verified = true;
                         player.verifiedAt = new Date();
                     });
 
-                    team.players.substitutes.forEach((player: any) => {
+                    team.players.substitutes.forEach((player: Player) => {
                         player.verified = true;
                         player.verifiedAt = new Date();
                     });
@@ -78,11 +79,11 @@ export const GET = withAuth(async (req: NextRequest, user: JWTPayload) => {
 
         await connectToDatabase();
 
-        const teams = await TournamentTeam.find({})
+        const teams = await TeamModel.find({})
             .select('id name tag verified players.main.verified players.substitutes.verified userId createdAt')
             .sort({ createdAt: -1 });
 
-        const teamsWithStats = teams.map((team: any) => ({
+        const teamsWithStats = teams.map((team: Team) => ({
             id: team.id,
             name: team.name,
             tag: team.tag,
@@ -90,15 +91,15 @@ export const GET = withAuth(async (req: NextRequest, user: JWTPayload) => {
             userId: team.userId,
             createdAt: team.createdAt,
             playerStats: {
-                mainVerified: team.players.main.filter((p: any) => p.verified).length,
+                mainVerified: team.players.main.filter((p: Player) => p.verified).length,
                 mainTotal: team.players.main.length,
-                subsVerified: team.players.substitutes.filter((p: any) => p.verified).length,
+                subsVerified: team.players.substitutes.filter((p: Player) => p.verified).length,
                 subsTotal: team.players.substitutes.length
             },
             allPlayersVerified: [
                 ...team.players.main,
                 ...team.players.substitutes
-            ].every((p: any) => p.verified)
+            ].every((p: Player) => p.verified)
         }));
 
         return NextResponse.json({ teams: teamsWithStats });

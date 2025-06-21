@@ -53,8 +53,8 @@ export default function ConfigPage() {
             } else if (response.status === 401) {
                 router.push('/auth');
             }
-        } catch (err) {
-            console.error('Failed to load config:', err);
+        } catch (error) {
+            console.error('Failed to load config:', error);
         }
     }, [sessionId, router]);
 
@@ -83,9 +83,9 @@ export default function ConfigPage() {
 
             setSuccess(true);
             setTimeout(() => setSuccess(false), 3000);
-        } catch (err) {
+        } catch (error) {
             setError('Failed to save configuration');
-            console.error(err);
+            console.error(error);
         } finally {
             setLoading(false);
         }
@@ -114,9 +114,9 @@ export default function ConfigPage() {
 
             // Redirect to the game page
             router.push(`/pickban/game/${sessionId}`);
-        } catch (err) {
+        } catch (error) {
             setError('Failed to start match');
-            console.error(err);
+            console.error(error);
         } finally {
             setLoading(false);
         }

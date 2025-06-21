@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { connectToDatabase } from '@lib/database/connection';
 import mongoose from 'mongoose';
+import { CameraPlayer, CameraTeam } from '@/app/lib/types';
 
 // Reference the CameraSettings model (should match the one in settings/route.ts)
 const CameraSettingsSchema = new mongoose.Schema({
@@ -33,8 +34,8 @@ export async function GET() {
 
         // Extract all players from all camera settings
         const allPlayers = allSettings.flatMap((settings) =>
-            settings.teams.flatMap((team: any) =>
-                team.players.filter((player: any) => player.playerName).map((player: any) => ({
+            settings.teams.flatMap((team: CameraTeam) =>
+                team.players.filter((player: CameraPlayer) => player.playerName).map((player: CameraPlayer) => ({
                     name: player.playerName,
                     url: player.url,
                     imagePath: player.imagePath,

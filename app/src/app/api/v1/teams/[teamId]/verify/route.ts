@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@lib/auth';
 import { getTeamById, verifyTeamPlayers } from '@lib/database/team';
 import { connectToDatabase } from '@lib/database/connection';
-import { TournamentTeam } from '@lib/database/models';
+import { Team as TeamModel } from '@lib/database/models';
 import type { JWTPayload } from '@lib/types/auth';
 
 export const POST = withAuth(async (req: NextRequest, user: JWTPayload) => {
@@ -12,18 +12,23 @@ export const POST = withAuth(async (req: NextRequest, user: JWTPayload) => {
         }
 
         const url = new URL(req.url);
-        const teamId = url.pathname.split('/')[5];
+        const pathParts = url.pathname.split('/');
+        const teamId = pathParts[4];
+
+        console.log('Admin verify team - URL:', url.pathname, 'TeamId:', teamId);
 
         const { verified = true, verifyPlayers = true } = await req.json();
 
         const team = await getTeamById(teamId);
         if (!team) {
+            console.log('Team not found with ID:', teamId);
             return NextResponse.json({ error: 'Team not found' }, { status: 404 });
         }
 
+        console.log('Found team:', team.name, 'ID:', team.id);
         await connectToDatabase();
 
-        const updatedTeam = await TournamentTeam.findOne({ id: teamId });
+        const updatedTeam = await TeamModel.findOne({ id: teamId });
         if (!updatedTeam) {
             return NextResponse.json({ error: 'Team not found' }, { status: 404 });
         }
@@ -69,7 +74,8 @@ export const GET = withAuth(async (req: NextRequest, user: JWTPayload) => {
         }
 
         const url = new URL(req.url);
-        const teamId = url.pathname.split('/')[5];
+        const pathParts = url.pathname.split('/');
+        const teamId = pathParts[4]; // /api/v1/teams/[teamId]/verify -> index 4
 
         const team = await getTeamById(teamId);
         if (!team) {

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { API_BASE_URL } from '@lib/constants';
+import { useAuth } from '@lib/contexts/AuthContext';
 
 interface LoginFormProps {
   onSuccess: () => void;
@@ -9,6 +9,7 @@ interface LoginFormProps {
 
 export default function LoginForm({ onSuccess, onError }: LoginFormProps) {
   const router = useRouter();
+  const { login } = useAuth();
   const [loading, setLoading] = useState(false);
   const [loginData, setLoginData] = useState({
     username: '',
@@ -21,28 +22,16 @@ export default function LoginForm({ onSuccess, onError }: LoginFormProps) {
     onError(''); // Clear any existing errors
 
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(loginData)
-      });
+      const success = await login(loginData.username, loginData.password);
       
-      const data = await response.json();
-      
-      if (response.ok) {
-        // Store token and user data
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
-        
+      if (success) {
         onSuccess();
-        router.push('/');
+        router.push('/modules');
       } else {
-        onError(data.error);
+        onError('Invalid username or password');
       }
-    } catch (err) {
-      console.warn(err);
+    } catch (error) {
+      console.warn(error);
       onError('Login failed. Please try again.');
     } finally {
       setLoading(false);

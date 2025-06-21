@@ -2,10 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { useUser } from '@lib/contexts/AuthContext';
-import type { Tournament, CreateTournamentRequest } from '@lib/types';
+import type { Tournament, CreateTournamentRequest, MatchFormat, TournamentFormat } from '@lib/types';
+import { useModal } from '@lib/contexts/ModalContext';
 
 export default function TournamentsPage() {
     const user = useUser();
+    const { showAlert } = useModal();
     const [tournaments, setTournaments] = useState<Tournament[]>([]);
     const [loading, setLoading] = useState(true);
     const [showCreateForm, setShowCreateForm] = useState(false);
@@ -99,10 +101,11 @@ export default function TournamentsPage() {
                     }
                 });
             } else {
-                alert(data.error || 'Failed to create tournament');
+                await showAlert({ type: 'error', message: data.error || 'Failed to create tournament' });
             }
         } catch (error) {
-            alert('Failed to create tournament');
+            await showAlert({ type: 'error', message: 'Failed to create tournament' });
+            console.error('Failed to create tournament:', error);
         } finally {
             setCreating(false);
         }
@@ -126,10 +129,11 @@ export default function TournamentsPage() {
                 ));
             } else {
                 const data = await response.json();
-                alert(data.error || 'Failed to update tournament status');
+                await showAlert({ type: 'error', message: data.error || 'Failed to update tournament status' });
             }
         } catch (error) {
-            alert('Failed to update tournament status');
+            await showAlert({ type: 'error', message: 'Failed to update tournament status' });
+            console.error('Failed to update tournament status:', error);
         }
     };
 
@@ -234,7 +238,7 @@ export default function TournamentsPage() {
                                     <label className="block text-sm font-medium mb-2">Match Format</label>
                                     <select
                                         value={formData.matchFormat}
-                                        onChange={(e) => setFormData({ ...formData, matchFormat: e.target.value as any })}
+                                        onChange={(e) => setFormData({ ...formData, matchFormat: e.target.value as MatchFormat })}
                                         className="w-full bg-gray-700 rounded px-3 py-2"
                                     >
                                         <option value="BO1">Best of 1</option>
@@ -246,7 +250,7 @@ export default function TournamentsPage() {
                                     <label className="block text-sm font-medium mb-2">Tournament Format</label>
                                     <select
                                         value={formData.tournamentFormat}
-                                        onChange={(e) => setFormData({ ...formData, tournamentFormat: e.target.value as any })}
+                                        onChange={(e) => setFormData({ ...formData, tournamentFormat: e.target.value as TournamentFormat })}
                                         className="w-full bg-gray-700 rounded px-3 py-2"
                                     >
                                         <option value="Ladder">Ladder</option>

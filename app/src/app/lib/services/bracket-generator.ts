@@ -2,8 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 import type {
     BracketStructure,
     BracketNode,
-    BracketSettings,
-    AdvancedTournament
+    BracketSettings
 } from '@lib/types/tournament';
 
 export class BracketGenerator {
@@ -35,7 +34,7 @@ export class BracketGenerator {
         tournamentId: string,
         teams: string[],
         bracketSize: number,
-        settings: BracketSettings
+        _settings: BracketSettings
     ): BracketStructure {
         const nodes: BracketNode[] = [];
         const totalRounds = Math.log2(bracketSize);
@@ -286,7 +285,7 @@ export class BracketGenerator {
         bracket: BracketStructure,
         matchId: string,
         winner: string,
-        loser?: string
+        _loser?: string
     ): BracketStructure {
         const updatedNodes = [...bracket.nodes];
         const matchNode = updatedNodes.find(n => n.id === matchId);

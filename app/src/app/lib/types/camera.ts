@@ -10,3 +10,10 @@ export type CameraPlayer = {
     teamLogo?: string;
     role?: string;
 };
+
+export type CameraTeam = {
+    teamId: string;
+    teamName: string;
+    teamLogo?: string;
+    players: CameraPlayer[];
+};

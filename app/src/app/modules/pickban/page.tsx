@@ -34,8 +34,8 @@ export default function Home() {
       const parsedUser = JSON.parse(userData);
       setUser(parsedUser);
       fetchSessions(token);
-    } catch (err) {
-      console.warn(err);
+    } catch (error) {
+      console.warn(error);
       localStorage.removeItem('token');
       localStorage.removeItem('user');
     } finally {
@@ -115,8 +115,8 @@ export default function Home() {
       }
 
       await fetchSessions();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create session');
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to create session');
     } finally {
       setLoading(false);
     }
@@ -152,8 +152,8 @@ export default function Home() {
 
       await fetchSessions();
 
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete session');
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to delete session');
     }
   };
 

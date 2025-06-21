@@ -52,15 +52,6 @@ const modules: ModuleCard[] = [
         status: 'available'
     },
     {
-        id: 'streamControl',
-        name: 'Stream Control',
-        description: 'Live stream interface for displaying player cameras during matches',
-        icon: '📺',
-        path: '/modules/cameras/stream',
-        color: 'from-red-500 to-rose-500',
-        status: 'available'
-    },
-    {
         id: 'allCameras',
         name: 'All Cameras',
         description: 'View all player cameras simultaneously in a multi-feed grid layout',
@@ -83,7 +74,6 @@ const modules: ModuleCard[] = [
 export default function ModulesPage() {
     const router = useRouter();
     const { setActiveModule } = useNavigation();
-    const [_, setIsAuthenticated] = useState(false);
     const [authChecked, setAuthChecked] = useState(false);
 
     useEffect(() => {
@@ -98,7 +88,6 @@ export default function ModulesPage() {
             return;
         }
 
-        setIsAuthenticated(true);
         setAuthChecked(true);
     }, [router, setActiveModule]);
 
@@ -203,12 +192,12 @@ export default function ModulesPage() {
                         </button>
 
                         <button
-                            onClick={() => router.push('/modules/cameras/stream')}
-                            className="cursor-pointer p-6 bg-gradient-to-r from-purple-600/20 to-pink-600/20 rounded-xl border border-purple-500/30 hover:border-purple-400/50 transition-all duration-300 hover:scale-105"
+                            onClick={() => router.push('/modules/cameras')}
+                            className="cursor-pointer p-6 bg-gradient-to-r from-green-600/20 to-emerald-600/20 rounded-xl border border-green-500/30 hover:border-green-400/50 transition-all duration-300 hover:scale-105"
                         >
                             <div className="text-2xl mb-2">📹</div>
-                            <h3 className="font-semibold text-white mb-2">Stream Control</h3>
-                            <p className="text-gray-400 text-sm">Manage live stream cameras and player feeds</p>
+                            <h3 className="font-semibold text-white mb-2">Camera Setup</h3>
+                            <p className="text-gray-400 text-sm">Configure player cameras and streaming setup</p>
                         </button>
                     </div>
                 </div>

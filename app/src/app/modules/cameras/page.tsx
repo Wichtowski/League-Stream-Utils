@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useRouter } from "next/navigation";
 import { useNavigation } from '@lib/contexts/NavigationContext';
 import { useUser } from '@lib/contexts/AuthContext';
-import { CameraPlayer } from '@lib/types';
+import { CameraPlayer, Player, Team } from '@lib/types';
 
 // Import proper types from database schemas
 type TeamCamera = {
@@ -23,23 +23,7 @@ export default function CamerasPage() {
   const [authChecked, setAuthChecked] = useState(false);
   const [showAdminView, setShowAdminView] = useState(false);
 
-  useEffect(() => {
-    setActiveModule('cameras');
-
-    // Check authentication first
-    const token = localStorage.getItem('token');
-    const userData = localStorage.getItem('user');
-
-    if (!token || !userData) {
-      router.push('/auth');
-      return;
-    }
-
-    setAuthChecked(true);
-    loadTeams();
-  }, [router, setActiveModule]);
-
-  const loadTeams = async () => {
+  const loadTeams = useCallback(async () => {
     try {
       const response = await fetch('/api/v1/cameras/settings', {
         headers: {
@@ -63,7 +47,25 @@ export default function CamerasPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    setActiveModule('cameras');
+
+    // Check authentication first
+    const token = localStorage.getItem('token');
+    const userData = localStorage.getItem('user');
+
+    if (!token || !userData) {
+      router.push('/auth');
+      return;
+    }
+
+    setAuthChecked(true);
+    loadTeams();
+  }, [router, setActiveModule, loadTeams]);
+
+
 
   const autoSetupFromTeams = async () => {
     try {
@@ -79,11 +81,11 @@ export default function CamerasPage() {
 
         if (existingTeams.length > 0) {
           // Convert teams to camera settings format
-          const cameraTeams = existingTeams.map((team: any) => ({
+          const cameraTeams = existingTeams.map((team: Team & { logoUrl?: string }) => ({
             teamId: team.id,
             teamName: team.name,
-            teamLogo: team.logo?.data || '',
-            players: team.players.main.map((player: any) => ({
+            teamLogo: team.logoUrl || team.logo?.data || '',
+            players: team.players.main.map((player: Player) => ({
               playerId: player.id,
               playerName: player.inGameName,
               role: player.role,
@@ -123,7 +125,7 @@ export default function CamerasPage() {
   const totalPlayers = teams.reduce((sum, team) => sum + team.players.length, 0);
 
   return (
-    <div className="min-h-screen bg-gray-900 p-6">
+    <div className="min-h-screen p-6">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
@@ -139,7 +141,7 @@ export default function CamerasPage() {
               {user?.isAdmin && (
                 <button
                   onClick={() => setShowAdminView(!showAdminView)}
-                  className={`px-3 py-1 rounded text-sm transition-colors ${showAdminView
+                  className={`cursor-pointer px-3 py-1 rounded text-sm transition-colors ${showAdminView
                       ? 'bg-purple-600 hover:bg-purple-700 text-white'
                       : 'bg-gray-600 hover:bg-gray-700 text-white'
                     }`}
@@ -152,27 +154,19 @@ export default function CamerasPage() {
         </div>
 
         {/* Main Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          {/* Team Streams */}
+        <div className={`grid grid-cols-1 gap-6 mb-8 md:grid-cols-2`}>         
+          {/* Team Stream Configuration */}
           <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
             <h2 className="text-xl font-bold text-white mb-3">📺 Team Streams</h2>
             <p className="text-gray-400 mb-4">
               Team-based camera switching with keyboard controls
             </p>
-            <div className="space-y-3">
-              {teams.map((team) => (
-                <button
-                  key={team.teamId}
-                  onClick={() => router.push(`/modules/cameras/stream/${team.teamId}`)}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors text-sm"
-                >
-                  {team.teamName} ({team.players.length} players)
-                </button>
-              ))}
-              {teams.length === 0 && (
-                <p className="text-gray-500 text-sm">No teams configured</p>
-              )}
-            </div>
+            <button
+              onClick={() => router.push('/modules/cameras/setup')}
+              className="cursor-pointer w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg transition-colors"
+            >
+              Team Stream Configuration
+            </button>
           </div>
 
           {/* Multi View */}
@@ -183,7 +177,7 @@ export default function CamerasPage() {
             </p>
             <button
               onClick={() => router.push('/modules/cameras/all')}
-              className="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-lg transition-colors"
+              className="cursor-pointer w-full bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-lg transition-colors"
             >
               All Cameras Grid
             </button>

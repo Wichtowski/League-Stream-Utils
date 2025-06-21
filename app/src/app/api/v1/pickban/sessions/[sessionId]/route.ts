@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { deleteGameSession } from '@/lib/database';
-import { withAuth } from '@/lib/auth';
+import { deleteGameSession } from '@lib/database';
+import { withAuth } from '@lib/auth';
 
 export const DELETE = withAuth(async (
   req: NextRequest,

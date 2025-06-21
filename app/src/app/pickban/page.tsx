@@ -35,15 +35,15 @@ export default function PickBanPage() {
             const parsedUser = JSON.parse(userData);
             setUser(parsedUser);
             fetchSessions(token);
-        } catch (err) {
-            console.warn(err);
+        } catch (error) {
+            console.warn(error);
             localStorage.removeItem('token');
             localStorage.removeItem('user');
             router.push('/auth');
         } finally {
             setAuthChecked(true);
         }
-    }, [router]);
+    }, [router, setActiveModule]);
 
     const getAuthHeader = () => {
         const token = localStorage.getItem('token');
@@ -119,8 +119,8 @@ export default function PickBanPage() {
             }
 
             await fetchSessions();
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to create session');
+        } catch (error) {
+            setError(error instanceof Error ? error.message : 'Failed to create session');
         } finally {
             setLoading(false);
         }
@@ -156,8 +156,8 @@ export default function PickBanPage() {
 
             await fetchSessions();
 
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to delete session');
+        } catch (error) {
+            setError(error instanceof Error ? error.message : 'Failed to delete session');
         }
     };
 

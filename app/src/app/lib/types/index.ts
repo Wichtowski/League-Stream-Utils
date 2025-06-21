@@ -8,6 +8,7 @@ export type { UserDocument, UserQueryResult } from './database';
 export type {
     MatchFormat,
     TournamentFormat,
+    TournamentTemplate,
     TournamentStatus,
     PlayerRole,
     TeamTier,
@@ -24,7 +25,7 @@ export type {
     TournamentChampionStats,
     GameResult
 } from './tournament';
-export type { CameraPlayer } from './camera';
+export type { CameraPlayer, CameraTeam } from './camera';
 export type {
     ModalVariant,
     ConfirmVariant,
