@@ -60,8 +60,8 @@
     "wait-on": "^8.0.3"
   },
   "build": {
-    "appId": "com.vml.nexus-cup",
-    "productName": "VML Nexus Cup",
+    "appId": "com.league-stream-utils.app",
+    "productName": "League Stream Utils",
     "directories": {
       "output": "dist",
       "buildResources": "assets"

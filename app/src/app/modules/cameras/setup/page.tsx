@@ -3,64 +3,59 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from "next/navigation";
 import { useNavigation } from '@lib/contexts/NavigationContext';
+import { useAuth } from '@lib/contexts/AuthContext';
+import { useElectron } from '@lib/contexts/ElectronContext';
+import { useAuthenticatedFetch } from '@lib/hooks/useAuthenticatedFetch';
 import type { CameraTeam, Team, Player } from '@lib/types';
 import Image from 'next/image';
 
 export default function CameraSetupListPage() {
   const router = useRouter();
   const { setActiveModule } = useNavigation();
+  const { user, isLoading: authLoading } = useAuth();
+  const { isElectron, useLocalData } = useElectron();
+  const { authenticatedFetch } = useAuthenticatedFetch();
 
   const [teams, setTeams] = useState<CameraTeam[]>([]);
   const [loading, setLoading] = useState(true);
-  const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
     setActiveModule('cameras');
 
-    // Check authentication first
-    const token = localStorage.getItem('token');
-    const userData = localStorage.getItem('user');
-
-    if (!token || !userData) {
-      router.push('/auth');
-      return;
-    }
-
-    setAuthChecked(true);
-    loadCameraSettings();
-  }, [router, setActiveModule]);
-
-  const loadCameraSettings = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch('/api/v1/cameras/settings', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setTeams(data.teams || []);
-      } else {
-        // If no camera settings exist, auto-setup from teams
-        await autoSetupFromTeams();
+    if (!authLoading) {
+      // Only redirect to auth if not authenticated and not using Electron local data
+      if (!user && !(isElectron && useLocalData)) {
+        router.push('/auth');
+        return;
       }
-    } catch (error) {
-      console.error('Error loading camera settings:', error);
-      await autoSetupFromTeams();
-    } finally {
-      setLoading(false);
+
+      const loadCameraSettings = async () => {
+        try {
+          setLoading(true);
+          const response = await authenticatedFetch('/api/v1/cameras/settings');
+
+          if (response.ok) {
+            const data = await response.json();
+            setTeams(data.teams || []);
+          } else {
+            // If no camera settings exist, auto-setup from teams
+            await autoSetupFromTeams();
+          }
+        } catch (error) {
+          console.error('Error loading camera settings:', error);
+          await autoSetupFromTeams();
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      loadCameraSettings();
     }
-  };
+  }, [router, setActiveModule, user, authLoading, isElectron, useLocalData, authenticatedFetch]);
 
   const autoSetupFromTeams = async () => {
     try {
-      const teamsResponse = await fetch('/api/v1/teams', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
+      const teamsResponse = await authenticatedFetch('/api/v1/teams');
 
       if (teamsResponse.ok) {
         const teamsData = await teamsResponse.json();
@@ -88,7 +83,7 @@ export default function CameraSetupListPage() {
     }
   };
 
-  if (!authChecked || loading) {
+  if (authLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400"></div>

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import Footer from "@components/common/Footer";
+import { Footer } from "@components/common";
 import { NavigationProvider } from "./lib/contexts/NavigationContext";
 import { ModalProvider } from "./lib/contexts/ModalContext";
 import { AuthProvider } from "./lib/contexts/AuthContext";

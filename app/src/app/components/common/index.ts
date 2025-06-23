@@ -1,4 +1,8 @@
-export { default as Modal } from './Modal';
-export { default as AlertModal } from './AlertModal';
-export { default as ConfirmModal } from './ConfirmModal';
-export { default as Footer } from './Footer'; 
+import { Modal } from './Modal';
+import { AlertModal } from './AlertModal';
+import { ConfirmModal } from './ConfirmModal';
+import { CopyButton } from './CopyButton';
+import { Footer } from './Footer';
+import { Pagination } from './Pagination';
+
+export { Footer, Pagination, Modal, AlertModal, ConfirmModal, CopyButton };

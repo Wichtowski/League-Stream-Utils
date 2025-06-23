@@ -23,6 +23,8 @@ export default function AllCamerasPage() {
         const userData = localStorage.getItem('user');
 
         if (!token || !userData) {
+            // Store current path for returnTo functionality
+            localStorage.setItem('returnTo', window.location.pathname);
             router.push('/auth');
             return;
         }

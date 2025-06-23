@@ -155,7 +155,8 @@ export async function cleanupOldSessions(olderThanHours: number = 24): Promise<n
   try {
     const cutoffDate = new Date(Date.now() - olderThanHours * 60 * 60 * 1000);
     const result = await GameSessionModel.deleteMany({
-      lastActivity: { $lt: cutoffDate }
+      lastActivity: { $lt: cutoffDate },
+      phase: { $in: ['config', 'lobby'] }
     });
     return result.deletedCount || 0;
   } catch (error) {

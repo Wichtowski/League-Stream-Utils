@@ -4,7 +4,8 @@ import {
     UserGroupIcon,
     CameraIcon,
     Cog6ToothIcon,
-    ComputerDesktopIcon
+    ComputerDesktopIcon,
+    RocketLaunchIcon
 } from '@heroicons/react/24/outline';
 import { useAuth } from '@lib/contexts/AuthContext';
 
@@ -29,6 +30,12 @@ export default function QuickAccessTools() {
             icon: CameraIcon,
             description: 'Configure team cameras'
         },
+        {
+            name: 'League Client',
+            href: '/modules/pickban/leagueclient',
+            icon: RocketLaunchIcon,
+            description: 'Connect to live League client'
+        },
 
         ...(typeof window !== 'undefined' && (window.electronAPI?.isElectron || user?.isAdmin) ? [{
             name: 'Settings',
@@ -51,7 +58,7 @@ export default function QuickAccessTools() {
     return (
         <div className="bg-gray-800/40 backdrop-blur-md rounded-xl p-6 mb-8 border border-gray-700/50">
             <h2 className="text-xl font-semibold mb-4 text-white">Tournament Management</h2>
-            <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 ${user?.isAdmin ? 'lg:grid-cols-4' : 'lg:grid-cols-3'}`}>
+            <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 ${user?.isAdmin ? 'lg:grid-cols-4' : 'lg:grid-cols-4'}`}>
                 {tools.map((tool) => (
                     <Link
                         key={tool.name}

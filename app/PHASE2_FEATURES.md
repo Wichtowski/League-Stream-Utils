@@ -1,8 +1,8 @@
-# VML Nexus Cup - Phase 2 + Electron Features
+# League Stream Utils - Phase 2 + Electron Features
 
 ## 🚀 Overview
 
-Phase 2 brings the VML Nexus Cup to the next level with **Electron desktop app capabilities**, **Riot API integration**, **OBS automation**, and **advanced tournament management**. This hybrid approach keeps the web app fully functional while adding powerful desktop features for professional esports production.
+Phase 2 brings the League Stream Utils to the next level with **Electron desktop app capabilities**, **Riot API integration**, **OBS automation**, and **advanced tournament management**. This hybrid approach keeps the web app fully functional while adding powerful desktop features for professional esports production.
 
 ## ✨ New Features
 
@@ -88,7 +88,7 @@ app/
 - createTournamentFromTemplate(id, settings) // Quick setup
 - exportTemplate(id) // Share configurations
 - importTemplate(file) // Load custom templates
-- Built-in templates: VML Standard, Casual Tournament
+- Built-in templates: Casual Tournament
 ```
 
 ## 🚀 Getting Started
@@ -109,7 +109,7 @@ npm install
 2. **Configure environment variables:**
 ```bash
 # .env.local
-MONGODB_URI=mongodb://localhost:27017/vml-nexus-cup
+MONGODB_URI=mongodb://localhost:27017/league-stream-utils
 RIOT_API_KEY=RGAPI-your-key-here  # Optional
 ```
 
@@ -143,7 +143,7 @@ npm run dist
 ### Tournament Creation with Templates
 
 1. **Navigate to Settings** → Tournament Templates
-2. **Select a template** (VML Standard recommended for professional tournaments)
+2. **Select a template**
 3. **Customize settings:**
    - Tournament name and dates
    - Team limits and format (BO1/BO3/BO5)
@@ -278,9 +278,9 @@ const customScene = {
 npm run dist
 
 # Output locations:
-# - Windows: dist/VML Nexus Cup Setup.exe
-# - macOS: dist/VML Nexus Cup.dmg  
-# - Linux: dist/VML Nexus Cup.AppImage
+# - Windows: dist/League Stream Utils Setup.exe
+# - macOS: dist/League Stream Utils.dmg  
+# - Linux: dist/League Stream Utils.AppImage
 ```
 
 ### Auto-Updater (Future Enhancement)

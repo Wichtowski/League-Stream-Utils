@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@lib/contexts/AuthContext';
 
 interface AuthGuardProps {
@@ -17,15 +17,20 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
 }) => {
     const { user, isLoading, isTokenValid } = useAuth();
     const router = useRouter();
+    const pathname = usePathname();
 
     useEffect(() => {
         if (!isLoading && requireAuth) {
             if (!user || !isTokenValid()) {
+                // Store the current path for returnTo functionality
+                if (typeof window !== 'undefined' && pathname !== '/auth') {
+                    localStorage.setItem('returnTo', pathname);
+                }
                 console.log('AuthGuard: Redirecting unauthenticated user to', redirectTo);
                 router.replace(redirectTo);
             }
         }
-    }, [user, isLoading, isTokenValid, requireAuth, redirectTo, router]);
+    }, [user, isLoading, isTokenValid, requireAuth, redirectTo, router, pathname]);
 
     // Show loading while checking auth
     if (isLoading) {

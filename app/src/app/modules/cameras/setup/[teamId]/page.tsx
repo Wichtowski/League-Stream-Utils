@@ -4,6 +4,9 @@ import React, { useEffect, useState } from 'react';
 import { useRouter, useParams } from "next/navigation";
 import { useNavigation } from '@lib/contexts/NavigationContext';
 import { useModal } from '@lib/contexts/ModalContext';
+import { useAuth } from '@lib/contexts/AuthContext';
+import { useElectron } from '@lib/contexts/ElectronContext';
+import { useAuthenticatedFetch } from '@lib/hooks/useAuthenticatedFetch';
 import type { CameraTeam } from '@lib/types';
 import Image from 'next/image';
 
@@ -13,57 +16,55 @@ export default function TeamCameraSetupPage() {
   const teamId = params.teamId as string;
   const { setActiveModule } = useNavigation();
   const { showAlert } = useModal();
+  const { user, isLoading: authLoading } = useAuth();
+  const { isElectron, useLocalData } = useElectron();
+  const { authenticatedFetch } = useAuthenticatedFetch();
   const [team, setTeam] = useState<CameraTeam | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
     setActiveModule('cameras');
 
-    // Check authentication first
-    const token = localStorage.getItem('token');
-    const userData = localStorage.getItem('user');
-
-    if (!token || !userData) {
-      router.push('/auth');
-      return;
-    }
-
-    setAuthChecked(true);
-    loadTeamSettings();
-  }, [router, setActiveModule, teamId]);
-
-  const loadTeamSettings = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch('/api/v1/cameras/settings', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        const teams = data.teams || [];
-        const foundTeam = teams.find((t: CameraTeam) => t.teamId === teamId);
-        
-        if (foundTeam) {
-          setTeam(foundTeam);
-        } else {
-          // Team not found, redirect back
-          router.push('/modules/cameras/setup');
-        }
-      } else {
-        router.push('/modules/cameras/setup');
+    if (!authLoading) {
+      // Only redirect to auth if not authenticated and not using Electron local data
+      if (!user && !(isElectron && useLocalData)) {
+        router.push('/auth');
+        return;
       }
-    } catch (error) {
-      console.error('Error loading team settings:', error);
-      router.push('/modules/cameras/setup');
-    } finally {
-      setLoading(false);
+
+      const loadTeamSettings = async () => {
+        try {
+          setLoading(true);
+          const response = await authenticatedFetch('/api/v1/cameras/settings');
+
+          if (response.ok) {
+            const data = await response.json();
+            const teams = data.teams || [];
+            const foundTeam = teams.find((t: CameraTeam) => t.teamId === teamId);
+            
+            if (foundTeam) {
+              setTeam(foundTeam);
+            } else {
+              // Team not found, redirect back
+              router.push('/modules/cameras/setup');
+            }
+          } else {
+            router.push('/modules/cameras/setup');
+          }
+        } catch (error) {
+          console.error('Error loading team settings:', error);
+          router.push('/modules/cameras/setup');
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      loadTeamSettings();
     }
-  };
+  }, [router, setActiveModule, teamId, user, authLoading, isElectron, useLocalData, authenticatedFetch]);
+
+
 
   const updatePlayerUrl = (playerId: string, url: string) => {
     if (!team) return;
@@ -85,11 +86,7 @@ export default function TeamCameraSetupPage() {
       setSaving(true);
       
       // Get all teams, update this one, and save
-      const response = await fetch('/api/v1/cameras/settings', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
+      const response = await authenticatedFetch('/api/v1/cameras/settings');
 
       if (response.ok) {
         const data = await response.json();
@@ -101,11 +98,10 @@ export default function TeamCameraSetupPage() {
         );
 
         // Save updated settings
-        const saveResponse = await fetch('/api/v1/cameras/settings', {
+        const saveResponse = await authenticatedFetch('/api/v1/cameras/settings', {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
+            'Content-Type': 'application/json'
           },
           body: JSON.stringify({ teams: updatedTeams })
         });
@@ -124,7 +120,7 @@ export default function TeamCameraSetupPage() {
     }
   };
 
-  if (!authChecked || loading) {
+  if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400"></div>

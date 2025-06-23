@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { CopyButton } from '@components/common';
 import type { SessionUrls } from '@lib/types';
 
 interface SessionUrlDisplayProps {
@@ -12,71 +13,79 @@ export default function SessionUrlDisplay({ urls }: SessionUrlDisplayProps) {
             <div className="space-y-3">
                 <div>
                     <span className="font-medium text-amber-300">Configuration URL:</span>
-                    <div className="bg-gray-900 p-2 rounded mt-1 break-all">
+                    <div className="bg-gray-900 p-2 rounded mt-1 break-all flex items-center justify-between">
                         <Link
                             href={`/modules/pickban/config/${urls.sessionId}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-amber-400 hover:underline"
+                            className="text-amber-400 hover:underline flex-1 mr-2"
                         >
                             {typeof window !== 'undefined' && window.location.origin}/modules/pickban/config/{urls.sessionId}
                         </Link>
+                        <CopyButton 
+                            text={`${typeof window !== 'undefined' ? window.location.origin : ''}/modules/pickban/config/${urls.sessionId}`}
+                            size="sm"
+                        />
                     </div>
                 </div>
 
                 <div>
                     <span className="font-medium text-blue-300">Blue Team URL:</span>
-                    <div className="bg-gray-900 p-2 rounded mt-1 break-all">
+                    <div className="bg-gray-900 p-2 rounded mt-1 break-all flex items-center justify-between">
                         <Link
                             href={urls.blue}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-blue-400 hover:underline"
+                            className="text-blue-400 hover:underline flex-1 mr-2"
                         >
                             {urls.blue}
                         </Link>
+                        <CopyButton text={urls.blue} size="sm" />
                     </div>
                 </div>
 
                 <div>
                     <span className="font-medium text-red-300">Red Team URL:</span>
-                    <div className="bg-gray-900 p-2 rounded mt-1 break-all">
+                    <div className="bg-gray-900 p-2 rounded mt-1 break-all flex items-center justify-between">
                         <Link
                             href={urls.red}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-red-400 hover:underline"
+                            className="text-red-400 hover:underline flex-1 mr-2"
                         >
                             {urls.red}
                         </Link>
+                        <CopyButton text={urls.red} size="sm" />
                     </div>
                 </div>
 
                 <div>
                     <span className="font-medium text-green-300">Spectator URL:</span>
-                    <div className="bg-gray-900 p-2 rounded mt-1 break-all">
+                    <div className="bg-gray-900 p-2 rounded mt-1 break-all flex items-center justify-between">
                         <Link
                             href={urls.spectator}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-green-400 hover:underline"
+                            className="text-green-400 hover:underline flex-1 mr-2"
                         >
                             {urls.spectator}
                         </Link>
+                        <CopyButton text={urls.spectator} size="sm" />
                     </div>
                 </div>
 
                 <div>
                     <span className="font-medium text-purple-300">OBS Overlay URL:</span>
-                    <div className="bg-gray-900 p-2 rounded mt-1 break-all">
+                    <div className="bg-gray-900 p-2 rounded mt-1 break-all flex items-center justify-between">
                         <Link
                             href={urls.obs}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-purple-400 hover:underline"
+                            className="text-purple-400 hover:underline flex-1 mr-2"
                         >
                             {urls.obs}
                         </Link>
+                        <CopyButton text={urls.obs} size="sm" />
                     </div>
                 </div>
             </div>

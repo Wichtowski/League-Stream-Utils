@@ -1,7 +1,7 @@
-import Modal from './Modal';
-import type { ConfirmModalProps, ConfirmVariant } from '@lib/types';
+import { Modal } from './Modal';
+import type { ConfirmModalProps } from '@lib/types';
 
-export default function ConfirmModal({
+export function ConfirmModal({
     isOpen,
     onClose,
     onConfirm,

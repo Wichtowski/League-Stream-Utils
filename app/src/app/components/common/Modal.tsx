@@ -1,7 +1,9 @@
+'use client';
+
 import { useEffect, useState } from 'react';
 import type { BaseModalProps } from '@lib/types';
 
-export default function Modal({
+export function Modal({
     isOpen,
     onClose,
     title,

@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import Modal from './Modal';
+import { Modal } from './Modal';
 import type { AlertModalProps } from '@lib/types';
 
-export default function AlertModal({
+export function AlertModal({
     isOpen,
     onClose,
     title,

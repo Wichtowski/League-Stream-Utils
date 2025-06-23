@@ -1,8 +1,8 @@
 'use client';
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import AlertModal from '@components/common/AlertModal';
-import ConfirmModal from '@components/common/ConfirmModal';
+import { AlertModal } from '@components/common';
+import { ConfirmModal } from '@components/common';
 import type { AlertOptions, ConfirmOptions, ModalContextType } from '@lib/types';
 
 const ModalContext = createContext<ModalContextType | undefined>(undefined);

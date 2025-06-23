@@ -3,12 +3,17 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { useAuth } from '@lib/contexts/AuthContext';
+import { useAuthenticatedFetch } from '@lib/hooks/useAuthenticatedFetch';
 import type { GameConfig } from '@lib/types';
+import type { Tournament, Team } from '@lib/types/tournament';
 
 export default function ConfigPage() {
   const params = useParams();
   const router = useRouter();
   const sessionId = params.sessionId as string;
+  const { user } = useAuth();
+  const { authenticatedFetch } = useAuthenticatedFetch();
 
   const [config, setConfig] = useState<GameConfig>({
     seriesType: 'BO1',
@@ -27,10 +32,18 @@ export default function ConfigPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  
+  // Tournament integration state
+  const [tournaments, setTournaments] = useState<Tournament[]>([]);
+  const [selectedTournament, setSelectedTournament] = useState<Tournament | null>(null);
+  const [tournamentTeams, setTournamentTeams] = useState<Team[]>([]);
+  const [selectedBlueTeam, setSelectedBlueTeam] = useState<Team | null>(null);
+  const [selectedRedTeam, setSelectedRedTeam] = useState<Team | null>(null);
+  const [loadingTournaments, setLoadingTournaments] = useState(false);
 
   const loadConfig = useCallback(async () => {
     try {
-      const response = await fetch(`/api/v1/pickban/sessions/${sessionId}/config`);
+      const response = await authenticatedFetch(`/api/v1/pickban/sessions/${sessionId}/config`);
 
       if (response.ok) {
         const data = await response.json();
@@ -41,7 +54,90 @@ export default function ConfigPage() {
     } catch (error) {
       console.error('Failed to load config:', error);
     }
-  }, [sessionId]);
+  }, [sessionId, authenticatedFetch]);
+
+  const loadTournaments = useCallback(async () => {
+    try {
+      setLoadingTournaments(true);
+      const response = await authenticatedFetch('/api/v1/tournaments');
+
+      if (response.ok) {
+        const data = await response.json();
+        setTournaments(data.tournaments || []);
+      }
+    } catch (error) {
+      console.error('Failed to load tournaments:', error);
+    } finally {
+      setLoadingTournaments(false);
+    }
+  }, [authenticatedFetch]);
+
+  const loadTournamentTeams = useCallback(async (tournamentId: string) => {
+    try {
+      const response = await authenticatedFetch(`/api/v1/tournaments/${tournamentId}`);
+
+      if (response.ok) {
+        const data = await response.json();
+        const tournament = data.tournament;
+        
+        // Get teams registered to this tournament
+        const teamsResponse = await authenticatedFetch('/api/v1/teams');
+        if (teamsResponse.ok) {
+          const teamsData = await teamsResponse.json();
+          const allTeams = teamsData.teams || [];
+          
+          // Filter teams that are registered to this tournament
+          const registeredTeams = allTeams.filter((team: Team) => 
+            tournament.registeredTeams.includes(team.id)
+          );
+          
+          setTournamentTeams(registeredTeams);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load tournament teams:', error);
+    }
+  }, [authenticatedFetch]);
+
+  const handleTournamentSelect = useCallback((tournament: Tournament) => {
+    setSelectedTournament(tournament);
+    setSelectedBlueTeam(null);
+    setSelectedRedTeam(null);
+    
+    // Update config with tournament info
+    setConfig(prev => ({
+      ...prev,
+      tournamentName: tournament.name,
+      tournamentLogo: tournament.logo?.data || '',
+      seriesType: tournament.matchFormat,
+      isFearlessDraft: tournament.fearlessDraft
+    }));
+    
+    // Load teams for this tournament
+    loadTournamentTeams(tournament.id);
+  }, [loadTournamentTeams]);
+
+  const handleTeamSelect = useCallback((side: 'blue' | 'red', team: Team) => {
+    if (side === 'blue') {
+      setSelectedBlueTeam(team);
+      setConfig(prev => ({
+        ...prev,
+        blueTeamName: team.name,
+        blueTeamPrefix: team.tag,
+        blueTeamLogo: team.logo?.data || '',
+        blueCoach: team.staff?.coach ? { name: team.staff.coach.name } : undefined
+      }));
+    } else {
+      setSelectedRedTeam(team);
+      setConfig(prev => ({
+        ...prev,
+        redTeamName: team.name,
+        redTeamPrefix: team.tag,
+        redTeamLogo: team.logo?.data || '',
+        redCoach: team.staff?.coach ? { name: team.staff.coach.name } : undefined
+      }));
+    }
+  }, []);
 
   const saveConfig = async () => {
     setLoading(true);
@@ -99,7 +195,8 @@ export default function ConfigPage() {
 
   useEffect(() => {
     loadConfig();
-  }, [loadConfig]);
+    loadTournaments();
+  }, [loadConfig, loadTournaments]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-red-900 text-white p-8">
@@ -132,31 +229,77 @@ export default function ConfigPage() {
         <div className="grid gap-8">
           {/* Tournament Information */}
           <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-6 border border-gray-700">
-            <h2 className="text-2xl font-semibold mb-6 text-purple-300">Event Information</h2>
+            <h2 className="text-2xl font-semibold mb-6 text-purple-300">Event/Tournament Information</h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium mb-2">Select Tournament (Optional)</label>
+                <select
+                  value={selectedTournament?.id || ''}
+                  onChange={(e) => {
+                    const tournament = tournaments.find(t => t.id === e.target.value);
+                    if (tournament) {
+                      handleTournamentSelect(tournament);
+                    } else {
+                      setSelectedTournament(null);
+                      setTournamentTeams([]);
+                      setSelectedBlueTeam(null);
+                      setSelectedRedTeam(null);
+                    }
+                  }}
+                  disabled={loadingTournaments}
+                  className="w-full px-3 py-2 bg-gray-700 rounded text-white border border-gray-600 focus:border-purple-500 disabled:opacity-50"
+                >
+                  <option value="">Manual Configuration</option>
+                  {tournaments
+                    .filter(tournament => user?.isAdmin || tournament.userId === user?.id)
+                    .map(tournament => (
+                      <option key={tournament.id} value={tournament.id}>
+                        {tournament.name}
+                      </option>
+                    ))
+                  }
+                </select>
+                {loadingTournaments && (
+                  <p className="text-xs text-gray-400 mt-1">Loading tournaments...</p>
+                )}
+              </div>
+
               <div>
                 <label className="block text-sm font-medium mb-2">Event Name</label>
                 <input
                   type="text"
                   value={config.tournamentName || ''}
                   onChange={(e) => setConfig(prev => ({ ...prev, tournamentName: e.target.value }))}
-                  className="w-full px-3 py-2 bg-gray-700 rounded text-white border border-gray-600 focus:border-purple-500"
+                  disabled={!!selectedTournament}
+                  className="w-full px-3 py-2 bg-gray-700 rounded text-white border border-gray-600 focus:border-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
                   placeholder="e.g., Spring Split Finals"
                 />
               </div>
 
-              <div>
+              <div className="md:col-span-2">
                 <label className="block text-sm font-medium mb-2">Event Logo URL (Optional)</label>
                 <input
                   type="url"
                   value={config.tournamentLogo || ''}
                   onChange={(e) => setConfig(prev => ({ ...prev, tournamentLogo: e.target.value }))}
-                  className="w-full px-3 py-2 bg-gray-700 rounded text-white border border-gray-600 focus:border-purple-500"
+                  disabled={!!selectedTournament}
+                  className="w-full px-3 py-2 bg-gray-700 rounded text-white border border-gray-600 focus:border-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
                   placeholder="https://example.com/event-logo.png"
                 />
               </div>
             </div>
+
+            {selectedTournament && (
+              <div className="mt-4 p-4 bg-purple-900/30 rounded-lg border border-purple-700/50">
+                <p className="text-sm text-purple-300">
+                  <strong>Tournament Selected:</strong> {selectedTournament.name}
+                </p>
+                <p className="text-xs text-gray-400 mt-1">
+                  Configuration automatically loaded from tournament settings
+                </p>
+              </div>
+            )}
 
             {config.tournamentLogo && (
               <div className="mt-4 text-center">
@@ -240,6 +383,41 @@ export default function ConfigPage() {
               <h3 className="text-xl font-semibold mb-4 text-blue-300">Blue Team</h3>
 
               <div className="space-y-4">
+                {selectedTournament && tournamentTeams.length > 0 && (
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Select Team</label>
+                    <select
+                      value={selectedBlueTeam?.id || ''}
+                      onChange={(e) => {
+                        const team = tournamentTeams.find(t => t.id === e.target.value);
+                        if (team) {
+                          handleTeamSelect('blue', team);
+                        } else {
+                          setSelectedBlueTeam(null);
+                          setConfig(prev => ({
+                            ...prev,
+                            blueTeamName: 'Blue Team',
+                            blueTeamPrefix: '',
+                            blueTeamLogo: '',
+                            blueCoach: undefined
+                          }));
+                        }
+                      }}
+                      className="w-full px-3 py-2 bg-gray-700 rounded text-white border border-gray-600 focus:border-blue-500"
+                    >
+                      <option value="">Manual Entry</option>
+                      {tournamentTeams
+                        .filter(team => team.id !== selectedRedTeam?.id)
+                        .map(team => (
+                          <option key={team.id} value={team.id}>
+                            {team.name} ({team.tag})
+                          </option>
+                        ))
+                      }
+                    </select>
+                  </div>
+                )}
+
                 <div>
                   <label className="block text-sm font-medium mb-2">Team Name</label>
                   <input
@@ -249,7 +427,8 @@ export default function ConfigPage() {
                       ...prev,
                       blueTeamName: e.target.value
                     }))}
-                    className="w-full px-3 py-2 bg-gray-700 rounded text-white border border-gray-600 focus:border-blue-500"
+                    disabled={!!selectedBlueTeam && !!selectedBlueTeam.name}
+                    className="w-full px-3 py-2 bg-gray-700 rounded text-white border border-gray-600 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                     placeholder="Enter team name"
                   />
                 </div>
@@ -263,7 +442,8 @@ export default function ConfigPage() {
                       ...prev,
                       blueTeamPrefix: e.target.value
                     }))}
-                    className="w-full px-3 py-2 bg-gray-700 rounded text-white border border-gray-600 focus:border-blue-500"
+                    disabled={!!selectedBlueTeam && !!selectedBlueTeam.tag}
+                    className="w-full px-3 py-2 bg-gray-700 rounded text-white border border-gray-600 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                     placeholder="e.g., BLU"
                     maxLength={5}
                   />
@@ -278,7 +458,8 @@ export default function ConfigPage() {
                       ...prev,
                       blueTeamLogo: e.target.value
                     }))}
-                    className="w-full px-3 py-2 bg-gray-700 rounded text-white border border-gray-600 focus:border-blue-500"
+                    disabled={!!selectedBlueTeam && !!selectedBlueTeam.logo?.data}
+                    className="w-full px-3 py-2 bg-gray-700 rounded text-white border border-gray-600 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                     placeholder="https://example.com/team-logo.png"
                   />
                 </div>
@@ -292,7 +473,8 @@ export default function ConfigPage() {
                       ...prev,
                       blueCoach: e.target.value ? { name: e.target.value } : undefined
                     }))}
-                    className="w-full px-3 py-2 bg-gray-700 rounded text-white border border-gray-600 focus:border-blue-500"
+                    disabled={!!selectedBlueTeam && !!selectedBlueTeam.staff?.coach?.name}
+                    className="w-full px-3 py-2 bg-gray-700 rounded text-white border border-gray-600 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                     placeholder="Enter coach name"
                   />
                 </div>
@@ -321,6 +503,41 @@ export default function ConfigPage() {
               <h3 className="text-xl font-semibold mb-4 text-red-300">Red Team</h3>
 
               <div className="space-y-4">
+                {selectedTournament && tournamentTeams.length > 0 && (
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Select Team</label>
+                    <select
+                      value={selectedRedTeam?.id || ''}
+                      onChange={(e) => {
+                        const team = tournamentTeams.find(t => t.id === e.target.value);
+                        if (team) {
+                          handleTeamSelect('red', team);
+                        } else {
+                          setSelectedRedTeam(null);
+                          setConfig(prev => ({
+                            ...prev,
+                            redTeamName: 'Red Team',
+                            redTeamPrefix: '',
+                            redTeamLogo: '',
+                            redCoach: undefined
+                          }));
+                        }
+                      }}
+                      className="w-full px-3 py-2 bg-gray-700 rounded text-white border border-gray-600 focus:border-red-500"
+                    >
+                      <option value="">Manual Entry</option>
+                      {tournamentTeams
+                        .filter(team => team.id !== selectedBlueTeam?.id)
+                        .map(team => (
+                          <option key={team.id} value={team.id}>
+                            {team.name} ({team.tag})
+                          </option>
+                        ))
+                      }
+                    </select>
+                  </div>
+                )}
+
                 <div>
                   <label className="block text-sm font-medium mb-2">Team Name</label>
                   <input
@@ -330,7 +547,8 @@ export default function ConfigPage() {
                       ...prev,
                       redTeamName: e.target.value
                     }))}
-                    className="w-full px-3 py-2 bg-gray-700 rounded text-white border border-gray-600 focus:border-red-500"
+                    disabled={!!selectedRedTeam && !!selectedRedTeam.name}
+                    className="w-full px-3 py-2 bg-gray-700 rounded text-white border border-gray-600 focus:border-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
                     placeholder="Enter team name"
                   />
                 </div>
@@ -344,7 +562,8 @@ export default function ConfigPage() {
                       ...prev,
                       redTeamPrefix: e.target.value
                     }))}
-                    className="w-full px-3 py-2 bg-gray-700 rounded text-white border border-gray-600 focus:border-red-500"
+                    disabled={!!selectedRedTeam && !!selectedRedTeam.tag}
+                    className="w-full px-3 py-2 bg-gray-700 rounded text-white border border-gray-600 focus:border-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
                     placeholder="e.g., RED"
                     maxLength={5}
                   />
@@ -359,7 +578,8 @@ export default function ConfigPage() {
                       ...prev,
                       redTeamLogo: e.target.value
                     }))}
-                    className="w-full px-3 py-2 bg-gray-700 rounded text-white border border-gray-600 focus:border-red-500"
+                    disabled={!!selectedRedTeam && !!selectedRedTeam.logo?.data}
+                    className="w-full px-3 py-2 bg-gray-700 rounded text-white border border-gray-600 focus:border-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
                     placeholder="https://example.com/team-logo.png"
                   />
                 </div>
@@ -373,7 +593,8 @@ export default function ConfigPage() {
                       ...prev,
                       redCoach: e.target.value ? { name: e.target.value } : undefined
                     }))}
-                    className="w-full px-3 py-2 bg-gray-700 rounded text-white border border-gray-600 focus:border-red-500"
+                    disabled={!!selectedRedTeam && !!selectedRedTeam.staff?.coach?.name}
+                    className="w-full px-3 py-2 bg-gray-700 rounded text-white border border-gray-600 focus:border-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
                     placeholder="Enter coach name"
                   />
                 </div>

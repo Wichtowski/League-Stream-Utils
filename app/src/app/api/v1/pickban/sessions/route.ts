@@ -19,10 +19,12 @@ export async function POST(request: NextRequest) {
   const session = await createGameSession();
   
   const baseUrl = request.nextUrl.origin;
-  const configUrl = `${baseUrl}/config/${session.id}`;
-  const blueTeamUrl = `${baseUrl}/game/${session.id}?team=blue`;
-  const redTeamUrl = `${baseUrl}/game/${session.id}?team=red`;
-  
+  const configUrl = `${baseUrl}/modules/pickban/config/${session.id}`;
+  const blueTeamUrl = `${baseUrl}/modules/pickban/game/${session.id}?team=blue`;
+  const redTeamUrl = `${baseUrl}/modules/pickban/game/${session.id}?team=red`;
+  const spectatorUrl = `${baseUrl}/modules/pickban/game/${session.id}`;
+  const obsUrl = `${baseUrl}/modules/pickban/obs/${session.id}`;
+
   return NextResponse.json({
     sessionId: session.id,
     session,
@@ -30,8 +32,8 @@ export async function POST(request: NextRequest) {
       config: configUrl,
       blue: blueTeamUrl,
       red: redTeamUrl,
-      spectator: `${baseUrl}/game/${session.id}`,
-      obs: `${baseUrl}/obs/${session.id}`
+      spectator: spectatorUrl,
+      obs: obsUrl
     }
   });
 }

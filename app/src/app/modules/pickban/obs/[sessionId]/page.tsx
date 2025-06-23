@@ -26,7 +26,7 @@ export default function OBSView({ params }: { params: Promise<{ sessionId: strin
     isConnectingRef.current = true;
 
     try {
-      fetch('/api/ws').then(() => {
+      fetch('/api/v1/pickban/ws').then(() => {
         const websocket = new WebSocket('ws://localhost:8080');
 
         websocket.onopen = () => {
@@ -92,7 +92,7 @@ export default function OBSView({ params }: { params: Promise<{ sessionId: strin
       }
       isConnectingRef.current = false;
     };
-  }, [resolvedParams.sessionId]); // Remove connectWebSocket and ws from dependencies
+  }, [resolvedParams.sessionId]);
 
   const formatTime = (ms: number) => {
     const seconds = Math.ceil(ms / 1000);

@@ -26,7 +26,14 @@ export default function AuthPage() {
     
     // Redirect to modules if already authenticated
     if (!isLoading && user) {
-      router.push('/modules');
+      // Check if there's a returnTo path stored
+      const returnTo = localStorage.getItem('returnTo');
+      if (returnTo && returnTo !== '/auth') {
+        localStorage.removeItem('returnTo'); // Clean up
+        router.push(returnTo);
+      } else {
+        router.push('/modules');
+      }
     }
   }, [setActiveModule, user, isLoading, router]);
 

@@ -28,7 +28,7 @@ export default function GamePage({ params }: { params: Promise<{ sessionId: stri
     }
     
     try {
-      fetch('/api/ws').then(() => {
+      fetch('/api/v1/pickban/ws').then(() => {
         const websocket = new WebSocket('ws://localhost:8080');
         
         websocket.onopen = () => {
@@ -204,7 +204,7 @@ export default function GamePage({ params }: { params: Promise<{ sessionId: stri
   }
 
   if (gameState.phase === 'config') {
-    window.location.href = `/config/${resolvedParams.sessionId}`;
+    window.location.href = `/modules/pickban/config/${resolvedParams.sessionId}`;
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 flex items-center justify-center">
         <div className="text-center">

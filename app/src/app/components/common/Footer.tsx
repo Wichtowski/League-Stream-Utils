@@ -6,7 +6,7 @@ import { useNavigation } from "@lib/contexts/NavigationContext";
 import { usePathname } from "next/navigation";
 import { useElectron } from "@/app/lib/contexts/ElectronContext";
 
-export default function Footer() {
+export function Footer() {
   const { activeModule } = useNavigation();
   const { isElectron, useLocalData } = useElectron();
   const pathname = usePathname();

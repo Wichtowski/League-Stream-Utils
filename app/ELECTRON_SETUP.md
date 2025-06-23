@@ -1,4 +1,4 @@
-# Running VML Nexus Cup in Electron
+# Running League Stream Utils in Electron
 
 ## Quick Start
 

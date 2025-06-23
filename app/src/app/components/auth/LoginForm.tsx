@@ -26,7 +26,15 @@ export default function LoginForm({ onSuccess, onError }: LoginFormProps) {
       
       if (success) {
         onSuccess();
-        router.push('/modules');
+        
+        // Check if there's a returnTo path stored
+        const returnTo = localStorage.getItem('returnTo');
+        if (returnTo && returnTo !== '/auth') {
+          localStorage.removeItem('returnTo'); // Clean up
+          router.push(returnTo);
+        } else {
+          router.push('/modules');
+        }
       } else {
         onError('Invalid username or password');
       }
