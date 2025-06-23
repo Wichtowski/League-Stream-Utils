@@ -71,6 +71,9 @@
 #top-row>div.team-container.red-team>div.flex.relative.text-white>div,
 #top-row>div.team-container.blue-team>div.flex.relative.text-white>div {
   background: #000 !important;
+  height: 6rem !important;
+  width: 6rem !important;
+  
 }
 
 .center-logo {

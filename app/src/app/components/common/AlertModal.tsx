@@ -1,3 +1,5 @@
+'use client';
+
 import { useEffect, useRef, useState } from 'react';
 import { Modal } from './Modal';
 import type { AlertModalProps } from '@lib/types';

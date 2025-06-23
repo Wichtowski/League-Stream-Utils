@@ -190,8 +190,8 @@ function getVersionedFilePath(basePath: string): string {
       if (fs.existsSync(playersPath)) {
         existingData = JSON.parse(fs.readFileSync(playersPath, 'utf-8'));
       }
-    } catch (err) {
-      console.error('Error reading existing players.json:', err);
+    } catch (error) {
+      console.error('Error reading existing players.json:', error);
     }
 
     for (const player of players) {
