@@ -1,5 +1,15 @@
 export type MatchFormat = 'BO1' | 'BO3' | 'BO5';
 export type TournamentFormat = 'Ladder' | 'Swiss into Ladder' | 'Round Robin into Ladder' | 'Groups';
+
+export interface PhaseMatchFormats {
+    roundRobin?: MatchFormat;     // For Round Robin phase
+    swiss?: MatchFormat;          // For Swiss phase
+    groups?: MatchFormat;         // For Group stage
+    ladder?: MatchFormat;         // For Ladder/Playoff phase
+    semifinals?: MatchFormat;     // For Semifinals
+    finals?: MatchFormat;         // For Finals
+    default: MatchFormat;
+}
 export type TournamentStatus = 'draft' | 'registration' | 'ongoing' | 'completed' | 'cancelled';
 export type PlayerRole = 'TOP' | 'JUNGLE' | 'MID' | 'ADC' | 'SUPPORT';
 export type TeamTier = 'amateur' | 'semi-pro' | 'professional';
@@ -105,11 +115,13 @@ export interface Tournament {
     // Dates
     startDate: Date;
     endDate: Date;
-    registrationDeadline: Date;
+    requireRegistrationDeadline: boolean;
+    registrationDeadline?: Date;
 
     // Format & Rules
     matchFormat: MatchFormat;
     tournamentFormat: TournamentFormat;
+    phaseMatchFormats?: PhaseMatchFormats; // Advanced match formats for different phases
 
     // Settings
     maxTeams: number;
@@ -152,9 +164,11 @@ export interface CreateTournamentRequest {
     abbreviation: string;
     startDate: string;
     endDate: string;
-    registrationDeadline: string;
+    requireRegistrationDeadline: boolean;
+    registrationDeadline?: string;
     matchFormat: MatchFormat;
     tournamentFormat: TournamentFormat;
+    phaseMatchFormats?: PhaseMatchFormats;
     maxTeams: number;
     prizePool?: number;
     fearlessDraft: boolean;

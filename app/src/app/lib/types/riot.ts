@@ -13,6 +13,21 @@ export interface SummonerData {
     summonerLevel: number;
 }
 
+export interface RiotAPIResponse {
+    success: boolean;
+    verified: boolean;
+    player?: RiotPlayer;
+    summoner?: SummonerData;
+    rankedData?: RankedData[];
+    rank?: string;
+    stats?: {
+        championMastery: ChampionMastery[];
+        recentMatches: MatchData[];
+        rankedData: RankedData[];
+    };
+    statsError?: string;
+}
+
 export interface RankedData {
     leagueId: string;
     queueType: string;

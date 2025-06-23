@@ -2,10 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@lib/auth';
 import { registerTeamForTournament, unregisterTeamFromTournament, getTournamentById } from '@lib/database/tournament';
 import { getTeamById } from '@lib/database/team';
+import { JWTPayload } from '@lib/types/auth';
 
-// POST /api/v1/tournaments/[tournamentId]/register - Register team for tournament
-export const POST = withAuth(async (req: NextRequest, user, { params }: { params: { tournamentId: string } }) => {
+export const POST = withAuth(async (req: NextRequest, user: JWTPayload) => {
     try {
+        const tournamentId = req.url.split('/').slice(-2, -1)[0];
         const { teamId }: { teamId: string } = await req.json();
 
         if (!teamId) {
@@ -23,35 +24,41 @@ export const POST = withAuth(async (req: NextRequest, user, { params }: { params
         }
 
         // Check if tournament exists and is open for registration
-        const tournament = await getTournamentById(params.tournamentId);
+        const tournament = await getTournamentById(tournamentId);
         if (!tournament) {
             return NextResponse.json({ error: 'Tournament not found' }, { status: 404 });
         }
 
-        if (!tournament.registrationOpen || tournament.status !== 'registration') {
-            return NextResponse.json({ error: 'Tournament registration is closed' }, { status: 400 });
+        // Admin bypass: Allow admins to register teams even when registration is closed
+        if (!user.isAdmin) {
+            if (!tournament.registrationOpen || tournament.status !== 'registration') {
+                return NextResponse.json({ error: 'Tournament registration is closed' }, { status: 400 });
+            }
+
+            // Check registration deadline only if required (non-admin)
+            if (tournament.requireRegistrationDeadline && tournament.registrationDeadline && new Date() > tournament.registrationDeadline) {
+                return NextResponse.json({ error: 'Registration deadline has passed' }, { status: 400 });
+            }
         }
 
-        // Check registration deadline
-        if (new Date() > tournament.registrationDeadline) {
-            return NextResponse.json({ error: 'Registration deadline has passed' }, { status: 400 });
+        // Admin bypass: Allow admins to register teams with incomplete rosters or unverified players
+        if (!user.isAdmin) {
+            // Validate team has complete roster
+            if (team.players.main.length !== 5) {
+                return NextResponse.json({ error: 'Team must have a complete 5-player roster to register' }, { status: 400 });
+            }
+
+            // Check if team players are verified (if required)
+            const unverifiedPlayers = team.players.main.filter(player => !player.verified);
+            if (unverifiedPlayers.length > 0) {
+                return NextResponse.json({
+                    error: `The following players need to be verified: ${unverifiedPlayers.map(p => p.inGameName).join(', ')}`,
+                    unverifiedPlayers: unverifiedPlayers.map(p => ({ id: p.id, inGameName: p.inGameName }))
+                }, { status: 400 });
+            }
         }
 
-        // Validate team has complete roster
-        if (team.players.main.length !== 5) {
-            return NextResponse.json({ error: 'Team must have a complete 5-player roster to register' }, { status: 400 });
-        }
-
-        // Check if team players are verified (if required)
-        const unverifiedPlayers = team.players.main.filter(player => !player.verified);
-        if (unverifiedPlayers.length > 0) {
-            return NextResponse.json({
-                error: `The following players need to be verified: ${unverifiedPlayers.map(p => p.inGameName).join(', ')}`,
-                unverifiedPlayers: unverifiedPlayers.map(p => ({ id: p.id, inGameName: p.inGameName }))
-            }, { status: 400 });
-        }
-
-        const updatedTournament = await registerTeamForTournament(params.tournamentId, teamId);
+        const updatedTournament = await registerTeamForTournament(tournamentId, teamId, user.isAdmin);
 
         if (!updatedTournament) {
             return NextResponse.json({ error: 'Failed to register team. Tournament may be full or registration is closed.' }, { status: 400 });
@@ -67,9 +74,9 @@ export const POST = withAuth(async (req: NextRequest, user, { params }: { params
     }
 });
 
-// DELETE /api/v1/tournaments/[tournamentId]/register - Unregister team from tournament
-export const DELETE = withAuth(async (req: NextRequest, user, { params }: { params: { tournamentId: string } }) => {
+export const DELETE = withAuth(async (req: NextRequest, user: JWTPayload) => {
     try {
+        const tournamentId = req.url.split('/').slice(-2, -1)[0];
         const { teamId }: { teamId: string } = await req.json();
 
         if (!teamId) {
@@ -86,7 +93,7 @@ export const DELETE = withAuth(async (req: NextRequest, user, { params }: { para
             return NextResponse.json({ error: 'You can only unregister your own teams' }, { status: 403 });
         }
 
-        const updatedTournament = await unregisterTeamFromTournament(params.tournamentId, teamId);
+        const updatedTournament = await unregisterTeamFromTournament(tournamentId, teamId);
 
         if (!updatedTournament) {
             return NextResponse.json({ error: 'Tournament not found or team not registered' }, { status: 404 });

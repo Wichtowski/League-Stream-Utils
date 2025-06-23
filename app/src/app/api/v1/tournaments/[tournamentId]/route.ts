@@ -41,7 +41,7 @@ export const PUT = withAuth(async (req: NextRequest, user: JWTPayload) => {
         const tournamentData: Partial<CreateTournamentRequest> = await req.json();
 
         // Validate dates if they're being updated
-        if (tournamentData.startDate || tournamentData.endDate || tournamentData.registrationDeadline) {
+        if (tournamentData.startDate || tournamentData.endDate || tournamentData.registrationDeadline || tournamentData.requireRegistrationDeadline !== undefined) {
             const currentTournament = await getTournamentById(tournamentId);
             if (!currentTournament || (currentTournament.userId !== user.userId && !user.isAdmin)) {
                 return NextResponse.json({ error: 'Tournament not found or forbidden' }, { status: 404 });
@@ -49,19 +49,23 @@ export const PUT = withAuth(async (req: NextRequest, user: JWTPayload) => {
 
             const startDate = tournamentData.startDate ? new Date(tournamentData.startDate) : currentTournament.startDate;
             const endDate = tournamentData.endDate ? new Date(tournamentData.endDate) : currentTournament.endDate;
-            const registrationDeadline = tournamentData.registrationDeadline ? new Date(tournamentData.registrationDeadline) : currentTournament.registrationDeadline;
-            const now = new Date();
-
-            if (startDate <= now) {
-                return NextResponse.json({ error: 'Tournament start date must be in the future' }, { status: 400 });
-            }
+            const requireDeadline = tournamentData.requireRegistrationDeadline !== undefined ? tournamentData.requireRegistrationDeadline : currentTournament.requireRegistrationDeadline;
 
             if (endDate <= startDate) {
                 return NextResponse.json({ error: 'Tournament end date must be after start date' }, { status: 400 });
             }
 
-            if (registrationDeadline >= startDate) {
-                return NextResponse.json({ error: 'Registration deadline must be before tournament start' }, { status: 400 });
+            // Only validate registration deadline if it's required
+            if (requireDeadline) {
+                const registrationDeadline = tournamentData.registrationDeadline ? new Date(tournamentData.registrationDeadline) : currentTournament.registrationDeadline;
+
+                if (!registrationDeadline) {
+                    return NextResponse.json({ error: 'Registration deadline is required when deadline is enabled' }, { status: 400 });
+                }
+
+                if (registrationDeadline >= startDate) {
+                    return NextResponse.json({ error: 'Registration deadline must be before tournament start' }, { status: 400 });
+                }
             }
         }
 

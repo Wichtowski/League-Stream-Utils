@@ -1,6 +1,7 @@
 'use client';
 
 import type { User, GameSession, SessionUrls } from '@lib/types';
+import { useElectron } from '@lib/contexts/ElectronContext';
 import QuickAccessTools from './QuickAccessTools';
 import SessionCreator from './SessionCreator';
 import SessionList from './SessionList';
@@ -28,6 +29,8 @@ export default function AuthenticatedHome({
     error,
     newSessionUrls
 }: AuthenticatedHomeProps) {
+    const { isElectron, useLocalData, setUseLocalData } = useElectron();
+    const isLocalDataMode = isElectron && useLocalData;
     return (
         <div className="min-h-screen text-white p-8">
             <div className="max-w-6xl mx-auto">
@@ -37,9 +40,13 @@ export default function AuthenticatedHome({
                             League of Legends Pick & Ban
                         </h1>
                         <div className="mt-2 flex items-center gap-4">
-                            <span className="text-lg">Welcome, {user.username}</span>
+                            <span className="text-lg">
+                                Welcome, {isLocalDataMode ? 'Local Admin' : user.username}
+                            </span>
                             {user.isAdmin && (
-                                <span className="bg-purple-600 text-white px-2 py-1 rounded text-sm">Admin</span>
+                                <span className="bg-purple-600 text-white px-2 py-1 rounded text-sm">
+                                    {isLocalDataMode ? 'Local Mode' : 'Admin'}
+                                </span>
                             )}
                         </div>
                     </div>
@@ -50,12 +57,21 @@ export default function AuthenticatedHome({
                                 {user.isAdmin ? 'Unlimited' : `${user.sessionsCreatedToday} / 2`}
                             </div>
                         </div>
-                        <button
-                            onClick={onLogout}
-                            className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded transition-colors"
-                        >
-                            Logout
-                        </button>
+                        {isLocalDataMode ? (
+                            <button
+                                onClick={() => setUseLocalData(false)}
+                                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition-colors"
+                            >
+                                Switch to Server Mode
+                            </button>
+                        ) : (
+                            <button
+                                onClick={onLogout}
+                                className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded transition-colors"
+                            >
+                                Logout
+                            </button>
+                        )}
                     </div>
                 </div>
 

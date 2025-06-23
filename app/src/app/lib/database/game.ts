@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import { connectToDatabase } from './connection';
-import { GameSession } from './models';
+import { GameSessionModel } from './models';
 import type { GameSession as GameSessionType, Champion } from '@lib/types';
 
 interface MongooseDocument extends Omit<GameSessionType, '_id'> {
@@ -69,7 +69,7 @@ export async function createGameSession(sessionData: Partial<GameSessionType>): 
   };
 
   const sessionToSave = { ...defaultSession, ...sessionData };
-  const session = new GameSession(sessionToSave);
+  const session = new GameSessionModel(sessionToSave);
   const saved = await session.save();
   
   return transformToGameSession(saved.toObject());
@@ -79,10 +79,10 @@ export async function saveGameSession(session: GameSessionType): Promise<GameSes
   await connectToDatabase();
   
   try {
-    const existingSession = await GameSession.findOne({ id: session.id });
+    const existingSession = await GameSessionModel.findOne({ id: session.id });
     
     if (existingSession) {
-      const updated = await GameSession.findOneAndUpdate(
+      const updated = await GameSessionModel.findOneAndUpdate(
         { id: session.id },
         { ...session, lastActivity: new Date() },
         { new: true }
@@ -90,7 +90,7 @@ export async function saveGameSession(session: GameSessionType): Promise<GameSes
       if (!updated) throw new Error('Failed to update session');
       return transformToGameSession(updated.toObject());
     } else {
-      const newSession = new GameSession(session);
+      const newSession = new GameSessionModel(session);
       const saved = await newSession.save();
       return transformToGameSession(saved.toObject());
     }
@@ -104,7 +104,7 @@ export async function getGameSession(sessionId: string): Promise<GameSessionType
   await connectToDatabase();
   
   try {
-    const session = await GameSession.findOne({ id: sessionId }).lean();
+    const session = await GameSessionModel.findOne({ id: sessionId }).lean();
     if (!session) return null;
     return transformToGameSession(session as MongooseDocument);
   } catch (error) {
@@ -116,7 +116,7 @@ export async function getGameSession(sessionId: string): Promise<GameSessionType
 export async function updateGameSession(sessionId: string, updateData: Partial<GameSessionType>): Promise<GameSessionType | null> {
   await connectToDatabase();
   
-  const session = await GameSession.findOneAndUpdate(
+  const session = await GameSessionModel.findOneAndUpdate(
     { id: sessionId },
     { ...updateData, lastActivity: new Date() },
     { new: true }
@@ -129,7 +129,7 @@ export async function deleteGameSession(sessionId: string): Promise<boolean> {
   await connectToDatabase();
   
   try {
-    const result = await GameSession.deleteOne({ id: sessionId });
+    const result = await GameSessionModel.deleteOne({ id: sessionId });
     return result.deletedCount > 0;
   } catch (error) {
     console.error('Error deleting game session:', error);
@@ -141,7 +141,7 @@ export async function getAllGameSessions(): Promise<GameSessionType[]> {
   await connectToDatabase();
   
   try {
-    const sessions = await GameSession.find({}).lean();
+    const sessions = await GameSessionModel.find({}).lean();
     return sessions.map(doc => transformToGameSession(doc as MongooseDocument));
   } catch (error) {
     console.error('Error getting all game sessions:', error);
@@ -154,7 +154,7 @@ export async function cleanupOldSessions(olderThanHours: number = 24): Promise<n
   
   try {
     const cutoffDate = new Date(Date.now() - olderThanHours * 60 * 60 * 1000);
-    const result = await GameSession.deleteMany({
+    const result = await GameSessionModel.deleteMany({
       lastActivity: { $lt: cutoffDate }
     });
     return result.deletedCount || 0;
@@ -169,7 +169,7 @@ export async function getUsedChampionsInSeries(sessionId: string): Promise<Champ
   await connectToDatabase();
   
   try {
-    const session = await GameSession.findOne({ id: sessionId }).lean();
+    const session = await GameSessionModel.findOne({ id: sessionId }).lean();
     if (!session) return [];
     
     const transformedSession = transformToGameSession(session as MongooseDocument);
@@ -194,7 +194,7 @@ export async function addUsedChampion(sessionId: string, teamSide: 'blue' | 'red
   await connectToDatabase();
   
   try {
-    await GameSession.findOneAndUpdate(
+    await GameSessionModel.findOneAndUpdate(
       { id: sessionId },
       { 
         $addToSet: { [`teams.${teamSide}.usedChampions`]: champion },

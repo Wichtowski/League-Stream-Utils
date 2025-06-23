@@ -1,8 +1,12 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useNavigation } from '@lib/contexts/NavigationContext';
+import { AuthGuard } from '@lib/components/AuthGuard';
+import { useUser } from '@lib/contexts/AuthContext';
+import { useElectron } from '@lib/contexts/ElectronContext';
+import { Cog6ToothIcon } from '@heroicons/react/24/outline';
 
 interface ModuleCard {
     id: string;
@@ -68,49 +72,67 @@ const modules: ModuleCard[] = [
         path: '/modules/champions',
         color: 'from-indigo-500 to-purple-500',
         status: 'available'
+    },
+    {
+        id: 'adminTournaments',
+        name: 'Admin Tournament Manager',
+        description: 'Register any team to any tournament with admin privileges and bypass restrictions',
+        icon: '🔧',
+        path: '/modules/tournaments',
+        color: 'from-purple-500 to-pink-500',
+        status: 'new'
     }
 ];
 
 export default function ModulesPage() {
     const router = useRouter();
     const { setActiveModule } = useNavigation();
-    const [authChecked, setAuthChecked] = useState(false);
+    const user = useUser();
+    const { isElectron, useLocalData } = useElectron();
 
     useEffect(() => {
         setActiveModule('modules');
+    }, [setActiveModule]);
 
-        // Check authentication
-        const token = localStorage.getItem('token');
-        const userData = localStorage.getItem('user');
-
-        if (!token || !userData) {
-            router.push('/auth');
-            return;
+    // Filter modules based on admin status
+    const availableModules = modules.filter(module => {
+        if (module.id === 'adminTournaments') {
+            return user?.isAdmin;
         }
-
-        setAuthChecked(true);
-    }, [router, setActiveModule]);
+        return true;
+    });
 
     const handleModuleClick = (module: ModuleCard) => {
         router.push(module.path);
     };
 
-    if (!authChecked) {
-        return (
-            <div className="min-h-screen flex items-center justify-center p-8">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400 mx-auto mb-4"></div>
-                    <p className="text-white">Checking authentication...</p>
-                </div>
-            </div>
-        );
-    }
-
     return (
-        <div className="min-h-screen p-8">
-            <div className="max-w-7xl mx-auto">
+        <AuthGuard>
+            <div className="min-h-screen p-8">
+                <div className="max-w-7xl mx-auto">
                 {/* Header */}
-                <div className="text-center mb-12">
+                <div className="text-center mb-12 relative">
+                    {isElectron && (
+                        <div className="absolute top-0 right-0 flex items-center space-x-4">
+                            <div className="text-right">
+                                <div className="text-sm text-gray-400">
+                                    Mode: <span className={useLocalData ? 'text-green-400' : 'text-blue-400'}>
+                                        {useLocalData ? 'Local Data' : 'Online'}
+                                    </span>
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                    {useLocalData ? 'Saving to AppData' : 'Using cloud storage'}
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => router.push('/settings')}
+                                className="p-2 bg-gray-800/50 hover:bg-gray-700/50 rounded-lg border border-gray-600/50 hover:border-gray-500/50 transition-colors"
+                                title="Electron Settings"
+                            >
+                                <Cog6ToothIcon className="w-5 h-5 text-gray-400 hover:text-gray-300" />
+                            </button>
+                        </div>
+                    )}
                     <h1 className="text-6xl font-bold text-white mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">
                         Tournament Modules
                     </h1>
@@ -121,7 +143,7 @@ export default function ModulesPage() {
 
                 {/* Modules Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {modules.map((module) => (
+                    {availableModules.map((module) => (
                         <div
                             key={module.id}
                             onClick={() => handleModuleClick(module)}
@@ -213,5 +235,6 @@ export default function ModulesPage() {
                 </div>
             </div>
         </div>
+        </AuthGuard>
     );
 } 

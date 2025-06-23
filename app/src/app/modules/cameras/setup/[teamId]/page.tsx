@@ -207,6 +207,68 @@ export default function TeamCameraSetupPage() {
           </div>
         </div>
 
+        {/* Tournament Mode Settings */}
+        <div className="mb-8 bg-gray-800 rounded-lg p-6 border border-gray-700">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 bg-red-600/20 rounded-lg flex items-center justify-center">
+              <span className="text-red-400 text-xl">🏆</span>
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-white">Tournament Mode Settings</h3>
+              <p className="text-sm text-gray-400">Configure delayed streams for competitive integrity</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  id="globalDelayEnabled"
+                  checked={team.globalDelayEnabled || false}
+                  onChange={(e) => {
+                    setTeam({
+                      ...team,
+                      globalDelayEnabled: e.target.checked
+                    });
+                  }}
+                  className="w-5 h-5 text-red-600 bg-gray-700 border-gray-600 rounded focus:ring-red-500 focus:ring-2"
+                />
+                <label htmlFor="globalDelayEnabled" className="text-white font-medium">
+                  Enable tournament mode (3-minute delay)
+                </label>
+              </div>
+
+              <div>
+                <label className="block text-sm text-gray-300 mb-2">Delay Duration (minutes)</label>
+                <input
+                  type="number"
+                  min="1"
+                  max="10"
+                  value={team.delayMinutes || 3}
+                  onChange={(e) => {
+                    setTeam({
+                      ...team,
+                      delayMinutes: parseInt(e.target.value) || 3
+                    });
+                  }}
+                  className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:border-red-500 focus:outline-none transition-colors"
+                />
+              </div>
+            </div>
+
+            <div className="bg-gray-700/50 rounded-lg p-4">
+              <h4 className="font-medium text-white mb-2">Tournament Mode Benefits:</h4>
+              <ul className="text-sm text-gray-300 space-y-1">
+                <li>• Prevents stream sniping during matches</li>
+                <li>• Maintains competitive integrity</li>
+                <li>• Standard for professional esports</li>
+                <li>• Required when not using official spectator mode</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
         {/* Players Configuration */}
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
           {team.players.map((player) => (
@@ -221,7 +283,7 @@ export default function TeamCameraSetupPage() {
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm text-gray-300 mb-2">Stream URL</label>
+                  <label className="block text-sm text-gray-300 mb-2">Live Stream URL</label>
                   <input
                     type="url"
                     placeholder="https://twitch.tv/player or OBS Stream URL"
@@ -231,16 +293,64 @@ export default function TeamCameraSetupPage() {
                   />
                 </div>
 
+                <div>
+                  <label className="block text-sm text-gray-300 mb-2">
+                    Delayed Stream URL (Tournament Mode)
+                    <span className="text-red-400 ml-1">🏆</span>
+                  </label>
+                  <input
+                    type="url"
+                    placeholder="https://twitch.tv/player with 3min delay or delayed OBS URL"
+                    value={player.delayedUrl || ''}
+                    onChange={(e) => {
+                      setTeam({
+                        ...team,
+                        players: team.players.map(p => 
+                          p.playerId === player.playerId ? { ...p, delayedUrl: e.target.value } : p
+                        )
+                      });
+                    }}
+                    className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white placeholder-gray-400 focus:border-red-500 focus:outline-none transition-colors"
+                  />
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    id={`useDelay-${player.playerId}`}
+                    checked={player.useDelay || false}
+                    onChange={(e) => {
+                      setTeam({
+                        ...team,
+                        players: team.players.map(p => 
+                          p.playerId === player.playerId ? { ...p, useDelay: e.target.checked } : p
+                        )
+                      });
+                    }}
+                    className="w-4 h-4 text-red-600 bg-gray-700 border-gray-600 rounded focus:ring-red-500 focus:ring-2"
+                  />
+                  <label htmlFor={`useDelay-${player.playerId}`} className="text-sm text-gray-300">
+                    Use delayed stream by default
+                  </label>
+                </div>
+
                 {/* Stream Preview */}
-                {player.url && player.url.trim() !== '' && (
+                {((player.useDelay && player.delayedUrl) || (!player.useDelay && player.url)) && (
                   <div className="relative">
                     <div className="aspect-video bg-gray-900 rounded-lg overflow-hidden">
                       <iframe
-                        src={player.url}
+                        src={player.useDelay ? player.delayedUrl : player.url}
                         className="w-full h-full"
                         allow="autoplay; fullscreen"
-                        title={`${player.playerName} stream preview`}
+                        title={`${player.playerName} stream preview${player.useDelay ? ' (delayed)' : ''}`}
                       />
+                    </div>
+                    <div className="absolute top-2 right-2 z-10">
+                      <div className={`px-2 py-1 rounded text-xs font-semibold ${
+                        player.useDelay ? 'bg-red-600/90 text-white' : 'bg-green-600/90 text-white'
+                      }`}>
+                        {player.useDelay ? 'DELAYED' : 'LIVE'}
+                      </div>
                     </div>
                   </div>
                 )}
@@ -272,30 +382,70 @@ export default function TeamCameraSetupPage() {
         {/* Help Section */}
         <div className="bg-gray-800 rounded-lg p-6">
           <h3 className="text-lg font-semibold text-white mb-4">Stream URL Examples</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-            <div>
-              <h4 className="font-medium text-gray-300 mb-2">Twitch Streams:</h4>
-              <code className="block bg-gray-700 p-2 rounded text-green-400">
-                https://player.twitch.tv/?channel=CHANNEL_NAME&parent=localhost
-              </code>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div>
+                <h4 className="font-medium text-gray-300 mb-2">Twitch Streams:</h4>
+                <code className="block bg-gray-700 p-2 rounded text-green-400 text-xs">
+                  https://player.twitch.tv/?channel=CHANNEL_NAME&parent=localhost
+                </code>
+              </div>
+              <div>
+                <h4 className="font-medium text-gray-300 mb-2">YouTube Streams:</h4>
+                <code className="block bg-gray-700 p-2 rounded text-green-400 text-xs">
+                  https://www.youtube.com/embed/VIDEO_ID
+                </code>
+              </div>
+              <div>
+                <h4 className="font-medium text-gray-300 mb-2">OBS Studio:</h4>
+                <code className="block bg-gray-700 p-2 rounded text-green-400 text-xs">
+                  rtmp://your-server.com/live/stream_key
+                </code>
+              </div>
+              <div>
+                <h4 className="font-medium text-gray-300 mb-2">Direct Video:</h4>
+                <code className="block bg-gray-700 p-2 rounded text-green-400 text-xs">
+                  https://example.com/stream.m3u8
+                </code>
+              </div>
             </div>
-            <div>
-              <h4 className="font-medium text-gray-300 mb-2">YouTube Streams:</h4>
-              <code className="block bg-gray-700 p-2 rounded text-green-400">
-                https://www.youtube.com/embed/VIDEO_ID
-              </code>
-            </div>
-            <div>
-              <h4 className="font-medium text-gray-300 mb-2">OBS Studio:</h4>
-              <code className="block bg-gray-700 p-2 rounded text-green-400">
-                rtmp://your-server.com/live/stream_key
-              </code>
-            </div>
-            <div>
-              <h4 className="font-medium text-gray-300 mb-2">Direct Video:</h4>
-              <code className="block bg-gray-700 p-2 rounded text-green-400">
-                https://example.com/stream.m3u8
-              </code>
+            
+            <div className="space-y-4">
+              <div className="bg-red-600/10 border border-red-600/30 rounded-lg p-4">
+                <h4 className="font-medium text-red-400 mb-2 flex items-center gap-2">
+                  🏆 Tournament Delay Setup
+                </h4>
+                <p className="text-sm text-gray-300 mb-3">
+                  For competitive integrity, set up delayed streams when not using official spectator mode:
+                </p>
+                <div className="space-y-2 text-xs text-gray-400">
+                  <div>
+                    <strong className="text-gray-300">OBS Studio:</strong>
+                    <br />• Use &quot;Stream Delay&quot; filter (3 minutes)
+                    <br />• Create separate delayed stream keys
+                  </div>
+                  <div>
+                    <strong className="text-gray-300">Twitch:</strong>
+                    <br />• Enable stream delay in dashboard
+                    <br />• Use different channel for delayed feed
+                  </div>
+                  <div>
+                    <strong className="text-gray-300">Streaming Software:</strong>
+                    <br />• Configure built-in delay features
+                    <br />• Use server-side delay solutions
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-blue-600/10 border border-blue-600/30 rounded-lg p-4">
+                <h4 className="font-medium text-blue-400 mb-2">💡 Pro Tips</h4>
+                <ul className="text-xs text-gray-400 space-y-1">
+                  <li>• Test both live and delayed streams before tournaments</li>
+                  <li>• Use keyboard shortcuts: T for tournament mode</li>
+                  <li>• Monitor stream quality and delay accuracy</li>
+                  <li>• Have backup delay mechanisms ready</li>
+                </ul>
+              </div>
             </div>
           </div>
         </div>

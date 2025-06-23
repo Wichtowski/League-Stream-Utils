@@ -3,7 +3,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useRouter } from "next/navigation";
 import { useNavigation } from '@lib/contexts/NavigationContext';
-import { useUser } from '@lib/contexts/AuthContext';
+import { useAuth } from '@lib/contexts/AuthContext';
+import { useAuthenticatedFetch } from '@lib/hooks/useAuthenticatedFetch';
 import { CameraPlayer, Player, Team } from '@lib/types';
 
 // Import proper types from database schemas
@@ -17,63 +18,15 @@ type TeamCamera = {
 export default function CamerasPage() {
   const router = useRouter();
   const { setActiveModule } = useNavigation();
-  const user = useUser();
+  const { user, isLoading: authLoading } = useAuth();
+  const { authenticatedFetch } = useAuthenticatedFetch();
   const [teams, setTeams] = useState<TeamCamera[]>([]);
   const [loading, setLoading] = useState(true);
-  const [authChecked, setAuthChecked] = useState(false);
   const [showAdminView, setShowAdminView] = useState(false);
 
-  const loadTeams = useCallback(async () => {
+  const autoSetupFromTeams = useCallback(async () => {
     try {
-      const response = await fetch('/api/v1/cameras/settings', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data.teams && data.teams.length > 0) {
-          setTeams(data.teams);
-        } else {
-          await autoSetupFromTeams();
-        }
-      } else {
-        await autoSetupFromTeams();
-      }
-    } catch (error) {
-      console.error('Error loading teams:', error);
-      await autoSetupFromTeams();
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    setActiveModule('cameras');
-
-    // Check authentication first
-    const token = localStorage.getItem('token');
-    const userData = localStorage.getItem('user');
-
-    if (!token || !userData) {
-      router.push('/auth');
-      return;
-    }
-
-    setAuthChecked(true);
-    loadTeams();
-  }, [router, setActiveModule, loadTeams]);
-
-
-
-  const autoSetupFromTeams = async () => {
-    try {
-      const teamsResponse = await fetch('/api/v1/teams', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
+      const teamsResponse = await authenticatedFetch('/api/v1/teams');
 
       if (teamsResponse.ok) {
         const teamsData = await teamsResponse.json();
@@ -95,11 +48,10 @@ export default function CamerasPage() {
           }));
 
           // Save camera settings
-          const saveResponse = await fetch('/api/v1/cameras/settings', {
+          const saveResponse = await authenticatedFetch('/api/v1/cameras/settings', {
             method: 'POST',
             headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${localStorage.getItem('token')}`
+              'Content-Type': 'application/json'
             },
             body: JSON.stringify({ teams: cameraTeams })
           });
@@ -112,9 +64,43 @@ export default function CamerasPage() {
     } catch (error) {
       console.error('Error auto-setting up camera teams:', error);
     }
-  };
+  }, [authenticatedFetch]);
 
-  if (!authChecked || loading) {
+  const loadTeams = useCallback(async () => {
+    try {
+      const response = await authenticatedFetch('/api/v1/cameras/settings');
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.teams && data.teams.length > 0) {
+          setTeams(data.teams);
+        } else {
+          await autoSetupFromTeams();
+        }
+      } else {
+        await autoSetupFromTeams();
+      }
+    } catch (error) {
+      console.error('Error loading teams:', error);
+      await autoSetupFromTeams();
+    } finally {
+      setLoading(false);
+    }
+  }, [authenticatedFetch, autoSetupFromTeams]);
+
+  useEffect(() => {
+    setActiveModule('cameras');
+
+    if (!authLoading) {
+      loadTeams();
+    }
+  }, [setActiveModule, loadTeams, authLoading]);
+
+
+
+
+
+  if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400"></div>

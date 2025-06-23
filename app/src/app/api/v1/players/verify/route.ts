@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import riotAPI from '../../../../lib/services/riot-api';
+import { riotAPI } from '@lib/services/riot-api';
+import { MatchData, RiotAPIResponse } from '@/app/lib/types/riot';
 
 export async function POST(request: NextRequest) {
     try {
@@ -27,7 +28,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Basic verification data
-        const response: any = {
+        const response: RiotAPIResponse = {
             success: true,
             verified: true,
             player: verificationResult.player,
@@ -40,13 +41,9 @@ export async function POST(request: NextRequest) {
             try {
                 const stats = await riotAPI.getPlayerStats(verificationResult.player.puuid);
                 response.stats = {
-                    championMastery: stats.championMastery.slice(0, 5), // Top 5 champions
-                    recentMatches: stats.recentMatches.map(match => ({
-                        gameId: match.info.gameId,
-                        gameMode: match.info.gameMode,
-                        gameDuration: match.info.gameDuration,
-                        gameEndTimestamp: match.info.gameEndTimestamp,
-                        participant: match.info.participants.find(p => p.puuid === verificationResult.player!.puuid)
+                    championMastery: stats.championMastery.slice(0, 5),
+                    recentMatches: stats.recentMatches.map((match: MatchData) => ({
+                        ...match
                     })),
                     rankedData: stats.rankedData
                 };
@@ -102,16 +99,6 @@ export async function GET(request: NextRequest) {
 
     } catch (error) {
         console.error('Player lookup API error:', error);
-        if ((error as any).response?.status === 404) {
-            return NextResponse.json(
-                {
-                    success: false,
-                    error: 'Player not found'
-                },
-                { status: 404 }
-            );
-        }
-
         return NextResponse.json(
             {
                 success: false,

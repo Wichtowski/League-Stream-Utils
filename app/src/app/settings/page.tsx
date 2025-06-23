@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@lib/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
-import ElectronSettings from '@components/settings/ElectronSettings';
+import ElectronSettings from '@components/electron/settings';
 
 export default function SettingsPage() {
     const { user } = useAuth();

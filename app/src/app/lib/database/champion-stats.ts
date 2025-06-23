@@ -1,9 +1,9 @@
-import mongoose from 'mongoose';
+import { Schema, models, model } from 'mongoose';
 import { connectToDatabase } from './connection';
-import type { GameResult, ChampionStats, TournamentChampionStats, PlayerRole } from '@lib/types';
+import type { GameResult, TournamentChampionStats, PlayerRole, ChampionStats } from '@lib/types';
 import { getChampionById } from '@lib/champions';
 
-const ChampionStatsSchema = new mongoose.Schema({
+const ChampionStatsSchema = new Schema({
     championId: { type: Number, required: true },
     championName: { type: String, required: true },
     championKey: { type: String, required: true },
@@ -34,7 +34,7 @@ const ChampionStatsSchema = new mongoose.Schema({
     lastUpdated: { type: Date, default: Date.now }
 });
 
-const TournamentChampionStatsSchema = new mongoose.Schema({
+const TournamentChampionStatsSchema = new Schema({
     tournamentId: { type: String, required: true, unique: true },
     totalGames: { type: Number, default: 0 },
     totalMatches: { type: Number, default: 0 },
@@ -42,7 +42,7 @@ const TournamentChampionStatsSchema = new mongoose.Schema({
     championStats: [ChampionStatsSchema]
 });
 
-const GameResultSchema = new mongoose.Schema({
+const GameResultSchema = new Schema({
     sessionId: { type: String, required: true, unique: true },
     tournamentId: { type: String },
     gameNumber: { type: Number, required: true },
@@ -75,11 +75,11 @@ const GameResultSchema = new mongoose.Schema({
     }
 });
 
-const TournamentChampionStatsModel = mongoose.models.TournamentChampionStats ||
-    mongoose.model('TournamentChampionStats', TournamentChampionStatsSchema);
+const TournamentChampionStatsModel = models.TournamentChampionStats ||
+    model('TournamentChampionStats', TournamentChampionStatsSchema);
 
-const GameResultModel = mongoose.models.GameResult ||
-    mongoose.model('GameResult', GameResultSchema);
+const GameResultModel = models.GameResult ||
+    model('GameResult', GameResultSchema);
 
 export async function recordGameResult(gameResult: GameResult): Promise<void> {
     await connectToDatabase();
@@ -150,15 +150,15 @@ export async function updateChampionStats(tournamentId: string, gameResult: Game
 }
 
 async function updateChampionStat(
-    tournamentStats: any,
+    tournamentStats: TournamentChampionStats,
     championId: number,
     action: 'pick' | 'ban',
     metadata: { side: 'blue' | 'red'; won?: boolean; role?: PlayerRole }
 ): Promise<void> {
-    let champStat = tournamentStats.championStats.find((stat: any) => stat.championId === championId);
+    let champStat = tournamentStats.championStats.find((stat: ChampionStats) => stat.championId === championId);
 
     if (!champStat) {
-        const champion = await getChampionById(championId);
+        const champion = getChampionById(championId);
         if (!champion) return;
 
         champStat = {
@@ -214,8 +214,10 @@ export async function getTournamentChampionStats(tournamentId: string): Promise<
     await connectToDatabase();
 
     try {
-        const stats = await TournamentChampionStatsModel.findOne({ tournamentId }).lean() as any;
-        if (!stats) return null;
+        const statsDoc = await TournamentChampionStatsModel.findOne({ tournamentId });
+        if (!statsDoc) return null;
+
+        const stats = statsDoc.toObject();
 
         // Generate meta insights
         const championStats = stats.championStats || [];
@@ -263,7 +265,12 @@ export async function getTournamentChampionStats(tournamentId: string): Promise<
 /**
  * Get champion statistics formatted for OBS consumption
  */
-export async function getChampionStatsForOBS(tournamentId: string): Promise<any> {
+export async function getChampionStatsForOBS(tournamentId: string): Promise<{
+    tournament: { id: string; totalGames: number; lastUpdated: Date };
+    topPicks: Array<{ champion: { id: number; name: string; image: string }; picks: number; pickRate: number; winRate: number }>;
+    topBans: Array<{ champion: { id: number; name: string; image: string }; bans: number; banRate: number }>;
+    topPresence: Array<{ champion: { id: number; name: string; image: string }; presence: number; picks: number; bans: number }>;
+} | null> {
     const stats = await getTournamentChampionStats(tournamentId);
     if (!stats) return null;
 

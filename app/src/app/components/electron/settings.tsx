@@ -1,10 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Cog6ToothIcon, CloudIcon, DocumentDuplicateIcon, ShieldCheckIcon } from '@heroicons/react/24/outline';
+import { Cog6ToothIcon, CloudIcon, DocumentDuplicateIcon, ShieldCheckIcon, ComputerDesktopIcon } from '@heroicons/react/24/outline';
 import { useModal } from '@lib/contexts/ModalContext';
-import riotAPI from '../../lib/services/riot-api';
-import tournamentTemplates, { type TournamentTemplate } from '../../lib/services/tournament-templates';
+import { riotAPI } from '@lib/services/riot-api';
+import { refreshChampionsCache } from '@lib/champions';
+import tournamentTemplates, { type TournamentTemplate } from '@lib/services/tournament-templates';
+import ElectronDataModeSelector from './dataModeSelector';
 
 interface RiotAPISettings {
     apiKey: string;
@@ -21,7 +23,7 @@ interface CacheStats {
 
 export default function ElectronSettings() {
     const { showAlert } = useModal();
-    const [activeTab, setActiveTab] = useState('riot-api');
+    const [activeTab, setActiveTab] = useState('data-mode');
     const [isElectron, setIsElectron] = useState(false);
     const [loading, setLoading] = useState(false);
 
@@ -110,7 +112,7 @@ export default function ElectronSettings() {
     const handleUpdateChampions = async () => {
         setLoading(true);
         try {
-            await riotAPI.getAllChampions();
+            await refreshChampionsCache();
             await loadCacheStats();
             await showAlert({ type: 'success', message: 'Champions database updated successfully!' });
         } catch (error) {
@@ -149,6 +151,7 @@ export default function ElectronSettings() {
     };
 
     const tabs = [
+        { id: 'data-mode', name: 'Data Storage', icon: ComputerDesktopIcon },
         { id: 'riot-api', name: 'Riot API', icon: ShieldCheckIcon },
         { id: 'templates', name: 'Tournament Templates', icon: DocumentDuplicateIcon },
         { id: 'cache', name: 'Cache Management', icon: CloudIcon }
@@ -189,6 +192,13 @@ export default function ElectronSettings() {
                     ))}
                 </nav>
             </div>
+
+            {/* Data Storage Mode */}
+            {activeTab === 'data-mode' && (
+                <div className="space-y-6">
+                    <ElectronDataModeSelector />
+                </div>
+            )}
 
             {/* Riot API Settings */}
             {activeTab === 'riot-api' && (

@@ -4,6 +4,7 @@ import Footer from "@components/common/Footer";
 import { NavigationProvider } from "./lib/contexts/NavigationContext";
 import { ModalProvider } from "./lib/contexts/ModalContext";
 import { AuthProvider } from "./lib/contexts/AuthContext";
+import { ElectronProvider } from "./lib/contexts/ElectronContext";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -31,16 +32,18 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col bg-gradient-to-br from-indigo-900 via-purple-900 to-gray-900`}
       >
-        <AuthProvider>
-          <NavigationProvider>
-            <ModalProvider>
-              <main className="flex-1">
-                {children}
-              </main>
-              <Footer />
-            </ModalProvider>
-          </NavigationProvider>
-        </AuthProvider>
+        <ElectronProvider>
+          <AuthProvider>
+            <NavigationProvider>
+              <ModalProvider>
+                <main className="flex-1">
+                  {children}
+                </main>
+                <Footer />
+              </ModalProvider>
+            </NavigationProvider>
+          </AuthProvider>
+        </ElectronProvider>
       </body>
     </html>
   );

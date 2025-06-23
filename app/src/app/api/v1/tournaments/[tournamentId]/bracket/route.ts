@@ -3,13 +3,13 @@ import { withAuth } from '@lib/auth';
 import { getTournamentById } from '@lib/database/tournament';
 import { BracketGenerator } from '@lib/services/bracket-generator';
 import { connectToDatabase } from '@lib/database/connection';
-import { Bracket } from '@lib/database/models';
+import { BracketModel } from '@lib/database/models';
 import type { JWTPayload } from '@lib/types/auth';
 import type { BracketStructure, UpdateMatchResultRequest } from '@lib/types/tournament';
 
 async function saveBracket(bracket: BracketStructure): Promise<void> {
     await connectToDatabase();
-    await Bracket.findOneAndUpdate(
+    await BracketModel.findOneAndUpdate(
         { tournamentId: bracket.tournamentId },
         bracket,
         { upsert: true, new: true }
@@ -18,7 +18,7 @@ async function saveBracket(bracket: BracketStructure): Promise<void> {
 
 async function getBracket(tournamentId: string): Promise<BracketStructure | null> {
     await connectToDatabase();
-    const bracket = await Bracket.findOne({ tournamentId });
+    const bracket = await BracketModel.findOne({ tournamentId });
     return bracket ? bracket.toObject() : null;
 }
 
@@ -201,7 +201,7 @@ export const DELETE = withAuth(async (req: NextRequest, user: JWTPayload) => {
         }
 
         await connectToDatabase();
-        await Bracket.deleteOne({ tournamentId });
+        await BracketModel.deleteOne({ tournamentId });
 
         return NextResponse.json({
             message: 'Bracket deleted successfully'

@@ -306,7 +306,7 @@ export async function banChampion(session: GameSession, championId: number, team
     return false;
   }
 
-  const champion = await getChampionById(championId);
+  const champion = getChampionById(championId);
 
   if (!champion) {
     return false;
@@ -340,7 +340,7 @@ export async function pickChampion(session: GameSession, championId: number, tea
     return false;
   }
 
-  const champion = await getChampionById(championId);
+  const champion = getChampionById(championId);
 
   if (!champion) {
     return false;

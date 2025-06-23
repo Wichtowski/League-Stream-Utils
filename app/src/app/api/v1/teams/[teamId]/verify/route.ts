@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@lib/auth';
 import { getTeamById, verifyTeamPlayers } from '@lib/database/team';
 import { connectToDatabase } from '@lib/database/connection';
-import { Team as TeamModel } from '@lib/database/models';
+import { TeamModel } from '@lib/database/models';
 import type { JWTPayload } from '@lib/types/auth';
 
 export const POST = withAuth(async (req: NextRequest, user: JWTPayload) => {

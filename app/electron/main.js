@@ -1,5 +1,4 @@
 const { app, BrowserWindow, Menu, ipcMain, dialog, shell } = require('electron');
-const { spawn } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 const isDev = process.env.NODE_ENV === 'development';
@@ -52,7 +51,7 @@ function createWindow() {
         hostname = process.env.WSL_HOST;
     }
 
-    const appUrl = isDev ? `http://${hostname}:${port}` : `file://${path.join(__dirname, '../out/index.html')}`;
+    const appUrl = isDev ? `http://${hostname}:${port}/modules` : `file://${path.join(__dirname, '../out/modules.html')}`;
 
     console.log(`Loading Electron app from: ${appUrl}`);
     if (isDev) {

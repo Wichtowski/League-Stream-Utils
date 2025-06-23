@@ -21,7 +21,7 @@ export {
   addUsedChampion
 } from './game';
 
-export { GameSession, User } from './models';
+export { GameSessionModel, UserModel } from './models';
 export { GameSessionSchema, UserSchema } from './schemas';
 
 export {

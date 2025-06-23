@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@lib/auth';
 import { connectToDatabase } from '@lib/database/connection';
-import { Team as TeamModel } from '@lib/database/models';
+import { TeamModel } from '@lib/database/models';
 import type { JWTPayload } from '@lib/types/auth';
 import { Player, Team } from '@lib/types';
 

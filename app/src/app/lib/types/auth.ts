@@ -10,7 +10,7 @@ export interface User {
     email: string;
     isAdmin: boolean;
     sessionsCreatedToday: number;
-    lastSessionDate: string; // YYYY-MM-DD format
+    lastSessionDate: Date;
     createdAt: Date;
 }
 

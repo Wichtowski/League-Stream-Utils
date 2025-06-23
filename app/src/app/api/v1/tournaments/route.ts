@@ -45,19 +45,21 @@ export const POST = withAuth(async (req: NextRequest, user) => {
     // Validate dates
     const startDate = new Date(tournamentData.startDate);
     const endDate = new Date(tournamentData.endDate);
-    const registrationDeadline = new Date(tournamentData.registrationDeadline);
-    const now = new Date();
-
-    if (startDate <= now) {
-      return NextResponse.json({ error: 'Tournament start date must be in the future' }, { status: 400 });
-    }
 
     if (endDate <= startDate) {
       return NextResponse.json({ error: 'Tournament end date must be after start date' }, { status: 400 });
     }
 
-    if (registrationDeadline >= startDate) {
-      return NextResponse.json({ error: 'Registration deadline must be before tournament start' }, { status: 400 });
+    // Only validate registration deadline if it's required
+    if (tournamentData.requireRegistrationDeadline) {
+      if (!tournamentData.registrationDeadline) {
+        return NextResponse.json({ error: 'Registration deadline is required when deadline is enabled' }, { status: 400 });
+      }
+
+      const registrationDeadline = new Date(tournamentData.registrationDeadline);
+      if (registrationDeadline >= startDate) {
+        return NextResponse.json({ error: 'Registration deadline must be before tournament start' }, { status: 400 });
+      }
     }
 
     // Validate team count

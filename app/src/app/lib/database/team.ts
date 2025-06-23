@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import { connectToDatabase } from './connection';
-import { Team as TeamModel } from './models';
+import { TeamModel } from './models';
 import type { Team, CreateTeamRequest, Player, RiotPlayerData } from '@lib/types';
 
 // Create a new team
@@ -61,14 +61,19 @@ export async function createTeam(userId: string, teamData: CreateTeamRequest): P
     return newTeam.toObject();
 }
 
-// Get teams by user ID
 export async function getUserTeams(userId: string): Promise<Team[]> {
     await connectToDatabase();
     const teams = await TeamModel.find({ userId }).sort({ createdAt: -1 });
-    return teams.map(team => team.toObject());
+    return teams.map((team: { toObject: () => Team }) => team.toObject());
 }
 
-// Get team by ID
+// Get all teams (admin only)
+export async function getAllTeams(): Promise<Team[]> {
+    await connectToDatabase();
+    const teams = await TeamModel.find({}).sort({ createdAt: -1 });
+    return teams.map((team: { toObject: () => Team }) => team.toObject());
+}
+
 export async function getTeamById(teamId: string): Promise<Team | null> {
     await connectToDatabase();
     const team = await TeamModel.findOne({ id: teamId });
@@ -149,7 +154,7 @@ export async function deleteTeam(teamId: string, userId: string): Promise<boolea
 export async function getTeamsByIds(teamIds: string[]): Promise<Team[]> {
     await connectToDatabase();
     const teams = await TeamModel.find({ id: { $in: teamIds } });
-    return teams.map(team => team.toObject());
+    return teams.map((team: { toObject: () => Team }) => team.toObject());
 }
 
 // Verify team players (update player verification status)

@@ -1,20 +1,6 @@
 import NodeCache from 'node-cache';
-import { Champion } from '../types';
 import { config } from '@lib/config';
 import { SummonerData, RankedData, ChampionMastery, MatchData, RiotPlayer } from '@lib/types/riot';
-
-interface DataDragonChampion {
-    id: string;
-    key: string;
-    name: string;
-    image: {
-        full: string;
-    };
-}
-
-interface DataDragonResponse {
-    data: Record<string, DataDragonChampion>;
-}
 
 class RiotAPIService {
     private cache: NodeCache;
@@ -106,59 +92,7 @@ class RiotAPIService {
         }
     }
 
-    async getAllChampions(): Promise<Champion[]> {
-        const cacheKey = 'all_champions';
-        const cached = this.cache.get<Champion[]>(cacheKey);
 
-        if (cached) {
-            return cached;
-        }
-
-        try {
-            const version = await this.getLatestGameVersion();
-            const response = await fetch(
-                `https://ddragon.leagueoflegends.com/cdn/${version}/data/en_US/champion.json`
-            );
-            const data: DataDragonResponse = await response.json();
-
-            const champions: Champion[] = Object.values(data.data).map((champ: DataDragonChampion) => ({
-                id: parseInt(champ.key),
-                name: champ.name,
-                key: champ.id,
-                image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/${champ.image.full}`
-            }));
-
-            // Cache for 24 hours
-            this.cache.set(cacheKey, champions, 86400);
-
-            // Also save to Electron cache if available
-            if (typeof window !== 'undefined' && window.electronAPI) {
-                window.electronAPI.saveChampionsCache({
-                    version,
-                    champions,
-                    lastUpdated: new Date().toISOString()
-                });
-            }
-
-            return champions;
-        } catch (error) {
-            console.error('Failed to fetch champions:', error);
-
-            // Try to load from Electron cache as fallback
-            if (typeof window !== 'undefined' && window.electronAPI) {
-                try {
-                    const electronCache = await window.electronAPI.loadChampionsCache();
-                    if (electronCache.success && electronCache.data?.champions) {
-                        return electronCache.data.champions;
-                    }
-                } catch (e) {
-                    console.error('Failed to load from Electron cache:', e);
-                }
-            }
-
-            throw error;
-        }
-    }
 
     async getPlayerByRiotId(gameName: string, tagLine: string, region: string = 'europe'): Promise<RiotPlayer> {
         const cacheKey = `player_${gameName}_${tagLine}_${region}`;
@@ -337,4 +271,3 @@ class RiotAPIService {
 }
 
 export const riotAPI = new RiotAPIService();
-export default riotAPI;

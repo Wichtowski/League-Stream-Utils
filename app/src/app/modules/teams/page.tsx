@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useUser } from '@lib/contexts/AuthContext';
 import type { Team, CreateTeamRequest, TeamTier } from '@lib/types';
 import { useModal } from '@lib/contexts/ModalContext';
+import { useNavigation } from '@/app/lib/contexts/NavigationContext';
 
 export default function TeamsPage() {
     const user = useUser();
@@ -15,6 +16,7 @@ export default function TeamsPage() {
     const [creating, setCreating] = useState(false);
     const [logoPreview, setLogoPreview] = useState<string>('');
     const [verifyingPlayers, setVerifyingPlayers] = useState<Set<string>>(new Set());
+    const { setActiveModule } = useNavigation();
 
     const [formData, setFormData] = useState<Partial<CreateTeamRequest>>({
         name: '',
@@ -45,6 +47,7 @@ export default function TeamsPage() {
     });
 
     useEffect(() => {
+        setActiveModule('teams');
         if (user) {
             fetchUserTeams();
         }
@@ -292,7 +295,7 @@ export default function TeamsPage() {
 
     if (!user) {
         return (
-            <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
+            <div className="min-h-screen text-white flex items-center justify-center">
                 <div className="text-center">
                     <h1 className="text-2xl font-bold mb-4">Please log in to manage teams</h1>
                     <a href="/auth" className="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-lg">
@@ -305,14 +308,14 @@ export default function TeamsPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
+            <div className="min-h-screen text-white flex items-center justify-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gray-900 text-white">
+        <div className="min-h-screen text-white">
             <div className="container mx-auto px-6 py-8">
                 <div className="flex justify-between items-center mb-8">
                     <h1 className="text-3xl font-bold">My Teams</h1>

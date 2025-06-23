@@ -1,6 +1,6 @@
-import mongoose from 'mongoose';
+import { Schema } from 'mongoose';
 
-const BracketNodeSchema = new mongoose.Schema({
+const BracketNodeSchema = new Schema({
     id: { type: String, required: true },
     round: { type: Number, required: true },
     position: { type: Number, required: true },
@@ -17,7 +17,7 @@ const BracketNodeSchema = new mongoose.Schema({
     bracketType: { type: String, enum: ['winner', 'loser', 'grand-final'], required: true }
 }, { _id: false });
 
-export const BracketSchema = new mongoose.Schema({
+export const BracketSchema = new Schema({
     id: { type: String, required: true, unique: true },
     tournamentId: { type: String, required: true, unique: true },
     format: { type: String, enum: ['single-elimination', 'double-elimination'], required: true },
@@ -30,7 +30,4 @@ export const BracketSchema = new mongoose.Schema({
     },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now }
-});
-
-// Add index for better query performance
-BracketSchema.index({ tournamentId: 1 }); 
+}); 

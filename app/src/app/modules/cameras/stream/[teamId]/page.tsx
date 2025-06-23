@@ -20,6 +20,8 @@ export default function TeamCameraStreamPage() {
     const [teamLogo, setTeamLogo] = useState<string>('');
     const [accessDenied, setAccessDenied] = useState(false);
     const [accessReason, setAccessReason] = useState<string>('');
+    const [tournamentMode, setTournamentMode] = useState(false);
+    const [delayMinutes, setDelayMinutes] = useState(3);
 
     const getRandomPlayer = useCallback((): CameraPlayer | null => {
         if (players.length === 0) return null;
@@ -35,6 +37,8 @@ export default function TeamCameraStreamPage() {
             }
         } else if (e.key.toLowerCase() === "r") {
             setRandomMode(prev => !prev);
+        } else if (e.key.toLowerCase() === "t") {
+            setTournamentMode(prev => !prev);
         } else if (e.key >= "1" && e.key <= "9") {
             const playerIndex = parseInt(e.key) - 1;
             if (playerIndex >= 0 && playerIndex < players.length) {
@@ -95,6 +99,8 @@ export default function TeamCameraStreamPage() {
                         setTeamName(team.teamName);
                         setTeamLogo(team.teamLogo || '');
                         setPlayers(team.players || []);
+                        setTournamentMode(team.globalDelayEnabled || false);
+                        setDelayMinutes(team.delayMinutes || 3);
                     } else {
                         console.error('Team not found');
                         router.push('/modules/cameras');
@@ -223,22 +229,52 @@ export default function TeamCameraStreamPage() {
             <div className="min-h-screen bg-black">
 
                 <div className="relative w-full aspect-video">
-                    {/* Preload all streams as hidden iframes - only for players with valid URLs */}
-                    {players.filter(player => player.imagePath && player.imagePath.trim() !== '').map((player) => (
-                        <iframe
-                            key={`stream-${player.playerId || player.inGameName}`}
-                            src={player.imagePath}
-                            className={`absolute inset-0 w-full h-full ${
-                                currentPlayer?.playerId === player.playerId || 
-                                (currentPlayer?.inGameName === player.inGameName && player.inGameName)
-                                    ? 'block' 
-                                    : 'hidden'
+                    {/* Tournament Mode Controls */}
+                    <div className="absolute top-4 left-4 z-20 flex gap-2">
+                        <button
+                            onClick={() => setTournamentMode(!tournamentMode)}
+                            className={`px-3 py-1 rounded-lg text-sm font-semibold transition-colors ${
+                                tournamentMode 
+                                    ? 'bg-red-600/90 text-white' 
+                                    : 'bg-gray-600/90 text-white hover:bg-gray-500/90'
                             }`}
-                            allow="autoplay; fullscreen"
-                            onError={handleStreamError}
-                            title={`${player.inGameName || player.playerName} camera feed`}
-                        />
-                    ))}
+                        >
+                            {tournamentMode ? `${delayMinutes} MIN DELAY` : 'LIVE MODE'}
+                        </button>
+                        <div className="bg-black/70 text-white px-2 py-1 rounded text-xs">
+                            Press T to toggle
+                        </div>
+                    </div>
+
+                    {/* Random Mode Indicator */}
+                    {randomMode && (
+                        <div className="absolute top-4 right-4 z-20 bg-purple-600/90 text-white px-3 py-1 rounded-lg text-sm font-semibold">
+                            RANDOM MODE
+                        </div>
+                    )}
+
+                    {/* Preload all streams as hidden iframes - only for players with valid URLs */}
+                    {players.filter(player => {
+                        const streamUrl = tournamentMode && player.delayedUrl ? player.delayedUrl : (player.url || player.imagePath);
+                        return streamUrl && streamUrl.trim() !== '';
+                    }).map((player) => {
+                        const streamUrl = tournamentMode && player.delayedUrl ? player.delayedUrl : (player.url || player.imagePath);
+                        return (
+                            <iframe
+                                key={`stream-${player.playerId || player.inGameName}-${tournamentMode ? 'delayed' : 'live'}`}
+                                src={streamUrl}
+                                className={`absolute inset-0 w-full h-full ${
+                                    currentPlayer?.playerId === player.playerId || 
+                                    (currentPlayer?.inGameName === player.inGameName && player.inGameName)
+                                        ? 'block' 
+                                        : 'hidden'
+                                }`}
+                                allow="autoplay; fullscreen"
+                                onError={handleStreamError}
+                                title={`${player.inGameName || player.playerName} camera feed${tournamentMode ? ` (${delayMinutes}min delay)` : ''}`}
+                            />
+                        );
+                    })}
                     
                     {/* Fallback display when no stream is available */}
                     {(!currentPlayer?.imagePath || streamFailed) && (

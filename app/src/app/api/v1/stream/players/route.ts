@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 import { connectToDatabase } from '@lib/database/connection';
-import mongoose from 'mongoose';
+import { Schema, models, model } from 'mongoose';
 import { CameraPlayer, CameraTeam } from '@/app/lib/types';
 
 // Reference the CameraSettings model (should match the one in settings/route.ts)
-const CameraSettingsSchema = new mongoose.Schema({
+const CameraSettingsSchema = new Schema({
     userId: { type: String, required: true, unique: true },
     teams: [{
         teamId: { type: String, required: true },
@@ -22,8 +22,8 @@ const CameraSettingsSchema = new mongoose.Schema({
     updatedAt: { type: Date, default: Date.now }
 });
 
-const CameraSettings = mongoose.models.CameraSettings ||
-    mongoose.model('CameraSettings', CameraSettingsSchema);
+const CameraSettings = models.CameraSettings ||
+    model('CameraSettings', CameraSettingsSchema);
 
 export async function GET() {
     try {

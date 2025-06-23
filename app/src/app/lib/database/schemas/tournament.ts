@@ -1,8 +1,8 @@
-import mongoose from 'mongoose';
+import { Schema } from 'mongoose';
 import { ImageStorageSchema, PlayerSchema, StaffSchema } from './common';
 import { Player } from '../../types';
 
-export const TeamSchema = new mongoose.Schema({
+export const TeamSchema = new Schema({
     id: { type: String, required: true, unique: true },
     name: { type: String, required: true },
     tag: { type: String, required: true },
@@ -42,17 +42,33 @@ export const TeamSchema = new mongoose.Schema({
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now }
 });
-export const TournamentSchema = new mongoose.Schema({
+
+export const TournamentSchema = new Schema({
     id: { type: String, required: true, unique: true },
     name: { type: String, required: true },
     abbreviation: { type: String, required: true },
 
     startDate: { type: Date, required: true },
     endDate: { type: Date, required: true },
-    registrationDeadline: { type: Date, required: true },
+    requireRegistrationDeadline: { type: Boolean, default: false },
+    registrationDeadline: {
+        type: Date,
+        required: false
+    },
 
     matchFormat: { type: String, enum: ['BO1', 'BO3', 'BO5'], required: true },
     tournamentFormat: { type: String, enum: ['Ladder', 'Swiss into Ladder', 'Round Robin into Ladder', 'Groups'], required: true },
+
+    // Phase-specific match formats for advanced tournaments
+    phaseMatchFormats: {
+        roundRobin: { type: String, enum: ['BO1', 'BO3', 'BO5'] },
+        swiss: { type: String, enum: ['BO1', 'BO3', 'BO5'] },
+        groups: { type: String, enum: ['BO1', 'BO3', 'BO5'] },
+        ladder: { type: String, enum: ['BO1', 'BO3', 'BO5'] },
+        semifinals: { type: String, enum: ['BO1', 'BO3', 'BO5'] },
+        finals: { type: String, enum: ['BO1', 'BO3', 'BO5'] },
+        default: { type: String, enum: ['BO1', 'BO3', 'BO5'] }
+    },
 
     maxTeams: { type: Number, required: true },
     registrationOpen: { type: Boolean, default: true },

@@ -13,6 +13,7 @@ export interface AlertOptions {
     title?: string;
     message: string;
     type?: ModalVariant;
+    timeout?: number; // Auto-disappear after X milliseconds
 }
 
 export interface ConfirmOptions {
@@ -29,6 +30,7 @@ export interface AlertModalProps {
     title?: string;
     message: string;
     type?: ModalVariant;
+    timeout?: number; // Auto-disappear after X milliseconds
 }
 
 export interface ConfirmModalProps {

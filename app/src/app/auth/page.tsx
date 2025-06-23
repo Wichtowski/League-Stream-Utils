@@ -9,11 +9,14 @@ import RegisterForm from '@components/auth/RegisterForm';
 import ContactInfo from '@components/auth/ContactInfo';
 import { useNavigation } from '@lib/contexts/NavigationContext';
 import { useAuth } from '@lib/contexts/AuthContext';
+import { useElectron } from '@lib/contexts/ElectronContext';
+import { Cog6ToothIcon } from '@heroicons/react/24/outline';
 
 export default function AuthPage() {
   const router = useRouter();
   const { setActiveModule } = useNavigation();
   const { user, isLoading } = useAuth();
+  const { isElectron, useLocalData } = useElectron();
   const [isLogin, setIsLogin] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -61,7 +64,30 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen text-white flex items-center justify-center">
+    <div className="min-h-screen text-white flex items-center justify-center relative">
+      {/* Electron Mode Indicator */}
+      {isElectron && (
+        <div className="absolute top-6 right-6 flex items-center space-x-4">
+          <div className="text-right">
+            <div className="text-sm text-gray-400">
+              Mode: <span className={useLocalData ? 'text-green-400' : 'text-blue-400'}>
+                {useLocalData ? 'Local Data' : 'Online'}
+              </span>
+            </div>
+            <div className="text-xs text-gray-500">
+              {useLocalData ? 'Saving to AppData' : 'Using cloud storage'}
+            </div>
+          </div>
+          <button
+            onClick={() => router.push('/settings')}
+            className="p-2 bg-gray-800/50 hover:bg-gray-700/50 rounded-lg border border-gray-600/50 hover:border-gray-500/50 transition-colors"
+            title="Electron Settings"
+          >
+            <Cog6ToothIcon className="w-5 h-5 text-gray-400 hover:text-gray-300" />
+          </button>
+        </div>
+      )}
+
       <div className="max-w-md w-full mx-auto bg-gray-800 rounded-lg p-8 shadow-2xl">
         <h1 className="text-3xl font-bold mb-6 text-center text-blue-400">
           League Stream Utils

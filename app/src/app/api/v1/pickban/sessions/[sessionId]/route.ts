@@ -8,7 +8,7 @@ export const DELETE = withAuth(async (
 ) => {
   try {
     const url = new URL(req.url);
-    const sessionId = url.pathname.split('/').pop() || '';
+    const sessionId = url.search.split('/').pop() || '';
     
     // Verify admin access
     if (!user.isAdmin) {

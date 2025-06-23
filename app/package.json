@@ -6,17 +6,17 @@
   "homepage": "./",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
+    "dev": "bun run next dev --turbopack",
+    "build": "bun run next build",
+    "start": "bun run next start",
+    "lint": "bun run next lint",
     "create-admin": "node scripts/create-admin.js",
     "electron": "cross-env NODE_ENV=development electron .",
     "electron:wsl": "export $DISPLAY=:0 && cross-env NODE_ENV=development electron .",
-    "electron-dev": "concurrently \"npm run dev -- --port 3000\" \"wait-on http://localhost:3000 && electron .\"",
+    "electron-dev": "concurrently \"bun run dev -- --port 3000\" \"wait-on http://localhost:3000 && electron .\"",
     "electron-windows": "cross-env NODE_ENV=development electron .",
-    "electron-build": "npm run build && next export && electron-builder",
-    "dist": "npm run build && next export && electron-builder --publish=never"
+    "electron-build": "bun run build && next export && electron-builder",
+    "dist": "bun run build && next export && electron-builder --publish=never"
   },
   "dependencies": {
     "@auth/mongodb-adapter": "^3.9.1",

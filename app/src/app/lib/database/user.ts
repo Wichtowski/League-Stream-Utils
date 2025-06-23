@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
 import { connectToDatabase } from './connection';
-import { User } from './models';
+import { UserModel } from './models';
 import type { User as UserType, UserRegistration, UserQueryResult } from '@lib/types';
 
 export async function createUser(userData: UserRegistration): Promise<UserType> {
@@ -9,7 +9,7 @@ export async function createUser(userData: UserRegistration): Promise<UserType> 
 
   const hashedPassword = await bcrypt.hash(userData.password, 12);
 
-  const newUser = new User({
+  const newUser = new UserModel({
     id: uuidv4(),
     username: userData.username,
     password: hashedPassword,
@@ -26,19 +26,19 @@ export async function createUser(userData: UserRegistration): Promise<UserType> 
 
 export async function getUserByUsername(username: string): Promise<UserQueryResult> {
   await connectToDatabase();
-  return await User.findOne({ username });
+  return await UserModel.findOne({ username });
 }
 
 export async function getUserByEmail(email: string): Promise<UserQueryResult> {
   await connectToDatabase();
-  return await User.findOne({ email });
+  return await UserModel.findOne({ email });
 }
 
 export async function updateUserSessionCount(userId: string): Promise<void> {
   await connectToDatabase();
 
-  const today = new Date().toDateString();
-  const user: UserQueryResult = await User.findOne({ id: userId });
+  const today = new Date();
+  const user: UserQueryResult = await UserModel.findOne({ id: userId });
 
   if (!user) {
     throw new Error('User not found');
@@ -57,7 +57,7 @@ export async function updateUserSessionCount(userId: string): Promise<void> {
 export async function canUserCreateSession(userId: string): Promise<boolean> {
   await connectToDatabase();
 
-  const user: UserQueryResult = await User.findOne({ id: userId });
+  const user: UserQueryResult = await UserModel.findOne({ id: userId });
 
   if (!user) {
     return false;
@@ -67,7 +67,7 @@ export async function canUserCreateSession(userId: string): Promise<boolean> {
     return true;
   }
 
-  const today = new Date().toDateString();
+  const today = new Date();
 
   if (user.lastSessionDate !== today) {
     return true;

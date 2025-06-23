@@ -1,120 +1,77 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import type { GameSession, SessionUrls, User } from '@lib/types';
+import type { GameSession, SessionUrls } from '@lib/types';
 import { useNavigation } from '@lib/contexts/NavigationContext';
 import { useModal } from '@lib/contexts/ModalContext';
+import { useAuth } from '@lib/contexts/AuthContext';
+import { useAuthenticatedFetch } from '@lib/hooks/useAuthenticatedFetch';
 import { API_BASE_URL } from '@lib/constants';
 import { AuthenticatedHome, LoadingSpinner } from '@components/home';
 
-export default function Home() {
+export default function PickBanPage() {
   const { setActiveModule } = useNavigation();
   const { showConfirm } = useModal();
-  const [user, setUser] = useState<User | null>(null);
+  const { user: authUser, isLoading: authLoading } = useAuth();
+  const { authenticatedFetch } = useAuthenticatedFetch();
   const [sessions, setSessions] = useState<GameSession[]>([]);
   const [loading, setLoading] = useState(false);
   const [sessionsLoading, setSessionsLoading] = useState(true);
   const [newSessionUrls, setNewSessionUrls] = useState<SessionUrls | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
-    setActiveModule('home');
-
-    const token = localStorage.getItem('token');
-    const userData = localStorage.getItem('user');
-
-    if (!token || !userData) {
-      setAuthChecked(true);
-      setSessionsLoading(false);
-      return;
+    setActiveModule('pickban');
+    
+    if (!authLoading) {
+      fetchSessions();
     }
+  }, [authLoading]);
 
-    try {
-      const parsedUser = JSON.parse(userData);
-      setUser(parsedUser);
-      fetchSessions(token);
-    } catch (error) {
-      console.warn(error);
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-    } finally {
-      setAuthChecked(true);
-    }
-  }, []);
-
-  const getAuthHeader = () => {
-    const token = localStorage.getItem('token');
-    return token ? `Bearer ${token}` : '';
-  };
-
-  const fetchSessions = useCallback(async (token?: string) => {
+  const fetchSessions = useCallback(async () => {
     try {
       setSessionsLoading(true);
-      const authToken = token || getAuthHeader();
-      const response = await fetch(`${API_BASE_URL}/pickban/sessions`, {
-        headers: {
-          'Authorization': authToken
-        }
-      });
+      const response = await authenticatedFetch(`${API_BASE_URL}/pickban/sessions`);
 
-      if (!response.ok) {
-        if (response.status === 401) {
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-          setUser(null);
-          return;
-        }
+      if (response.ok) {
+        const data = await response.json();
+        setSessions(data);
+      } else {
         throw new Error('Failed to fetch sessions');
       }
-
-      const data = await response.json();
-      setSessions(data);
     } catch (error) {
       setError('Failed to fetch sessions');
       console.error(error);
     } finally {
       setSessionsLoading(false);
     }
-  }, []);
+  }, [authenticatedFetch]);
 
   const createSession = async () => {
-    if (!user) return;
+    if (!authUser) return;
 
     setLoading(true);
     setError(null);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/pickban/sessions`, {
+      const response = await authenticatedFetch(`${API_BASE_URL}/pickban/sessions`, {
         method: 'POST',
         headers: {
-          'Authorization': getAuthHeader(),
           'Content-Type': 'application/json'
         }
       });
 
-      if (!response.ok) {
+      if (response.ok) {
+        const data = await response.json();
+        setNewSessionUrls({
+          ...data.urls,
+          sessionId: data.sessionId
+        });
+        await fetchSessions();
+      } else {
         const errorData = await response.json();
-        if (response.status === 401) {
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-          setUser(null);
-          return;
-        }
         throw new Error(errorData.error || 'Failed to create session');
       }
-
-      const data = await response.json();
-      setNewSessionUrls({
-        ...data.urls,
-        sessionId: data.sessionId
-      });
-
-      if (!user.isAdmin) {
-        setUser(prev => prev ? { ...prev, sessionsCreatedToday: prev.sessionsCreatedToday + 1 } : null);
-      }
-
-      await fetchSessions();
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to create session');
     } finally {
@@ -123,7 +80,7 @@ export default function Home() {
   };
 
   const deleteSession = async (sessionId: string) => {
-    if (!user?.isAdmin) return;
+    if (!authUser?.isAdmin) return;
 
     const confirmed = await showConfirm({
       type: 'danger',
@@ -138,40 +95,34 @@ export default function Home() {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/pickban/sessions/${sessionId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': getAuthHeader(),
-        }
+      const response = await authenticatedFetch(`${API_BASE_URL}/pickban/sessions/${sessionId}`, {
+        method: 'DELETE'
       });
 
-      if (!response.ok) {
+      if (response.ok) {
+        await fetchSessions();
+      } else {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to delete session');
       }
-
-      await fetchSessions();
-
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to delete session');
     }
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setUser(null);
-    setAuthChecked(true);
+    // Handle logout through auth context
+    window.location.href = '/auth';
   };
 
-  if (!authChecked) {
+  if (authLoading) {
     return <LoadingSpinner />;
   }
 
-  if (user) {
+  if (authUser) {
     return (
       <AuthenticatedHome
-        user={user}
+        user={authUser}
         sessions={sessions}
         sessionsLoading={sessionsLoading}
         onLogout={logout}
@@ -183,4 +134,7 @@ export default function Home() {
       />
     );
   }
+
+  // Return null or redirect if not authenticated
+  return null;
 }

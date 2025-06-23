@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@lib/auth';
 import { connectToDatabase } from '@lib/database/connection';
-import { CameraSettings } from '@lib/database/models';
+import { CameraSettingsModel } from '@lib/database/models';
 import { getUserTeams } from '@lib/database/team';
 import { JWTPayload } from '@lib/types/auth';
 import type { Player, Team } from '@lib/types';
@@ -24,10 +24,10 @@ export const GET = withAuth(async (req: NextRequest, user: JWTPayload) => {
             const userId = url.searchParams.get('userId');
 
             if (userId) {
-                settings = await CameraSettings.findOne({ userId });
+                settings = await CameraSettingsModel.findOne({ userId });
             } else {
                 // Get all camera settings and merge them for admin view
-                const allSettings = await CameraSettings.find({});
+                const allSettings = await CameraSettingsModel.find({});
                 
                 // Merge all teams from all users into one response
                 const allTeams = allSettings.flatMap(s => s.teams || []);
@@ -39,7 +39,7 @@ export const GET = withAuth(async (req: NextRequest, user: JWTPayload) => {
                 };
             }
         } else {
-            settings = await CameraSettings.findOne({ userId: user.userId });
+            settings = await CameraSettingsModel.findOne({ userId: user.userId });
         }
 
         if (!settings) {
@@ -86,7 +86,7 @@ export const POST = withAuth(async (req: NextRequest, user: JWTPayload) => {
             }
         }
 
-        const settings = await CameraSettings.findOneAndUpdate(
+        const settings = await CameraSettingsModel.findOneAndUpdate(
             { userId: user.userId },
             {
                 userId: user.userId,

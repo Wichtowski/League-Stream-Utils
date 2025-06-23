@@ -76,6 +76,7 @@ export function ModalProvider({ children }: { children: ReactNode }) {
                 title={alertState.options.title}
                 message={alertState.options.message}
                 type={alertState.options.type}
+                timeout={alertState.options.timeout}
             />
 
             <ConfirmModal

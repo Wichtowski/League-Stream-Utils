@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@lib/auth';
 import { getTeamById, verifyTeamPlayers } from '@lib/database/team';
-import riotAPI from '@lib/services/riot-api';
+import { riotAPI } from '@lib/services/riot-api';
 import type { JWTPayload } from '@lib/types/auth';
 
 export const POST = withAuth(async (req: NextRequest, user: JWTPayload) => {
@@ -54,10 +54,15 @@ export const POST = withAuth(async (req: NextRequest, user: JWTPayload) => {
         }
 
         // Update player verification status
+        const soloQueueData = verificationResult.rankedData?.find(rank => rank.queueType === 'RANKED_SOLO_5x5');
         const riotData = {
-            puuid: verificationResult.player?.puuid,
-            summonerLevel: verificationResult.summoner?.summonerLevel,
-            rank: riotAPI.getRankString(verificationResult.rankedData)
+            puuid: verificationResult.player?.puuid || '',
+            summonerLevel: verificationResult.summoner?.summonerLevel || 0,
+            rank: riotAPI.getRankString(verificationResult.rankedData),
+            tier: soloQueueData?.tier || 'UNRANKED',
+            leaguePoints: soloQueueData?.leaguePoints || 0,
+            wins: soloQueueData?.wins || 0,
+            losses: soloQueueData?.losses || 0
         };
 
         await verifyTeamPlayers(teamId, [{
