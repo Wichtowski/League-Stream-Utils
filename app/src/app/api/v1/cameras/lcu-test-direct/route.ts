@@ -15,69 +15,19 @@ interface LCUCredentials {
     protocol: string;
 }
 
-// Default League installation paths
-const getDefaultLeaguePaths = (): string[] => {
-    const platform = os.platform();
-
-    if (platform === 'win32') {
-        return [
-            'C:\\Riot Games\\League of Legends',
-            'C:\\Program Files\\Riot Games\\League of Legends',
-            'C:\\Program Files (x86)\\Riot Games\\League of Legends',
-            'D:\\Riot Games\\League of Legends',
-            'E:\\Riot Games\\League of Legends',
-            'F:\\Riot Games\\League of Legends'
-        ];
-    } else if (platform === 'darwin') {
-        return [
-            '/Applications/League of Legends.app',
-            path.join(os.homedir(), 'Applications/League of Legends.app')
-        ];
-    } else {
-        return [
-            path.join(os.homedir(), '.local/share/applications/leagueoflegends'),
-            '/opt/riot-games/league-of-legends'
-        ];
-    }
-};
-
-// Try to find LCU credentials from lockfile
-const findLCUFromLockfile = async (): Promise<LCUCredentials | null> => {
-    const paths = getDefaultLeaguePaths();
-
-    for (const basePath of paths) {
-        try {
-            const lockfilePath = path.join(basePath, 'lockfile');
-            const lockfileContent = await fs.readFile(lockfilePath, 'utf-8');
-
-            const parts = lockfileContent.trim().split(':');
-            if (parts.length >= 5) {
-                return {
-                    port: parts[2],
-                    password: parts[3],
-                    protocol: parts[4]
-                };
-            }
-        } catch (_error) {
-            continue;
-        }
-    }
-
-    return null;
-};
-
-// Try to find LCU credentials from process list
+// Try to find LCU credentials from process list (Primary method)
 const findLCUFromProcess = async (): Promise<LCUCredentials | null> => {
     try {
         const platform = os.platform();
         let command: string;
 
         if (platform === 'win32') {
+            // More robust Windows process detection
             command = 'wmic process where "name=\'LeagueClientUx.exe\'" get ProcessId,CommandLine /format:csv';
         } else if (platform === 'darwin') {
-            command = 'ps aux | grep LeagueClientUx';
+            command = 'ps aux | grep "LeagueClientUx" | grep -v grep';
         } else {
-            command = 'ps aux | grep LeagueClientUx';
+            command = 'ps aux | grep "LeagueClientUx" | grep -v grep';
         }
 
         const { stdout } = await execAsync(command);
@@ -99,7 +49,79 @@ const findLCUFromProcess = async (): Promise<LCUCredentials | null> => {
     return null;
 };
 
-// Test LCU connection using direct HTTPS
+// Windows Registry detection (Secondary method for Windows)
+const findLCUFromRegistry = async (): Promise<string | null> => {
+    if (os.platform() !== 'win32') return null;
+    
+    try {
+        const { stdout } = await execAsync(
+            'reg query "HKEY_LOCAL_MACHINE\\SOFTWARE\\Riot Games\\League of Legends" /v "Location" 2>nul || ' +
+            'reg query "HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Riot Games\\League of Legends" /v "Location" 2>nul'
+        );
+        
+        const match = stdout.match(/Location\s+REG_SZ\s+(.+)/);
+        if (match && match[1]) {
+            return match[1].trim();
+        }
+    } catch (_error) {
+        // Registry method failed
+    }
+    
+    return null;
+};
+
+// Try to find LCU credentials from lockfile (Fallback method)
+const findLCUFromLockfile = async (): Promise<LCUCredentials | null> => {
+    // First try to get the path from registry (Windows)
+    const registryPath = await findLCUFromRegistry();
+    const pathsToCheck: string[] = [];
+    
+    if (registryPath) {
+        pathsToCheck.push(registryPath);
+    }
+    
+    // Add common fallback paths only if registry didn't work
+    const platform = os.platform();
+    if (platform === 'win32') {
+        pathsToCheck.push(
+            'C:\\Riot Games\\League of Legends',
+            'C:\\Program Files\\Riot Games\\League of Legends',
+            'C:\\Program Files (x86)\\Riot Games\\League of Legends'
+        );
+    } else if (platform === 'darwin') {
+        pathsToCheck.push(
+            '/Applications/League of Legends.app',
+            path.join(os.homedir(), 'Applications/League of Legends.app')
+        );
+    } else {
+        pathsToCheck.push(
+            path.join(os.homedir(), '.local/share/applications/leagueoflegends'),
+            '/opt/riot-games/league-of-legends'
+        );
+    }
+
+    for (const basePath of pathsToCheck) {
+        try {
+            const lockfilePath = path.join(basePath, 'lockfile');
+            const lockfileContent = await fs.readFile(lockfilePath, 'utf-8');
+
+            const parts = lockfileContent.trim().split(':');
+            if (parts.length >= 5) {
+                return {
+                    port: parts[2],
+                    password: parts[3],
+                    protocol: parts[4]
+                };
+            }
+        } catch (error) {
+            console.log('Error reading lockfile:', error);
+            continue;
+        }
+    }
+
+    return null;
+};
+
 const testLCUConnection = async (credentials: LCUCredentials): Promise<{ success: boolean, data?: unknown, error?: string }> => {
     try {
         const testUrl = `${credentials.protocol}://127.0.0.1:${credentials.port}/lol-summoner/v1/current-summoner`;
@@ -115,7 +137,7 @@ const testLCUConnection = async (credentials: LCUCredentials): Promise<{ success
                 'Authorization': `Basic ${auth}`,
                 'Accept': 'application/json'
             },
-            rejectUnauthorized: false // Ignore self-signed certificate
+            rejectUnauthorized: false
         };
 
         const response = await new Promise<{ statusCode?: number, data: string }>((resolve, reject) => {
@@ -164,13 +186,21 @@ export async function GET(): Promise<NextResponse> {
     try {
         console.log('Starting direct LCU test...');
 
-        // Try to find credentials
-        let credentials = await findLCUFromLockfile();
-        let method = 'lockfile';
+        let credentials: LCUCredentials | null = null;
+        let method = '';
 
-        if (!credentials) {
-            credentials = await findLCUFromProcess();
+        // 1. Try process detection first (most reliable)
+        credentials = await findLCUFromProcess();
+        if (credentials) {
             method = 'process';
+        }
+
+        // 2. Try lockfile method (with registry-assisted path detection)
+        if (!credentials) {
+            credentials = await findLCUFromLockfile();
+            if (credentials) {
+                method = 'lockfile';
+            }
         }
 
         if (!credentials) {

@@ -3,7 +3,7 @@
 import React, { useEffect, useState, Suspense } from 'react';
 import { useRouter, useParams } from "next/navigation";
 import { useNavigation } from '@lib/contexts/NavigationContext';
-import { CameraFeed, CameraNavigation, PlayerInfoHeader, CameraLayout } from '@components/cameras';
+import { CameraFeed, CameraNavigation, PlayerInfoHeader, CameraLayout } from '@/app/modules/cameras/components';
 import type { CameraPlayer, CameraTeam } from '@lib/types';
 
 export default function PlayerCameraStreamPage() {

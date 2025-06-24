@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import AuthTabs from '@components/auth/AuthTabs';
-import MessageDisplay from '@components/auth/MessageDisplay';
-import LoginForm from '@components/auth/LoginForm';
-import RegisterForm from '@components/auth/RegisterForm';
-import ContactInfo from '@components/auth/ContactInfo';
+import AuthTabs from '@/app/auth/components/AuthTabs';
+import MessageDisplay from '@/app/auth/components/MessageDisplay';
+import LoginForm from '@/app/auth/components/LoginForm';
+import RegisterForm from '@/app/auth/components/RegisterForm';
+import ContactInfo from '@/app/auth/components/ContactInfo';
 import { useNavigation } from '@lib/contexts/NavigationContext';
 import { useAuth } from '@lib/contexts/AuthContext';
 import { useElectron } from '@lib/contexts/ElectronContext';

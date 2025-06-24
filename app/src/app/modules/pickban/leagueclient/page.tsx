@@ -1,237 +1,60 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigation } from '@lib/contexts/NavigationContext';
 import { useAuth } from '@lib/contexts/AuthContext';
 import { AuthGuard } from '@lib/components/AuthGuard';
 import { getChampionById } from '@lib/champions';
+import { LCUConnector, type ChampSelectSession, type ConnectionStatus } from '@lib/services/lcu-connector';
 import Image from 'next/image';
-
-interface LCUCredentials {
-  port: string;
-  password: string;
-  protocol: string;
-}
-
-interface ChampSelectPlayer {
-  cellId: number;
-  championId: number;
-  summonerId: number;
-  summonerName: string;
-  puuid: string;
-  isBot: boolean;
-  isActingNow: boolean;
-  pickTurn: number;
-  banTurn: number;
-  team: number;
-}
-
-interface ChampSelectAction {
-  id: number;
-  actorCellId: number;
-  championId: number;
-  completed: boolean;
-  type: 'pick' | 'ban';
-  isInProgress: boolean;
-}
-
-interface ChampSelectTimer {
-  adjustedTimeLeftInPhase: number;
-  totalTimeInPhase: number;
-  phase: string;
-  isInfinite: boolean;
-}
-
-interface ChampSelectSession {
-  phase: string;
-  timer: ChampSelectTimer;
-  chatDetails: {
-    chatRoomName: string;
-    chatRoomPassword: string;
-  };
-  myTeam: ChampSelectPlayer[];
-  theirTeam: ChampSelectPlayer[];
-  trades: unknown[];
-  actions: ChampSelectAction[][];
-  bans: {
-    myTeamBans: number[];
-    theirTeamBans: number[];
-  };
-  localPlayerCellId: number;
-  isSpectating: boolean;
-}
 
 export default function LeagueClientPage() {
   const { setActiveModule } = useNavigation();
   const { user: _user, isLoading: _authLoading } = useAuth();
   
-  const [connectionStatus, setConnectionStatus] = useState<'disconnected' | 'connecting' | 'connected' | 'error'>('disconnected');
-  const [lcuCredentials, setLcuCredentials] = useState<LCUCredentials | null>(null);
+  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('disconnected');
   const [champSelectData, setChampSelectData] = useState<ChampSelectSession | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [autoReconnect, setAutoReconnect] = useState(true);
   
-  const pollingRef = useRef<NodeJS.Timeout | null>(null);
-  const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const reconnectAttemptsRef = useRef(0);
-  const maxReconnectAttempts = 5;
+  const lcuConnectorRef = useRef<LCUConnector | null>(null);
 
   useEffect(() => {
     setActiveModule('pickban');
   }, [setActiveModule]);
 
-  const _findLCUCredentials = useCallback(async () => {
-    try {
-      const response = await fetch('/api/v1/cameras/lcu-credentials');
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to get LCU credentials');
-      }
-      
-      const data = await response.json();
-      return {
-        port: data.credentials.port,
-        password: data.credentials.password,
-        protocol: data.credentials.protocol
-      };
-    } catch (err) {
-      throw new Error(err instanceof Error ? err.message : 'Could not find League Client process. Make sure League of Legends is running.');
-    }
-  }, []);
-
-  const _makeRequest = useCallback(async (endpoint: string, method: 'GET' | 'POST' | 'PATCH' = 'GET', body?: unknown) => {
-    if (!lcuCredentials) {
-      throw new Error('No LCU credentials available');
-    }
-
-    const url = `${lcuCredentials.protocol}://127.0.0.1:${lcuCredentials.port}${endpoint}`;
-    const auth = btoa(`riot:${lcuCredentials.password}`);
-
-    const response = await fetch(url, {
-      method,
-      headers: {
-        'Authorization': `Basic ${auth}`,
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: body ? JSON.stringify(body) : undefined,
-      // In a real browser, you'd need to disable SSL verification
-      // This would typically be handled by a proxy server or electron app
+  useEffect(() => {
+    // Initialize LCU connector
+    const connector = new LCUConnector({
+      autoReconnect,
+      maxReconnectAttempts: 5,
+      pollInterval: 1000
     });
 
-    if (!response.ok) {
-      throw new Error(`LCU request failed: ${response.status} ${response.statusText}`);
-    }
+    // Set up event handlers
+    connector.setOnStatusChange(setConnectionStatus);
+    connector.setOnChampSelectUpdate(setChampSelectData);
+    connector.setOnError(setError);
 
-    const contentType = response.headers.get('content-type');
-    if (contentType && contentType.includes('application/json')) {
-      return await response.json();
-    }
-    
-    return await response.text();
-  }, [lcuCredentials]);
+    lcuConnectorRef.current = connector;
 
-  const pollChampSelect = useCallback(async () => {
-    try {
-      const response = await fetch('/api/v1/cameras/lcu-champselect');
-      const result = await response.json();
-      
-      if (result.success) {
-        if (result.data) {
-          setChampSelectData(result.data);
-        } else {
-          // Champion select not active - clear data
-          if (champSelectData) {
-            setChampSelectData(null);
-          }
-        }
-        setError(null);
-      } else {
-        console.error('Champion select polling failed:', result.message);
-        // Don't show this as an error since it might just mean no champ select
-        if (champSelectData) {
-          setChampSelectData(null);
-        }
-      }
-    } catch (error) {
-      console.error('Error polling champ select:', error);
-      // Champion select might not be active, this is normal
-      if (champSelectData) {
-        setChampSelectData(null);
-      }
-    }
-  }, [champSelectData]);
+    // Cleanup on unmount
+    return () => {
+      connector.destroy();
+      lcuConnectorRef.current = null;
+    };
+  }, [autoReconnect]);
 
-  const connectToLCU = useCallback(async () => {
-    setConnectionStatus('connecting');
+  const connectToLCU = async (): Promise<void> => {
     setError(null);
     setSuccessMessage(null);
-    reconnectAttemptsRef.current = 0;
+    lcuConnectorRef.current?.connect();
+  };
 
-    try {
-      // Use our working direct test endpoint to verify LCU connection
-      const testResponse = await fetch('/api/v1/cameras/lcu-test-direct');
-      const testResult = await testResponse.json();
-      
-      if (!testResult.success) {
-        throw new Error(testResult.message || testResult.error || 'LCU test failed');
-      }
-
-      // Get credentials from our working endpoint
-      const credentialsResponse = await fetch('/api/v1/cameras/lcu-credentials');
-      const credentialsResult = await credentialsResponse.json();
-      
-      if (!credentialsResult.success) {
-        throw new Error(credentialsResult.message || 'Failed to get LCU credentials');
-      }
-
-      // Connection successful, set the credentials
-      setLcuCredentials(credentialsResult.credentials);
-      setConnectionStatus('connected');
-      
-      // Start polling for champion select data
-      pollingRef.current = setInterval(pollChampSelect, 1000);
-      
-    } catch (error) {
-      setConnectionStatus('error');
-      setError(error instanceof Error ? error.message : 'Failed to connect to League Client');
-      
-      if (autoReconnect && reconnectAttemptsRef.current < maxReconnectAttempts) {
-        reconnectAttemptsRef.current++;
-        const delay = Math.min(1000 * Math.pow(2, reconnectAttemptsRef.current), 10000);
-        
-        retryTimeoutRef.current = setTimeout(() => {
-          console.log(`Attempting to reconnect (${reconnectAttemptsRef.current}/${maxReconnectAttempts})...`);
-          connectToLCU();
-        }, delay);
-      }
-    }
-  }, [autoReconnect, pollChampSelect]);
-
-  const disconnect = useCallback(() => {
-    if (pollingRef.current) {
-      clearInterval(pollingRef.current);
-      pollingRef.current = null;
-    }
-
-    if (retryTimeoutRef.current) {
-      clearTimeout(retryTimeoutRef.current);
-      retryTimeoutRef.current = null;
-    }
-
-    setConnectionStatus('disconnected');
-    setChampSelectData(null);
-    setLcuCredentials(null);
-    reconnectAttemptsRef.current = 0;
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      disconnect();
-    };
-  }, [disconnect]);
+  const disconnect = (): void => {
+    lcuConnectorRef.current?.disconnect();
+  };
 
   const formatTime = (ms: number) => {
     const seconds = Math.ceil(ms / 1000);
@@ -557,21 +380,15 @@ export default function LeagueClientPage() {
               </button>
               <button
                 onClick={async () => {
-                  try {
-                    setError(null);
-                    setSuccessMessage(null);
-                    const response = await fetch('/api/v1/cameras/lcu-test-direct');
-                    const result = await response.json();
-                    
+                  setError(null);
+                  setSuccessMessage(null);
+                  const result = await lcuConnectorRef.current?.testConnection();
+                  if (result) {
                     if (result.success) {
-                      const summoner = result.summoner;
-                      console.log('LCU Test Result:', summoner);
-                      setSuccessMessage(`✅ Test successful! Connected to summoner: ${summoner?.gameName || 'Unknown'} (Level ${summoner?.summonerLevel || '?'}) via ${result.method}`);
+                      setSuccessMessage(result.message);
                     } else {
-                      setError(`❌ Test failed: ${result.message || result.error}`);
+                      setError(result.message);
                     }
-                  } catch (err) {
-                    setError(`❌ Test error: ${err instanceof Error ? err.message : 'Unknown error'}`);
                   }
                 }}
                 className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors text-sm"
@@ -580,31 +397,15 @@ export default function LeagueClientPage() {
               </button>
               <button
                 onClick={async () => {
-                  try {
-                    setError(null);
-                    setSuccessMessage(null);
-                    const response = await fetch('/api/v1/cameras/lcu-status');
-                    const result = await response.json();
-                    
-                    const checks = result.checks;
-                    let statusMsg = `📊 League Status:\n`;
-                    statusMsg += `• Platform: ${checks.platform}\n`;
-                    statusMsg += `• Installed: ${checks.leagueInstalled ? '✅' : '❌'}\n`;
-                    statusMsg += `• Running: ${checks.leagueRunning ? '✅' : '❌'}\n`;
-                    statusMsg += `• Lockfile: ${checks.lockfileExists ? '✅' : '❌'}\n`;
-                    
-                    if (checks.lockfileDetails) {
-                      statusMsg += `• Port: ${checks.lockfileDetails.port}\n`;
-                      statusMsg += `• Protocol: ${checks.lockfileDetails.protocol}`;
-                    }
-                    
-                    if (checks.leagueInstalled && checks.leagueRunning && checks.lockfileExists) {
-                      setSuccessMessage(statusMsg);
+                  setError(null);
+                  setSuccessMessage(null);
+                  const result = await lcuConnectorRef.current?.checkStatus();
+                  if (result) {
+                    if (result.success) {
+                      setSuccessMessage(result.message);
                     } else {
-                      setError(statusMsg);
+                      setError(result.message);
                     }
-                  } catch (err) {
-                    setError(`❌ Status check error: ${err instanceof Error ? err.message : 'Unknown error'}`);
                   }
                 }}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors text-sm"

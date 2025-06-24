@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useUser } from '@lib/contexts/AuthContext';
 import type { Tournament } from '@lib/types';
 import { useModal } from '@lib/contexts/ModalContext';
-import { TournamentCreationForm, TournamentList, AdminTournamentManager } from '@components/tournaments';
+import { TournamentCreationForm, TournamentList, AdminTournamentManager } from '@/app/modules/tournaments/tournaments';
 import { useNavigation } from '@/app/lib/contexts/NavigationContext';
 
 export default function TournamentsPage() {

@@ -5,6 +5,7 @@ import { NavigationProvider } from "./lib/contexts/NavigationContext";
 import { ModalProvider } from "./lib/contexts/ModalContext";
 import { AuthProvider } from "./lib/contexts/AuthContext";
 import { ElectronProvider } from "./lib/contexts/ElectronContext";
+import { NavigationGuard } from "./lib/components/NavigationGuard";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -36,10 +37,12 @@ export default function RootLayout({
           <AuthProvider>
             <NavigationProvider>
               <ModalProvider>
-                <main className="flex-1">
-                  {children}
-                </main>
-                <Footer />
+                <NavigationGuard>
+                  <main className="flex-1">
+                    {children}
+                  </main>
+                  <Footer />
+                </NavigationGuard>
               </ModalProvider>
             </NavigationProvider>
           </AuthProvider>
