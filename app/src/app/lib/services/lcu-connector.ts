@@ -116,7 +116,7 @@ class LCUConnector {
 
   private async findLCUCredentials(): Promise<LCUCredentials> {
     try {
-      const response = await fetch('/api/v1/cameras/lcu-credentials');
+      const response = await fetch('/api/v1/pickban/leagueclient/lcu-credentials');
       
       if (!response.ok) {
         const errorData = await response.json();
@@ -166,7 +166,7 @@ class LCUConnector {
 
   private async pollChampSelect(): Promise<void> {
     try {
-      const response = await fetch('/api/v1/cameras/lcu-champselect');
+      const response = await fetch('/api/v1/pickban/leagueclient/lcu-champselect');
       const result = await response.json();
       
       if (result.success) {
@@ -212,7 +212,7 @@ class LCUConnector {
 
     try {
       // Use the working direct test endpoint to verify LCU connection
-      const testResponse = await fetch('/api/v1/cameras/lcu-test-direct');
+      const testResponse = await fetch('/api/v1/pickban/leagueclient/lcu-test-direct');
       const testResult = await testResponse.json();
       
       if (!testResult.success) {
@@ -262,7 +262,7 @@ class LCUConnector {
 
   public async testConnection(): Promise<{ success: boolean; message: string; summoner?: unknown }> {
     try {
-      const response = await fetch('/api/v1/cameras/lcu-test-direct');
+      const response = await fetch('/api/v1/pickban/leagueclient/lcu-test-direct');
       const result = await response.json();
       
       if (result.success) {
@@ -288,7 +288,7 @@ class LCUConnector {
 
   public async checkStatus(): Promise<{ success: boolean; message: string; checks?: unknown }> {
     try {
-      const response = await fetch('/api/v1/cameras/lcu-status');
+      const response = await fetch('/api/v1/pickban/leagueclient/lcu-status');
       const result = await response.json();
       
       const checks = result.checks;

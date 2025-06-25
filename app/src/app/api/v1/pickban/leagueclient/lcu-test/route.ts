@@ -5,7 +5,7 @@ import { URL } from 'url';
 export async function GET(): Promise<NextResponse> {
     try {
         // First, get the LCU credentials
-        const credentialsResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/v1/cameras/lcu-credentials`);
+        const credentialsResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/v1/pickban/leagueclient/lcu-credentials`);
 
         if (!credentialsResponse.ok) {
             return NextResponse.json(
@@ -117,11 +117,9 @@ export async function GET(): Promise<NextResponse> {
     }
 }
 
-// Alternative test method using different approaches
 export async function POST(): Promise<NextResponse> {
     try {
-        // Try to get gameflow phase (simpler endpoint)
-        const credentialsResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/v1/cameras/lcu-credentials`);
+        const credentialsResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/v1/pickban/leagueclient/lcu-credentials`);
 
         if (!credentialsResponse.ok) {
             return NextResponse.json(
@@ -133,7 +131,6 @@ export async function POST(): Promise<NextResponse> {
         const { credentials } = await credentialsResponse.json();
         const { port, password, protocol } = credentials;
 
-        // Test with simpler endpoint using Node.js https module
         const testUrl = `${protocol}://127.0.0.1:${port}/lol-gameflow/v1/gameflow-phase`;
         const auth = Buffer.from(`riot:${password}`).toString('base64');
         const parsedUrl = new URL(testUrl);
@@ -174,7 +171,7 @@ export async function POST(): Promise<NextResponse> {
         });
 
         if (response.statusCode && response.statusCode >= 200 && response.statusCode < 300) {
-            const gameflowPhase = response.data.replace(/"/g, ''); // Remove quotes
+            const gameflowPhase = response.data.replace(/"/g, '');
             return NextResponse.json({
                 success: true,
                 message: 'LCU connection successful (gameflow test)',

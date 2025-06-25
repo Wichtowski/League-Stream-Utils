@@ -192,7 +192,7 @@ export class LCUClient {
 
 // Utility function to get LCU credentials from our API
 export async function getLCUCredentials(): Promise<LCUCredentials> {
-    const response = await fetch('/api/v1/cameras/lcu-credentials');
+    const response = await fetch('/api/v1/pickban/leagueclient/lcu-credentials');
 
     if (!response.ok) {
         const errorData = await response.json();

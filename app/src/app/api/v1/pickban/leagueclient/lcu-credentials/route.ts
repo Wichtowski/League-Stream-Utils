@@ -4,6 +4,7 @@ import { promisify } from 'util';
 import fs from 'fs/promises';
 import path from 'path';
 import os from 'os';
+import { getLeagueInstallationPaths } from '../../../../../lib/utils/league-paths';
 
 const execAsync = promisify(exec);
 
@@ -14,36 +15,9 @@ interface LCUCredentials {
     pid?: string;
 }
 
-// Default League installation paths
-const getDefaultLeaguePaths = (): string[] => {
-    const platform = os.platform();
-
-    if (platform === 'win32') {
-        return [
-            'C:\\Riot Games\\League of Legends',
-            'C:\\Program Files\\Riot Games\\League of Legends',
-            'C:\\Program Files (x86)\\Riot Games\\League of Legends',
-            'D:\\Riot Games\\League of Legends',
-            'E:\\Riot Games\\League of Legends',
-        ];
-    } else if (platform === 'darwin') {
-        return [
-            '/Applications/League of Legends.app/Contents/LoL',
-            '~/Applications/League of Legends.app/Contents/LoL',
-        ];
-    } else {
-        // Linux
-        return [
-            '~/.wine/drive_c/Riot Games/League of Legends',
-            '~/Games/league-of-legends',
-            '/opt/riot-games/league-of-legends',
-        ];
-    }
-};
-
-// Method 1: Read from lockfile
+// Read from lockfile
 const readLockfile = async (): Promise<LCUCredentials | null> => {
-    const possiblePaths = getDefaultLeaguePaths();
+    const possiblePaths = getLeagueInstallationPaths();
 
     for (const leaguePath of possiblePaths) {
         try {
@@ -62,7 +36,6 @@ const readLockfile = async (): Promise<LCUCredentials | null> => {
                 };
             }
         } catch (_error) {
-            // Continue to next path
             continue;
         }
     }
@@ -70,7 +43,7 @@ const readLockfile = async (): Promise<LCUCredentials | null> => {
     return null;
 };
 
-// Method 2: Parse from process command line
+// Parse from process command line
 const getCredentialsFromProcess = async (): Promise<LCUCredentials | null> => {
     try {
         const platform = os.platform();
@@ -104,7 +77,7 @@ const getCredentialsFromProcess = async (): Promise<LCUCredentials | null> => {
     return null;
 };
 
-// Method 3: Alternative process parsing for different OS
+// Alternative process parsing
 const getCredentialsFromProcessAlternative = async (): Promise<LCUCredentials | null> => {
     try {
         const platform = os.platform();
@@ -142,16 +115,13 @@ export async function GET(): Promise<NextResponse> {
         // Try multiple methods to get LCU credentials
         let credentials: LCUCredentials | null = null;
 
-        // Method 1: Try reading lockfile (most reliable)
-        credentials = await readLockfile();
+        credentials = await getCredentialsFromProcess();
 
         if (!credentials) {
-            // Method 2: Try parsing process command line
-            credentials = await getCredentialsFromProcess();
+            credentials = await readLockfile();
         }
 
         if (!credentials) {
-            // Method 3: Alternative process parsing
             credentials = await getCredentialsFromProcessAlternative();
         }
 
@@ -161,8 +131,8 @@ export async function GET(): Promise<NextResponse> {
                     error: 'League of Legends client not found or not running',
                     message: 'Make sure the League client is open and try again',
                     methods: [
-                        'Checked lockfile in common installation paths',
                         'Searched for LeagueClientUx process',
+                        'Checked lockfile in common installation paths',
                         'Attempted alternative process parsing'
                     ]
                 },
@@ -170,7 +140,6 @@ export async function GET(): Promise<NextResponse> {
             );
         }
 
-        // Validate the credentials by testing connection using Node.js https module
         try {
             const https = await import('https');
             const url = await import('url');
@@ -179,7 +148,6 @@ export async function GET(): Promise<NextResponse> {
             const auth = Buffer.from(`riot:${credentials.password}`).toString('base64');
             const parsedUrl = new url.URL(testUrl);
 
-            // Use Node.js https module directly with proper SSL handling
             const options = {
                 hostname: parsedUrl.hostname,
                 port: parsedUrl.port,
@@ -189,7 +157,7 @@ export async function GET(): Promise<NextResponse> {
                     'Authorization': `Basic ${auth}`,
                     'Accept': 'application/json'
                 },
-                rejectUnauthorized: false // Ignore self-signed certificate
+                rejectUnauthorized: false
             };
 
             const response = await new Promise<{ statusCode?: number, data: string }>((resolve, reject) => {
@@ -222,8 +190,6 @@ export async function GET(): Promise<NextResponse> {
             }
         } catch (testError) {
             console.warn('LCU connection test failed, but credentials found:', testError);
-            // Still return credentials as they might be valid
-            // This is expected due to SSL certificate issues in some environments
         }
 
         return NextResponse.json({

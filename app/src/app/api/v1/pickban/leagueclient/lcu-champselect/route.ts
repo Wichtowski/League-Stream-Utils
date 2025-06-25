@@ -6,6 +6,7 @@ import path from 'path';
 import os from 'os';
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import { getLeagueInstallationPaths } from '../../../../../lib/utils/league-paths';
 
 const execAsync = promisify(exec);
 
@@ -15,35 +16,9 @@ interface LCUCredentials {
     protocol: string;
 }
 
-// Default League installation paths
-const getDefaultLeaguePaths = (): string[] => {
-    const platform = os.platform();
-
-    if (platform === 'win32') {
-        return [
-            'C:\\Riot Games\\League of Legends',
-            'C:\\Program Files\\Riot Games\\League of Legends',
-            'C:\\Program Files (x86)\\Riot Games\\League of Legends',
-            'D:\\Riot Games\\League of Legends',
-            'E:\\Riot Games\\League of Legends',
-            'F:\\Riot Games\\League of Legends'
-        ];
-    } else if (platform === 'darwin') {
-        return [
-            '/Applications/League of Legends.app',
-            path.join(os.homedir(), 'Applications/League of Legends.app')
-        ];
-    } else {
-        return [
-            path.join(os.homedir(), '.local/share/applications/leagueoflegends'),
-            '/opt/riot-games/league-of-legends'
-        ];
-    }
-};
-
 // Try to find LCU credentials from lockfile
 const findLCUFromLockfile = async (): Promise<LCUCredentials | null> => {
-    const paths = getDefaultLeaguePaths();
+    const paths = getLeagueInstallationPaths();
 
     for (const basePath of paths) {
         try {

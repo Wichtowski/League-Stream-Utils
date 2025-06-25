@@ -76,7 +76,7 @@ Our application provides an endpoint that automatically detects LCU credentials:
 
 ```javascript
 // GET request to our API
-const response = await fetch('/api/v1/cameras/lcu-credentials');
+const response = await fetch('/api/v1/pickban/leagueclient/lcu-credentials');
 const data = await response.json();
 
 console.log(data.credentials);
