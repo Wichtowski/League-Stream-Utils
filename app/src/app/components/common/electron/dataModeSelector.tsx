@@ -1,21 +1,27 @@
 'use client';
 
 import { useElectron } from '@lib/contexts/ElectronContext';
-import { useAuth } from '@lib/contexts/AuthContext';
 
 export default function ElectronDataModeSelector() {
     const { isElectron, useLocalData, setUseLocalData } = useElectron();
-    const { logout } = useAuth();
 
     if (!isElectron) {
         return null;
     }
 
     const handleModeChange = (localMode: boolean) => {
-        setUseLocalData(localMode);
-        // If switching modes, logout to reset authentication state
+        // If switching modes, clear authentication state first
         if (localMode !== useLocalData) {
-            logout();
+            // Clear auth data without redirecting
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+        }
+        
+        setUseLocalData(localMode);
+        
+        // Force a reload to ensure the auth context picks up the new mode
+        if (typeof window !== 'undefined') {
+            window.location.reload();
         }
     };
 
@@ -93,7 +99,7 @@ export default function ElectronDataModeSelector() {
                         <div>
                             <h4 className="font-semibold text-white">Online Mode</h4>
                             <p className="text-gray-400 text-sm mt-1">
-                                Use the web-based system with MongoDB storage. Requires user registration and internet connection.
+                                Use the web-based system with Cloud storage. Requires user registration and internet connection.
                                 Data is stored in the cloud and accessible from anywhere.
                             </p>
                             <div className="flex items-center space-x-4 mt-2 text-xs">

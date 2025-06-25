@@ -3,12 +3,15 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useUser } from '@lib/contexts/AuthContext';
+import { useAuthenticatedFetch } from '@lib/hooks/useAuthenticatedFetch';
+import { AuthGuard } from '@lib/components/AuthGuard';
 import type { Team, CreateTeamRequest, TeamTier } from '@lib/types';
 import { useModal } from '@lib/contexts/ModalContext';
 import { useNavigation } from '@/app/lib/contexts/NavigationContext';
 
 export default function TeamsPage() {
     const user = useUser();
+    const { authenticatedFetch } = useAuthenticatedFetch();
     const { showAlert, showConfirm } = useModal();
     const [teams, setTeams] = useState<Team[]>([]);
     const [loading, setLoading] = useState(true);
@@ -55,11 +58,7 @@ export default function TeamsPage() {
 
     const fetchUserTeams = async () => {
         try {
-            const response = await fetch('/api/v1/teams', {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                }
-            });
+            const response = await authenticatedFetch('/api/v1/teams');
 
             if (response.ok) {
                 const data = await response.json();
@@ -77,11 +76,10 @@ export default function TeamsPage() {
         setCreating(true);
 
         try {
-            const response = await fetch('/api/v1/teams', {
+            const response = await authenticatedFetch('/api/v1/teams', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(formData)
             });
@@ -293,33 +291,18 @@ export default function TeamsPage() {
         }
     };
 
-    if (!user) {
-        return (
-            <div className="min-h-screen text-white flex items-center justify-center">
-                <div className="text-center">
-                    <h1 className="text-2xl font-bold mb-4">Please log in to manage teams</h1>
-                    <a href="/auth" className="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-lg">
-                        Login
-                    </a>
-                </div>
-            </div>
-        );
-    }
-
-    if (loading) {
-        return (
-            <div className="min-h-screen text-white flex items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
-            </div>
-        );
-    }
-
     return (
-        <div className="min-h-screen text-white">
+        <AuthGuard loadingMessage="Loading teams...">
+            {loading ? (
+                <div className="min-h-screen text-white flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
+                </div>
+            ) : (
+                <div className="min-h-screen text-white">
             <div className="container mx-auto px-6 py-8">
                 <div className="flex justify-between items-center mb-8">
                     <h1 className="text-3xl font-bold">My Teams</h1>
-                    <p>You are logged in as {user.username}</p>
+                    <p>You are logged in as {user?.username}</p>
                     { teams.length > 0 && (
                         <button
                             onClick={() => setShowCreateForm(true)}
@@ -609,7 +592,7 @@ export default function TeamsPage() {
                                             >
                                                 Verify All
                                             </button>
-                                            {user.isAdmin && (
+                                            {user?.isAdmin && (
                                                 <button
                                                     onClick={async () => {
                                                         const confirmed = await showConfirm({
@@ -730,5 +713,7 @@ export default function TeamsPage() {
                 </div>
             </div>
         </div>
+            )}
+        </AuthGuard>
     );
 } 

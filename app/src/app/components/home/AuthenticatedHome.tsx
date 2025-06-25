@@ -2,9 +2,7 @@
 
 import type { User, GameSession, SessionUrls } from '@lib/types';
 import { useElectron } from '@lib/contexts/ElectronContext';
-import QuickAccessTools from './QuickAccessTools';
-import SessionCreator from './SessionCreator';
-import SessionList from './SessionList';
+import { SessionCreator, SessionList } from './index';
 
 interface AuthenticatedHomeProps {
     user: User;
@@ -18,7 +16,7 @@ interface AuthenticatedHomeProps {
     newSessionUrls: SessionUrls | null;
 }
 
-export default function AuthenticatedHome({
+export function AuthenticatedHome({
     user,
     sessions,
     sessionsLoading,
@@ -74,8 +72,6 @@ export default function AuthenticatedHome({
                         )}
                     </div>
                 </div>
-
-                <QuickAccessTools />
 
                 {error && (
                     <div className="bg-red-600 text-white p-4 rounded mb-6">

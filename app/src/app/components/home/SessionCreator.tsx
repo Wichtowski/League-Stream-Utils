@@ -1,5 +1,5 @@
 import type { User, SessionUrls } from '@lib/types';
-import SessionUrlDisplay from './SessionUrlDisplay';
+import { SessionUrlDisplay } from './SessionUrlDisplay';
 
 interface SessionCreatorProps {
     user: User;
@@ -8,7 +8,7 @@ interface SessionCreatorProps {
     newSessionUrls: SessionUrls | null;
 }
 
-export default function SessionCreator({
+export function SessionCreator({
     user,
     loading,
     onCreateSession,

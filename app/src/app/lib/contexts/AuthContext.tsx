@@ -72,6 +72,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         // If running in Electron with local data mode, automatically login as admin
         if (isElectron && useLocalData) {
+            // Clear any existing cloud tokens when switching to local mode
+            localStorage.removeItem('token');
             setUser({
                 id: 'electron-admin',
                 username: 'Local Admin',
@@ -86,8 +88,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             return;
         }
 
+        // Not in local mode - clear user if no valid token
         const token = localStorage.getItem('token');
         if (!token) {
+            setUser(null);
             setIsLoading(false);
             return;
         }

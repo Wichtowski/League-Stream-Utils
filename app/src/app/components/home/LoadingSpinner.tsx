@@ -1,4 +1,4 @@
-export default function LoadingSpinner() {
+export function LoadingSpinner() {
     return (
         <div className="min-h-screen flex items-center justify-center p-8">
             <div className="text-center">

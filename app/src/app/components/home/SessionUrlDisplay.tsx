@@ -6,7 +6,7 @@ interface SessionUrlDisplayProps {
     urls: SessionUrls;
 }
 
-export default function SessionUrlDisplay({ urls }: SessionUrlDisplayProps) {
+export function SessionUrlDisplay({ urls }: SessionUrlDisplayProps) {
     return (
         <div className="mt-6 p-4 bg-gray-700 rounded-lg">
             <h3 className="text-lg font-semibold mb-3 text-green-400">Session Created!</h3>

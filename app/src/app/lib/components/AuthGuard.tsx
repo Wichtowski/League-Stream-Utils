@@ -8,12 +8,14 @@ interface AuthGuardProps {
     children: React.ReactNode;
     redirectTo?: string;
     requireAuth?: boolean;
+    loadingMessage?: string;
 }
 
 export const AuthGuard: React.FC<AuthGuardProps> = ({ 
     children, 
     redirectTo = '/auth',
-    requireAuth = true 
+    requireAuth = true,
+    loadingMessage = 'Checking authentication...'
 }) => {
     const { user, isLoading, isTokenValid } = useAuth();
     const router = useRouter();
@@ -26,7 +28,6 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
                 if (typeof window !== 'undefined' && pathname !== '/auth') {
                     localStorage.setItem('returnTo', pathname);
                 }
-                console.log('AuthGuard: Redirecting unauthenticated user to', redirectTo);
                 router.replace(redirectTo);
             }
         }
@@ -38,7 +39,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
             <div className="min-h-screen flex items-center justify-center p-8">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400 mx-auto mb-4"></div>
-                    <p className="text-white">Checking authentication...</p>
+                    <p className="text-white">{loadingMessage}</p>
                 </div>
             </div>
         );

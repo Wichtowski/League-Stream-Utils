@@ -12,7 +12,7 @@ interface SessionListProps {
     onDeleteSelectedSessions?: (sessionIds: string[]) => Promise<void>;
 }
 
-export default function SessionList({
+export function SessionList({
     sessions,
     sessionsLoading,
     isAdmin,

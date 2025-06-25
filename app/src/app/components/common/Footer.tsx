@@ -1,23 +1,17 @@
 'use client';
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
 import { useNavigation } from "@lib/contexts/NavigationContext";
 import { usePathname } from "next/navigation";
 import { useElectron } from "@/app/lib/contexts/ElectronContext";
+import { useAuth } from "@/app/lib/contexts/AuthContext";
 
 export function Footer() {
   const { activeModule } = useNavigation();
   const { isElectron, useLocalData } = useElectron();
+  const { user } = useAuth();
   const pathname = usePathname();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-  useEffect(() => {
-    // Check if user is authenticated
-    const token = localStorage.getItem('token');
-    const userData = localStorage.getItem('user');
-    setIsAuthenticated(!!(token && userData));
-  }, []);
+  const isAuthenticated = !!user;
 
   // Don't show footer on the main page
   if (pathname === '/' || pathname === '/auth') {

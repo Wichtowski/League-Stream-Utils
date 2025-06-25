@@ -3,6 +3,8 @@
 import React, { useEffect, useState, Suspense } from 'react';
 import { useRouter, useParams } from "next/navigation";
 import { useNavigation } from '@lib/contexts/NavigationContext';
+import { AuthGuard } from '@lib/components/AuthGuard';
+import { useAuthenticatedFetch } from '@lib/hooks/useAuthenticatedFetch';
 import { CameraFeed, CameraNavigation, PlayerInfoHeader, CameraLayout } from '@/app/modules/cameras/components';
 import type { CameraPlayer, CameraTeam } from '@lib/types';
 
@@ -12,8 +14,8 @@ export default function PlayerCameraStreamPage() {
     const teamId = params.teamId as string;
     const playerName = decodeURIComponent(params.player as string);
     const { setActiveModule } = useNavigation();
+    const { authenticatedFetch } = useAuthenticatedFetch();
     const [player, setPlayer] = useState<CameraPlayer | null>(null);
-    const [authChecked, setAuthChecked] = useState(false);
     const [teamName, setTeamName] = useState<string>('');
     const [accessDenied, setAccessDenied] = useState(false);
     const [accessReason, setAccessReason] = useState<string>('');
@@ -21,25 +23,10 @@ export default function PlayerCameraStreamPage() {
     useEffect(() => {
         setActiveModule('cameras');
 
-        // Check authentication first
-        const token = localStorage.getItem('token');
-        const userData = localStorage.getItem('user');
-
-        if (!token || !userData) {
-            router.push('/auth');
-            return;
-        }
-
-        setAuthChecked(true);
-
         const checkAccessAndFetchPlayer = async () => {
             try {
                 // First check if user has access to this team's cameras
-                const accessResponse = await fetch(`/api/v1/cameras/access?teamId=${teamId}`, {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
-                });
+                const accessResponse = await authenticatedFetch(`/api/v1/cameras/access?teamId=${teamId}`);
 
                 if (accessResponse.ok) {
                     const accessData = await accessResponse.json();
@@ -53,11 +40,7 @@ export default function PlayerCameraStreamPage() {
                 }
 
                 // If access is granted, fetch camera settings
-                const response = await fetch('/api/v1/cameras/settings', {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
-                });
+                const response = await authenticatedFetch('/api/v1/cameras/settings');
 
                 if (response.ok) {
                     const data = await response.json();
@@ -100,97 +83,81 @@ export default function PlayerCameraStreamPage() {
         if (teamId && playerName) {
             checkAccessAndFetchPlayer();
         }
-    }, [teamId, playerName, router, setActiveModule]);
-
-    // Show loading while checking auth
-    if (!authChecked) {
-        return (
-            <div className="min-h-screen flex items-center justify-center p-8">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400 mx-auto mb-4"></div>
-                    <p className="text-white">Checking authentication...</p>
-                </div>
-            </div>
-        );
-    }
-
-    if (accessDenied) {
-        return (
-            <CameraLayout>
-                <div className="flex items-center justify-center p-8 h-screen">
-                    <div className="text-center">
-                        <h2 className="text-2xl font-bold text-white mb-4">Access Denied</h2>
-                        <p className="text-gray-400 mb-6">
-                            {accessReason}
-                        </p>
-                        <div className="space-x-4">
-                            <button
-                                onClick={() => router.push('/modules/cameras')}
-                                className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg transition-colors"
-                            >
-                                Camera Hub
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </CameraLayout>
-        );
-    }
-
-    if (!player) {
-        return (
-            <CameraLayout>
-                <div className="flex items-center justify-center p-8 h-screen">
-                    <div className="text-center">
-                        <h2 className="text-2xl font-bold text-white mb-4">Player Not Found</h2>
-                        <p className="text-gray-400 mb-6">
-                            {teamName ? `Player "${playerName}" not found in ${teamName}` : 'Player or team not found'}
-                        </p>
-                        <div className="space-x-4">
-                            <button
-                                onClick={() => router.push(`/modules/cameras/stream/${teamId}`)}
-                                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors"
-                            >
-                                Back to Team
-                            </button>
-                            <button
-                                onClick={() => router.push('/modules/cameras')}
-                                className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg transition-colors"
-                            >
-                                Camera Hub
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </CameraLayout>
-        );
-    }
+    }, [teamId, playerName, router, setActiveModule, authenticatedFetch]);
 
     return (
-        <Suspense fallback={<div>Loading...</div>}>
-            <CameraLayout>
-                <PlayerInfoHeader
-                    player={player}
-                    teamName={teamName}
-                    position="top-left"
-                    size="large"
-                />
+        <AuthGuard loadingMessage="Loading player camera...">
+            {accessDenied ? (
+                <CameraLayout>
+                    <div className="flex items-center justify-center p-8 h-screen">
+                        <div className="text-center">
+                            <h2 className="text-2xl font-bold text-white mb-4">Access Denied</h2>
+                            <p className="text-gray-400 mb-6">
+                                {accessReason}
+                            </p>
+                            <div className="space-x-4">
+                                <button
+                                    onClick={() => router.push('/modules/cameras')}
+                                    className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg transition-colors"
+                                >
+                                    Camera Hub
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </CameraLayout>
+            ) : !player ? (
+                <CameraLayout>
+                    <div className="flex items-center justify-center p-8 h-screen">
+                        <div className="text-center">
+                            <h2 className="text-2xl font-bold text-white mb-4">Player Not Found</h2>
+                            <p className="text-gray-400 mb-6">
+                                {teamName ? `Player "${playerName}" not found in ${teamName}` : 'Player or team not found'}
+                            </p>
+                            <div className="space-x-4">
+                                <button
+                                    onClick={() => router.push(`/modules/cameras/stream/${teamId}`)}
+                                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors"
+                                >
+                                    Back to Team
+                                </button>
+                                <button
+                                    onClick={() => router.push('/modules/cameras')}
+                                    className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg transition-colors"
+                                >
+                                    Camera Hub
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </CameraLayout>
+            ) : (
+                <Suspense fallback={<div>Loading...</div>}>
+                    <CameraLayout>
+                        <PlayerInfoHeader
+                            player={player}
+                            teamName={teamName}
+                            position="top-left"
+                            size="large"
+                        />
 
-                <CameraNavigation
-                    position="top-right"
-                    showHub={true}
-                    showTeamView={true}
-                    teamId={teamId}
-                />
+                        <CameraNavigation
+                            position="top-right"
+                            showHub={true}
+                            showTeamView={true}
+                            teamId={teamId}
+                        />
 
-                <CameraFeed
-                    player={player}
-                    className="w-full h-screen"
-                    showPlayerInfo={true}
-                    playerInfoSize="large"
-                    teamName={teamName}
-                />
-            </CameraLayout>
-        </Suspense>
+                        <CameraFeed
+                            player={player}
+                            className="w-full h-screen"
+                            showPlayerInfo={true}
+                            playerInfoSize="large"
+                            teamName={teamName}
+                        />
+                    </CameraLayout>
+                </Suspense>
+            )}
+        </AuthGuard>
     );
 } 

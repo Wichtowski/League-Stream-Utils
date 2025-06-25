@@ -579,4 +579,43 @@ export function getImageUrl(image: ImageStorage): string {
 export function getTeamLogoUrl(team: Team, fallbackUrl?: string): string {
     const logoUrl = getImageUrl(team.logo);
     return logoUrl || fallbackUrl || '/assets/default-team-logo.png';
+}
+
+// Additional types for contexts
+export interface TournamentStats {
+    tournamentId: string;
+    totalParticipants: number;
+    totalMatches: number;
+    completedMatches: number;
+    averageMatchDuration?: number;
+    championStats: ChampionStats[];
+    teamStats: {
+        teamId: string;
+        teamName: string;
+        wins: number;
+        losses: number;
+        totalGames: number;
+        winRate: number;
+        averageGameTime?: number;
+        favoriteChampions: ChampionStats[];
+    }[];
+    timeline: {
+        date: Date;
+        matchesPlayed: number;
+        cumulativeMatches: number;
+    }[];
+    lastUpdated: Date;
+}
+
+export interface Bracket {
+    id: string;
+    tournamentId: string;
+    type: 'single-elimination' | 'double-elimination' | 'swiss' | 'round-robin';
+    structure: BracketStructure | SwissRound[] | unknown; // Different structure per type
+    currentRound: number;
+    totalRounds: number;
+    status: 'setup' | 'active' | 'completed';
+    settings: BracketSettings | SwissSettings | GroupSettings;
+    createdAt: Date;
+    updatedAt: Date;
 } 

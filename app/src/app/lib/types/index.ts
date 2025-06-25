@@ -1,4 +1,19 @@
-export type { GameSession, Champion, GameConfig, TeamSide, ActionType, GamePhase } from './game';
+export type {
+    GameSession,
+    Champion,
+    GameConfig,
+    TeamSide,
+    ActionType,
+    GamePhase,
+    PickbanSession,
+    PickbanConfig,
+    PickbanAction,
+    LCUStatus,
+    ChampSelectPlayer,
+    ChampSelectAction,
+    ChampSelectTimer,
+    ChampSelectSession
+} from './game';
 export type { AuthCredentials, User, UserRegistration } from './auth';
 export type { SessionUrls, SessionResponse } from './api';
 export type { WSMessage } from './websocket';
@@ -23,7 +38,9 @@ export type {
     PlayerVerificationResult,
     ChampionStats,
     TournamentChampionStats,
-    GameResult
+    GameResult,
+    TournamentStats,
+    Bracket
 } from './tournament';
 export type { CameraPlayer, CameraTeam } from './camera';
 export type {

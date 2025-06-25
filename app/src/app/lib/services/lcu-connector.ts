@@ -1,55 +1,9 @@
+import type { ChampSelectSession } from '@lib/types';
+
 interface LCUCredentials {
   port: string;
   password: string;
   protocol: string;
-}
-
-interface ChampSelectPlayer {
-  cellId: number;
-  championId: number;
-  summonerId: number;
-  summonerName: string;
-  puuid: string;
-  isBot: boolean;
-  isActingNow: boolean;
-  pickTurn: number;
-  banTurn: number;
-  team: number;
-}
-
-interface ChampSelectAction {
-  id: number;
-  actorCellId: number;
-  championId: number;
-  completed: boolean;
-  type: 'pick' | 'ban';
-  isInProgress: boolean;
-}
-
-interface ChampSelectTimer {
-  adjustedTimeLeftInPhase: number;
-  totalTimeInPhase: number;
-  phase: string;
-  isInfinite: boolean;
-}
-
-interface ChampSelectSession {
-  phase: string;
-  timer: ChampSelectTimer;
-  chatDetails: {
-    chatRoomName: string;
-    chatRoomPassword: string;
-  };
-  myTeam: ChampSelectPlayer[];
-  theirTeam: ChampSelectPlayer[];
-  trades: unknown[];
-  actions: ChampSelectAction[][];
-  bans: {
-    myTeamBans: number[];
-    theirTeamBans: number[];
-  };
-  localPlayerCellId: number;
-  isSpectating: boolean;
 }
 
 type ConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'error';
@@ -66,11 +20,11 @@ class LCUConnector {
   private pollingInterval: NodeJS.Timeout | null = null;
   private retryTimeout: NodeJS.Timeout | null = null;
   private reconnectAttempts = 0;
-  
+
   private readonly autoReconnect: boolean;
   private readonly maxReconnectAttempts: number;
   private readonly pollInterval: number;
-  
+
   // Event handlers
   private onStatusChange?: (status: ConnectionStatus) => void;
   private onChampSelectUpdate?: (data: ChampSelectSession | null) => void;
@@ -117,12 +71,12 @@ class LCUConnector {
   private async findLCUCredentials(): Promise<LCUCredentials> {
     try {
       const response = await fetch('/api/v1/pickban/leagueclient/lcu-credentials');
-      
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Failed to get LCU credentials');
       }
-      
+
       const data = await response.json();
       return {
         port: data.credentials.port,
@@ -160,7 +114,7 @@ class LCUConnector {
     if (contentType && contentType.includes('application/json')) {
       return await response.json();
     }
-    
+
     return await response.text();
   }
 
@@ -168,7 +122,7 @@ class LCUConnector {
     try {
       const response = await fetch('/api/v1/pickban/leagueclient/lcu-champselect');
       const result = await response.json();
-      
+
       if (result.success) {
         this.onChampSelectUpdate?.(result.data || null);
       } else {
@@ -185,7 +139,7 @@ class LCUConnector {
     if (this.pollingInterval) {
       clearInterval(this.pollingInterval);
     }
-    
+
     this.pollingInterval = setInterval(() => {
       this.pollChampSelect();
     }, this.pollInterval);
@@ -214,26 +168,26 @@ class LCUConnector {
       // Use the working direct test endpoint to verify LCU connection
       const testResponse = await fetch('/api/v1/pickban/leagueclient/lcu-test-direct');
       const testResult = await testResponse.json();
-      
+
       if (!testResult.success) {
         throw new Error(testResult.message || testResult.error || 'LCU test failed');
       }
 
       // Get credentials from the working endpoint
       const credentials = await this.findLCUCredentials();
-      
+
       // Connection successful
       this.credentials = credentials;
       this.setConnectionStatus('connected');
-      
+
       // Start polling for champion select data
       this.startPolling();
-      
+
     } catch (error) {
       this.setConnectionStatus('error');
       const errorMessage = error instanceof Error ? error.message : 'Failed to connect to League Client';
       this.onError?.(errorMessage);
-      
+
       if (this.autoReconnect && this.reconnectAttempts < this.maxReconnectAttempts) {
         this.scheduleReconnect();
       }
@@ -243,7 +197,7 @@ class LCUConnector {
   private scheduleReconnect(): void {
     this.reconnectAttempts++;
     const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 10000);
-    
+
     this.retryTimeout = setTimeout(() => {
       console.log(`Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`);
       this.connect();
@@ -253,7 +207,7 @@ class LCUConnector {
   public disconnect(): void {
     this.stopPolling();
     this.clearRetryTimeout();
-    
+
     this.setConnectionStatus('disconnected');
     this.credentials = null;
     this.reconnectAttempts = 0;
@@ -264,7 +218,7 @@ class LCUConnector {
     try {
       const response = await fetch('/api/v1/pickban/leagueclient/lcu-test-direct');
       const result = await response.json();
-      
+
       if (result.success) {
         const summoner = result.summoner;
         return {
@@ -290,21 +244,21 @@ class LCUConnector {
     try {
       const response = await fetch('/api/v1/pickban/leagueclient/lcu-status');
       const result = await response.json();
-      
+
       const checks = result.checks;
       let statusMsg = `📊 League Status:\n`;
       statusMsg += `• Platform: ${checks.platform}\n`;
       statusMsg += `• Installed: ${checks.leagueInstalled ? '✅' : '❌'}\n`;
       statusMsg += `• Running: ${checks.leagueRunning ? '✅' : '❌'}\n`;
       statusMsg += `• Lockfile: ${checks.lockfileExists ? '✅' : '❌'}\n`;
-      
+
       if (checks.lockfileDetails) {
         statusMsg += `• Port: ${checks.lockfileDetails.port}\n`;
         statusMsg += `• Protocol: ${checks.lockfileDetails.protocol}`;
       }
-      
+
       const success = checks.leagueInstalled && checks.leagueRunning && checks.lockfileExists;
-      
+
       return {
         success,
         message: statusMsg,
@@ -323,4 +277,4 @@ class LCUConnector {
   }
 }
 
-export { LCUConnector, type LCUCredentials, type ChampSelectSession, type ConnectionStatus }; 
+export { LCUConnector, type LCUCredentials, type ConnectionStatus }; 

@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-export default function UnauthenticatedLanding() {
+export function UnauthenticatedLanding() {
     return (
         <div className="min-h-screen flex items-center justify-center p-8">
             <div className="max-w-4xl mx-auto text-center">

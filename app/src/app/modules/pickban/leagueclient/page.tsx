@@ -5,12 +5,15 @@ import { useNavigation } from '@lib/contexts/NavigationContext';
 import { useAuth } from '@lib/contexts/AuthContext';
 import { AuthGuard } from '@lib/components/AuthGuard';
 import { getChampionById } from '@lib/champions';
-import { LCUConnector, type ChampSelectSession, type ConnectionStatus } from '@lib/services/lcu-connector';
+import { LCUConnector, type ConnectionStatus } from '@lib/services/lcu-connector';
+import type { ChampSelectSession } from '@lib/types';
+import { useElectron } from '@lib/contexts/ElectronContext';
 import Image from 'next/image';
 
 export default function LeagueClientPage() {
   const { setActiveModule } = useNavigation();
   const { user: _user, isLoading: _authLoading } = useAuth();
+  const { isElectron } = useElectron();
   
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('disconnected');
   const [champSelectData, setChampSelectData] = useState<ChampSelectSession | null>(null);
@@ -321,6 +324,24 @@ export default function LeagueClientPage() {
     <AuthGuard>
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 p-6">
         <div className="max-w-6xl mx-auto">
+          {/* Browser Compatibility Warning */}
+          {!isElectron && (
+            <div className="mb-6 p-4 bg-orange-600/20 border border-orange-600 rounded-lg">
+              <div className="flex items-start gap-3">
+                <div className="text-orange-400 text-xl">⚠️</div>
+                <div>
+                  <h3 className="text-orange-400 font-semibold mb-2">Browser Limitations</h3>
+                  <p className="text-orange-200 text-sm mb-2">
+                    League Client integration may not work properly in web browsers due to CORS and SSL certificate restrictions.
+                  </p>
+                  <p className="text-orange-200 text-sm">
+                    <strong>Recommended:</strong> Use the desktop Electron app for full League Client connectivity.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Header */}
           <div className="flex justify-between items-center mb-8">
             <div>
@@ -378,40 +399,6 @@ export default function LeagueClientPage() {
               >
                 Disconnect
               </button>
-              <button
-                onClick={async () => {
-                  setError(null);
-                  setSuccessMessage(null);
-                  const result = await lcuConnectorRef.current?.testConnection();
-                  if (result) {
-                    if (result.success) {
-                      setSuccessMessage(result.message);
-                    } else {
-                      setError(result.message);
-                    }
-                  }
-                }}
-                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors text-sm"
-              >
-                Test Direct Connection
-              </button>
-              <button
-                onClick={async () => {
-                  setError(null);
-                  setSuccessMessage(null);
-                  const result = await lcuConnectorRef.current?.checkStatus();
-                  if (result) {
-                    if (result.success) {
-                      setSuccessMessage(result.message);
-                    } else {
-                      setError(result.message);
-                    }
-                  }
-                }}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors text-sm"
-              >
-                Check Status
-              </button>
             </div>
 
             {successMessage && (
@@ -457,7 +444,23 @@ export default function LeagueClientPage() {
 
           {/* Champion Select Display */}
           <div className="bg-gray-800 rounded-lg p-6">
-            <h2 className="text-xl font-semibold mb-4">Live Champion Select</h2>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold">Live Champion Select</h2>
+              {connectionStatus === 'connected' && champSelectData && (
+                <button
+                  onClick={() => {
+                    const overlayUrl = `/modules/pickban/leagueclient/champselect-overlay`;
+                    window.open(overlayUrl, 'champselect-overlay', 'width=1200,height=800,resizable=yes,scrollbars=no,toolbar=no,menubar=no,location=no,status=no');
+                  }}
+                  className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                  Open Overlay
+                </button>
+              )}
+            </div>
             {connectionStatus === 'connected' ? (
               renderChampSelectInterface()
             ) : (

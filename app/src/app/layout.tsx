@@ -5,6 +5,10 @@ import { NavigationProvider } from "./lib/contexts/NavigationContext";
 import { ModalProvider } from "./lib/contexts/ModalContext";
 import { AuthProvider } from "./lib/contexts/AuthContext";
 import { ElectronProvider } from "./lib/contexts/ElectronContext";
+import { TeamsProvider } from "./lib/contexts/TeamsContext";
+import { TournamentsProvider } from "./lib/contexts/TournamentsContext";
+import { PickbanProvider } from "./lib/contexts/PickbanContext";
+import { SettingsProvider } from "./lib/contexts/SettingsContext";
 import { NavigationGuard } from "./lib/components/NavigationGuard";
 import "./globals.css";
 
@@ -35,16 +39,24 @@ export default function RootLayout({
       >
         <ElectronProvider>
           <AuthProvider>
-            <NavigationProvider>
-              <ModalProvider>
-                <NavigationGuard>
-                  <main className="flex-1">
-                    {children}
-                  </main>
-                  <Footer />
-                </NavigationGuard>
-              </ModalProvider>
-            </NavigationProvider>
+            <SettingsProvider>
+              <TeamsProvider>
+                <TournamentsProvider>
+                  <PickbanProvider>
+                    <NavigationProvider>
+                      <ModalProvider>
+                        <NavigationGuard>
+                          <main className="flex-1">
+                            {children}
+                          </main>
+                          <Footer />
+                        </NavigationGuard>
+                      </ModalProvider>
+                    </NavigationProvider>
+                  </PickbanProvider>
+                </TournamentsProvider>
+              </TeamsProvider>
+            </SettingsProvider>
           </AuthProvider>
         </ElectronProvider>
       </body>

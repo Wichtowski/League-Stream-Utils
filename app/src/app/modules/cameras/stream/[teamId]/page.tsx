@@ -3,6 +3,8 @@
 import React, { useEffect, useState, Suspense, useCallback } from 'react';
 import { useRouter, useParams } from "next/navigation";
 import { useNavigation } from '@lib/contexts/NavigationContext';
+import { AuthGuard } from '@lib/components/AuthGuard';
+import { useAuthenticatedFetch } from '@lib/hooks/useAuthenticatedFetch';
 import { CameraPlayer, CameraTeam } from '@lib/types';
 import Image from 'next/image';
 
@@ -11,10 +13,10 @@ export default function TeamCameraStreamPage() {
     const params = useParams();
     const teamId = params.teamId as string;
     const { setActiveModule } = useNavigation();
+    const { authenticatedFetch } = useAuthenticatedFetch();
     const [players, setPlayers] = useState<CameraPlayer[]>([]);
     const [currentPlayer, setCurrentPlayer] = useState<CameraPlayer | null>(null);
     const [streamFailed, setStreamFailed] = useState(false);
-    const [authChecked, setAuthChecked] = useState(false);
     const [randomMode, setRandomMode] = useState(false);
     const [teamName, setTeamName] = useState<string>('');
     const [teamLogo, setTeamLogo] = useState<string>('');
@@ -51,25 +53,10 @@ export default function TeamCameraStreamPage() {
     useEffect(() => {
         setActiveModule('cameras');
 
-        // Check authentication first
-        const token = localStorage.getItem('token');
-        const userData = localStorage.getItem('user');
-
-        if (!token || !userData) {
-            router.push('/auth');
-            return;
-        }
-
-        setAuthChecked(true);
-
         const checkAccessAndFetchData = async () => {
             try {
                 // First check if user has access to this team's cameras
-                const accessResponse = await fetch(`/api/v1/cameras/access?teamId=${teamId}`, {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
-                });
+                const accessResponse = await authenticatedFetch(`/api/v1/cameras/access?teamId=${teamId}`);
 
                 if (accessResponse.ok) {
                     const accessData = await accessResponse.json();
@@ -83,11 +70,7 @@ export default function TeamCameraStreamPage() {
                 }
 
                 // If access is granted, fetch camera settings
-                const response = await fetch('/api/v1/cameras/settings', {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
-                });
+                const response = await authenticatedFetch('/api/v1/cameras/settings');
 
                 if (response.ok) {
                     const data = await response.json();
@@ -118,7 +101,7 @@ export default function TeamCameraStreamPage() {
         if (teamId) {
             checkAccessAndFetchData();
         }
-    }, [teamId, router, setActiveModule]);
+    }, [teamId, router, setActiveModule, authenticatedFetch]);
 
     // Separate effect to set initial player when players are loaded
     useEffect(() => {
@@ -153,18 +136,6 @@ export default function TeamCameraStreamPage() {
         setStreamFailed(true);
     };
 
-    // Show loading while checking auth
-    if (!authChecked) {
-        return (
-            <div className="min-h-screen flex items-center justify-center p-8">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400 mx-auto mb-4"></div>
-                    <p className="text-white">Checking authentication...</p>
-                </div>
-            </div>
-        );
-    }
-
     // Show access denied message
     if (accessDenied) {
         const getAccessMessage = () => {
@@ -181,52 +152,52 @@ export default function TeamCameraStreamPage() {
         };
 
         return (
-            <div className="min-h-screen bg-black flex items-center justify-center p-8">
-                <div className="text-center max-w-md">
-                    <div className="text-red-400 text-6xl mb-6">🚫</div>
-                    <h2 className="text-2xl font-bold text-white mb-4">Access Denied</h2>
-                    <p className="text-gray-400 mb-6">{getAccessMessage()}</p>
-                    <div className="space-x-4">
-                        <button
-                            onClick={() => router.push('/modules/cameras')}
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors"
-                        >
-                            Camera Hub
-                        </button>
-                        <button
-                            onClick={() => router.push('/modules/teams')}
-                            className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg transition-colors"
-                        >
-                            My Teams
-                        </button>
+            <AuthGuard>
+                <div className="min-h-screen bg-black flex items-center justify-center p-8">
+                    <div className="text-center max-w-md">
+                        <div className="text-red-400 text-6xl mb-6">🚫</div>
+                        <h2 className="text-2xl font-bold text-white mb-4">Access Denied</h2>
+                        <p className="text-gray-400 mb-6">{getAccessMessage()}</p>
+                        <div className="space-x-4">
+                            <button
+                                onClick={() => router.push('/modules/cameras')}
+                                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors"
+                            >
+                                Camera Hub
+                            </button>
+                            <button
+                                onClick={() => router.push('/modules/teams')}
+                                className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg transition-colors"
+                            >
+                                My Teams
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
-        );
-    }
-
-    if (players.length === 0) {
-        return (
-            <div className="min-h-screen bg-black flex items-center justify-center p-8">
-                <div className="text-center">
-                    <h2 className="text-2xl font-bold text-white mb-4">No Players Found</h2>
-                    <p className="text-gray-400 mb-6">
-                        {teamName ? `No camera feeds configured for ${teamName}` : 'Team not found or no cameras configured'}
-                    </p>
-                    <button
-                        onClick={() => router.push('/modules/cameras')}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors"
-                    >
-                        Configure Cameras
-                    </button>
-                </div>
-            </div>
+            </AuthGuard>
         );
     }
 
     return (
-        <Suspense fallback={<div>Loading...</div>}>
-            <div className="min-h-screen bg-black">
+        <AuthGuard loadingMessage="Loading team cameras...">
+            {players.length === 0 ? (
+                <div className="min-h-screen bg-black flex items-center justify-center p-8">
+                    <div className="text-center">
+                        <h2 className="text-2xl font-bold text-white mb-4">No Players Found</h2>
+                        <p className="text-gray-400 mb-6">
+                            {teamName ? `No camera feeds configured for ${teamName}` : 'Team not found or no cameras configured'}
+                        </p>
+                        <button
+                            onClick={() => router.push('/modules/cameras')}
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors"
+                        >
+                            Configure Cameras
+                        </button>
+                    </div>
+                </div>
+            ) : (
+                <Suspense fallback={<div>Loading...</div>}>
+                    <div className="min-h-screen bg-black">
 
                 <div className="relative w-full aspect-video">
                     {/* Tournament Mode Controls */}
@@ -339,5 +310,7 @@ export default function TeamCameraStreamPage() {
                 </div>
             </div>
         </Suspense>
+            )}
+        </AuthGuard>
     );
 } 

@@ -26,6 +26,21 @@ export interface ElectronAPI {
     saveCameraUpload: (fileBuffer: Buffer, fileName: string) => Promise<{ success: boolean; localPath?: string; publicPath?: string; error?: string }>;
     getUserDataPath: () => Promise<string>;
 
+    // Storage operations (AppData persistent storage)
+    storage?: {
+        set: (key: string, value: unknown) => Promise<void>;
+        get: (key: string) => Promise<unknown | null>;
+        remove: (key: string) => Promise<void>;
+        clear: (prefix?: string) => Promise<void>;
+    };
+
+    // System info
+    getVersions?: () => Promise<{
+        node: string;
+        electron: string;
+        chrome: string;
+    }>;
+
     // Menu event listeners
     onCreateTournament: (callback: () => void) => void;
     onLoadTournament: (callback: (data: TournamentData) => void) => void;
