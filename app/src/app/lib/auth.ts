@@ -3,37 +3,37 @@ import jwt, { SignOptions } from 'jsonwebtoken';
 import { canUserCreateSession, updateUserSessionCount } from './database';
 import { JWTPayload, SessionData } from './types/auth';
 import { config } from '@lib/config';
-import { checkRateLimit, getClientIP } from './utils/security';
+import { checkRateLimit, getClientIP, SECURITY_HEADERS } from './utils/security';
 import { logSecurityEvent } from './database/security';
 
 const activeSessions = new Map<string, SessionData>();
 
 export function generateTokens(payload: Omit<JWTPayload, 'tokenType'>): { accessToken: string; refreshToken: string; sessionId: string } {
   const sessionId = crypto.randomUUID();
-  
+
   const accessToken = jwt.sign(
     { ...payload, tokenType: 'access', sessionId },
     config.jwt.secret as string,
     { expiresIn: config.jwt.expiresIn } as SignOptions
   );
-  
+
   const refreshToken = jwt.sign(
     { ...payload, tokenType: 'refresh', sessionId },
     config.jwt.secret as string,
     { expiresIn: config.jwt.refreshExpiresIn } as SignOptions
   );
-  
+
   return { accessToken, refreshToken, sessionId };
 }
 
 export function verifyToken(token: string, expectedType: 'access' | 'refresh' = 'access'): JWTPayload | null {
   try {
     const decoded = jwt.verify(token, config.jwt.secret) as JWTPayload;
-    
+
     if (decoded.tokenType !== expectedType) {
       return null;
     }
-    
+
     return decoded;
   } catch (_error) {
     return null;
@@ -41,26 +41,10 @@ export function verifyToken(token: string, expectedType: 'access' | 'refresh' = 
 }
 
 export function setSecurityHeaders(response: NextResponse): NextResponse {
-  // Security headers
-  response.headers.set('X-Content-Type-Options', 'nosniff');
-  response.headers.set('X-Frame-Options', 'DENY');
-  response.headers.set('X-XSS-Protection', '1; mode=block');
-  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-  response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
-  
-  // Content Security Policy
-  const csp = [
-    "default-src 'self'",
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval'", // Note: Remove unsafe-* in production
-    "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data: https:",
-    "font-src 'self'",
-    "connect-src 'self' ws: wss:",
-    "frame-ancestors 'none'"
-  ].join('; ');
-  
-  response.headers.set('Content-Security-Policy', csp);
-  
+  for (const [key, value] of Object.entries(SECURITY_HEADERS)) {
+    response.headers.set(key, value);
+  }
+
   return response;
 }
 
@@ -68,7 +52,7 @@ export function withAuth(handler: (request: NextRequest, user: JWTPayload) => Pr
   return async (request: NextRequest) => {
     const ip = getClientIP(request);
     const userAgent = request.headers.get('user-agent') || 'unknown';
-    
+
     // Rate limiting
     if (!checkRateLimit(ip, config.security.rateLimitMax, config.security.rateLimitWindow)) {
       await logSecurityEvent({
@@ -78,7 +62,7 @@ export function withAuth(handler: (request: NextRequest, user: JWTPayload) => Pr
         userAgent,
         details: { endpoint: request.url }
       });
-      
+
       return setSecurityHeaders(NextResponse.json(
         { error: 'Too many requests' },
         { status: 429 }
@@ -86,10 +70,11 @@ export function withAuth(handler: (request: NextRequest, user: JWTPayload) => Pr
     }
 
     const authHeader = request.headers.get('authorization');
-    const accessTokenCookie = request.cookies.get('accessToken')?.value;
+    const accessTokenCookie = request.cookies.get('access_token')?.value;
 
     // Check for authentication via either header or cookie
     if (!authHeader && !accessTokenCookie) {
+      console.log('[AUTH] No authentication found - no header or cookie');
       return setSecurityHeaders(NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
@@ -97,11 +82,12 @@ export function withAuth(handler: (request: NextRequest, user: JWTPayload) => Pr
     }
 
     try {
-      // Try cookie authentication first
       if (accessTokenCookie) {
+        console.log('[AUTH] Found access token cookie');
         const decoded = verifyToken(accessTokenCookie, 'access');
-        
+
         if (!decoded) {
+          console.log('[AUTH] Failed to decode access token');
           await logSecurityEvent({
             timestamp: new Date(),
             event: 'invalid_cookie_token',
@@ -109,36 +95,57 @@ export function withAuth(handler: (request: NextRequest, user: JWTPayload) => Pr
             userAgent,
             details: { endpoint: request.url }
           });
-          
+
           return setSecurityHeaders(NextResponse.json(
             { error: 'Invalid token' },
             { status: 401 }
           ));
         }
-        
-        // Check if session is still valid
+
+        console.log('[AUTH] Successfully decoded token for user:', decoded.userId);
+
         if (decoded.sessionId) {
+          console.log('[AUTH] Checking session:', decoded.sessionId);
           const session = activeSessions.get(decoded.sessionId);
+          console.log('[AUTH] Session found:', !!session);
+          console.log('[AUTH] Active sessions count:', activeSessions.size);
+
           if (!session || !session.isValid || session.expiresAt < new Date()) {
+            console.log('[AUTH] Session invalid or expired:', {
+              exists: !!session,
+              isValid: session?.isValid,
+              expired: session ? session.expiresAt < new Date() : 'no session'
+            });
+
+            // For development: skip session validation for admin users
+            if (decoded.userId === 'admin' && process.env.NODE_ENV === 'development') {
+              console.log('[AUTH] DEVELOPMENT MODE: Bypassing session check for admin');
+              const response = await handler(request, decoded);
+              return setSecurityHeaders(response);
+            }
+
             return setSecurityHeaders(NextResponse.json(
               { error: 'Session expired' },
               { status: 401 }
             ));
           }
-          
-          // Update last used time
+
           session.lastUsedAt = new Date();
+          console.log('[AUTH] Session updated successfully');
+        } else if (decoded.userId === 'admin' && process.env.NODE_ENV === 'development') {
+          console.log('[AUTH] DEVELOPMENT MODE: Admin user without session ID, allowing access');
+          const response = await handler(request, decoded);
+          return setSecurityHeaders(response);
         }
-        
+
         const response = await handler(request, decoded);
         return setSecurityHeaders(response);
       }
-      
-      // Try header authentication
+
       if (authHeader && authHeader.startsWith('Bearer ')) {
         const token = authHeader.split(' ')[1];
         const decoded = verifyToken(token, 'access');
-        
+
         if (!decoded) {
           await logSecurityEvent({
             timestamp: new Date(),
@@ -147,14 +154,13 @@ export function withAuth(handler: (request: NextRequest, user: JWTPayload) => Pr
             userAgent,
             details: { endpoint: request.url }
           });
-          
+
           return setSecurityHeaders(NextResponse.json(
             { error: 'Invalid token' },
             { status: 401 }
           ));
         }
-        
-        // Check if session is still valid
+
         if (decoded.sessionId) {
           const session = activeSessions.get(decoded.sessionId);
           if (!session || !session.isValid || session.expiresAt < new Date()) {
@@ -163,55 +169,13 @@ export function withAuth(handler: (request: NextRequest, user: JWTPayload) => Pr
               { status: 401 }
             ));
           }
-          
-          // Update last used time
+
           session.lastUsedAt = new Date();
         }
-        
+
         const response = await handler(request, decoded);
         return setSecurityHeaders(response);
-        
-      } else if (authHeader && authHeader.startsWith('Basic ')) {
-        // Basic auth for admin only (legacy support)
-        const base64Credentials = authHeader.split(' ')[1];
-        const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
-        const [username, password] = credentials.split(':');
 
-        const adminUsername = config.auth.username;
-        const adminPassword = config.auth.password;
-
-        if (username === adminUsername && password === adminPassword) {
-          const adminUser: JWTPayload = {
-            userId: 'admin',
-            username: adminUsername,
-            isAdmin: true
-          };
-          
-          await logSecurityEvent({
-            timestamp: new Date(),
-            event: 'admin_basic_auth',
-            userId: 'admin',
-            ip,
-            userAgent,
-            details: { endpoint: request.url }
-          });
-          
-          const response = await handler(request, adminUser);
-          return setSecurityHeaders(response);
-        } else {
-          await logSecurityEvent({
-            timestamp: new Date(),
-            event: 'failed_basic_auth',
-            ip,
-            userAgent,
-            details: { username, endpoint: request.url }
-          });
-          
-          return setSecurityHeaders(NextResponse.json(
-            { error: 'Invalid credentials' },
-            { status: 401 }
-          ));
-        }
       } else {
         return setSecurityHeaders(NextResponse.json(
           { error: 'Invalid authentication format' },
@@ -220,7 +184,7 @@ export function withAuth(handler: (request: NextRequest, user: JWTPayload) => Pr
       }
     } catch (error) {
       console.error('Authentication error:', error);
-      
+
       await logSecurityEvent({
         timestamp: new Date(),
         event: 'auth_error',
@@ -228,7 +192,7 @@ export function withAuth(handler: (request: NextRequest, user: JWTPayload) => Pr
         userAgent,
         details: { error: error instanceof Error ? error.message : 'Unknown error', endpoint: request.url }
       });
-      
+
       return setSecurityHeaders(NextResponse.json(
         { error: 'Authentication failed' },
         { status: 401 }
@@ -259,17 +223,19 @@ export async function withSessionLimit(handler: (request: NextRequest, user: JWT
   });
 }
 
-export function createSession(sessionData: Omit<SessionData, 'id' | 'createdAt' | 'lastUsedAt' | 'isValid'>): string {
-  const sessionId = crypto.randomUUID();
+export function createSession(sessionData: Omit<SessionData, 'id' | 'createdAt' | 'lastUsedAt' | 'isValid'> & { id?: string }): string {
+  const sessionId = sessionData.id || crypto.randomUUID();
+  const { id: _id, ...restSessionData } = sessionData;
   const session: SessionData = {
-    ...sessionData,
+    ...restSessionData,
     id: sessionId,
     createdAt: new Date(),
     lastUsedAt: new Date(),
     isValid: true
   };
-  
+
   activeSessions.set(sessionId, session);
+  console.log('[AUTH] Created new session:', sessionId, 'Total sessions:', activeSessions.size);
   return sessionId;
 }
 
@@ -289,5 +255,4 @@ export function clearExpiredSessions(): void {
   }
 }
 
-// Clean up expired sessions every hour
 setInterval(clearExpiredSessions, 60 * 60 * 1000); 

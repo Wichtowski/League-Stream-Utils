@@ -1,18 +1,16 @@
-import bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
 import { connectToDatabase } from './connection';
 import { UserModel } from './models';
 import type { User as UserType, UserRegistration, UserQueryResult } from '@lib/types';
 
-export async function createUser(userData: UserRegistration): Promise<UserType> {
+export async function createUser(userData: UserRegistration & { passwordHistory?: string[] }): Promise<UserType> {
   await connectToDatabase();
-
-  const hashedPassword = await bcrypt.hash(userData.password, 12);
 
   const newUser = new UserModel({
     id: uuidv4(),
     username: userData.username,
-    password: hashedPassword,
+    password: userData.password,
+    passwordHistory: userData.passwordHistory || [],
     email: userData.email,
     isAdmin: false,
     sessionsCreatedToday: 0,

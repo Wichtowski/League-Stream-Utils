@@ -32,6 +32,7 @@ const NavigationGuard = ({ children }: NavigationGuardProps) => {
       '/auth',
       '/modules',
       '/settings',
+      '/debug-contexts',
     ];
 
     // Check if current path starts with any valid route

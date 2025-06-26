@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createUser, getUserByUsername, getUserByEmail } from '@lib/database';
 import { UserRegistration } from '@lib/types';
-import { 
-  validatePassword, 
-  sanitizeInput, 
-  checkRateLimit, 
+import {
+  validatePassword,
+  sanitizeInput,
+  checkRateLimit,
   getClientIP,
-  hashPassword 
+  hashPassword,
+  updatePasswordHistory
 } from '@lib/utils/security';
 import { logSecurityEvent } from '@lib/database/security';
 import { setSecurityHeaders } from '@lib/auth';
@@ -15,7 +16,7 @@ import { config } from '@lib/config';
 export async function POST(request: NextRequest) {
   const ip = getClientIP(request);
   const userAgent = request.headers.get('user-agent') || 'unknown';
-  
+
   try {
     // Rate limiting by IP
     if (!checkRateLimit(ip, config.security.rateLimitMax, config.security.rateLimitWindow)) {
@@ -26,7 +27,7 @@ export async function POST(request: NextRequest) {
         userAgent,
         details: {}
       });
-      
+
       return setSecurityHeaders(NextResponse.json(
         { error: 'Too many registration attempts. Please try again later.' },
         { status: 429 }
@@ -118,10 +119,14 @@ export async function POST(request: NextRequest) {
     // Hash password securely
     const hashedPassword = await hashPassword(password);
 
+    // Initialize password history with current password
+    const passwordHistory = updatePasswordHistory(hashedPassword, []);
+
     // Create user
     const newUser = await createUser({
       username: sanitizedUsername,
       password: hashedPassword,
+      passwordHistory,
       email: sanitizedEmail
     });
 
@@ -131,9 +136,9 @@ export async function POST(request: NextRequest) {
       userId: newUser.id,
       ip,
       userAgent,
-      details: { 
+      details: {
         username: sanitizedUsername,
-        email: sanitizedEmail 
+        email: sanitizedEmail
       }
     });
 
@@ -146,7 +151,7 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Registration error:', error);
-    
+
     await logSecurityEvent({
       timestamp: new Date(),
       event: 'register_server_error',

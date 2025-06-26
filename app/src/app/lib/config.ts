@@ -13,9 +13,37 @@ function validateConfig() {
     throw new Error('JWT_SECRET must be at least 32 characters long');
   }
 
+  // Check for cryptographically secure characteristics
+  const hasUppercase = /[A-Z]/.test(jwtSecret);
+  const hasLowercase = /[a-z]/.test(jwtSecret);
+  const hasNumbers = /[0-9]/.test(jwtSecret);
+  const hasSpecialChars = /[^A-Za-z0-9]/.test(jwtSecret);
+  const entropy = new Set(jwtSecret).size; // Unique character count
+
+  if (!hasUppercase || !hasLowercase || !hasNumbers || !hasSpecialChars) {
+    throw new Error('JWT_SECRET must contain uppercase, lowercase, numbers, and special characters for security');
+  }
+
+  if (entropy < 16) {
+    throw new Error('JWT_SECRET appears to have low entropy. Use a cryptographically secure random string');
+  }
+
+  // Check for common patterns that indicate weak secrets
+  const commonPatterns = [
+    /(.)\1{3,}/, // Repeated characters (4+ times)
+    /123456|abcdef|qwerty/i, // Common sequences
+    /password|secret|admin/i // Common words
+  ];
+
+  for (const pattern of commonPatterns) {
+    if (pattern.test(jwtSecret)) {
+      throw new Error('JWT_SECRET contains predictable patterns. Use a cryptographically secure random string');
+    }
+  }
+
   const adminUsername = process.env.ADMIN_USERNAME;
   const adminPassword = process.env.ADMIN_PASSWORD;
-  
+
   if (!adminUsername) {
     throw new Error('ADMIN_USERNAME environment variable is required');
   }

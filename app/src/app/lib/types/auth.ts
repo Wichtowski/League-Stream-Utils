@@ -6,7 +6,8 @@ export interface AuthCredentials {
 export interface User {
     id: string;
     username: string;
-    password: string; // hashed
+    password: string;
+    passwordHistory: string[];
     email: string;
     isAdmin: boolean;
     sessionsCreatedToday: number;
@@ -22,7 +23,7 @@ export interface UserRegistration {
     username: string;
     password: string;
     email: string;
-} 
+}
 
 export interface JWTPayload {
     userId: string;
@@ -49,4 +50,3 @@ export interface SessionData {
     userAgent?: string;
     isValid: boolean;
 }
-  

@@ -17,6 +17,51 @@ class UniversalStorage {
     constructor() {
         this.isElectron = typeof window !== 'undefined' && !!window.electronAPI?.isElectron;
         this.useLocalData = this.isElectron && localStorage.getItem('electron-use-local-data') === 'true';
+
+        // Perform cleanup on initialization to prevent quota issues
+        this.performInitialCleanup();
+    }
+
+    private performInitialCleanup(): void {
+        if (typeof window === 'undefined') return;
+
+        try {
+            // Clear old data first
+            this.clearOldLocalStorageData();
+
+            // Check localStorage usage
+            const usage = this.calculateLocalStorageUsage();
+            console.log(`localStorage usage: ${(usage.used / 1024 / 1024).toFixed(2)}MB`);
+
+            // If using more than 8MB, perform aggressive cleanup
+            if (usage.used > 8 * 1024 * 1024) {
+                console.log('localStorage usage high, performing cleanup');
+                this.aggressiveCleanup();
+            }
+        } catch (error) {
+            console.debug('Initial cleanup failed:', error);
+        }
+    }
+
+    private calculateLocalStorageUsage(): { used: number; available: number } {
+        let used = 0;
+        try {
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key) {
+                    const item = localStorage.getItem(key);
+                    if (item) {
+                        used += item.length;
+                    }
+                }
+            }
+        } catch (error) {
+            console.debug('Failed to calculate localStorage usage:', error);
+        }
+
+        // Estimate available space (localStorage limit is usually 5-10MB)
+        const estimated = 5 * 1024 * 1024; // 5MB conservative estimate
+        return { used, available: estimated - used };
     }
 
     private generateChecksum(data: unknown): string {
@@ -31,8 +76,8 @@ class UniversalStorage {
     private setLocalStorageWithQuotaHandling(key: string, data: StorageData): void {
         const dataString = JSON.stringify(data);
 
-        // 10MB
-        if (dataString.length > 1024 * 1024 * 10) {
+        // 1MB
+        if (dataString.length > 1024 * 1024 * 1) {
             console.warn(`Data too large for localStorage (${(dataString.length / 1024 / 1024).toFixed(2)}MB), skipping storage for key: ${key}`);
             return;
         }
@@ -62,7 +107,7 @@ class UniversalStorage {
     }
 
     private clearOldLocalStorageData(): void {
-        const cutoffTime = Date.now() - (7 * 24 * 60 * 60 * 1000); // 7 days ago
+        const cutoffTime = Date.now() - (2 * 60 * 60 * 1000); // 2 hours ago (much shorter for development)
         const keysToRemove: string[] = [];
 
         for (let i = 0; i < localStorage.length; i++) {
@@ -134,8 +179,8 @@ class UniversalStorage {
             return a.timestamp - b.timestamp;
         });
 
-        // Remove up to 50% of storage items, prioritizing large and old items
-        const itemsToRemove = Math.ceil(itemSizes.length * 0.5);
+        // Remove up to 80% of storage items to ensure we have plenty of space
+        const itemsToRemove = Math.ceil(itemSizes.length * 0.8);
         for (let i = 0; i < itemsToRemove && i < itemSizes.length; i++) {
             try {
                 localStorage.removeItem(itemSizes[i].key);
@@ -148,6 +193,12 @@ class UniversalStorage {
     }
 
     async set<T>(key: string, data: T, options: StorageOptions = {}): Promise<void> {
+        // In development, reduce caching to prevent quota issues
+        if (process.env.NODE_ENV === 'development' && Math.random() > 0.3) {
+            console.debug(`Skipping cache for ${key} in development mode`);
+            return;
+        }
+
         const storageData: StorageData = {
             data,
             timestamp: Date.now(),

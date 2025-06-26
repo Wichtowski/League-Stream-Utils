@@ -3,23 +3,23 @@ import { getUserByUsername } from '@lib/database/user';
 import { AuthCredentials } from '@lib/types';
 import { config } from '@lib/config';
 import { generateTokens, createSession, setSecurityHeaders } from '@lib/auth';
-import { 
-  checkRateLimit, 
-  getClientIP, 
-  sanitizeInput, 
-  verifyPassword 
+import {
+  checkRateLimit,
+  getClientIP,
+  sanitizeInput,
+  verifyPassword
 } from '@lib/utils/security';
-import { 
-  recordLoginAttempt, 
-  isAccountLocked, 
+import {
+  recordLoginAttempt,
+  isAccountLocked,
   clearLoginAttempts,
-  logSecurityEvent 
+  logSecurityEvent
 } from '@lib/database/security';
 
 export async function POST(request: NextRequest) {
   const ip = getClientIP(request);
   const userAgent = request.headers.get('user-agent') || 'unknown';
-  
+
   try {
     // Rate limiting by IP
     if (!checkRateLimit(ip, config.security.rateLimitMax, config.security.rateLimitWindow)) {
@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
         userAgent,
         details: {}
       });
-      
+
       return setSecurityHeaders(NextResponse.json(
         { error: 'Too many login attempts. Please try again later.' },
         { status: 429 }
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
     }
 
     const sanitizedUsername = sanitizeInput(username);
-    
+
     // Check if account is locked
     if (await isAccountLocked(sanitizedUsername)) {
       await logSecurityEvent({
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
         userAgent,
         details: { username: sanitizedUsername }
       });
-      
+
       return setSecurityHeaders(NextResponse.json(
         { error: 'Account temporarily locked due to too many failed attempts' },
         { status: 423 }
@@ -71,20 +71,22 @@ export async function POST(request: NextRequest) {
     const adminPassword = config.auth.password;
 
     if (sanitizedUsername === adminUsername && password === adminPassword) {
-      const { accessToken, refreshToken } = generateTokens({
+      const { accessToken, refreshToken, sessionId } = generateTokens({
         userId: 'admin',
         username: adminUsername,
         isAdmin: true
       });
 
-      // Create session
+      // Create session with the same sessionId that's in the JWT
       createSession({
         userId: 'admin',
         refreshToken,
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
         ip,
-        userAgent
+        userAgent,
+        id: sessionId
       });
+      console.log('[LOGIN] Created session for admin:', sessionId);
 
       await recordLoginAttempt({
         identifier: sanitizedUsername,
@@ -128,6 +130,8 @@ export async function POST(request: NextRequest) {
         maxAge: 7 * 24 * 60 * 60, // 7 days
         path: '/'
       });
+
+      console.log('[LOGIN] Set cookies for admin login');
 
       return setSecurityHeaders(response);
     }
@@ -199,7 +203,7 @@ export async function POST(request: NextRequest) {
       ));
     }
 
-    const { accessToken, refreshToken } = generateTokens({
+    const { accessToken, refreshToken, sessionId } = generateTokens({
       userId: user.id,
       username: user.username,
       isAdmin: user.isAdmin
@@ -210,7 +214,8 @@ export async function POST(request: NextRequest) {
       refreshToken,
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
       ip,
-      userAgent
+      userAgent,
+      id: sessionId
     });
 
     await clearLoginAttempts(sanitizedUsername);
@@ -260,7 +265,7 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Login error:', error);
-    
+
     await logSecurityEvent({
       timestamp: new Date(),
       event: 'login_server_error',
