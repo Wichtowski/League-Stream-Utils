@@ -74,4 +74,48 @@ export async function canUserCreateSession(userId: string): Promise<boolean> {
   }
 
   return user.sessionsCreatedToday < 2;
+}
+
+export async function lockUserAccount(userId: string, lockDurationMs: number): Promise<void> {
+  await connectToDatabase();
+
+  const lockedUntil = new Date(Date.now() + lockDurationMs);
+
+  await UserModel.updateOne(
+    { id: userId },
+    {
+      $set: {
+        isLocked: true,
+        lockedUntil: lockedUntil
+      }
+    }
+  );
+}
+
+export async function unlockUserAccount(userId: string): Promise<void> {
+  await connectToDatabase();
+
+  await UserModel.updateOne(
+    { id: userId },
+    {
+      $unset: {
+        isLocked: 1,
+        lockedUntil: 1
+      }
+    }
+  );
+}
+
+export async function updateUserLoginInfo(userId: string, ip: string): Promise<void> {
+  await connectToDatabase();
+
+  await UserModel.updateOne(
+    { id: userId },
+    {
+      $set: {
+        lastLoginAt: new Date(),
+        lastLoginIP: ip
+      }
+    }
+  );
 } 

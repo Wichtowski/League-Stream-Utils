@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { useModal } from '@lib/contexts/ModalContext';
 import type { Tournament, Team } from '@lib/types';
-import { OverlayLoader } from '@components/common';
+import { useTeams } from '@lib/contexts/TeamsContext';
+import { OverlayLoader, InlineSpinner } from '@components/common';
 
 interface MyTeamRegistrationProps {
     tournament: Tournament;
@@ -129,7 +130,7 @@ export default function MyTeamRegistration({ tournament, onClose, onTeamRegister
                     <div className="flex justify-between items-center">
                         <div>
                             <h2 className="text-2xl font-bold text-white">Add My Teams</h2>
-                            <p className="text-gray-400 mt-1">Register your teams to {tournament.name}</p>
+                            <p className="text-gray-400 mt-1">Register your teams to "{tournament.name}"</p>
                         </div>
                         <button
                             onClick={onClose}

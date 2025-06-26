@@ -7,7 +7,8 @@ import { useModal } from '@lib/contexts/ModalContext';
 import { useAuth } from '@lib/contexts/AuthContext';
 import { useAuthenticatedFetch } from '@lib/hooks/useAuthenticatedFetch';
 import { API_BASE_URL } from '@lib/constants';
-import { AuthenticatedHome, LoadingSpinner } from '@components/home';
+import { AuthenticatedHome } from '@components/home';
+import { PageLoader } from '@components/common';
 
 export default function PickBanPage() {
   const { setActiveModule } = useNavigation();
@@ -16,7 +17,7 @@ export default function PickBanPage() {
   const { authenticatedFetch } = useAuthenticatedFetch();
   const [sessions, setSessions] = useState<GameSession[]>([]);
   const [loading, setLoading] = useState(false);
-  const [sessionsLoading, setSessionsLoading] = useState(true);
+  const [sessionsLoading, setSessionsLoading] = useState(false);
   const [newSessionUrls, setNewSessionUrls] = useState<SessionUrls | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -35,13 +36,14 @@ export default function PickBanPage() {
 
       if (response.ok) {
         const data = await response.json();
-        setSessions(data);
+        setSessions(Array.isArray(data) ? data : []);
       } else {
         throw new Error('Failed to fetch sessions');
       }
     } catch (error) {
       setError('Failed to fetch sessions');
       console.error(error);
+      setSessions([]);
     } finally {
       setSessionsLoading(false);
     }
@@ -116,7 +118,7 @@ export default function PickBanPage() {
   };
 
   if (authLoading) {
-    return <LoadingSpinner />;
+    return <PageLoader text="Checking authentication..." />;
   }
 
   if (authUser) {

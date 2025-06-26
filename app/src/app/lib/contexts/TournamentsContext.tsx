@@ -48,11 +48,11 @@ const CACHE_TTL = 3 * 60 * 1000; // 3 minutes for tournaments (shorter due to fr
 const SYNC_CHECK_INTERVAL = 20000; // 20 seconds (tournaments change more frequently)
 
 export function TournamentsProvider({ children }: { children: ReactNode }) {
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const { authenticatedFetch } = useAuthenticatedFetch();
   
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastFetch, setLastFetch] = useState<number>(0);
 
@@ -62,26 +62,27 @@ export function TournamentsProvider({ children }: { children: ReactNode }) {
     t.registeredTeams?.includes(user?.id || '')
   );
 
-  // Load cached data on mount
+  // Load cached data on mount - wait for auth to complete
   useEffect(() => {
-    loadCachedData();
-  }, [user]);
+    if (!authLoading) {
+      loadCachedData();
+    }
+  }, [user, authLoading]);
 
   // Periodic sync check
   useEffect(() => {
-    if (!user) return;
+    if (!user || authLoading) return;
 
     const interval = setInterval(() => {
       checkDataSync();
     }, SYNC_CHECK_INTERVAL);
 
     return () => clearInterval(interval);
-  }, [user, lastFetch]);
+  }, [user, authLoading, lastFetch]);
 
   const loadCachedData = async (): Promise<void> => {
     // Don't fetch data if user is not authenticated
     if (!user) {
-      setLoading(false);
       return;
     }
 
@@ -93,7 +94,6 @@ export function TournamentsProvider({ children }: { children: ReactNode }) {
       
       if (cachedTournaments) {
         setTournaments(cachedTournaments);
-        setLoading(false);
         const timestamp = await storage.getTimestamp(CACHE_KEY);
         if (timestamp) {
           setLastFetch(timestamp);
@@ -102,6 +102,7 @@ export function TournamentsProvider({ children }: { children: ReactNode }) {
         // Still fetch fresh data in background
         fetchTournamentsFromAPI(false);
       } else {
+        // Only show loading if we have no cached data
         await fetchTournamentsFromAPI(true);
       }
     } catch (err) {

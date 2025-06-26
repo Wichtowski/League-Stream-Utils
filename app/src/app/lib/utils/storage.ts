@@ -6,7 +6,7 @@ interface StorageData {
 }
 
 interface StorageOptions {
-    ttl?: number; // Time to live in milliseconds
+    ttl?: number;
     enableChecksum?: boolean;
 }
 
@@ -31,8 +31,8 @@ class UniversalStorage {
     private setLocalStorageWithQuotaHandling(key: string, data: StorageData): void {
         const dataString = JSON.stringify(data);
 
-        // Check if data is too large (> 1MB per item)
-        if (dataString.length > 1024 * 1024) {
+        // 10MB
+        if (dataString.length > 1024 * 1024 * 10) {
             console.warn(`Data too large for localStorage (${(dataString.length / 1024 / 1024).toFixed(2)}MB), skipping storage for key: ${key}`);
             return;
         }
@@ -48,13 +48,11 @@ class UniversalStorage {
                     localStorage.setItem(key, dataString);
                 } catch (_retryError) {
                     console.warn('Failed to store data even after aggressive cleanup, trying minimal data');
-                    // Try to store minimal data without checksum
                     const minimalData = { data: data.data, timestamp: data.timestamp, version: data.version };
                     try {
                         localStorage.setItem(key, JSON.stringify(minimalData));
                     } catch (_finalError) {
                         console.error('Complete localStorage failure, disabling caching for this session');
-                        // Silently fail rather than breaking the app
                     }
                 }
             } else {
@@ -79,7 +77,6 @@ class UniversalStorage {
                         }
                     }
                 } catch {
-                    // If we can't parse, it's old/corrupt data, remove it
                     keysToRemove.push(key);
                 }
             }

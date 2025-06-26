@@ -2,14 +2,15 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import AuthTabs from '@/app/auth/components/AuthTabs';
-import MessageDisplay from '@/app/auth/components/MessageDisplay';
-import LoginForm from '@/app/auth/components/LoginForm';
-import RegisterForm from '@/app/auth/components/RegisterForm';
-import ContactInfo from '@/app/auth/components/ContactInfo';
+import { AuthTabs } from '@auth/components/AuthTabs';
+import { MessageDisplay } from '@auth/components/MessageDisplay';
+import { LoginForm } from '@auth/components/LoginForm';
+import { RegisterForm } from '@auth/components/RegisterForm';
+import { ContactInfo } from '@auth/components/ContactInfo';
 import { useNavigation } from '@lib/contexts/NavigationContext';
 import { useAuth } from '@lib/contexts/AuthContext';
 import { useElectron } from '@lib/contexts/ElectronContext';
+import { LoadingSpinner } from '@components/common';
 import { Cog6ToothIcon } from '@heroicons/react/24/outline';
 
 export default function AuthPage() {
@@ -42,10 +43,6 @@ export default function AuthPage() {
     setSuccess('');
   };
 
-  const handleLoginSuccess = () => {
-    clearMessages();
-  };
-
   const handleRegisterSuccess = (message: string) => {
     setSuccess(message);
     setError('');
@@ -57,12 +54,7 @@ export default function AuthPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen text-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400 mx-auto mb-4"></div>
-          <p className="text-white">Checking authentication...</p>
-        </div>
-      </div>
+      <LoadingSpinner fullscreen />
     );
   }
 
@@ -109,10 +101,7 @@ export default function AuthPage() {
         <MessageDisplay error={error} success={success} />
 
         {isLogin ? (
-          <LoginForm
-            onSuccess={handleLoginSuccess}
-            onError={setError}
-          />
+          <LoginForm />
         ) : (
           <RegisterForm
             onSuccess={handleRegisterSuccess}

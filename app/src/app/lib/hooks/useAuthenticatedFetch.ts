@@ -1,57 +1,102 @@
+import { useState, useCallback } from 'react';
 import { useAuth } from '@lib/contexts/AuthContext';
-import { useElectron } from '@lib/contexts/ElectronContext';
-import { useCallback } from 'react';
 
-interface AuthenticatedFetchOptions extends RequestInit {
-    skipAuthCheck?: boolean;
+interface FetchOptions extends RequestInit {
+  skipAuth?: boolean;
 }
 
-export const useAuthenticatedFetch = () => {
-    const { isTokenValid, clearAuthAndRedirect } = useAuth();
-    const { isElectron, useLocalData } = useElectron();
+interface FetchResult<T> {
+  data: T | null;
+  error: string | null;
+  loading: boolean;
+}
 
-    const authenticatedFetch = useCallback(async (
-        url: string,
-        options: AuthenticatedFetchOptions = {}
-    ): Promise<Response> => {
-        const { skipAuthCheck = false, ...fetchOptions } = options;
+export function useAuthenticatedFetch() {
+  const { refreshToken } = useAuth();
+  
+  const authenticatedFetch = useCallback(async (
+    url: string, 
+    options: FetchOptions = {}
+  ): Promise<Response> => {
+    const { skipAuth = false, ...fetchOptions } = options;
+    
+    try {
+      const defaultOptions: RequestInit = {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          ...fetchOptions.headers,
+        },
+        ...fetchOptions,
+      };
 
-        // Skip authentication checks for Electron local data mode
-        const isElectronLocalMode = isElectron && useLocalData;
-
-        if (!isElectronLocalMode) {
-            // Check token validity before making the request
-            if (!skipAuthCheck && !isTokenValid()) {
-                console.log('Token invalid or expired, redirecting to auth');
-                clearAuthAndRedirect();
-                throw new Error('Authentication required');
-            }
+      let response = await fetch(url, defaultOptions);
+      
+      if (response.status === 401 && !skipAuth) {
+        const refreshed = await refreshToken();
+        
+        if (refreshed) {
+          response = await fetch(url, defaultOptions);
         }
+      }
+      
+      return response;
+      
+    } catch (error) {
+      throw error;
+    }
+  }, [refreshToken]);
 
-        // Add appropriate headers based on mode
-        const token = localStorage.getItem('token');
-        const headers = {
-            ...fetchOptions.headers,
-            ...(isElectronLocalMode
-                ? { 'x-electron-local-mode': 'true' }
-                : token && { 'Authorization': `Bearer ${token}` }
-            )
-        };
+  return { authenticatedFetch };
+}
 
-        const response = await fetch(url, {
-            ...fetchOptions,
-            headers
+export function useApiRequest<T = unknown>(url: string, options: FetchOptions = {}) {
+  const [state, setState] = useState<FetchResult<T>>({
+    data: null,
+    error: null,
+    loading: false
+  });
+  
+  const { authenticatedFetch } = useAuthenticatedFetch();
+  
+  const execute = useCallback(async (requestOptions: FetchOptions = {}) => {
+    setState(prev => ({ ...prev, loading: true, error: null }));
+    
+    try {
+      const response = await authenticatedFetch(url, { ...options, ...requestOptions });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Request failed' }));
+        setState({
+          data: null,
+          error: errorData.error || `HTTP ${response.status}`,
+          loading: false
         });
-
-        // Handle 401 responses by redirecting to auth (skip for Electron local mode)
-        if (response.status === 401 && !isElectronLocalMode) {
-            console.log('Received 401, token likely expired, redirecting to auth');
-            clearAuthAndRedirect();
-            throw new Error('Authentication expired');
-        }
-
-        return response;
-    }, [isTokenValid, clearAuthAndRedirect, isElectron, useLocalData]);
-
-    return { authenticatedFetch };
-}; 
+        return { data: null, error: errorData.error || `HTTP ${response.status}`, loading: false };
+      }
+      
+      const data = await response.json();
+      
+      setState({
+        data,
+        error: null,
+        loading: false
+      });
+      return { data, error: null, loading: false };
+      
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Network error';
+      setState({
+        data: null,
+        error: errorMessage,
+        loading: false
+      });
+      return { data: null, error: errorMessage, loading: false };
+    }
+  }, [url, options, authenticatedFetch]);
+  
+  return {
+    ...state,
+    execute
+  };
+} 

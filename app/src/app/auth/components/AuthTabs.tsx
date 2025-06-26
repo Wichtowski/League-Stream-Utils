@@ -4,7 +4,7 @@ interface AuthTabsProps {
   onClearMessages: () => void;
 }
 
-export default function AuthTabs({ isLogin, onTabChange, onClearMessages }: AuthTabsProps) {
+export function AuthTabs({ isLogin, onTabChange, onClearMessages }: AuthTabsProps) {
   const handleTabClick = (newIsLogin: boolean) => {
     onTabChange(newIsLogin);
     onClearMessages();

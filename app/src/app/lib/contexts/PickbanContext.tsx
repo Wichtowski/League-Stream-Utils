@@ -55,13 +55,13 @@ const CACHE_TTL = 2 * 60 * 1000; // 2 minutes (shorter for real-time data)
 const LCU_CHECK_INTERVAL = 10000; // 10 seconds
 
 export function PickbanProvider({ children }: { children: ReactNode }) {
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const { authenticatedFetch } = useAuthenticatedFetch();
   
   // Session state
   const [currentSession, setCurrentSession] = useState<PickbanSession | null>(null);
   const [sessions, setSessions] = useState<PickbanSession[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
   // WebSocket state
@@ -74,21 +74,23 @@ export function PickbanProvider({ children }: { children: ReactNode }) {
   const [lcuStatus, setLcuStatus] = useState<LCUStatus | null>(null);
   const [lcuLoading, setLcuLoading] = useState(false);
 
-  // Load cached data on mount
+  // Load cached data on mount - wait for auth to complete
   useEffect(() => {
-    loadCachedData();
-  }, [user]);
+    if (!authLoading) {
+      loadCachedData();
+    }
+  }, [user, authLoading]);
 
   // LCU status check interval - only when actively using pickban
   useEffect(() => {
-    if (!user || !currentSession) return;
+    if (!user || authLoading || !currentSession) return;
 
     const interval = setInterval(() => {
       checkLCUStatus();
     }, LCU_CHECK_INTERVAL);
 
     return () => clearInterval(interval);
-  }, [user, currentSession]);
+  }, [user, authLoading, currentSession]);
 
   // Cleanup WebSocket on unmount
   useEffect(() => {
@@ -105,7 +107,6 @@ export function PickbanProvider({ children }: { children: ReactNode }) {
   const loadCachedData = async (): Promise<void> => {
     // Don't fetch data if user is not authenticated
     if (!user) {
-      setLoading(false);
       return;
     }
 
@@ -117,7 +118,6 @@ export function PickbanProvider({ children }: { children: ReactNode }) {
       
       if (cachedSessions) {
         setSessions(cachedSessions);
-        setLoading(false);
       }
       
       if (cachedLcuStatus) {

@@ -1,82 +1,108 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@lib/contexts/AuthContext';
+import { Button } from '@components/common/Button';
+import { AuthCredentials } from '@lib/types/auth';
 
-interface LoginFormProps {
-  onSuccess: () => void;
-  onError: (error: string) => void;
-}
+export function LoginForm() {
+    const [credentials, setCredentials] = useState<AuthCredentials>({
+        username: '',
+        password: ''
+    });
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [errorMessage, setErrorMessage] = useState<string>('');
+    const { login } = useAuth();
+    const router = useRouter();
 
-export default function LoginForm({ onSuccess, onError }: LoginFormProps) {
-  const router = useRouter();
-  const { login } = useAuth();
-  const [loading, setLoading] = useState(false);
-  const [loginData, setLoginData] = useState({
-    username: '',
-    password: ''
-  });
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsSubmitting(true);
+        setErrorMessage('');
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    onError(''); // Clear any existing errors
-
-    try {
-      const success = await login(loginData.username, loginData.password);
-      
-      if (success) {
-        onSuccess();
-        
-        // Check if there's a returnTo path stored
-        const returnTo = localStorage.getItem('returnTo');
-        if (returnTo && returnTo !== '/auth') {
-          localStorage.removeItem('returnTo'); // Clean up
-          router.push(returnTo);
-        } else {
-          router.push('/modules');
+        try {
+            const result = await login(credentials.username, credentials.password);
+            
+            if (result.success) {
+                // Check if there's a return URL
+                const returnTo = sessionStorage.getItem('returnTo');
+                if (returnTo) {
+                    sessionStorage.removeItem('returnTo');
+                    router.push(returnTo);
+                } else {
+                    router.push('/');
+                }
+            } else {
+                setErrorMessage(result.message || 'Login failed');
+            }
+        } catch (error) {
+            console.error('Login error:', error);
+            setErrorMessage('An unexpected error occurred');
+        } finally {
+            setIsSubmitting(false);
         }
-      } else {
-        onError('Invalid username or password');
-      }
-    } catch (error) {
-      console.warn(error);
-      onError('Login failed. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <label className="block text-sm font-medium mb-2">Username</label>
-        <input
-          type="text"
-          value={loginData.username}
-          onChange={(e) => setLoginData(prev => ({ ...prev, username: e.target.value }))}
-          className="w-full px-3 py-2 bg-gray-700 rounded text-white border border-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-          required
-        />
-      </div>
-      
-      <div>
-        <label className="block text-sm font-medium mb-2">Password</label>
-        <input
-          type="password"
-          value={loginData.password}
-          onChange={(e) => setLoginData(prev => ({ ...prev, password: e.target.value }))}
-          className="w-full px-3 py-2 bg-gray-700 rounded text-white border border-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-          required
-        />
-      </div>
-      
-      <button
-        type="submit"
-        disabled={loading}
-        className="cursor-pointer w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white font-bold py-2 px-4 rounded transition-colors"
-      >
-        {loading ? 'Logging in...' : 'Login'}
-      </button>
-    </form>
-  );
+    const handleInputChange = (field: keyof AuthCredentials) => (
+        e: React.ChangeEvent<HTMLInputElement>
+    ) => {
+        setCredentials(prev => ({
+            ...prev,
+            [field]: e.target.value
+        }));
+        if (errorMessage) {
+            setErrorMessage('');
+        }
+    };
+
+    return (
+        <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+                <label htmlFor="username" className="block text-sm font-medium text-gray-300 mb-2">
+                    Username
+                </label>
+                <input
+                    id="username"
+                    type="text"
+                    required
+                    value={credentials.username}
+                    onChange={handleInputChange('username')}
+                    className="w-full px-3 py-2 border border-gray-600 rounded-md bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Enter your username"
+                    disabled={isSubmitting}
+                    autoComplete="username"
+                />
+            </div>
+
+            <div>
+                <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
+                    Password
+                </label>
+                <input
+                    id="password"
+                    type="password"
+                    required
+                    value={credentials.password}
+                    onChange={handleInputChange('password')}
+                    className="w-full px-3 py-2 border border-gray-600 rounded-md bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Enter your password"
+                    disabled={isSubmitting}
+                    autoComplete="current-password"
+                />
+            </div>
+
+            {errorMessage && (
+                <div className="bg-red-900/50 border border-red-500 text-red-200 px-4 py-3 rounded-md">
+                    {errorMessage}
+                </div>
+            )}
+
+            <Button
+                type="submit"
+                disabled={isSubmitting || !credentials.username || !credentials.password}
+                className="w-full"
+            >
+                {isSubmitting ? 'Signing in...' : 'Sign In'}
+            </Button>
+        </form>
+    );
 } 

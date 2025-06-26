@@ -6,6 +6,7 @@ import { useNavigation } from '@lib/contexts/NavigationContext';
 import { useAuth } from '@lib/contexts/AuthContext';
 import { useAuthenticatedFetch } from '@lib/hooks/useAuthenticatedFetch';
 import { CameraPlayer, Player, Team } from '@lib/types';
+import { LoadingSpinner } from '@components/common';
 
 // Import proper types from database schemas
 type TeamCamera = {
@@ -102,9 +103,7 @@ export default function CamerasPage() {
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400"></div>
-      </div>
+      <LoadingSpinner fullscreen text="Loading cameras..." className="bg-gray-900" />
     );
   }
 

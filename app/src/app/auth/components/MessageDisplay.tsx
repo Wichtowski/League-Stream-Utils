@@ -3,7 +3,7 @@ interface MessageDisplayProps {
   success: string;
 }
 
-export default function MessageDisplay({ error, success }: MessageDisplayProps) {
+export function MessageDisplay({ error, success }: MessageDisplayProps) {
   return (
     <>
       {error && (

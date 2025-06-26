@@ -7,26 +7,13 @@ import { useElectron } from './ElectronContext';
 interface AuthContextType {
     user: User | null;
     isLoading: boolean;
-    login: (username: string, password: string) => Promise<boolean>;
-    logout: () => void;
+    login: (username: string, password: string) => Promise<{ success: boolean; message?: string }>;
+    logout: () => Promise<void>;
     checkAuth: () => Promise<void>;
-    isTokenValid: () => boolean;
-    clearAuthAndRedirect: () => void;
+    refreshToken: () => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-// Utility function to check if token is expired
-const isTokenExpired = (token: string): boolean => {
-    try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        const currentTime = Math.floor(Date.now() / 1000);
-        return payload.exp < currentTime;
-    } catch (error) {
-        console.error('Error checking token expiration:', error);
-        return true; // If we can't decode, consider it expired
-    }
-};
 
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
@@ -34,34 +21,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { isElectron, isElectronLoading, useLocalData } = useElectron();
 
     const clearAuthData = () => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
         setUser(null);
     };
 
-    const clearAuthAndRedirect = () => {
-        clearAuthData();
-        // Force redirect using window.location to ensure it works
-        if (typeof window !== 'undefined') {
-            window.location.href = '/auth';
-        }
-    };
+    const refreshToken = async (): Promise<boolean> => {
+        try {
+            const response = await fetch('/api/v1/auth/refresh', {
+                method: 'POST',
+                credentials: 'include'
+            });
 
-    const isTokenValid = (): boolean => {
-        // In Electron local data mode, always return true since we use automatic admin auth
-        if (isElectron && useLocalData) {
-            return true;
-        }
-
-        const token = localStorage.getItem('token');
-        if (!token) return false;
-        
-        if (isTokenExpired(token)) {
+            if (response.ok) {
+                return true;
+            } else {
+                clearAuthData();
+                return false;
+            }
+        } catch (error) {
+            console.error('Token refresh error:', error);
             clearAuthData();
             return false;
         }
-        
-        return true;
     };
 
     const checkAuth = async () => {
@@ -72,8 +52,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         // If running in Electron with local data mode, automatically login as admin
         if (isElectron && useLocalData) {
-            // Clear any existing cloud tokens when switching to local mode
-            localStorage.removeItem('token');
             setUser({
                 id: 'electron-admin',
                 username: 'Local Admin',
@@ -88,80 +66,79 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             return;
         }
 
-        // Not in local mode - clear user if no valid token
-        const token = localStorage.getItem('token');
-        if (!token) {
-            setUser(null);
-            setIsLoading(false);
-            return;
-        }
-
-        // Check if token is expired
-        if (isTokenExpired(token)) {
-            console.log('Token expired, clearing auth data');
-            clearAuthData();
-            setIsLoading(false);
-            return;
-        }
-
+        // Try to validate existing session with a protected endpoint
         try {
-            // Decode JWT token to get user info
-            const payload = JSON.parse(atob(token.split('.')[1]));
-            setUser({
-                id: payload.userId,
-                username: payload.username,
-                isAdmin: payload.isAdmin,
-                email: '',
-                password: '',
-                sessionsCreatedToday: 0,
-                lastSessionDate: new Date(),
-                createdAt: new Date()
+            const response = await fetch('/api/v1/auth/me', {
+                method: 'GET',
+                credentials: 'include'
             });
-        } catch (_error) {
-            console.error('Invalid token:', _error);
+
+            if (response.ok) {
+                const data = await response.json();
+                setUser(data.user);
+            } else if (response.status === 401) {
+                // Try to refresh token
+                const refreshed = await refreshToken();
+                if (refreshed) {
+                    // Retry getting user info
+                    const retryResponse = await fetch('/api/v1/auth/me', {
+                        method: 'GET',
+                        credentials: 'include'
+                    });
+                    
+                    if (retryResponse.ok) {
+                        const data = await retryResponse.json();
+                        setUser(data.user);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Auth check error:', error);
             clearAuthData();
         } finally {
             setIsLoading(false);
         }
     };
 
-    const login = async (username: string, password: string): Promise<boolean> => {
+    const login = async (username: string, password: string): Promise<{ success: boolean; message?: string }> => {
         try {
             const response = await fetch('/api/v1/auth/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                credentials: 'include',
                 body: JSON.stringify({ username, password }),
             });
 
             const data = await response.json();
 
             if (response.ok) {
-                localStorage.setItem('token', data.token);
-                setUser({
-                    id: data.user.id,
-                    username: data.user.username,
-                    isAdmin: data.user.isAdmin,
-                    email: data.user.email || '',
-                    password: '',
-                    sessionsCreatedToday: data.user.sessionsCreatedToday || 0,
-                    lastSessionDate: data.user.lastSessionDate ? new Date(data.user.lastSessionDate) : new Date(),
-                    createdAt: data.user.createdAt ? new Date(data.user.createdAt) : new Date()
-                });
-                return true;
+                setUser(data.user);
+                return { success: true };
             } else {
-                console.error('Login failed:', data.error);
-                return false;
+                return { success: false, message: data.error || 'Login failed' };
             }
-        } catch (_error) {
-            console.error('Login error:', _error);
-            return false;
+        } catch (error) {
+            console.error('Login error:', error);
+            return { success: false, message: 'Network error occurred' };
         }
     };
 
-    const logout = () => {
-        clearAuthAndRedirect();
+    const logout = async () => {
+        try {
+            await fetch('/api/v1/auth/logout', {
+                method: 'POST',
+                credentials: 'include'
+            });
+        } catch (error) {
+            console.error('Logout error:', error);
+        } finally {
+            clearAuthData();
+            if (typeof window !== 'undefined') {
+                window.location.href = '/auth';
+            }
+        }
     };
 
     useEffect(() => {
@@ -174,8 +151,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         login,
         logout,
         checkAuth,
-        isTokenValid,
-        clearAuthAndRedirect
+        refreshToken
     };
 
     return (

@@ -1,7 +1,7 @@
 import { InformationCircleIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 
-export default function ContactInfo() {
+export function ContactInfo() {
   return (
     <div className="text-sm text-gray-400 mt-6 text-center">
       <div className="flex items-center justify-center gap-2 mb-2">

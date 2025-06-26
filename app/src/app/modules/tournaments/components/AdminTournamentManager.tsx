@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { useModal } from '@lib/contexts/ModalContext';
 import type { Tournament, Team } from '@lib/types';
+import { useTournaments } from '@lib/contexts/TournamentsContext';
+import { useTeams } from '@lib/contexts/TeamsContext';
 import { OverlayLoader } from '@components/common';
 
 interface AdminTournamentManagerProps {

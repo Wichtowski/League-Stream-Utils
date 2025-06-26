@@ -38,9 +38,13 @@ export function AuthenticatedHome({
                             League of Legends Pick & Ban
                         </h1>
                         <div className="mt-2 flex items-center gap-4">
-                            <span className="text-lg">
-                                Welcome, {isLocalDataMode ? 'Local Admin' : user.username}
-                            </span>
+                            {isLocalDataMode ? (
+                                <> </>
+                            ) : (
+                                <span className="text-lg">
+                                    Welcome, {user.username}
+                                </span>
+                            )}
                             {user.isAdmin && (
                                 <span className="bg-purple-600 text-white px-2 py-1 rounded text-sm">
                                     {isLocalDataMode ? 'Local Mode' : 'Admin'}

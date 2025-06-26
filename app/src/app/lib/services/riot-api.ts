@@ -18,6 +18,11 @@ class RiotAPIService {
     private getRiotAPIKey(): string {
         const apiKey = config.riot.apiKey;
         if (!apiKey) {
+            // On client side or when API key is not configured, return empty string
+            // This will cause API calls to fail gracefully
+            if (typeof window !== 'undefined') {
+                return '';
+            }
             throw new Error('RIOT_API_KEY environment variable is not set');
         }
         return apiKey;

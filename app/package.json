@@ -6,6 +6,9 @@
   "homepage": "./",
   "private": true,
   "scripts": {
+    "generate-secrets": "node scripts/generate-secrets.js",
+    "check-env": "node -e \"require('./src/app/lib/config.js')\"",
+    "security-audit": "npm audit --audit-level moderate",
     "dev": "bun run next dev --turbopack",
     "build": "bun run next build",
     "start": "bun run next start",

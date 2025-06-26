@@ -6,7 +6,9 @@ import {
   TeamSchema,
   TournamentSchema,
   BracketSchema,
-  CameraSettingsSchema
+  CameraSettingsSchema,
+  LoginAttemptSchema,
+  SecurityEventSchema
 } from './schemas';
 
 export const GameSessionModel = models.GameSession ||
@@ -36,4 +38,10 @@ export const ChampionModel = models.Champion ||
     name: { type: String, required: true },
     key: { type: String, required: true },
     image: { type: String, required: true }
-  })); 
+  }));
+
+export const LoginAttemptModel = models.LoginAttempt ||
+  model('LoginAttempt', LoginAttemptSchema);
+
+export const SecurityEventModel = models.SecurityEvent ||
+  model('SecurityEvent', SecurityEventSchema); 

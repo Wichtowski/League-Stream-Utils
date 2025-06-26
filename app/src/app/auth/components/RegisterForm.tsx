@@ -6,7 +6,7 @@ interface RegisterFormProps {
   onSwitchToLogin: () => void;
 }
 
-export default function RegisterForm({ onSuccess, onError, onSwitchToLogin }: RegisterFormProps) {
+export function RegisterForm({ onSuccess, onError, onSwitchToLogin }: RegisterFormProps) {
   const [loading, setLoading] = useState(false);
   const [registerData, setRegisterData] = useState({
     username: '',
@@ -18,7 +18,7 @@ export default function RegisterForm({ onSuccess, onError, onSwitchToLogin }: Re
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    onError(''); // Clear any existing errors
+    onError('');
     
     if (registerData.password !== registerData.confirmPassword) {
       onError('Passwords do not match');

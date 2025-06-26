@@ -8,6 +8,7 @@ import { AuthGuard } from '@lib/components/AuthGuard';
 import type { Team, CreateTeamRequest, TeamTier } from '@lib/types';
 import { useModal } from '@lib/contexts/ModalContext';
 import { useNavigation } from '@/app/lib/contexts/NavigationContext';
+import { LoadingSpinner } from '@components/common';
 
 export default function TeamsPage() {
     const user = useUser();
@@ -294,9 +295,7 @@ export default function TeamsPage() {
     return (
         <AuthGuard loadingMessage="Loading teams...">
             {loading ? (
-                <div className="min-h-screen text-white flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
-                </div>
+                <LoadingSpinner fullscreen text="Loading teams..." variant="white" />
             ) : (
                 <div className="min-h-screen text-white">
             <div className="container mx-auto px-6 py-8">

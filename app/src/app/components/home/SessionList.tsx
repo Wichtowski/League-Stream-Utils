@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import type { GameSession } from '@lib/types';
 import Link from 'next/link';
 import { Pagination } from '@components/common';
+import { LoadingSpinner } from '@components/common';
 import { TrashIcon, ArrowUpIcon, ArrowDownIcon } from '@heroicons/react/24/outline';
 
 interface SessionListProps {
@@ -27,7 +28,10 @@ export function SessionList({
     const SESSIONS_PER_PAGE = 5;
     
     const { paginatedSessions, totalPages } = useMemo(() => {
-        const sorted = [...sessions].sort((a, b) => {
+        // Ensure sessions is always an array
+        const sessionsArray = Array.isArray(sessions) ? sessions : [];
+        
+        const sorted = [...sessionsArray].sort((a, b) => {
             const dateA = new Date(a.lastActivity).getTime();
             const dateB = new Date(b.lastActivity).getTime();
             return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
@@ -37,7 +41,7 @@ export function SessionList({
         const endIndex = startIndex + SESSIONS_PER_PAGE;
         return {
             paginatedSessions: sorted.slice(startIndex, endIndex),
-            totalPages: Math.ceil(sessions.length / SESSIONS_PER_PAGE)
+            totalPages: Math.ceil(sessionsArray.length / SESSIONS_PER_PAGE)
         };
     }, [sessions, currentPage, sortOrder]);
 
@@ -95,7 +99,7 @@ export function SessionList({
             <div className="flex justify-between items-center mb-4 min-h-[2.5rem]">
                 <div className="flex items-center gap-4">
                     <h2 className="text-2xl font-semibold">Active Sessions</h2>
-                    {sessions.length > 0 && (
+                    {Array.isArray(sessions) && sessions.length > 0 && (
                         <button
                             onClick={() => {
                                 setSortOrder(prev => prev === 'newest' ? 'oldest' : 'newest');
@@ -139,16 +143,13 @@ export function SessionList({
             </div>
 
             {sessionsLoading ? (
-                <div className="flex items-center justify-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400 mr-3"></div>
-                    <span className="text-gray-400">Loading sessions...</span>
-                </div>
-            ) : sessions.length === 0 ? (
+                <LoadingSpinner centered text="Loading sessions..." />
+            ) : !Array.isArray(sessions) || sessions.length === 0 ? (
                 <p className="text-gray-400">No active sessions</p>
             ) : (
                 <>
                     {/* Select All Checkbox */}
-                    {isAdmin && sessions.length > 0 && (
+                    {isAdmin && Array.isArray(sessions) && sessions.length > 0 && (
                                                 <div className="mb-4 flex items-center gap-2">
                             <input
                                 type="checkbox"
@@ -261,7 +262,7 @@ export function SessionList({
                     />
 
                     {/* Info Text */}
-                    {sessions.length > SESSIONS_PER_PAGE && (
+                    {Array.isArray(sessions) && sessions.length > SESSIONS_PER_PAGE && (
                         <p className="text-sm text-gray-400 text-center mt-4">
                             Showing {paginatedSessions.length} of {sessions.length} sessions
                         </p>

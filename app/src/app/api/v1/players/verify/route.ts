@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { riotAPI } from '@lib/services/riot-api';
-import { MatchData, RiotAPIResponse } from '@/app/lib/types/riot';
+import { MatchData, RiotAPIResponse } from '@lib/types/riot';
 
 export async function POST(request: NextRequest) {
     try {

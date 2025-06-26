@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@lib/contexts/AuthContext';
+import { LoadingSpinner } from '@components/common';
 
 interface AuthGuardProps {
     children: React.ReactNode;
@@ -17,36 +18,29 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
     requireAuth = true,
     loadingMessage = 'Checking authentication...'
 }) => {
-    const { user, isLoading, isTokenValid } = useAuth();
+    const { user, isLoading } = useAuth();
     const router = useRouter();
     const pathname = usePathname();
 
     useEffect(() => {
-        if (!isLoading && requireAuth) {
-            if (!user || !isTokenValid()) {
-                // Store the current path for returnTo functionality
-                if (typeof window !== 'undefined' && pathname !== '/auth') {
-                    localStorage.setItem('returnTo', pathname);
-                }
-                router.replace(redirectTo);
+        if (!isLoading && requireAuth && !user) {
+            // Store the current path for returnTo functionality
+            if (typeof window !== 'undefined' && pathname !== '/auth') {
+                sessionStorage.setItem('returnTo', pathname);
             }
+            router.replace(redirectTo);
         }
-    }, [user, isLoading, isTokenValid, requireAuth, redirectTo, router, pathname]);
+    }, [user, isLoading, requireAuth, redirectTo, router, pathname]);
 
     // Show loading while checking auth
     if (isLoading) {
         return (
-            <div className="min-h-screen flex items-center justify-center p-8">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400 mx-auto mb-4"></div>
-                    <p className="text-white">{loadingMessage}</p>
-                </div>
-            </div>
+            <LoadingSpinner fullscreen text={loadingMessage} />
         );
     }
 
     // Don't render children if auth is required but user is not authenticated
-    if (requireAuth && (!user || !isTokenValid())) {
+    if (requireAuth && !user) {
         return null;
     }
 
