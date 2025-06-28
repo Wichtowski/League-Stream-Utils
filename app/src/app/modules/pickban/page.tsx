@@ -1,142 +1,96 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import type { GameSession, SessionUrls } from '@lib/types';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useElectron } from '@lib/contexts/ElectronContext';
 import { useNavigation } from '@lib/contexts/NavigationContext';
-import { useModal } from '@lib/contexts/ModalContext';
 import { useAuth } from '@lib/contexts/AuthContext';
-import { useAuthenticatedFetch } from '@lib/hooks/useAuthenticatedFetch';
-import { API_BASE_URL } from '@lib/constants';
-import { AuthenticatedHome } from '@components/home';
 import { PageLoader } from '@components/common';
 
 export default function PickBanPage() {
+  const router = useRouter();
+  const { isElectron } = useElectron();
   const { setActiveModule } = useNavigation();
-  const { showConfirm } = useModal();
   const { user: authUser, isLoading: authLoading } = useAuth();
-  const { authenticatedFetch } = useAuthenticatedFetch();
-  const [sessions, setSessions] = useState<GameSession[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [sessionsLoading, setSessionsLoading] = useState(false);
-  const [newSessionUrls, setNewSessionUrls] = useState<SessionUrls | null>(null);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setActiveModule('pickban');
-    
-    if (!authLoading) {
-      fetchSessions();
-    }
-  }, [authLoading]);
+  }, [setActiveModule]);
 
-  const fetchSessions = useCallback(async () => {
-    try {
-      setSessionsLoading(true);
-      const response = await authenticatedFetch(`${API_BASE_URL}/pickban/sessions`);
-
-      if (response.ok) {
-        const data = await response.json();
-        setSessions(Array.isArray(data) ? data : []);
+  useEffect(() => {
+    if (!authLoading && authUser) {
+      // Redirect based on environment
+      if (isElectron) {
+        // In Electron app, redirect to League Client integration
+        router.replace('/modules/pickban/leagueclient');
       } else {
-        throw new Error('Failed to fetch sessions');
+        // In web browser, redirect to static pick & ban
+        router.replace('/modules/pickban/static');
       }
-    } catch (error) {
-      setError('Failed to fetch sessions');
-      console.error(error);
-      setSessions([]);
-    } finally {
-      setSessionsLoading(false);
     }
-  }, [authenticatedFetch]);
-
-  const createSession = async () => {
-    if (!authUser) return;
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      const response = await authenticatedFetch(`${API_BASE_URL}/pickban/sessions`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setNewSessionUrls({
-          ...data.urls,
-          sessionId: data.sessionId
-        });
-        await fetchSessions();
-      } else {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to create session');
-      }
-    } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to create session');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const deleteSession = async (sessionId: string) => {
-    if (!authUser?.isAdmin) return;
-
-    const confirmed = await showConfirm({
-      type: 'danger',
-      title: 'Delete Session',
-      message: 'Are you sure you want to delete this session? This action cannot be undone.',
-      confirmText: 'Delete',
-      cancelText: 'Cancel'
-    });
-
-    if (!confirmed) {
-      return;
-    }
-
-    try {
-      const response = await authenticatedFetch(`${API_BASE_URL}/pickban/sessions/${sessionId}`, {
-        method: 'DELETE'
-      });
-
-      if (response.ok) {
-        await fetchSessions();
-      } else {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to delete session');
-      }
-    } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to delete session');
-    }
-  };
-
-  const logout = () => {
-    // Handle logout through auth context
-    window.location.href = '/auth';
-  };
+  }, [authLoading, authUser, isElectron, router]);
 
   if (authLoading) {
     return <PageLoader text="Checking authentication..." />;
   }
 
-  if (authUser) {
-    return (
-      <AuthenticatedHome
-        user={authUser}
-        sessions={sessions}
-        sessionsLoading={sessionsLoading}
-        onLogout={logout}
-        onCreateSession={createSession}
-        onDeleteSession={deleteSession}
-        loading={loading}
-        error={error}
-        newSessionUrls={newSessionUrls}
-      />
-    );
+  if (!authUser) {
+    // Redirect to auth if not authenticated
+    router.replace('/auth');
+    return <PageLoader text="Redirecting to authentication..." />;
   }
 
-  // Return null or redirect if not authenticated
-  return null;
+  return (
+    <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
+      <div className="max-w-md text-center">
+        <div className="mb-6">
+          <div className="w-16 h-16 bg-blue-600 rounded-full mx-auto mb-4 flex items-center justify-center">
+            <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+          </div>
+          <h1 className="text-2xl font-bold mb-2">Initializing Pick & Ban</h1>
+          <p className="text-gray-400">
+            Detecting your environment and redirecting you to the appropriate interface...
+          </p>
+        </div>
+        
+        <div className="bg-gray-800 rounded-lg p-4 text-left">
+          <h3 className="font-semibold mb-2">Available Modes:</h3>
+          <div className="space-y-2 text-sm">
+            <div className="flex items-center gap-2">
+              <div className={`w-2 h-2 rounded-full ${isElectron ? 'bg-green-400' : 'bg-gray-400'}`}></div>
+              <span className={isElectron ? 'text-green-400' : 'text-gray-400'}>
+                League Client Integration (Desktop App)
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className={`w-2 h-2 rounded-full ${!isElectron ? 'bg-green-400' : 'bg-gray-400'}`}></div>
+              <span className={!isElectron ? 'text-green-400' : 'text-gray-400'}>
+                Static Pick & Ban (Web Browser)
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-6 text-xs text-gray-500">
+          <p>You will be automatically redirected in a moment...</p>
+          <div className="flex gap-4 mt-3">
+            <button
+              onClick={() => router.push('/modules/pickban/static')}
+              className="text-blue-400 hover:text-blue-300 underline"
+            >
+              Force Static Mode
+            </button>
+            {isElectron && (
+              <button
+                onClick={() => router.push('/modules/pickban/leagueclient')}
+                className="text-blue-400 hover:text-blue-300 underline"
+              >
+                Force LCU Mode
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }

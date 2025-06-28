@@ -31,10 +31,9 @@ export const POST = withAuth(async (req: NextRequest, user: JWTPayload) => {
             return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
         }
 
-        const { tournamentId, teamId, bypassValidation = true }: {
+        const { tournamentId, teamId }: {
             tournamentId: string;
             teamId: string;
-            bypassValidation?: boolean;
         } = await req.json();
 
         if (!tournamentId || !teamId) {

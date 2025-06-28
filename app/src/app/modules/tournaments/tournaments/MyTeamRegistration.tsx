@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useModal } from '@lib/contexts/ModalContext';
 import type { Tournament, Team } from '@lib/types';
 import { OverlayLoader } from '@components/common';
@@ -18,11 +18,7 @@ export default function MyTeamRegistration({ tournament, onClose, onTeamRegister
     const [registering, setRegistering] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
 
-    useEffect(() => {
-        fetchMyTeams();
-    }, []);
-
-    const fetchMyTeams = async (): Promise<void> => {
+    const fetchMyTeams = useCallback(async (): Promise<void> => {
         try {
             const response = await fetch('/api/v1/teams', {
                 headers: {
@@ -42,7 +38,11 @@ export default function MyTeamRegistration({ tournament, onClose, onTeamRegister
         } finally {
             setLoading(false);
         }
-    };
+    }, [showAlert]);
+
+    useEffect(() => {
+        fetchMyTeams();
+    }, [fetchMyTeams]);
 
     const handleRegisterTeam = async (teamId: string): Promise<void> => {
         setRegistering(true);

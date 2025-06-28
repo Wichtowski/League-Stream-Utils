@@ -54,7 +54,6 @@ export function TournamentsProvider({ children }: { children: ReactNode }) {
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [lastFetch, setLastFetch] = useState<number>(0);
 
   // Computed data
   const myTournaments = tournaments.filter(t => t.userId === user?.id);
@@ -62,56 +61,19 @@ export function TournamentsProvider({ children }: { children: ReactNode }) {
     t.registeredTeams?.includes(user?.id || '')
   );
 
-  // Load cached data on mount - wait for auth to complete
-  useEffect(() => {
-    if (!authLoading) {
-      loadCachedData();
-    }
-  }, [user, authLoading]);
+  const areTournamentsEqual = useCallback((tournaments1: Tournament[], tournaments2: Tournament[]): boolean => {
+    if (tournaments1.length !== tournaments2.length) return false;
+    
+    return tournaments1.every((tournament, index) => {
+      const otherTournament = tournaments2[index];
+      return tournament.id === otherTournament.id && 
+             tournament.name === otherTournament.name &&
+             tournament.status === otherTournament.status &&
+             tournament.registeredTeams?.length === otherTournament.registeredTeams?.length;
+    });
+  }, []);
 
-  // Periodic sync check
-  useEffect(() => {
-    if (!user || authLoading) return;
-
-    const interval = setInterval(() => {
-      checkDataSync();
-    }, SYNC_CHECK_INTERVAL);
-
-    return () => clearInterval(interval);
-  }, [user, authLoading, lastFetch]);
-
-  const loadCachedData = async (): Promise<void> => {
-    // Don't fetch data if user is not authenticated
-    if (!user) {
-      return;
-    }
-
-    try {
-      const cachedTournaments = await storage.get<Tournament[]>(CACHE_KEY, { 
-        ttl: CACHE_TTL,
-        enableChecksum: true 
-      });
-      
-      if (cachedTournaments) {
-        setTournaments(cachedTournaments);
-        const timestamp = await storage.getTimestamp(CACHE_KEY);
-        if (timestamp) {
-          setLastFetch(timestamp);
-        }
-        
-        // Still fetch fresh data in background
-        fetchTournamentsFromAPI(false);
-      } else {
-        // Only show loading if we have no cached data
-        await fetchTournamentsFromAPI(true);
-      }
-    } catch (err) {
-      console.error('Failed to load cached tournaments:', err);
-      await fetchTournamentsFromAPI(true);
-    }
-  };
-
-  const fetchTournamentsFromAPI = async (showLoading = true): Promise<Tournament[]> => {
+  const fetchTournamentsFromAPI = useCallback(async (showLoading = true): Promise<Tournament[]> => {
     // Don't fetch if user is not authenticated
     if (!user) {
       if (showLoading) setLoading(false);
@@ -139,7 +101,7 @@ export function TournamentsProvider({ children }: { children: ReactNode }) {
         await storage.set(CACHE_KEY, fetchedTournaments, { enableChecksum: true });
       }
       
-      setLastFetch(Date.now());
+
       return fetchedTournaments;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch tournaments';
@@ -149,9 +111,9 @@ export function TournamentsProvider({ children }: { children: ReactNode }) {
     } finally {
       if (showLoading) setLoading(false);
     }
-  };
+  }, [user, authenticatedFetch, tournaments, areTournamentsEqual]);
 
-  const checkDataSync = async (): Promise<void> => {
+  const checkDataSync = useCallback(async (): Promise<void> => {
     // Don't sync if user is not authenticated
     if (!user) return;
 
@@ -171,23 +133,52 @@ export function TournamentsProvider({ children }: { children: ReactNode }) {
     } catch (err) {
       console.debug('Background tournament sync check failed:', err);
     }
-  };
+  }, [user, authenticatedFetch, fetchTournamentsFromAPI]);
 
-  const areTournamentsEqual = (tournaments1: Tournament[], tournaments2: Tournament[]): boolean => {
-    if (tournaments1.length !== tournaments2.length) return false;
-    
-    return tournaments1.every((tournament, index) => {
-      const otherTournament = tournaments2[index];
-      return tournament.id === otherTournament.id && 
-             tournament.name === otherTournament.name &&
-             tournament.status === otherTournament.status &&
-             tournament.registeredTeams?.length === otherTournament.registeredTeams?.length;
-    });
-  };
+  const loadCachedData = useCallback(async (): Promise<void> => {
+    // Don't fetch data if user is not authenticated
+    if (!user) {
+      return;
+    }
+
+    try {
+      const cachedTournaments = await storage.get<Tournament[]>(CACHE_KEY, { 
+        ttl: CACHE_TTL,
+        enableChecksum: true 
+      });
+      
+      if (cachedTournaments) {
+        setTournaments(cachedTournaments);
+        
+        fetchTournamentsFromAPI(false);
+      } else {
+        await fetchTournamentsFromAPI(true);
+      }
+    } catch (err) {
+      console.error('Failed to load cached tournaments:', err);
+      await fetchTournamentsFromAPI(true);
+    }
+  }, [user, fetchTournamentsFromAPI]);
+
+  useEffect(() => {
+    if (!authLoading) {
+      loadCachedData();
+    }
+  }, [user, authLoading, loadCachedData]);
+
+  useEffect(() => {
+    if (!user || authLoading) return;
+
+    const interval = setInterval(() => {
+      checkDataSync();
+    }, SYNC_CHECK_INTERVAL);
+
+    return () => clearInterval(interval);
+  }, [user, authLoading, checkDataSync]);
 
   const refreshTournaments = useCallback(async (): Promise<void> => {
     await fetchTournamentsFromAPI(true);
-  }, []);
+  }, [fetchTournamentsFromAPI]);
 
   const createTournament = useCallback(async (tournamentData: CreateTournamentRequest): Promise<{ success: boolean; tournament?: Tournament; error?: string }> => {
     try {
@@ -281,7 +272,7 @@ export function TournamentsProvider({ children }: { children: ReactNode }) {
       const error = err instanceof Error ? err.message : 'Failed to register team';
       return { success: false, error };
     }
-  }, [authenticatedFetch]);
+  }, [authenticatedFetch, fetchTournamentsFromAPI]);
 
   const unregisterTeam = useCallback(async (tournamentId: string, teamId: string): Promise<{ success: boolean; error?: string }> => {
     try {
@@ -302,7 +293,7 @@ export function TournamentsProvider({ children }: { children: ReactNode }) {
       const error = err instanceof Error ? err.message : 'Failed to unregister team';
       return { success: false, error };
     }
-  }, [authenticatedFetch]);
+  }, [authenticatedFetch, fetchTournamentsFromAPI]);
 
   const startTournament = useCallback(async (tournamentId: string): Promise<{ success: boolean; error?: string }> => {
     try {
@@ -321,7 +312,7 @@ export function TournamentsProvider({ children }: { children: ReactNode }) {
       const error = err instanceof Error ? err.message : 'Failed to start tournament';
       return { success: false, error };
     }
-  }, [authenticatedFetch]);
+  }, [authenticatedFetch, fetchTournamentsFromAPI]);
 
   const finalizeTournament = useCallback(async (tournamentId: string): Promise<{ success: boolean; error?: string }> => {
     try {
@@ -340,7 +331,7 @@ export function TournamentsProvider({ children }: { children: ReactNode }) {
       const error = err instanceof Error ? err.message : 'Failed to finalize tournament';
       return { success: false, error };
     }
-  }, [authenticatedFetch]);
+  }, [authenticatedFetch, fetchTournamentsFromAPI]);
 
   const getBracket = useCallback(async (tournamentId: string): Promise<{ success: boolean; bracket?: Bracket; error?: string }> => {
     try {
@@ -398,7 +389,7 @@ export function TournamentsProvider({ children }: { children: ReactNode }) {
       const error = err instanceof Error ? err.message : 'Failed to record game result';
       return { success: false, error };
     }
-  }, [authenticatedFetch]);
+  }, [authenticatedFetch, fetchTournamentsFromAPI]);
 
   const getTournamentStats = useCallback(async (tournamentId: string): Promise<{ success: boolean; stats?: TournamentStats; error?: string }> => {
     try {
@@ -420,7 +411,6 @@ export function TournamentsProvider({ children }: { children: ReactNode }) {
   const clearCache = useCallback(async (): Promise<void> => {
     await storage.remove(CACHE_KEY);
     setTournaments([]);
-    setLastFetch(0);
   }, []);
 
   const getLastSync = useCallback(async (): Promise<Date | null> => {

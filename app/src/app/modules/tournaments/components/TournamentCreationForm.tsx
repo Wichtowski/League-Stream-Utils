@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import type { Tournament, CreateTournamentRequest, MatchFormat, TournamentFormat } from '@lib/types';
 import { useModal } from '@lib/contexts/ModalContext';
+import Image from 'next/image';
 
 interface TournamentCreationFormProps {
     onTournamentCreated: (tournament: Tournament) => void;
@@ -497,7 +498,9 @@ export default function TournamentCreationForm({ onTournamentCreated, onCancel }
                     {formData.logo?.data && (
                         <div className="mt-2">
                             <p className="text-sm text-gray-400 mb-2">Logo Preview:</p>
-                            <img 
+                            <Image 
+                                width={128}
+                                height={128}
                                 src={formData.logo.data} 
                                 alt="Tournament logo preview" 
                                 className="w-16 h-16 object-cover rounded border border-gray-600"

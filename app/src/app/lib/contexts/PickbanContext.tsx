@@ -74,66 +74,7 @@ export function PickbanProvider({ children }: { children: ReactNode }) {
   const [lcuStatus, setLcuStatus] = useState<LCUStatus | null>(null);
   const [lcuLoading, setLcuLoading] = useState(false);
 
-  // Load cached data on mount - wait for auth to complete
-  useEffect(() => {
-    if (!authLoading) {
-      loadCachedData();
-    }
-  }, [user, authLoading]);
-
-  // LCU status check interval - only when actively using pickban
-  useEffect(() => {
-    if (!user || authLoading || !currentSession) return;
-
-    const interval = setInterval(() => {
-      checkLCUStatus();
-    }, LCU_CHECK_INTERVAL);
-
-    return () => clearInterval(interval);
-  }, [user, authLoading, currentSession]);
-
-  // Cleanup WebSocket on unmount
-  useEffect(() => {
-    return () => {
-      if (wsRef.current) {
-        wsRef.current.close();
-      }
-      if (reconnectTimeoutRef.current) {
-        clearTimeout(reconnectTimeoutRef.current);
-      }
-    };
-  }, []);
-
-  const loadCachedData = async (): Promise<void> => {
-    // Don't fetch data if user is not authenticated
-    if (!user) {
-      return;
-    }
-
-    try {
-      const [cachedSessions, cachedLcuStatus] = await Promise.all([
-        storage.get<PickbanSession[]>(SESSIONS_CACHE_KEY, { ttl: CACHE_TTL }),
-        storage.get<LCUStatus>(LCU_STATUS_CACHE_KEY, { ttl: CACHE_TTL })
-      ]);
-      
-      if (cachedSessions) {
-        setSessions(cachedSessions);
-      }
-      
-      if (cachedLcuStatus) {
-        setLcuStatus(cachedLcuStatus);
-      }
-      
-      // Fetch fresh data in background
-      fetchSessionsFromAPI(false);
-      checkLCUStatus();
-    } catch (err) {
-      console.error('Failed to load cached pickban data:', err);
-      await fetchSessionsFromAPI(true);
-    }
-  };
-
-  const fetchSessionsFromAPI = async (showLoading = true): Promise<PickbanSession[]> => {
+  const fetchSessionsFromAPI = useCallback(async (showLoading = true): Promise<PickbanSession[]> => {
     // Don't fetch if user is not authenticated
     if (!user) {
       if (showLoading) setLoading(false);
@@ -165,7 +106,62 @@ export function PickbanProvider({ children }: { children: ReactNode }) {
     } finally {
       if (showLoading) setLoading(false);
     }
-  };
+  }, [user, authenticatedFetch]);
+
+  const checkLCUStatus = useCallback(async (): Promise<void> => {
+    // Don't check LCU status if user is not authenticated
+    if (!user) return;
+
+    try {
+      const response = await authenticatedFetch('/api/v1/pickban/leagueclient/lcu-status');
+
+      if (response.ok) {
+        const data = await response.json();
+        setLcuStatus(data.status);
+        await storage.set(LCU_STATUS_CACHE_KEY, data.status);
+      } else {
+        setLcuStatus(null);
+        await storage.remove(LCU_STATUS_CACHE_KEY);
+      }
+    } catch (err) {
+      console.debug('LCU status check failed:', err);
+      setLcuStatus(null);
+    }
+  }, [authenticatedFetch, user]);
+
+  const handleWebSocketMessage = useCallback((message: unknown): void => {
+    // Handle different message types from WebSocket
+    if (typeof message === 'object' && message !== null) {
+      const msg = message as Record<string, unknown>;
+      
+      switch (msg.type) {
+        case 'session_update':
+          if (msg.session) {
+            setCurrentSession(msg.session as PickbanSession);
+          }
+          break;
+        case 'action_performed':
+          // Update current session with new action
+          if (currentSession && msg.action) {
+            const updatedSession = {
+              ...currentSession,
+              actions: [...(currentSession.actions || []), msg.action as PickbanAction]
+            };
+            setCurrentSession(updatedSession);
+          }
+          break;
+        case 'lcu_status':
+          if (msg.status) {
+            setLcuStatus(msg.status as LCUStatus);
+            storage.set(LCU_STATUS_CACHE_KEY, msg.status);
+          }
+          break;
+        case 'error':
+          setError(msg.message as string || 'WebSocket error');
+          break;
+      }
+    }
+  }, [currentSession]);
 
   const initializeWebSocket = useCallback((sessionId: string): void => {
     if (wsRef.current) {
@@ -209,41 +205,66 @@ export function PickbanProvider({ children }: { children: ReactNode }) {
       console.error('WebSocket error:', error);
       setError('WebSocket connection error');
     };
-  }, [currentSession, reconnecting]);
+  }, [currentSession, reconnecting, handleWebSocketMessage]);
 
-  const handleWebSocketMessage = useCallback((message: unknown): void => {
-    // Handle different message types from WebSocket
-    if (typeof message === 'object' && message !== null) {
-      const msg = message as Record<string, unknown>;
-      
-      switch (msg.type) {
-        case 'session_update':
-          if (msg.session) {
-            setCurrentSession(msg.session as PickbanSession);
-          }
-          break;
-        case 'action_performed':
-          // Update current session with new action
-          if (currentSession && msg.action) {
-            const updatedSession = {
-              ...currentSession,
-              actions: [...(currentSession.actions || []), msg.action as PickbanAction]
-            };
-            setCurrentSession(updatedSession);
-          }
-          break;
-        case 'lcu_status':
-          if (msg.status) {
-            setLcuStatus(msg.status as LCUStatus);
-            storage.set(LCU_STATUS_CACHE_KEY, msg.status);
-          }
-          break;
-        case 'error':
-          setError(msg.message as string || 'WebSocket error');
-          break;
-      }
+  const loadCachedData = useCallback(async (): Promise<void> => {
+    // Don't fetch data if user is not authenticated
+    if (!user) {
+      return;
     }
-  }, [currentSession]);
+
+    try {
+      const [cachedSessions, cachedLcuStatus] = await Promise.all([
+        storage.get<PickbanSession[]>(SESSIONS_CACHE_KEY, { ttl: CACHE_TTL }),
+        storage.get<LCUStatus>(LCU_STATUS_CACHE_KEY, { ttl: CACHE_TTL })
+      ]);
+      
+      if (cachedSessions) {
+        setSessions(cachedSessions);
+      }
+      
+      if (cachedLcuStatus) {
+        setLcuStatus(cachedLcuStatus);
+      }
+      
+      // Fetch fresh data in background
+      fetchSessionsFromAPI(false);
+      checkLCUStatus();
+    } catch (err) {
+      console.error('Failed to load cached pickban data:', err);
+      await fetchSessionsFromAPI(true);
+    }
+  }, [user, fetchSessionsFromAPI, checkLCUStatus]);
+
+  // Load cached data on mount - wait for auth to complete
+  useEffect(() => {
+    if (!authLoading) {
+      loadCachedData();
+    }
+  }, [user, authLoading, loadCachedData]);
+
+  // LCU status check interval - only when actively using pickban
+  useEffect(() => {
+    if (!user || authLoading || !currentSession) return;
+
+    const interval = setInterval(() => {
+      checkLCUStatus();
+    }, LCU_CHECK_INTERVAL);
+
+    return () => clearInterval(interval);
+  }, [user, authLoading, currentSession, checkLCUStatus]);
+
+  // Cleanup WebSocket on unmount
+  useEffect(() => {
+    return () => {
+      if (wsRef.current) {
+        wsRef.current.close();
+      }
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const createSession = useCallback(async (config: PickbanConfig): Promise<{ success: boolean; session?: PickbanSession; error?: string }> => {
     try {
@@ -321,7 +342,7 @@ export function PickbanProvider({ children }: { children: ReactNode }) {
       const error = err instanceof Error ? err.message : 'Failed to start session';
       return { success: false, error };
     }
-  }, [authenticatedFetch]);
+  }, [authenticatedFetch, fetchSessionsFromAPI]);
 
   const endSession = useCallback(async (sessionId: string): Promise<{ success: boolean; error?: string }> => {
     try {
@@ -341,7 +362,7 @@ export function PickbanProvider({ children }: { children: ReactNode }) {
       const error = err instanceof Error ? err.message : 'Failed to end session';
       return { success: false, error };
     }
-  }, [authenticatedFetch, leaveSession]);
+  }, [authenticatedFetch, fetchSessionsFromAPI, leaveSession]);
 
   const performAction = useCallback(async (action: PickbanAction): Promise<{ success: boolean; error?: string }> => {
     if (!currentSession) {
@@ -409,7 +430,7 @@ export function PickbanProvider({ children }: { children: ReactNode }) {
       const error = err instanceof Error ? err.message : 'Failed to update config';
       return { success: false, error };
     }
-  }, [authenticatedFetch]);
+  }, [authenticatedFetch, fetchSessionsFromAPI]);
 
   const connectToLCU = useCallback(async (): Promise<{ success: boolean; error?: string }> => {
     setLcuLoading(true);
@@ -431,7 +452,7 @@ export function PickbanProvider({ children }: { children: ReactNode }) {
     } finally {
       setLcuLoading(false);
     }
-  }, [authenticatedFetch]);
+  }, [authenticatedFetch, checkLCUStatus]);
 
   const disconnectFromLCU = useCallback(async (): Promise<{ success: boolean; error?: string }> => {
     try {
@@ -452,27 +473,6 @@ export function PickbanProvider({ children }: { children: ReactNode }) {
       return { success: false, error };
     }
   }, [authenticatedFetch]);
-
-  const checkLCUStatus = useCallback(async (): Promise<void> => {
-    // Don't check LCU status if user is not authenticated
-    if (!user) return;
-
-    try {
-      const response = await authenticatedFetch('/api/v1/pickban/leagueclient/lcu-status');
-
-      if (response.ok) {
-        const data = await response.json();
-        setLcuStatus(data.status);
-        await storage.set(LCU_STATUS_CACHE_KEY, data.status);
-      } else {
-        setLcuStatus(null);
-        await storage.remove(LCU_STATUS_CACHE_KEY);
-      }
-    } catch (err) {
-      console.debug('LCU status check failed:', err);
-      setLcuStatus(null);
-    }
-  }, [authenticatedFetch, user]);
 
   const syncWithLCU = useCallback(async (): Promise<{ success: boolean; error?: string }> => {
     if (!currentSession) {
@@ -500,7 +500,7 @@ export function PickbanProvider({ children }: { children: ReactNode }) {
 
   const refreshSessions = useCallback(async (): Promise<void> => {
     await fetchSessionsFromAPI(true);
-  }, []);
+  }, [fetchSessionsFromAPI]);
 
   const clearCache = useCallback(async (): Promise<void> => {
     await Promise.all([

@@ -8,7 +8,7 @@ export async function createTournament(userId: string, tournamentData: CreateTou
     await connectToDatabase();
 
 
-    const tournamentDoc: any = {
+    const tournamentDoc: TournamentType = {
         id: uuidv4(),
         name: tournamentData.name,
         abbreviation: tournamentData.abbreviation,
