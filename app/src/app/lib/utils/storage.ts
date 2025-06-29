@@ -193,8 +193,7 @@ class UniversalStorage {
     }
 
     async set<T>(key: string, data: T, options: StorageOptions = {}): Promise<void> {
-        // In development, reduce caching to prevent quota issues
-        if (process.env.NODE_ENV === 'development' && Math.random() > 0.3) {
+        if (process.env.NODE_ENV === 'development') {
             console.debug(`Skipping cache for ${key} in development mode`);
             return;
         }

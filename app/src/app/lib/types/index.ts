@@ -4,7 +4,6 @@ export type {
     GameConfig,
     TeamSide,
     ActionType,
-    GamePhase,
     PickbanSession,
     PickbanConfig,
     PickbanAction,
@@ -12,7 +11,13 @@ export type {
     ChampSelectPlayer,
     ChampSelectAction,
     ChampSelectTimer,
-    ChampSelectSession
+    ChampSelectSession,
+    Coach,
+    Team,
+    PickbanPlayer,
+    PickbanTournamentTeam,
+    EnhancedChampSelectPlayer,
+    EnhancedChampSelectSession
 } from './game';
 export type { AuthCredentials, User, UserRegistration } from './auth';
 export type { SessionUrls, SessionResponse } from './api';
@@ -20,17 +25,15 @@ export type { WSMessage } from './websocket';
 export type { GameState } from './ui';
 export type { TournamentForm } from './forms';
 export type { UserDocument, UserQueryResult } from './database';
+export type { PlayerRole, GamePhase } from './common';
 export type {
     MatchFormat,
     TournamentFormat,
     TournamentTemplate,
     TournamentStatus,
-    PlayerRole,
     TeamTier,
     ImageStorage,
-    Player,
     Staff,
-    Team,
     Tournament,
     CreateTournamentRequest,
     CreateTeamRequest,

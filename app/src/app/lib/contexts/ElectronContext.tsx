@@ -21,19 +21,29 @@ export function ElectronProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         // Check if running in Electron environment
         const checkElectron = () => {
+            console.log('Checking Electron environment...');
+            console.log('window.electronAPI:', window.electronAPI);
+            console.log('window.electronAPI?.isElectron:', window.electronAPI?.isElectron);
+            
             if (typeof window !== 'undefined' && window.electronAPI?.isElectron) {
+                console.log('Electron detected! Setting up Electron context...');
                 setIsElectron(true);
                 setElectronAPI(window.electronAPI);
                 
                 // Load saved preference for local data mode
                 const savedLocalDataMode = localStorage.getItem('electron-use-local-data');
+                console.log('Saved local data mode:', savedLocalDataMode);
+                
                 if (savedLocalDataMode !== null) {
                     setUseLocalData(savedLocalDataMode === 'true');
                 } else {
                     // First time user - default to local mode for better UX
+                    console.log('First time user, defaulting to local data mode');
                     setUseLocalData(true);
                     localStorage.setItem('electron-use-local-data', 'true');
                 }
+            } else {
+                console.log('Not running in Electron environment');
             }
             setIsElectronLoading(false);
         };

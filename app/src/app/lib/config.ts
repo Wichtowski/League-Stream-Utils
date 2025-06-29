@@ -1,6 +1,4 @@
-// Validate critical environment variables - only on server side
-function validateConfig() {
-  // Skip validation on client side (browser/Electron)
+function validateConfig(): void {
   if (typeof window !== 'undefined') {
     return;
   }
@@ -13,7 +11,6 @@ function validateConfig() {
     throw new Error('JWT_SECRET must be at least 32 characters long');
   }
 
-  // Check for cryptographically secure characteristics
   const hasUppercase = /[A-Z]/.test(jwtSecret);
   const hasLowercase = /[a-z]/.test(jwtSecret);
   const hasNumbers = /[0-9]/.test(jwtSecret);
@@ -28,7 +25,6 @@ function validateConfig() {
     throw new Error('JWT_SECRET appears to have low entropy. Use a cryptographically secure random string');
   }
 
-  // Check for common patterns that indicate weak secrets
   const commonPatterns = [
     /(.)\1{3,}/, // Repeated characters (4+ times)
     /123456|abcdef|qwerty/i, // Common sequences

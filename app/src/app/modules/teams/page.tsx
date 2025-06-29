@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useUser } from '@lib/contexts/AuthContext';
-import { useAuthenticatedFetch } from '@lib/hooks/useAuthenticatedFetch';
+import { useTeams } from '@lib/contexts/TeamsContext';
 import { AuthGuard } from '@lib/components/AuthGuard';
 import type { Team, CreateTeamRequest, TeamTier } from '@lib/types';
 import { useModal } from '@lib/contexts/ModalContext';
@@ -12,10 +12,18 @@ import { LoadingSpinner } from '@components/common';
 
 export default function TeamsPage() {
     const user = useUser();
-    const { authenticatedFetch } = useAuthenticatedFetch();
+    const { 
+        teams, 
+        loading, 
+        error, 
+        createTeam, 
+        updateTeam, 
+        deleteTeam, 
+        verifyPlayer, 
+        verifyAllPlayers,
+        refreshTeams 
+    } = useTeams();
     const { showAlert, showConfirm } = useModal();
-    const [teams, setTeams] = useState<Team[]>([]);
-    const [loading, setLoading] = useState(true);
     const [showCreateForm, setShowCreateForm] = useState(false);
     const [creating, setCreating] = useState(false);
     const [logoPreview, setLogoPreview] = useState<string>('');
@@ -53,46 +61,22 @@ export default function TeamsPage() {
     useEffect(() => {
         setActiveModule('teams');
         if (user) {
-            fetchUserTeams();
+            refreshTeams();
         }
     }, [user]);
-
-    const fetchUserTeams = async () => {
-        try {
-            const response = await authenticatedFetch('/api/v1/teams');
-
-            if (response.ok) {
-                const data = await response.json();
-                setTeams(data.teams);
-            }
-        } catch (error) {
-            console.error('Failed to fetch teams:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const handleCreateTeam = async (e: React.FormEvent) => {
         e.preventDefault();
         setCreating(true);
 
         try {
-            const response = await authenticatedFetch('/api/v1/teams', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(formData)
-            });
+            const result = await createTeam(formData as CreateTeamRequest);
 
-            const data = await response.json();
-
-            if (response.ok) {
-                setTeams([data.team, ...teams]);
+            if (result.success) {
                 setShowCreateForm(false);
                 resetForm();
             } else {
-                await showAlert({ type: 'error', message: data.error || 'Failed to create team' });
+                await showAlert({ type: 'error', message: result.error || 'Failed to create team' });
             }
         } catch (error) {
             console.error('Failed to create team:', error);
@@ -220,40 +204,24 @@ export default function TeamsPage() {
     };
 
     const handleVerifyPlayer = async (teamId: string, playerId: string, playerName: string, playerTag: string) => {
-        if (verifyingPlayers.has(playerId)) return;
+        setVerifyingPlayers(prev => new Set(prev).add(playerId));
 
         try {
-            setVerifyingPlayers(prev => new Set(prev).add(playerId));
+            const result = await verifyPlayer(teamId, playerId);
 
-            const response = await fetch(`/api/v1/teams/${teamId}/players/${playerId}/verify`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                },
-                body: JSON.stringify({
-                    gameName: playerName,
-                    tagLine: playerTag
-                })
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
+            if (result.success) {
                 await showAlert({
                     type: 'success',
-                    message: `Player ${playerName} verified successfully!`
+                    message: `Player ${playerName}${playerTag} verified successfully!`
                 });
-
-                await fetchUserTeams();
             } else {
                 await showAlert({
                     type: 'error',
-                    message: data.error || 'Failed to verify player'
+                    message: result.error || 'Failed to verify player'
                 });
             }
         } catch (error) {
-            console.error('Error verifying player:', error);
+            console.error('Failed to verify player:', error);
             await showAlert({
                 type: 'error',
                 message: 'Failed to verify player'
@@ -268,27 +236,32 @@ export default function TeamsPage() {
     };
 
     const handleVerifyAllPlayers = async (team: Team) => {
-        const unverifiedPlayers = team.players.main.filter(p => !p.verified);
-
-        if (unverifiedPlayers.length === 0) {
-            await showAlert({
-                type: 'info',
-                message: 'All players are already verified!'
-            });
-            return;
-        }
-
         const confirmed = await showConfirm({
             title: 'Verify All Players',
-            message: `This will attempt to verify ${unverifiedPlayers.length} unverified players. Continue?`,
-            type: 'default'
+            message: `Are you sure you want to verify all players in team "${team.name}"? This will verify all main roster and substitute players.`,
+            confirmText: 'Verify All',
+            cancelText: 'Cancel'
         });
 
-        if (!confirmed) return;
+        if (confirmed) {
+            try {
+                const result = await verifyAllPlayers(team.id);
 
-        for (const player of unverifiedPlayers) {
-            await handleVerifyPlayer(team.id, player.id, player.inGameName, player.tag);
-            await new Promise(resolve => setTimeout(resolve, 500));
+                if (result.success) {
+                    await showAlert({ type: 'success', message: 'Team verified successfully!' });
+                } else {
+                    await showAlert({ 
+                        type: 'error', 
+                        message: result.error || 'Failed to verify team' 
+                    });
+                }
+            } catch (error) {
+                console.error('Failed to verify team:', error);
+                await showAlert({ 
+                    type: 'error', 
+                    message: 'Failed to verify team' 
+                });
+            }
         }
     };
 
@@ -603,18 +576,11 @@ export default function TeamsPage() {
                                                         if (confirmed) {
                                                             try {
 
-                                                                const response = await fetch(`/api/v1/teams/${team.id}/verify`, {
-                                                                    method: 'POST',
-                                                                    headers: {
-                                                                        'Content-Type': 'application/json',
-                                                                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                                                                    },
-                                                                    body: JSON.stringify({ verified: true, verifyPlayers: true })
-                                                                });
+                                                                const response = await verifyAllPlayers(team.id);
 
                                                                 if (response.ok) {
                                                                     await showAlert({ type: 'success', message: 'Team verified successfully!' });
-                                                                    await fetchUserTeams();
+                                                                    refreshTeams();
                                                                 } else {
                                                                     const errorData = await response.json();
                                                                     console.error('Verification failed:', errorData);

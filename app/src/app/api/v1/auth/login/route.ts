@@ -16,7 +16,7 @@ import {
   logSecurityEvent
 } from '@lib/database/security';
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): Promise<NextResponse> {
   const ip = getClientIP(request);
   const userAgent = request.headers.get('user-agent') || 'unknown';
 

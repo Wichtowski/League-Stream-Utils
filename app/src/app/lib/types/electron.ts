@@ -13,6 +13,45 @@ export interface ChampionsData {
     lastUpdated: string;
 }
 
+export interface CachedAsset {
+    path: string;
+    url: string;
+    size: number;
+    timestamp: number;
+    checksum: string;
+}
+
+export interface LCUChampSelectSession {
+    timer: {
+        phase: string;
+        adjustedTimeLeftInPhase: number;
+    };
+    bans: {
+        myTeamBans: number[];
+        theirTeamBans: number[];
+    };
+    picks: {
+        myTeam: Array<{
+            championId: number;
+            spell1Id: number;
+            spell2Id: number;
+        }>;
+        theirTeam: Array<{
+            championId: number;
+            spell1Id: number;
+            spell2Id: number;
+        }>;
+    };
+}
+
+export interface LCUData {
+    isConnected: boolean;
+    isConnecting: boolean;
+    champSelectSession: LCUChampSelectSession | null;
+    connectionError: string | null;
+    useMockData: boolean;
+}
+
 export interface ElectronAPI {
     // Platform info
     isElectron: boolean;
@@ -25,6 +64,25 @@ export interface ElectronAPI {
     copyAssetFile: (sourcePath: string, fileName: string) => Promise<{ success: boolean; localPath?: string; error?: string }>;
     saveCameraUpload: (fileBuffer: Buffer, fileName: string) => Promise<{ success: boolean; localPath?: string; publicPath?: string; error?: string }>;
     getUserDataPath: () => Promise<string>;
+    checkFileExists: (filePath: string) => Promise<{ success: boolean; exists?: boolean; error?: string }>;
+
+    // Asset caching system
+    downloadAsset: (url: string, category: string, assetKey: string) => Promise<{ success: boolean; localPath?: string; error?: string }>;
+    loadAssetManifest: () => Promise<{ success: boolean; data?: Record<string, CachedAsset>; error?: string }>;
+    saveAssetManifest: (manifestData: Record<string, CachedAsset>) => Promise<{ success: boolean; error?: string }>;
+    scanAndUpdateManifest: () => Promise<{ success: boolean; updatedCount?: number; error?: string }>;
+    getFileSize: (filePath: string) => Promise<{ success: boolean; size?: number; error?: string }>;
+    removeAsset: (filePath: string) => Promise<{ success: boolean; error?: string }>;
+    clearAssetCache: () => Promise<{ success: boolean; error?: string }>;
+    getAssetCacheStats: () => Promise<{ success: boolean; stats?: { totalSize: number; fileCount: number; formattedSize: string }; error?: string }>;
+
+    // LCU Data communication for overlay
+    getLCUData: () => Promise<LCUData>;
+    updateLCUData: (data: Partial<LCUData>) => Promise<{ success: boolean }>;
+    setMockData: (enabled: boolean) => Promise<{ success: boolean }>;
+    onLCUDataUpdate: (callback: (data: LCUData) => void) => void;
+    onLCUConnectionChange: (callback: (data: Pick<LCUData, 'isConnected' | 'isConnecting' | 'connectionError'>) => void) => void;
+    onMockDataToggle: (callback: (enabled: boolean) => void) => void;
 
     // Storage operations (AppData persistent storage)
     storage?: {

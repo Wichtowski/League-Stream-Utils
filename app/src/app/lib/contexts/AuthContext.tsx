@@ -15,7 +15,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export function AuthProvider({ children }: { children: ReactNode }): React.ReactElement {
     const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const { isElectron, isElectronLoading, useLocalData } = useElectron();
@@ -60,7 +60,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 password: '',
                 sessionsCreatedToday: 0,
                 lastSessionDate: new Date(),
-                createdAt: new Date()
+                createdAt: new Date(),
+                passwordHistory: []
             });
             setIsLoading(false);
             return;
@@ -161,7 +162,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
 }
 
-export function useAuth() {
+export function useAuth(): AuthContextType {
     const context = useContext(AuthContext);
     if (context === undefined) {
         throw new Error('useAuth must be used within an AuthProvider');
@@ -169,7 +170,7 @@ export function useAuth() {
     return context;
 }
 
-export function useUser() {
+export function useUser(): User | null {
     const { user } = useAuth();
     return user;
 } 

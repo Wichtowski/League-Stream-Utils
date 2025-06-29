@@ -6,6 +6,7 @@ import { useNavigation } from '@lib/contexts/NavigationContext';
 import { AuthGuard } from '@lib/components/AuthGuard';
 import { useUser } from '@lib/contexts/AuthContext';
 import { useElectron } from '@lib/contexts/ElectronContext';
+import { useDownload } from '@lib/contexts/DownloadContext';
 import { Cog6ToothIcon } from '@heroicons/react/24/outline';
 
 interface ModuleCard {
@@ -89,10 +90,128 @@ export default function ModulesPage() {
     const { setActiveModule } = useNavigation();
     const user = useUser();
     const { isElectron, useLocalData } = useElectron();
+    const { downloadState } = useDownload();
 
     useEffect(() => {
         setActiveModule('modules');
     }, [setActiveModule]);
+
+    // Block access if downloads are in progress in Electron
+    if (isElectron && downloadState.isDownloading) {
+        const getAssetTypeLabel = (assetType?: string) => {
+            switch (assetType) {
+                case 'champion-data': return 'Champion Data';
+                case 'champion-images': return 'Champion Images';
+                case 'ability-images': return 'Ability Images';
+                case 'item-data': return 'Item Data';
+                case 'item-images': return 'Item Images';
+                case 'spell-data': return 'Summoner Spell Data';
+                case 'spell-images': return 'Summoner Spell Images';
+                case 'rune-data': return 'Rune Data';
+                case 'rune-images': return 'Rune Images';
+                default: return 'Assets';
+            }
+        };
+
+        const getAssetIcon = (assetType?: string) => {
+            switch (assetType) {
+                case 'champion-data':
+                case 'champion-images':
+                case 'ability-images':
+                    return '⚔️';
+                case 'item-data':
+                case 'item-images':
+                    return '🛡️';
+                case 'spell-data':
+                case 'spell-images':
+                    return '✨';
+                case 'rune-data':
+                case 'rune-images':
+                    return '🔮';
+                default:
+                    return '📦';
+            }
+        };
+
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-900 via-purple-900 to-gray-900">
+                <div className="bg-gray-800/80 backdrop-blur-md rounded-2xl p-8 max-w-lg w-full mx-4 text-center">
+                    <div className="mb-6">
+                        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-blue-600/20 flex items-center justify-center">
+                            <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                        </div>
+                        <h2 className="text-2xl font-bold text-white mb-2">Downloading Assets</h2>
+                        <p className="text-gray-400">
+                            Please wait while we download game assets...
+                        </p>
+                    </div>
+                    
+                    {downloadState.progress && (
+                        <div className="space-y-4">
+                            {/* Asset Type */}
+                            {downloadState.progress.assetType && (
+                                <div className="flex items-center justify-center space-x-2 text-sm text-blue-300">
+                                    <span className="text-lg">{getAssetIcon(downloadState.progress.assetType)}</span>
+                                    <span>{getAssetTypeLabel(downloadState.progress.assetType)}</span>
+                                </div>
+                            )}
+
+                            {/* Current Asset */}
+                            {downloadState.progress.currentAsset && (
+                                <div className="bg-gray-700/50 rounded-lg p-3">
+                                    <div className="text-xs text-gray-400 mb-1">Currently Downloading</div>
+                                    <div className="text-sm font-semibold text-white">
+                                        {downloadState.progress.currentAsset}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Progress Message */}
+                            <div className="text-sm text-gray-300">
+                                {downloadState.progress.message}
+                            </div>
+                            
+                            {/* Progress Bar */}
+                            {downloadState.progress.progress && downloadState.progress.total && (
+                                <div>
+                                    <div className="flex justify-between text-xs text-gray-400 mb-1">
+                                        <span>Progress</span>
+                                        <span>{downloadState.progress.progress} / {downloadState.progress.total}</span>
+                                    </div>
+                                    <div className="w-full bg-gray-700 rounded-full h-2">
+                                        <div 
+                                            className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                                            style={{ 
+                                                width: `${Math.round((downloadState.progress.progress / downloadState.progress.total) * 100)}%` 
+                                            }}
+                                        ></div>
+                                    </div>
+                                    <div className="text-center text-xs text-gray-400 mt-1">
+                                        {Math.round((downloadState.progress.progress / downloadState.progress.total) * 100)}% Complete
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Stage Indicator */}
+                            <div className="flex justify-center">
+                                <div className="inline-flex items-center space-x-2 bg-gray-700/50 rounded-full px-3 py-1">
+                                    <div className={`w-2 h-2 rounded-full ${
+                                        downloadState.progress.stage === 'checking' ? 'bg-yellow-400' :
+                                        downloadState.progress.stage === 'downloading' ? 'bg-blue-400' :
+                                        downloadState.progress.stage === 'complete' ? 'bg-green-400' :
+                                        'bg-red-400'
+                                    }`}></div>
+                                    <span className="text-xs text-gray-300 capitalize">
+                                        {downloadState.progress.stage}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
+    }
 
     // Filter modules based on admin status
     const availableModules = modules.filter(module => {
@@ -199,27 +318,27 @@ export default function ModulesPage() {
                             onClick={() => router.push('/modules/teams')}
                             className="cursor-pointer p-6 bg-gradient-to-r from-blue-600/20 to-cyan-600/20 rounded-xl border border-blue-500/30 hover:border-blue-400/50 transition-all duration-300 hover:scale-105"
                         >
-                            <div className="text-2xl mb-2">🚀</div>
-                            <h3 className="font-semibold text-white mb-2">Start Tournament</h3>
-                            <p className="text-gray-400 text-sm">Create teams and begin your tournament</p>
+                            <div className="text-3xl mb-3">👥</div>
+                            <h3 className="text-xl font-semibold text-white mb-2">Create Team</h3>
+                            <p className="text-gray-400 text-sm">Set up a new tournament team with players</p>
+                        </button>
+
+                        <button
+                            onClick={() => router.push('/modules/tournaments')}
+                            className="cursor-pointer p-6 bg-gradient-to-r from-yellow-600/20 to-orange-600/20 rounded-xl border border-yellow-500/30 hover:border-yellow-400/50 transition-all duration-300 hover:scale-105"
+                        >
+                            <div className="text-3xl mb-3">🏆</div>
+                            <h3 className="text-xl font-semibold text-white mb-2">New Tournament</h3>
+                            <p className="text-gray-400 text-sm">Start organizing a new tournament</p>
                         </button>
 
                         <button
                             onClick={() => router.push('/modules/pickban')}
                             className="cursor-pointer p-6 bg-gradient-to-r from-purple-600/20 to-pink-600/20 rounded-xl border border-purple-500/30 hover:border-purple-400/50 transition-all duration-300 hover:scale-105"
                         >
-                            <div className="text-2xl mb-2">⚔️</div>
-                            <h3 className="font-semibold text-white mb-2">Quick Draft</h3>
+                            <div className="text-3xl mb-3">⚔️</div>
+                            <h3 className="text-xl font-semibold text-white mb-2">Pick & Ban</h3>
                             <p className="text-gray-400 text-sm">Start a champion draft session</p>
-                        </button>
-
-                        <button
-                            onClick={() => router.push('/modules/cameras')}
-                            className="cursor-pointer p-6 bg-gradient-to-r from-green-600/20 to-emerald-600/20 rounded-xl border border-green-500/30 hover:border-green-400/50 transition-all duration-300 hover:scale-105"
-                        >
-                            <div className="text-2xl mb-2">📹</div>
-                            <h3 className="font-semibold text-white mb-2">Camera Setup</h3>
-                            <p className="text-gray-400 text-sm">Configure player cameras and streaming setup</p>
                         </button>
                     </div>
                 </div>

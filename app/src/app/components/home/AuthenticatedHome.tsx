@@ -25,7 +25,7 @@ export function AuthenticatedHome({
     onDeleteSession,
     loading,
     error,
-    newSessionUrls
+    newSessionUrls,
 }: AuthenticatedHomeProps) {
     const { isElectron, useLocalData, setUseLocalData } = useElectron();
     const isLocalDataMode = isElectron && useLocalData;

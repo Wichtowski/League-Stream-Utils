@@ -5,9 +5,9 @@ import { useRouter } from 'next/navigation';
 import { useElectron } from '@lib/contexts/ElectronContext';
 import { useNavigation } from '@lib/contexts/NavigationContext';
 import { useAuth } from '@lib/contexts/AuthContext';
-import { PageLoader } from '@components/common';
+import { PageLoader, LCUStatusIndicator } from '@components/common';
 
-export default function PickBanPage() {
+export default function PickBanPage(): React.ReactElement {
   const router = useRouter();
   const { isElectron } = useElectron();
   const { setActiveModule } = useNavigation();
@@ -53,22 +53,28 @@ export default function PickBanPage() {
           </p>
         </div>
         
-        <div className="bg-gray-800 rounded-lg p-4 text-left">
-          <h3 className="font-semibold mb-2">Available Modes:</h3>
-          <div className="space-y-2 text-sm">
-            <div className="flex items-center gap-2">
-              <div className={`w-2 h-2 rounded-full ${isElectron ? 'bg-green-400' : 'bg-gray-400'}`}></div>
-              <span className={isElectron ? 'text-green-400' : 'text-gray-400'}>
-                League Client Integration (Desktop App)
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className={`w-2 h-2 rounded-full ${!isElectron ? 'bg-green-400' : 'bg-gray-400'}`}></div>
-              <span className={!isElectron ? 'text-green-400' : 'text-gray-400'}>
-                Static Pick & Ban (Web Browser)
-              </span>
+        <div className="space-y-4">
+          <div className="bg-gray-800 rounded-lg p-4 text-left">
+            <h3 className="font-semibold mb-2">Available Modes:</h3>
+            <div className="space-y-2 text-sm">
+              <div className="flex items-center gap-2">
+                <div className={`w-2 h-2 rounded-full ${isElectron ? 'bg-green-400' : 'bg-gray-400'}`}></div>
+                <span className={isElectron ? 'text-green-400' : 'text-gray-400'}>
+                  League Client Integration (Desktop App)
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className={`w-2 h-2 rounded-full ${!isElectron ? 'bg-green-400' : 'bg-gray-400'}`}></div>
+                <span className={!isElectron ? 'text-green-400' : 'text-gray-400'}>
+                  Static Pick & Ban (Web Browser)
+                </span>
+              </div>
             </div>
           </div>
+
+          {isElectron && (
+            <LCUStatusIndicator showDetails={true} />
+          )}
         </div>
 
         <div className="mt-6 text-xs text-gray-500">

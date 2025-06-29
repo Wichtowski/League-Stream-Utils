@@ -22,7 +22,7 @@ interface PickBanConfig {
   };
 }
 
-export default function StaticConfigPage() {
+export default function StaticConfigPage(): React.ReactElement {
   const params = useParams();
   const router = useRouter();
   const { setActiveModule } = useNavigation();
@@ -70,7 +70,7 @@ export default function StaticConfigPage() {
         await showAlert({ type: 'error', message: 'Failed to load session' });
         router.push('/modules/pickban/static');
       }
-    } catch (error) {
+    } catch (_error) {
       await showAlert({ type: 'error', message: 'Failed to load session' });
       router.push('/modules/pickban/static');
     } finally {
@@ -99,7 +99,7 @@ export default function StaticConfigPage() {
         const data = await response.json();
         await showAlert({ type: 'error', message: data.error || 'Failed to save configuration' });
       }
-    } catch (error) {
+    } catch (_error) {
       await showAlert({ type: 'error', message: 'Failed to save configuration' });
     } finally {
       setSaving(false);
@@ -110,7 +110,7 @@ export default function StaticConfigPage() {
     if (!session || !authUser) return;
 
     const confirmed = await showConfirm({
-      type: 'info',
+      type: 'default',
       title: 'Start Pick & Ban',
       message: 'Are you ready to start the pick & ban phase? You can still make changes after starting.',
       confirmText: 'Start',
@@ -130,7 +130,7 @@ export default function StaticConfigPage() {
         const data = await response.json();
         await showAlert({ type: 'error', message: data.error || 'Failed to start session' });
       }
-    } catch (error) {
+    } catch (_error) {
       await showAlert({ type: 'error', message: 'Failed to start session' });
     }
   };
@@ -158,7 +158,7 @@ export default function StaticConfigPage() {
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold">Configure Pick & Ban</h1>
-            <p className="text-gray-400">{session.name || `Session ${sessionId}`}</p>
+            <p className="text-gray-400">{`Session ${sessionId}`}</p>
           </div>
           <div className="flex gap-3">
             <button
@@ -183,7 +183,7 @@ export default function StaticConfigPage() {
                     name="format"
                     value="tournament"
                     checked={config.format === 'tournament'}
-                    onChange={(e) => setConfig(prev => ({ ...prev, format: e.target.value as any }))}
+                    onChange={(e) => setConfig(prev => ({ ...prev, format: e.target.value as PickBanConfig['format'] }))}
                     className="mr-2"
                   />
                   <div>
@@ -197,7 +197,7 @@ export default function StaticConfigPage() {
                     name="format"
                     value="ranked"
                     checked={config.format === 'ranked'}
-                    onChange={(e) => setConfig(prev => ({ ...prev, format: e.target.value as any }))}
+                    onChange={(e) => setConfig(prev => ({ ...prev, format: e.target.value as PickBanConfig['format'] }))}
                     className="mr-2"
                   />
                   <div>
@@ -211,7 +211,7 @@ export default function StaticConfigPage() {
                     name="format"
                     value="custom"
                     checked={config.format === 'custom'}
-                    onChange={(e) => setConfig(prev => ({ ...prev, format: e.target.value as any }))}
+                    onChange={(e) => setConfig(prev => ({ ...prev, format: e.target.value as PickBanConfig['format'] }))}
                     className="mr-2"
                   />
                   <div>

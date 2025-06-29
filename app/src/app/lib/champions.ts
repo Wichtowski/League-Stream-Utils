@@ -1,5 +1,6 @@
 import { Champion } from './types';
 import { DDRAGON_CDN, DDRAGON_BASE_URL } from '@lib/constants';
+import { championCacheService } from './services/champion-cache';
 
 interface DataDragonChampion {
   id: string;
@@ -26,7 +27,7 @@ async function getLatestVersion(): Promise<string> {
     return versions[0];
   } catch (error) {
     console.error('Failed to fetch Data Dragon version:', error);
-    return '15.11.1'; // Fallback version
+    return '15.13.1'; // Fallback version
   }
 }
 
@@ -125,8 +126,19 @@ async function loadFromElectronCache(): Promise<{ champions: Champion[]; version
   }
 }
 
-// Main cache logic
-async function getChampionsFromCache(): Promise<Champion[]> {
+// Enhanced champion caching system
+async function getChampionsFromComprehensiveCache(): Promise<Champion[]> {
+  try {
+    // Try to use the new comprehensive caching system
+    return await championCacheService.getAllChampions();
+  } catch (error) {
+    console.warn('Comprehensive champion cache failed, falling back to basic cache:', error);
+    return await getChampionsFromBasicCache();
+  }
+}
+
+// Basic cache logic (fallback)
+async function getChampionsFromBasicCache(): Promise<Champion[]> {
   // Check memory cache first
   if (memoryCache && cacheTimestamp && isCacheValid(cacheTimestamp)) {
     return memoryCache;
@@ -173,6 +185,17 @@ async function getChampionsFromCache(): Promise<Champion[]> {
   }
 }
 
+// Main cache logic
+async function getChampionsFromCache(): Promise<Champion[]> {
+  // Check if we're in Electron environment and should use comprehensive caching
+  if (typeof window !== 'undefined' && window.electronAPI) {
+    return await getChampionsFromComprehensiveCache();
+  }
+
+  // Fallback to basic caching for web environment
+  return await getChampionsFromBasicCache();
+}
+
 // Public API
 export async function getChampions(): Promise<Champion[]> {
   return await getChampionsFromCache();
@@ -185,6 +208,15 @@ export async function refreshChampionsCache(): Promise<Champion[]> {
 
   if (typeof localStorage !== 'undefined') {
     localStorage.removeItem('champions_cache');
+  }
+
+  // Clear comprehensive cache if available
+  if (typeof window !== 'undefined' && window.electronAPI) {
+    try {
+      await championCacheService.clearCache();
+    } catch (error) {
+      console.warn('Failed to clear comprehensive champion cache:', error);
+    }
   }
 
   return await getChampionsFromCache();
@@ -206,10 +238,33 @@ export const getChampionById = (id: number): Champion | undefined => {
 
 export const getChampionByName = (name: string): Champion | undefined => {
   const champions = getChampionsCached();
-  return champions.find(champ =>
-    champ.name.toLowerCase() === name.toLowerCase()
-  );
+  return champions.find(champ => champ.name.toLowerCase() === name.toLowerCase());
 };
+
+// Enhanced champion functions
+export async function getChampionByKeyEnhanced(key: string): Promise<Champion | null> {
+  if (typeof window !== 'undefined' && window.electronAPI) {
+    try {
+      return await championCacheService.getChampionByKey(key);
+    } catch (error) {
+      console.warn('Failed to get enhanced champion data:', error);
+      return getChampionByKey(key) || null;
+    }
+  }
+  return getChampionByKey(key) || null;
+}
+
+export async function getChampionCacheStats(): Promise<{ totalChampions: number; cacheSize: number; version: string } | null> {
+  if (typeof window !== 'undefined' && window.electronAPI) {
+    try {
+      return await championCacheService.getCacheStats();
+    } catch (error) {
+      console.warn('Failed to get champion cache stats:', error);
+      return null;
+    }
+  }
+  return null;
+}
 
 // Initialize champions cache on module load (for server-side)
 if (typeof window === 'undefined') {

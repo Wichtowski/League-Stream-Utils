@@ -11,15 +11,15 @@ interface FetchResult<T> {
   loading: boolean;
 }
 
-export function useAuthenticatedFetch() {
+export function useAuthenticatedFetch(): { authenticatedFetch: (url: string, options?: FetchOptions) => Promise<Response> } {
   const { refreshToken } = useAuth();
-  
+
   const authenticatedFetch = useCallback(async (
-    url: string, 
+    url: string,
     options: FetchOptions = {}
   ): Promise<Response> => {
     const { skipAuth = false, ...fetchOptions } = options;
-    
+
     try {
       const defaultOptions: RequestInit = {
         credentials: 'include',
@@ -31,17 +31,17 @@ export function useAuthenticatedFetch() {
       };
 
       let response = await fetch(url, defaultOptions);
-      
+
       if (response.status === 401 && !skipAuth) {
         const refreshed = await refreshToken();
-        
+
         if (refreshed) {
           response = await fetch(url, defaultOptions);
         }
       }
-      
+
       return response;
-      
+
     } catch (error) {
       throw error;
     }
@@ -56,15 +56,15 @@ export function useApiRequest<T = unknown>(url: string, options: FetchOptions = 
     error: null,
     loading: false
   });
-  
+
   const { authenticatedFetch } = useAuthenticatedFetch();
-  
+
   const execute = useCallback(async (requestOptions: FetchOptions = {}) => {
     setState(prev => ({ ...prev, loading: true, error: null }));
-    
+
     try {
       const response = await authenticatedFetch(url, { ...options, ...requestOptions });
-      
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: 'Request failed' }));
         setState({
@@ -74,16 +74,16 @@ export function useApiRequest<T = unknown>(url: string, options: FetchOptions = 
         });
         return { data: null, error: errorData.error || `HTTP ${response.status}`, loading: false };
       }
-      
+
       const data = await response.json();
-      
+
       setState({
         data,
         error: null,
         loading: false
       });
       return { data, error: null, loading: false };
-      
+
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Network error';
       setState({
@@ -94,7 +94,7 @@ export function useApiRequest<T = unknown>(url: string, options: FetchOptions = 
       return { data: null, error: errorMessage, loading: false };
     }
   }, [url, options, authenticatedFetch]);
-  
+
   return {
     ...state,
     execute

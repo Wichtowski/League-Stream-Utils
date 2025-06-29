@@ -42,6 +42,7 @@ const TimerSchema = new mongoose.Schema({
 
 export const GameSessionSchema = new mongoose.Schema({
     id: { type: String, required: true, unique: true },
+    type: { type: String, enum: ['static', 'lcu', 'tournament', 'web'], default: 'web' },
     teams: {
         blue: { type: TeamSchema, required: true },
         red: { type: TeamSchema, required: true }

@@ -4,8 +4,10 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useRouter } from "next/navigation";
 import { useNavigation } from '@lib/contexts/NavigationContext';
 import { useAuth } from '@lib/contexts/AuthContext';
-import { useAuthenticatedFetch } from '@lib/hooks/useAuthenticatedFetch';
-import { CameraPlayer, Player, Team } from '@lib/types';
+import { useCameras } from '@lib/contexts/CamerasContext';
+import { useTeams } from '@lib/contexts/TeamsContext';
+import { CameraPlayer } from '@lib/types';
+import { Player, Team } from '@lib/types/tournament';
 import { LoadingSpinner } from '@components/common';
 
 // Import proper types from database schemas
@@ -20,64 +22,57 @@ export default function CamerasPage() {
   const router = useRouter();
   const { setActiveModule } = useNavigation();
   const { user, isLoading: authLoading } = useAuth();
-  const { authenticatedFetch } = useAuthenticatedFetch();
+  const { teams: cameraTeams, loading: camerasLoading, updateCameraSettings } = useCameras();
+  const { teams: userTeams } = useTeams();
   const [teams, setTeams] = useState<TeamCamera[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAdminView, setShowAdminView] = useState(false);
 
   const autoSetupFromTeams = useCallback(async () => {
     try {
-      const teamsResponse = await authenticatedFetch('/api/v1/teams');
+      if (userTeams.length > 0) {
+        // Convert teams to camera settings format
+        const cameraTeams = userTeams.map((team: any) => ({
+          teamId: team.id,
+          teamName: team.name,
+          teamLogo: team.logoUrl || (team.logo?.data || ''),
+          players: (team.players?.main || []).map((player: any) => ({
+            playerId: player.id,
+            playerName: player.inGameName || player.name,
+            role: player.role,
+            url: '',
+            imagePath: ''
+          }))
+        }));
 
-      if (teamsResponse.ok) {
-        const teamsData = await teamsResponse.json();
-        const existingTeams = teamsData.teams || [];
-
-        if (existingTeams.length > 0) {
-          // Convert teams to camera settings format
-          const cameraTeams = existingTeams.map((team: Team & { logoUrl?: string }) => ({
-            teamId: team.id,
-            teamName: team.name,
-            teamLogo: team.logoUrl || team.logo?.data || '',
-            players: team.players.main.map((player: Player) => ({
-              playerId: player.id,
-              playerName: player.inGameName,
-              role: player.role,
-              url: '',
-              imagePath: ''
-            }))
-          }));
-
-          // Save camera settings
-          const saveResponse = await authenticatedFetch('/api/v1/cameras/settings', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ teams: cameraTeams })
-          });
-
-          if (saveResponse.ok) {
-            setTeams(cameraTeams);
-          }
+        // Save camera settings using context
+        const result = await updateCameraSettings({ teams: cameraTeams });
+        if (result.success) {
+          setTeams(cameraTeams);
         }
       }
     } catch (error) {
       console.error('Error auto-setting up camera teams:', error);
     }
-  }, [authenticatedFetch]);
+  }, [userTeams, updateCameraSettings]);
 
   const loadTeams = useCallback(async () => {
     try {
-      const response = await authenticatedFetch('/api/v1/cameras/settings');
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data.teams && data.teams.length > 0) {
-          setTeams(data.teams);
-        } else {
-          await autoSetupFromTeams();
-        }
+      if (cameraTeams.length > 0) {
+        // Convert camera teams to the format expected by this page
+        const formattedTeams: TeamCamera[] = cameraTeams.map((team: any) => ({
+          teamId: team.id,
+          teamName: team.name,
+          teamLogo: team.logo?.data || '',
+          players: (team.players?.main || []).map((player: any) => ({
+            playerId: player.id,
+            playerName: player.inGameName || player.name,
+            role: player.role,
+            url: '',
+            imagePath: ''
+          }))
+        }));
+        setTeams(formattedTeams);
       } else {
         await autoSetupFromTeams();
       }
@@ -87,19 +82,15 @@ export default function CamerasPage() {
     } finally {
       setLoading(false);
     }
-  }, [authenticatedFetch, autoSetupFromTeams]);
+  }, [cameraTeams, autoSetupFromTeams]);
 
   useEffect(() => {
     setActiveModule('cameras');
 
-    if (!authLoading) {
+    if (!authLoading && !camerasLoading) {
       loadTeams();
     }
-  }, [setActiveModule, loadTeams, authLoading]);
-
-
-
-
+  }, [setActiveModule, loadTeams, authLoading, camerasLoading]);
 
   if (authLoading || loading) {
     return (

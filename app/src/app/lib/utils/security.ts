@@ -76,7 +76,7 @@ export function getClientIP(request: NextRequest): string {
   return 'unknown';
 }
 
-export function logSecurityEvent(event: string, details: Record<string, string | number | boolean>) {
+export function logSecurityEvent(event: string, details: Record<string, string | number | boolean>): void {
   const timestamp = new Date().toISOString();
   console.log(`[SECURITY] ${timestamp} - ${event}:`, JSON.stringify(details));
 

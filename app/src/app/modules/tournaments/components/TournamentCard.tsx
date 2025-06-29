@@ -10,7 +10,7 @@ interface TournamentCardProps {
     onTournamentUpdate?: (tournament: Tournament) => void;
 }
 
-export default function TournamentCard({ tournament, onStatusUpdate, onTournamentUpdate }: TournamentCardProps) {
+export default function TournamentCard({ tournament, onStatusUpdate, onTournamentUpdate }: TournamentCardProps): React.ReactElement {
     const [showMyTeamRegistration, setShowMyTeamRegistration] = useState(false);
 
     const handleTournamentUpdated = (updatedTournament: Tournament) => {

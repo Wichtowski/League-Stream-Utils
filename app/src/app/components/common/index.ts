@@ -3,6 +3,7 @@ import { Button } from './Button';
 import { ConfirmModal } from './ConfirmModal';
 import { CopyButton } from './CopyButton';
 import { Footer } from './Footer';
+import { LCUStatusIndicator } from './LCUStatusIndicator';
 import { Modal } from './Modal';
 import { Pagination } from './Pagination';
 import { LoadingSpinner, InlineSpinner, PageLoader, OverlayLoader } from './LoadingSpinner';
@@ -13,6 +14,7 @@ export {
     ConfirmModal,
     CopyButton,
     Footer,
+    LCUStatusIndicator,
     LoadingSpinner,
     InlineSpinner,
     PageLoader,

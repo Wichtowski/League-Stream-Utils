@@ -8,12 +8,12 @@ import { useAuth } from '@lib/contexts/AuthContext';
 import { useAuthenticatedFetch } from '@lib/hooks/useAuthenticatedFetch';
 import { API_BASE_URL } from '@lib/constants';
 import { AuthenticatedHome } from '@components/home';
-import { PageLoader } from '@components/common';
+import { AuthGuard } from '@lib/components/AuthGuard';
 
 export default function StaticPickBanPage() {
   const { setActiveModule } = useNavigation();
   const { showConfirm } = useModal();
-  const { user: authUser, isLoading: authLoading } = useAuth();
+  const { user: authUser } = useAuth();
   const { authenticatedFetch } = useAuthenticatedFetch();
   const [sessions, setSessions] = useState<GameSession[]>([]);
   const [loading, setLoading] = useState(false);
@@ -23,11 +23,8 @@ export default function StaticPickBanPage() {
 
   useEffect(() => {
     setActiveModule('pickban');
-    
-    if (!authLoading) {
-      fetchSessions();
-    }
-  }, [authLoading]);
+    fetchSessions();
+  }, []);
 
   const fetchSessions = useCallback(async () => {
     try {
@@ -119,38 +116,33 @@ export default function StaticPickBanPage() {
     }
   };
 
-  if (authLoading) {
-    return <PageLoader text="Checking authentication..." />;
-  }
-
-  if (authUser) {
-    return (
+  return (
+    <AuthGuard loadingMessage="Loading Static Pick & Ban...">
       <div className="min-h-screen bg-gray-900 text-white">
         <div className="container mx-auto px-4 py-8">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-2">Static Pick & Ban</h1>
+            <h1 className="text-3xl font-bold mb-2">Pick & Ban</h1>
             <p className="text-gray-400">
               Create and manage pick & ban sessions without League Client integration.
               Perfect for tournaments, practice, or when League Client is not available.
             </p>
           </div>
 
-          <AuthenticatedHome
-            user={authUser}
-            sessions={sessions.filter(session => session.type === 'static' || !session.type)} // Show static or legacy sessions
-            sessionsLoading={sessionsLoading}
-            onLogout={() => window.location.href = '/auth'}
-            onCreateSession={createSession}
-            onDeleteSession={deleteSession}
-            loading={loading}
-            error={error}
-            newSessionUrls={newSessionUrls}
-            staticMode={true} // Indicate this is static mode
-          />
+          {authUser && (
+            <AuthenticatedHome
+              user={authUser}
+              sessions={sessions.filter(session => session.type === 'web' || !session.type)} // Show static or legacy sessions
+              sessionsLoading={sessionsLoading}
+              onLogout={() => window.location.href = '/auth'}
+              onCreateSession={createSession}
+              onDeleteSession={deleteSession}
+              loading={loading}
+              error={error}
+              newSessionUrls={newSessionUrls}
+            />
+          )}
         </div>
       </div>
-    );
-  }
-
-  return null;
+    </AuthGuard>
+  );
 } 

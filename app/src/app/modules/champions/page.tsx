@@ -4,12 +4,11 @@ import React, { useState, useEffect } from "react";
 import Image from 'next/image';
 import { DDRAGON_CDN } from '@lib/constants';
 import { useNavigation } from '@lib/contexts/NavigationContext';
-
-type Champion = {
-  id: string;
-  name: string;
-  title: string;
-};
+import { getChampions, getChampionCacheStats } from '@lib/champions';
+import { assetCache } from '@lib/services/asset-cache';
+import { championCacheService, DownloadProgress } from '@lib/services/champion-cache';
+import { DownloadProgressModal } from '../../components/common/DownloadProgressModal';
+import type { Champion } from '@lib/types/game';
 
 type Spell = {
   id: string;
@@ -27,7 +26,13 @@ type ChampionDetail = Champion & {
   spells: Spell[];
 };
 
-const VERSION = "15.11.1";
+interface CacheStats {
+  totalChampions: number;
+  cacheSize: number;
+  version: string;
+}
+
+const VERSION = "15.13.1";
 
 const languages = [
   { code: 'en_US', name: 'English' },
@@ -42,19 +47,20 @@ const languages = [
   { code: 'ja_JP', name: '日本語' },
 ];
 
-const CHAMP_LIST_URL = (lang: string) => `${DDRAGON_CDN}/${VERSION}/data/${lang}/champion.json`;
 const ICON_URL = (champ: string) => `${DDRAGON_CDN}/${VERSION}/img/champion/${champ}.png`;
 const CHAMP_DETAIL_URL = (champ: string, lang: string) => `${DDRAGON_CDN}/${VERSION}/data/${lang}/champion/${champ}.json`;
 const SPELL_ICON_URL = (img: string) => `${DDRAGON_CDN}/${VERSION}/img/spell/${img}`;
 
 export default function App() {
   const { setActiveModule } = useNavigation();
-  const [champions, setChampions] = useState<Champion[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [_champions, setChampions] = useState<Champion[]>([]);
+  const [filteredChampions, setFilteredChampions] = useState<Champion[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
   const [selected, setSelected] = useState<Champion | null>(null);
   const [champDetail, setChampDetail] = useState<ChampionDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
-  const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [isElectron, setIsElectron] = useState(false);
   const [redTeam, setRedTeam] = useState<Champion[]>([]);
   const [blueTeam, setBlueTeam] = useState<Champion[]>([]);
   const [draggedChamp, setDraggedChamp] = useState<Champion | null>(null);
@@ -62,27 +68,118 @@ export default function App() {
   const [dragOverBlue, setDragOverBlue] = useState(false);
   const [showOnlyR, setShowOnlyR] = useState(false);
   const [language, setLanguage] = useState('pl_PL');
+  const [cacheStats, setCacheStats] = useState<CacheStats | null>(null);
+  
+  // Download progress state
+  const [downloadProgress, setDownloadProgress] = useState<DownloadProgress>({
+    current: 0,
+    total: 0,
+    championName: '',
+    stage: 'champion-data',
+    percentage: 0
+  });
+  const [showProgressModal, setShowProgressModal] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   useEffect(() => {
     setActiveModule('champions');
+    setIsElectron(typeof window !== 'undefined' && !!window.electronAPI?.isElectron);
+    loadChampions();
+    loadCacheStats();
   }, [setActiveModule]);
 
-  useEffect(() => {
-    fetch(CHAMP_LIST_URL(language))
-      .then((res) => res.json())
-      .then((data) => {
-        setChampions(Object.values(data.data));
-        setLoading(false);
+  const loadChampions = async () => {
+    try {
+      setLoading(true);
+      const champs = await getChampions();
+      setChampions(champs);
+      setFilteredChampions(champs);
+    } catch (error) {
+      console.error('Failed to load champions:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadCacheStats = async () => {
+    if (!isElectron) return;
+    
+    try {
+      const stats = await getChampionCacheStats();
+      setCacheStats(stats);
+    } catch (error) {
+      console.warn('Failed to load cache stats:', error);
+    }
+  };
+
+  const handleRefreshCache = async () => {
+    if (!isElectron) return;
+    
+    try {
+      setIsDownloading(true);
+      setShowProgressModal(true);
+
+      // Set up progress tracking
+      championCacheService.onProgress((progress) => {
+        setDownloadProgress(progress);
       });
-  }, [language]);
+
+      // Start the download
+      await championCacheService.getAllChampions();
+      
+      // Refresh the champions list and cache stats
+      await loadCacheStats();
+      await loadChampions();
+      
+    } catch (error) {
+      console.error('Failed to refresh cache:', error);
+    } finally {
+      setIsDownloading(false);
+      // Keep modal open for a moment to show completion
+      setTimeout(() => {
+        setShowProgressModal(false);
+      }, 2000);
+    }
+  };
+
+  const handleCancelDownload = () => {
+    setShowProgressModal(false);
+    setIsDownloading(false);
+  };
+
+  const getChampionIconUrl = async (championKey: string): Promise<string> => {
+    if (isElectron) {
+      try {
+        const cachedUrl = await assetCache.getChampionIcon(championKey, VERSION);
+        return cachedUrl || ICON_URL(championKey);
+      } catch (error) {
+        console.warn(`Failed to get cached icon for ${championKey}:`, error);
+        return ICON_URL(championKey);
+      }
+    }
+    return ICON_URL(championKey);
+  };
+
+  const getAbilityIconUrl = async (abilityImage: string): Promise<string> => {
+    if (isElectron) {
+      try {
+        const cachedUrl = await assetCache.getAbilityIcon(abilityImage, VERSION);
+        return cachedUrl || SPELL_ICON_URL(abilityImage);
+      } catch (error) {
+        console.warn(`Failed to get cached ability icon for ${abilityImage}:`, error);
+        return SPELL_ICON_URL(abilityImage);
+      }
+    }
+    return SPELL_ICON_URL(abilityImage);
+  };
 
   useEffect(() => {
     if (!selected) return;
     setDetailLoading(true);
-    fetch(CHAMP_DETAIL_URL(selected.id, language))
+    fetch(CHAMP_DETAIL_URL(selected.key, language))
       .then((res) => res.json())
       .then((data) => {
-        setChampDetail(data.data[selected.id]);
+        setChampDetail(data.data[selected.key]);
         setDetailLoading(false);
       });
   }, [selected, language]);
@@ -105,8 +202,8 @@ export default function App() {
           <input
             type="text"
             placeholder="Search champion..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
             className="px-4 py-2 rounded bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 w-full max-w-md"
           />
 
@@ -123,6 +220,51 @@ export default function App() {
           </select>
         </div>
 
+        {/* Cache Management Section */}
+        {isElectron && (
+          <div className="flex justify-center mb-6 w-full">
+            <div className="bg-gray-800 rounded-lg p-4 max-w-2xl w-full">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-lg font-semibold text-blue-300">Champion Cache Management</h3>
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleRefreshCache}
+                    disabled={isDownloading}
+                    className="px-4 py-2 rounded bg-blue-600 text-white font-semibold hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed transition"
+                  >
+                    {isDownloading ? 'Downloading...' : 'Refresh Cache'}
+                  </button>
+                </div>
+              </div>
+              
+              {cacheStats && (
+                <div className="grid grid-cols-3 gap-4 text-sm">
+                  <div className="bg-gray-700 rounded p-3">
+                    <div className="text-gray-400">Total Champions</div>
+                    <div className="text-white font-semibold">{cacheStats.totalChampions}</div>
+                  </div>
+                  <div className="bg-gray-700 rounded p-3">
+                    <div className="text-gray-400">Cache Size</div>
+                    <div className="text-white font-semibold">{cacheStats.cacheSize}</div>
+                  </div>
+                  <div className="bg-gray-700 rounded p-3">
+                    <div className="text-gray-400">Version</div>
+                    <div className="text-white font-semibold">{cacheStats.version}</div>
+                  </div>
+                </div>
+              )}
+              
+              <div className="mt-3 text-xs text-gray-400">
+                Champions are cached locally with images and ability data for faster loading.
+                <br />
+                <strong>Download All:</strong> Downloads all champions for the current version.
+                <br />
+                <strong>Refresh Cache:</strong> Clears cache and re-downloads all champions.
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="flex justify-center mb-4 w-full mb-4 mt-2 mx-2">
           <button
             className="px-4 py-2 rounded bg-gray-700 text-white font-semibold hover:bg-gray-600 transition mr-2"
@@ -138,7 +280,7 @@ export default function App() {
             onDragLeave={() => setDragOverRed(false)}
             onDrop={() => {
               setDragOverRed(false);
-              if (draggedChamp && !redTeam.some(c => c.id === draggedChamp.id) && !blueTeam.some(c => c.id === draggedChamp.id)) {
+              if (draggedChamp && !redTeam.some(c => c.key === draggedChamp.key) && !blueTeam.some(c => c.key === draggedChamp.key)) {
                 setRedTeam([...redTeam, draggedChamp]);
               }
               setDraggedChamp(null);
@@ -148,13 +290,13 @@ export default function App() {
             <div className="flex flex-col gap-4 w-full">
               {redTeam.map(champ => (
                 <div
-                  key={champ.id}
+                  key={champ.key}
                   className="flex flex-row items-center gap-6 bg-red-950 bg-opacity-60 rounded p-4 w-full justify-start"
-                  onDoubleClick={() => setRedTeam(redTeam.filter(c => c.id !== champ.id))}
+                  onDoubleClick={() => setRedTeam(redTeam.filter(c => c.key !== champ.key))}
                 >
                   <div className="flex flex-col items-center min-w-[100px]">
                     <Image
-                      src={ICON_URL(champ.id)}
+                      src={ICON_URL(champ.key)}
                       alt={champ.name}
                       width={80}
                       height={80}
@@ -162,7 +304,7 @@ export default function App() {
                     />
                     <span className="text-sm text-center font-medium">{champ.name}</span>
                   </div>
-                  <TeamChampionAbilities champId={champ.id} showOnlyR={showOnlyR} language={language} />
+                  <TeamChampionAbilities champId={champ.key} showOnlyR={showOnlyR} language={language} />
                 </div>
               ))}
             </div>
@@ -173,7 +315,7 @@ export default function App() {
             onDragLeave={() => setDragOverBlue(false)}
             onDrop={() => {
               setDragOverBlue(false);
-              if (draggedChamp && !blueTeam.some(c => c.id === draggedChamp.id) && !redTeam.some(c => c.id === draggedChamp.id)) {
+              if (draggedChamp && !blueTeam.some(c => c.key === draggedChamp.key) && !redTeam.some(c => c.key === draggedChamp.key)) {
                 setBlueTeam([...blueTeam, draggedChamp]);
               }
               setDraggedChamp(null);
@@ -183,13 +325,13 @@ export default function App() {
             <div className="flex flex-col gap-4 w-full">
               {blueTeam.map(champ => (
                 <div
-                  key={champ.id}
+                  key={champ.key}
                   className="flex flex-row items-center gap-6 bg-blue-950 bg-opacity-60 rounded p-4 w-full justify-start"
-                  onDoubleClick={() => setBlueTeam(blueTeam.filter(c => c.id !== champ.id))}
+                  onDoubleClick={() => setBlueTeam(blueTeam.filter(c => c.key !== champ.key))}
                 >
                   <div className="flex flex-col items-center min-w-[100px]">
                     <Image
-                      src={ICON_URL(champ.id)}
+                      src={ICON_URL(champ.key)}
                       alt={champ.name}
                       width={80}
                       height={80}
@@ -197,37 +339,40 @@ export default function App() {
                     />
                     <span className="text-sm text-center font-medium">{champ.name}</span>
                   </div>
-                  <TeamChampionAbilities champId={champ.id} showOnlyR={showOnlyR} language={language} />
+                  <TeamChampionAbilities champId={champ.key} showOnlyR={showOnlyR} language={language} />
                 </div>
               ))}
             </div>
           </div>
         </div>
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-4 w-full h-full max-w-5xl mx-auto">
-          {champions
-            .filter(champ => champ.name.toLowerCase().includes(search.toLowerCase()))
-            .map((champ) => (
-              <div
-                key={champ.id}
-                className="flex flex-col items-center bg-gray-800 rounded-lg p-2 hover:bg-gray-700 transition cursor-pointer h-full opacity-100"
-                onClick={() => setSelected(champ)}
-                draggable
-                onDragStart={() => setDraggedChamp(champ)}
-                style={{
-                  opacity: redTeam.some(c => c.id === champ.id) || blueTeam.some(c => c.id === champ.id) ? 0.4 : 1,
-                  pointerEvents: redTeam.some(c => c.id === champ.id) || blueTeam.some(c => c.id === champ.id) ? 'none' : 'auto',
-                }}
-              >
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4">
+          {filteredChampions.map((champion) => (
+            <div
+              key={champion.key}
+              className="bg-gray-800 rounded-lg p-4 cursor-pointer hover:bg-gray-700 transition-colors"
+              onClick={() => setSelected(champion)}
+            >
+              <div className="relative">
                 <Image
-                  src={ICON_URL(champ.id)}
-                  alt={champ.name}
-                  width={80}
-                  height={80}
-                  className="object-contain mb-2"
+                  width={100}
+                  height={100}
+                  src={ICON_URL(champion.key)}
+                  alt={champion.name}
+                  className="w-full h-auto rounded"
+                  onError={(e) => {
+                    if (isElectron) {
+                      getChampionIconUrl(champion.key).then(url => {
+                        if (url !== ICON_URL(champion.key)) {
+                          e.currentTarget.src = url;
+                        }
+                      });
+                    }
+                  }}
                 />
-                <span className="font-semibold text-center">{champ.name}</span>
               </div>
-            ))}
+              <p className="text-center mt-2 text-sm font-medium">{champion.name}</p>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -265,15 +410,23 @@ export default function App() {
             </button>
             <div className="flex items-center mb-4">
               <Image
-                src={ICON_URL(selected.id)}
+                src={ICON_URL(selected.key)}
                 alt={selected.name}
                 width={80}
                 height={80}
-                className="mr-4"
+                className="mr-4 rounded"
+                onError={(e) => {
+                  if (isElectron) {
+                    getChampionIconUrl(selected.key).then(url => {
+                      if (url !== ICON_URL(selected.key)) {
+                        e.currentTarget.src = url;
+                      }
+                    });
+                  }
+                }}
               />
               <div>
                 <h2 className="text-2xl font-bold">{selected.name}</h2>
-                <p className="text-gray-400">{selected.title}</p>
               </div>
             </div>
 
@@ -282,7 +435,7 @@ export default function App() {
             ) : champDetail ? (
               <div>
                 <div className="grid grid-cols-4 gap-4">
-                  {champDetail.spells.map((spell, index) => (
+                  {champDetail.spells.map((spell: Spell, index: number) => (
                     <div key={spell.id} className="text-center">
                       <h4 className="text-sm font-medium mb-2">{['Q', 'W', 'E', 'R'][index]}</h4>
                       <Image
@@ -291,6 +444,15 @@ export default function App() {
                         width={50}
                         height={50}
                         className="mx-auto mb-2"
+                        onError={(e) => {
+                          if (isElectron) {
+                            getAbilityIconUrl(spell.image.full).then(url => {
+                              if (url !== SPELL_ICON_URL(spell.image.full)) {
+                                e.currentTarget.src = url;
+                              }
+                            });
+                          }
+                        }}
                       />
                       <p className="text-xs">{spell.name}</p>
                     </div>
@@ -301,14 +463,29 @@ export default function App() {
           </div>
         </div>
       )}
+
+      {showProgressModal && (
+        <DownloadProgressModal
+          isOpen={showProgressModal}
+          progress={downloadProgress}
+          onCancel={handleCancelDownload}
+        />
+      )}
+
+      {/* UI Lock overlay during download */}
+      {isDownloading && (
+        <div className="fixed inset-0 bg-black bg-opacity-30 z-40 pointer-events-none" />
+      )}
     </div>
   );
 }
 
 function TeamChampionAbilities({ champId, showOnlyR = false, language }: { champId: string, showOnlyR?: boolean, language: string }) {
   const [abilities, setAbilities] = useState<{ passive: Passive; spells: Spell[] } | null>(null);
+  const [isElectron, setIsElectron] = useState(false);
 
   useEffect(() => {
+    setIsElectron(typeof window !== 'undefined' && !!window.electronAPI?.isElectron);
     fetch(CHAMP_DETAIL_URL(champId, language))
       .then(res => res.json())
       .then(data => {
@@ -319,6 +496,19 @@ function TeamChampionAbilities({ champId, showOnlyR = false, language }: { champ
         });
       });
   }, [champId, language]);
+
+  const getAbilityIconUrl = async (abilityImage: string): Promise<string> => {
+    if (isElectron) {
+      try {
+        const cachedUrl = await assetCache.getAbilityIcon(abilityImage, VERSION);
+        return cachedUrl || SPELL_ICON_URL(abilityImage);
+      } catch (error) {
+        console.warn(`Failed to get cached ability icon for ${abilityImage}:`, error);
+        return SPELL_ICON_URL(abilityImage);
+      }
+    }
+    return SPELL_ICON_URL(abilityImage);
+  };
 
   if (!abilities) return <div className="text-xs">Loading...</div>;
 
@@ -334,6 +524,15 @@ function TeamChampionAbilities({ champId, showOnlyR = false, language }: { champ
               width={40}
               height={40}
               title={spell.name}
+              onError={(e) => {
+                if (isElectron) {
+                  getAbilityIconUrl(spell.image.full).then(url => {
+                    if (url !== SPELL_ICON_URL(spell.image.full)) {
+                      e.currentTarget.src = url;
+                    }
+                  });
+                }
+              }}
             />
             <span className="text-sm text-center mt-1 font-bold">{['Q', 'W', 'E', 'R'][index]}</span>
             <span className="text-sm text-center leading-tight font-medium">{spell.name}</span>

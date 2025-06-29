@@ -1,3 +1,5 @@
+import { PlayerRole } from "./common";
+
 export type MatchFormat = 'BO1' | 'BO3' | 'BO5';
 export type TournamentFormat = 'Ladder' | 'Swiss into Ladder' | 'Round Robin into Ladder' | 'Groups';
 
@@ -11,7 +13,6 @@ export interface PhaseMatchFormats {
     default: MatchFormat;
 }
 export type TournamentStatus = 'draft' | 'registration' | 'ongoing' | 'completed' | 'cancelled';
-export type PlayerRole = 'TOP' | 'JUNGLE' | 'MID' | 'ADC' | 'SUPPORT';
 export type TeamTier = 'amateur' | 'semi-pro' | 'professional';
 
 export interface ImageStorage {

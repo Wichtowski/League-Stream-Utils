@@ -1,235 +1,175 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import React from 'react';
+import { useChampSelectData } from '@lib/hooks/useChampSelectData';
 import Image from 'next/image';
-import { getChampionById } from '@lib/champions';
-import { LCUConnector, type ConnectionStatus } from '@lib/services/lcu-connector';
-import type { ChampSelectPlayer, ChampSelectSession } from '@lib/types';
+import { motion } from 'framer-motion';
+import type { EnhancedChampSelectPlayer, PickbanTournamentTeam } from '@lib/types';
 
-export function ChampSelectOverlay() {
-  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('disconnected');
-  const [champSelectData, setChampSelectData] = useState<ChampSelectSession | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  
-  const lcuConnectorRef = useRef<LCUConnector | null>(null);
+const roleIcons: Record<string, string> = {
+  TOP: '⚔️',
+  JUNGLE: '🌲',
+  MID: '✨',
+  ADC: '🏹',
+  SUPPORT: '🛡️'
+};
 
-  useEffect(() => {
-    // Initialize LCU connector
-    const connector = new LCUConnector({
-      autoReconnect: true,
-      maxReconnectAttempts: 10,
-      pollInterval: 500 // Faster polling for overlay
-    });
+const formatTime = (ms: number): string => {
+  const seconds = Math.ceil(ms / 1000);
+  return `${Math.floor(seconds / 60)}:${(seconds % 60).toString().padStart(2, '0')}`;
+};
 
-    // Set up event handlers
-    connector.setOnStatusChange(setConnectionStatus);
-    connector.setOnChampSelectUpdate(setChampSelectData);
-    connector.setOnError(setError);
+const getChampionName = (championId: number): string => {
+  // TODO: Replace with actual champion lookup if available
+  return championId ? `Champion ${championId}` : '';
+};
 
-    lcuConnectorRef.current = connector;
+const getChampionImage = (championId: number): string | null => {
+  // TODO: Replace with actual champion image lookup if available
+  return championId ? `/assets/champions/${championId}.png` : null;
+};
 
-    // Auto-connect on mount
-    connector.connect();
-
-    // Cleanup on unmount
-    return () => {
-      connector.destroy();
-      lcuConnectorRef.current = null;
-    };
-  }, []);
-
-  const formatTime = (ms: number): string => {
-    const seconds = Math.ceil(ms / 1000);
-    return `${Math.floor(seconds / 60)}:${(seconds % 60).toString().padStart(2, '0')}`;
-  };
-
-  const getChampionName = (championId: number): string => {
-    if (!championId) return '';
-    const champion = getChampionById(championId);
-    return champion?.name || `Champion ${championId}`;
-  };
-
-  const getChampionImage = (championId: number): string | null => {
-    if (!championId) return null;
-    const champion = getChampionById(championId);
-    return champion?.image || null;
-  };
-
-  const renderConnectionStatus = (): React.ReactNode => {
-    if (connectionStatus === 'connected' && champSelectData) {
-      return null; // Hide when connected and in champ select
-    }
-
-    return (
-      <div className="absolute inset-0 flex items-center justify-center bg-black/80 backdrop-blur-sm">
-        <div className="text-center p-8 bg-gray-900 rounded-lg border border-gray-700">
-          <div className="text-2xl font-bold text-white mb-4">Champion Select Overlay</div>
-          <div className={`text-lg mb-4 ${
-            connectionStatus === 'connected' ? 'text-green-400' :
-            connectionStatus === 'connecting' ? 'text-yellow-400' :
-            connectionStatus === 'error' ? 'text-red-400' : 'text-gray-400'
-          }`}>
-            {connectionStatus === 'disconnected' && 'Connecting to League Client...'}
-            {connectionStatus === 'connecting' && 'Establishing connection...'}
-            {connectionStatus === 'connected' && 'Waiting for Champion Select...'}
-            {connectionStatus === 'error' && 'Connection Error'}
+const renderBanPhases = (bans: { myTeamBans: number[]; theirTeamBans: number[] }) => {
+  const allBans = [...(bans?.myTeamBans || []), ...(bans?.theirTeamBans || [])];
+  const banRows = [];
+  for (let i = 0; i < Math.ceil(allBans.length / 5); i++) {
+    banRows.push(allBans.slice(i * 5, (i + 1) * 5));
+  }
+  return (
+    <motion.div initial={{ y: -50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.8, delay: 0.2 }} className="w-full mb-8">
+      <div className="space-y-2">
+        {banRows.map((row, rowIndex) => (
+          <div key={rowIndex} className="flex justify-center gap-2">
+            {Array.from({ length: 5 }, (_, i) => {
+              const championId = row[i];
+              const image = getChampionImage(championId);
+              return (
+                <motion.div key={i} initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: (rowIndex * 5 + i) * 0.05, duration: 0.4 }} className="w-16 h-16 bg-gray-900/80 rounded-lg border-2 border-gray-600 overflow-hidden relative backdrop-blur-sm">
+                  {image ? (
+                    <>
+                      <Image src={image} alt={getChampionName(championId)} width={64} height={64} className="w-full h-full object-cover grayscale" />
+                      <div className="absolute inset-0 bg-red-600/70 flex items-center justify-center">
+                        <span className="text-white text-lg font-bold">✕</span>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-500 text-xs">Ban</div>
+                  )}
+                </motion.div>
+              );
+            })}
           </div>
-          {error && (
-            <div className="text-red-400 text-sm max-w-md">
-              {error}
-            </div>
+        ))}
+      </div>
+    </motion.div>
+  );
+};
+
+const renderTournamentHeader = (tournamentData: any, timer: any) => {
+  if (!tournamentData?.tournament) return null;
+  const { tournament } = tournamentData;
+  return (
+    <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.8, delay: 0.5 }} className="text-center mb-6">
+      <div className="flex items-center justify-center gap-4 mb-4">
+        {tournament.logoUrl && <Image src={tournament.logoUrl} alt={tournament.name} width={80} height={80} className="rounded-lg" />}
+        <div>
+          <h1 className="text-4xl font-bold text-white">{tournament.name}</h1>
+          {tournament.matchInfo && <p className="text-xl text-gray-300">{tournament.matchInfo.roundName} - Match {tournament.matchInfo.matchNumber} (BO{tournament.matchInfo.bestOf})</p>}
+        </div>
+      </div>
+      <div className="text-center">
+        <div className="text-2xl font-bold text-white mb-2">PATCH 15.4</div>
+        {timer && <div className="text-3xl font-mono text-yellow-400">{timer.isInfinite ? '∞' : formatTime(timer.adjustedTimeLeftInPhase || 0)}</div>}
+      </div>
+    </motion.div>
+  );
+};
+
+const renderPlayerSlot = (player: EnhancedChampSelectPlayer, index: number, teamColor: 'blue' | 'red') => {
+  const image = getChampionImage(player.championId);
+  return (
+    <motion.div key={player.cellId} initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: index * 0.1, duration: 0.6 }} className="relative">
+      <div className={`flex items-center p-4 rounded-lg backdrop-blur-sm border-2 ${teamColor === 'blue' ? 'bg-blue-900/30 border-blue-500/50' : 'bg-red-900/30 border-red-500/50'}`}>
+        <div className="w-16 h-16 rounded-full overflow-hidden mr-4 border-2 border-gray-600">
+          {player.profileImage ? (
+            <Image src={player.profileImage} alt={player.playerInfo?.name || player.summonerName} width={64} height={64} className="w-full h-full object-cover" />
+          ) : (
+            <div className="w-full h-full bg-gray-700 flex items-center justify-center text-gray-400 text-xs">{player.playerInfo?.name?.charAt(0) || player.summonerName?.charAt(0) || (index + 1).toString()}</div>
+          )}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-lg font-semibold text-white truncate">{player.playerInfo?.name || player.summonerName || `Player ${index + 1}`}</span>
+            {player.role && <span className="text-sm opacity-70">{roleIcons[player.role] || ''} {player.role}</span>}
+          </div>
+          <div className={`text-sm ${teamColor === 'blue' ? 'text-blue-300' : 'text-red-300'}`}>{getChampionName(player.championId) || 'No Champion Selected'}</div>
+        </div>
+        <div className={`w-20 h-20 rounded-lg overflow-hidden border-2 ${teamColor === 'blue' ? 'border-blue-400' : 'border-red-400'} flex-shrink-0`}>
+          {image ? (
+            <Image src={image} alt={getChampionName(player.championId)} width={80} height={80} className="w-full h-full object-cover" />
+          ) : (
+            <div className="w-full h-full bg-gray-800 flex items-center justify-center text-gray-500 text-sm">{index + 1}</div>
           )}
         </div>
       </div>
-    );
-  };
+    </motion.div>
+  );
+};
 
-  const renderTeamBans = (bans: number[] = [], teamColor: 'blue' | 'red'): React.ReactNode => {
-    return (
-      <div className="flex gap-1">
-        {Array.from({ length: 5 }, (_, i) => {
-          const championId = bans[i];
-          const image = getChampionImage(championId);
-          const borderColor = teamColor === 'blue' ? 'border-blue-500' : 'border-red-500';
-          
-          return (
-            <div key={i} className={`w-12 h-12 bg-gray-800 rounded border-2 ${borderColor} overflow-hidden relative flex-shrink-0`}>
-              {image ? (
-                <>
-                  <Image
-                    src={image}
-                    alt={getChampionName(championId)}
-                    width={48}
-                    height={48}
-                    className="w-full h-full object-cover grayscale"
-                  />
-                  <div className="absolute inset-0 bg-red-600/70 flex items-center justify-center">
-                    <span className="text-white text-xs font-bold">✕</span>
-                  </div>
-                </>
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-gray-500 text-xs">
-                  {i + 1}
-                </div>
-              )}
-            </div>
-          );
-        })}
+const renderTeamSection = (team: EnhancedChampSelectPlayer[], teamData: PickbanTournamentTeam, teamColor: 'blue' | 'red') => {
+  const slideDirection = teamColor === 'blue' ? -100 : 100;
+  return (
+    <motion.div initial={{ x: slideDirection, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ duration: 0.8, delay: 0.3 }} className={`w-full max-w-md space-y-3`}>
+      <div className="flex items-center gap-4 mb-6">
+        <Image src={teamData.logo} alt={teamData.name} width={60} height={60} className="rounded-lg" />
+        <div>
+          <h2 className={`text-2xl font-bold ${teamColor === 'blue' ? 'text-blue-400' : 'text-red-400'}`}>{teamData.name}</h2>
+          <p className="text-gray-300 text-sm">{teamData.tag}</p>
+        </div>
       </div>
-    );
-  };
+      <div className="space-y-3">
+        {team.map((player, index) => renderPlayerSlot(player, index, teamColor))}
+      </div>
+      {teamData.coach && (
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }} className={`mt-6 p-3 rounded-lg backdrop-blur-sm border ${teamColor === 'blue' ? 'bg-blue-900/20 border-blue-500/30' : 'bg-red-900/20 border-red-500/30'}`}>
+          <div className="text-center">
+            <div className="text-sm text-gray-400 mb-1">COACHES</div>
+            <div className="font-semibold text-white">{teamData.coach.name}</div>
+          </div>
+        </motion.div>
+      )}
+    </motion.div>
+  );
+};
 
-  const renderTeamPicks = (team: ChampSelectPlayer[] = [], teamColor: 'blue' | 'red'): React.ReactNode => {
-    const borderColor = teamColor === 'blue' ? 'border-blue-500' : 'border-red-500';
-    const bgColor = teamColor === 'blue' ? 'bg-blue-900/30' : 'bg-red-900/30';
-    
-    return (
-      <div className="space-y-2">
-        {team.map((player, index) => {
-          const image = getChampionImage(player.championId);
-          const isCurrentPlayer = player.isActingNow;
-          
-          return (
-            <div key={player.cellId || index} className={`flex items-center p-3 rounded-lg ${bgColor} ${
-              isCurrentPlayer ? 'ring-2 ring-yellow-400 bg-yellow-400/20' : ''
-            } transition-all duration-300`}>
-              <div className={`w-16 h-16 bg-gray-700 rounded border-2 ${borderColor} overflow-hidden mr-4 flex-shrink-0`}>
-                {image ? (
-                  <Image
-                    src={image}
-                    alt={getChampionName(player.championId)}
-                    width={64}
-                    height={64}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-500 text-sm">
-                    {index + 1}
-                  </div>
-                )}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-white font-semibold text-lg truncate">
-                  {player.summonerName || `Player ${index + 1}`}
-                </div>
-                <div className={`text-sm font-medium ${teamColor === 'blue' ? 'text-blue-300' : 'text-red-300'}`}>
-                  {getChampionName(player.championId) || 'No Champion Selected'}
-                </div>
-              </div>
-              {isCurrentPlayer && (
-                <div className="flex-shrink-0 ml-4">
-                  <div className="w-3 h-3 bg-yellow-400 rounded-full animate-pulse"></div>
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    );
-  };
+const ChampSelectOverlayPage: React.FC = () => {
+  const { data, loading, error } = useChampSelectData();
 
-  if (!champSelectData) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 relative">
-        {renderConnectionStatus()}
-      </div>
-    );
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center bg-black text-white">Loading champion select data...</div>;
+  }
+  if (error) {
+    return <div className="min-h-screen flex items-center justify-center bg-black text-red-400">{error}</div>;
+  }
+  if (!data) {
+    return <div className="min-h-screen flex items-center justify-center bg-black text-white">Waiting for Champion Select...</div>;
   }
 
-  const { phase, timer, myTeam, theirTeam, bans } = champSelectData;
-  const currentAction = champSelectData.actions?.flat().find(action => action.isInProgress);
+  const { myTeam, theirTeam, tournamentData, bans, timer } = data;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 p-6">
-      {/* Header with Phase and Timer */}
-      <div className="text-center mb-8">
-        <div className="text-4xl font-bold text-white mb-2">
-          {timer?.isInfinite ? '∞' : formatTime(timer?.adjustedTimeLeftInPhase || 0)}
-        </div>
-        <div className="text-xl text-gray-300 capitalize">
-          {phase ? phase.replace(/([A-Z])/g, ' $1').trim() : 'Champion Select'}
-        </div>
-        {currentAction && (
-          <div className="mt-3 inline-block bg-yellow-600/20 border border-yellow-600 rounded-lg px-4 py-2 text-yellow-400">
-            Player {currentAction.actorCellId + 1} is {currentAction.type === 'ban' ? 'banning' : 'picking'} a champion
-          </div>
-        )}
-      </div>
-
-      {/* Teams Layout */}
-      <div className="grid grid-cols-2 gap-8 max-w-7xl mx-auto">
-        {/* Blue Team */}
-        <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-6 border border-blue-500/30">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-blue-400">Blue Team</h2>
-            <div className="text-sm text-gray-400">Bans</div>
-          </div>
-          
-          {/* Blue Team Bans */}
-          <div className="mb-6">
-            {renderTeamBans(bans?.myTeamBans, 'blue')}
-          </div>
-          
-          {/* Blue Team Picks */}
-          {renderTeamPicks(myTeam, 'blue')}
-        </div>
-
-        {/* Red Team */}
-        <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-6 border border-red-500/30">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-red-400">Red Team</h2>
-            <div className="text-sm text-gray-400">Bans</div>
-          </div>
-          
-          {/* Red Team Bans */}
-          <div className="mb-6">
-            {renderTeamBans(bans?.theirTeamBans, 'red')}
-          </div>
-          
-          {/* Red Team Picks */}
-          {renderTeamPicks(theirTeam, 'red')}
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 relative overflow-hidden">
+      <div className="absolute inset-0 bg-black/40"></div>
+      <div className="relative z-10 p-8">
+        {renderBanPhases(bans)}
+        {renderTournamentHeader(tournamentData, timer)}
+        <div className="flex justify-between items-start gap-8 max-w-7xl mx-auto">
+          <div className="flex-1 flex justify-start">{tournamentData && renderTeamSection(myTeam, tournamentData.blueTeam, 'blue')}</div>
+          <div className="flex-1 flex justify-end">{tournamentData && renderTeamSection(theirTeam, tournamentData.redTeam, 'red')}</div>
         </div>
       </div>
     </div>
   );
-} 
+};
+
+export default ChampSelectOverlayPage;

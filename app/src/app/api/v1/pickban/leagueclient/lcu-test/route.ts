@@ -1,208 +1,58 @@
 import { NextResponse } from 'next/server';
-import https from 'https';
-import { URL } from 'url';
+import { findLCUCredentials, testLCUConnection } from '@lib/utils/lcu-helpers';
 
 export async function GET(): Promise<NextResponse> {
     try {
-        // First, get the LCU credentials
-        const credentialsResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/v1/pickban/leagueclient/lcu-credentials`);
+        const credentials = await findLCUCredentials();
 
-        if (!credentialsResponse.ok) {
-            return NextResponse.json(
-                { error: 'Could not get LCU credentials' },
-                { status: 404 }
-            );
+        if (!credentials) {
+            return NextResponse.json({
+                success: false,
+                error: 'League Client not found',
+                message: 'Could not find League of Legends client. Make sure it is running and you are logged in.',
+                suggestions: [
+                    'Start League of Legends client',
+                    'Log into your account (not on login screen)',
+                    'Wait for client to fully load',
+                    'Try restarting the League client'
+                ]
+            }, { status: 404 });
         }
 
-        const { credentials } = await credentialsResponse.json();
-        const { port, password, protocol } = credentials;
+        // Test the connection
+        const testResult = await testLCUConnection(credentials);
 
-        // Test LCU connection using Node.js https module
-        const testUrl = `${protocol}://127.0.0.1:${port}/lol-summoner/v1/current-summoner`;
-        const auth = Buffer.from(`riot:${password}`).toString('base64');
-        const parsedUrl = new URL(testUrl);
-
-        const options = {
-            hostname: parsedUrl.hostname,
-            port: parsedUrl.port,
-            path: parsedUrl.pathname,
-            method: 'GET',
-            headers: {
-                'Authorization': `Basic ${auth}`,
-                'Accept': 'application/json'
-            },
-            rejectUnauthorized: false // Ignore self-signed certificate
-        };
-
-        const response = await new Promise<{ statusCode?: number, data: string }>((resolve, reject) => {
-            const req = https.request(options, (res) => {
-                let data = '';
-                res.on('data', (chunk) => {
-                    data += chunk;
-                });
-                res.on('end', () => {
-                    resolve({ statusCode: res.statusCode, data });
-                });
+        if (testResult.success && testResult.data) {
+            const summoner = testResult.data;
+            return NextResponse.json({
+                success: true,
+                message: `✅ Test successful! Connected to summoner: ${summoner.displayName || 'Unknown'} (Level ${summoner.summonerLevel || '?'})`,
+                summoner: {
+                    displayName: summoner.displayName,
+                    summonerLevel: summoner.summonerLevel,
+                    profileIconId: summoner.profileIconId
+                },
+                credentials: {
+                    port: credentials.port,
+                    protocol: credentials.protocol,
+                    hasPassword: !!credentials.password
+                }
             });
-
-            req.on('error', (error) => {
-                reject(error);
-            });
-
-            req.setTimeout(10000, () => {
-                req.destroy();
-                reject(new Error('Request timeout'));
-            });
-
-            req.end();
-        });
-
-        if (response.statusCode && response.statusCode >= 200 && response.statusCode < 300) {
-            try {
-                const summoner = JSON.parse(response.data);
-                return NextResponse.json({
-                    success: true,
-                    message: 'LCU connection successful',
-                    summoner: {
-                        displayName: summoner.displayName,
-                        summonerLevel: summoner.summonerLevel,
-                        profileIconId: summoner.profileIconId
-                    },
-                    credentials: {
-                        port,
-                        protocol,
-                        // Don't return the password for security
-                        hasPassword: !!password
-                    }
-                });
-            } catch (parseError) {
-                return NextResponse.json({
-                    success: false,
-                    message: `LCU connection successful but couldn't parse response: ${parseError}`,
-                    credentials: {
-                        port,
-                        protocol,
-                        hasPassword: !!password
-                    }
-                });
-            }
         } else {
             return NextResponse.json({
                 success: false,
-                message: `LCU connection failed: ${response.statusCode || 'Unknown error'}`,
-                credentials: {
-                    port,
-                    protocol,
-                    hasPassword: !!password
-                }
-            });
+                error: 'LCU connection test failed',
+                message: testResult.error || 'Unable to connect to League Client'
+            }, { status: 500 });
         }
 
     } catch (error) {
         console.error('LCU test error:', error);
 
-        return NextResponse.json(
-            {
-                error: 'LCU test failed',
-                message: error instanceof Error ? error.message : 'Unknown error',
-                suggestions: [
-                    'Make sure League of Legends client is running',
-                    'Ensure you are logged into your account',
-                    'Try restarting the League client',
-                    'Check if the client is fully loaded (not on login screen)'
-                ]
-            },
-            { status: 500 }
-        );
-    }
-}
-
-export async function POST(): Promise<NextResponse> {
-    try {
-        const credentialsResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/v1/pickban/leagueclient/lcu-credentials`);
-
-        if (!credentialsResponse.ok) {
-            return NextResponse.json(
-                { error: 'Could not get LCU credentials' },
-                { status: 404 }
-            );
-        }
-
-        const { credentials } = await credentialsResponse.json();
-        const { port, password, protocol } = credentials;
-
-        const testUrl = `${protocol}://127.0.0.1:${port}/lol-gameflow/v1/gameflow-phase`;
-        const auth = Buffer.from(`riot:${password}`).toString('base64');
-        const parsedUrl = new URL(testUrl);
-
-        const options = {
-            hostname: parsedUrl.hostname,
-            port: parsedUrl.port,
-            path: parsedUrl.pathname,
-            method: 'GET',
-            headers: {
-                'Authorization': `Basic ${auth}`,
-                'Accept': 'application/json'
-            },
-            rejectUnauthorized: false
-        };
-
-        const response = await new Promise<{ statusCode?: number, data: string }>((resolve, reject) => {
-            const req = https.request(options, (res) => {
-                let data = '';
-                res.on('data', (chunk) => {
-                    data += chunk;
-                });
-                res.on('end', () => {
-                    resolve({ statusCode: res.statusCode, data });
-                });
-            });
-
-            req.on('error', (error) => {
-                reject(error);
-            });
-
-            req.setTimeout(10000, () => {
-                req.destroy();
-                reject(new Error('Request timeout'));
-            });
-
-            req.end();
-        });
-
-        if (response.statusCode && response.statusCode >= 200 && response.statusCode < 300) {
-            const gameflowPhase = response.data.replace(/"/g, '');
-            return NextResponse.json({
-                success: true,
-                message: 'LCU connection successful (gameflow test)',
-                gameflowPhase,
-                credentials: {
-                    port,
-                    protocol,
-                    hasPassword: !!password
-                }
-            });
-        } else {
-            return NextResponse.json({
-                success: false,
-                message: `Gameflow test failed: ${response.statusCode || 'Unknown error'}`,
-                credentials: {
-                    port,
-                    protocol,
-                    hasPassword: !!password
-                }
-            });
-        }
-
-    } catch (error) {
-        console.error('LCU gameflow test error:', error);
-
-        return NextResponse.json(
-            {
-                error: 'LCU gameflow test failed',
-                message: error instanceof Error ? error.message : 'Unknown error'
-            },
-            { status: 500 }
-        );
+        return NextResponse.json({
+            success: false,
+            error: 'LCU test failed',
+            message: error instanceof Error ? error.message : 'Unknown error occurred'
+        }, { status: 500 });
     }
 } 

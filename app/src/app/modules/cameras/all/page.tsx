@@ -4,65 +4,20 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from "next/navigation";
 import Image from 'next/image';
 import { useNavigation } from '@lib/contexts/NavigationContext';
+import { useCameras } from '@lib/contexts/CamerasContext';
 import { AuthGuard } from '@lib/components/AuthGuard';
-import { useAuthenticatedFetch } from '@lib/hooks/useAuthenticatedFetch';
-import { CameraPlayer, Team } from '@lib/types';
+import { LoadingSpinner } from '@components/common';
 
 export default function AllCamerasPage() {
     const router = useRouter();
     const { setActiveModule } = useNavigation();
-    const { authenticatedFetch } = useAuthenticatedFetch();
-    const [teams, setTeams] = useState<Team[]>([]);
-    const [allPlayers, setAllPlayers] = useState<CameraPlayer[]>([]);
-    const [loading, setLoading] = useState(true);
+    const { teams, allPlayers, loading, error, refreshCameras } = useCameras();
     const [streamErrors, setStreamErrors] = useState<Set<string>>(new Set());
 
     useEffect(() => {
         setActiveModule('cameras');
-        loadCameraData();
-    }, [setActiveModule]);
-
-    const loadCameraData = async () => {
-        try {
-            setLoading(true);
-
-            // Load camera settings
-            const response = await authenticatedFetch('/api/v1/cameras/settings');
-
-            if (response.ok) {
-                const data = await response.json();
-                const teamsData: Team[] = data.teams || [];
-                setTeams(teamsData);
-
-                // Flatten all players with team info
-                const players: CameraPlayer[] = teamsData.flatMap(team => {
-                    // Handle different data structures from camera settings API
-                    const teamPlayers = team.players || [];
-                    if (Array.isArray(teamPlayers)) {
-                        // If players is directly an array
-                        return teamPlayers.map(player => ({
-                            ...player,
-                            teamName: team.name,
-                            teamLogo: team.logo?.data
-                        }));
-                    } else if (teamPlayers.main && Array.isArray(teamPlayers.main)) {
-                        // If players has main array structure
-                        return teamPlayers.main.map(player => ({
-                            ...player,
-                            teamName: team.name,
-                            teamLogo: team.logo?.data
-                        }));
-                    }
-                    return [];
-                });
-                setAllPlayers(players);
-            }
-        } catch (error) {
-            console.error('Error loading camera data:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
+        refreshCameras();
+    }, [setActiveModule, refreshCameras]);
 
     const handleStreamError = (playerName: string) => {
         setStreamErrors(prev => new Set([...prev, playerName]));
@@ -78,12 +33,9 @@ export default function AllCamerasPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gray-900 flex items-center justify-center p-8">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400 mx-auto mb-4"></div>
-                    <p className="text-white">Loading cameras...</p>
-                </div>
-            </div>
+            <AuthGuard loadingMessage="Loading cameras...">
+                <LoadingSpinner fullscreen text="Loading cameras..." />
+            </AuthGuard>
         );
     }
 

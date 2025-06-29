@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { useNavigation } from '@lib/contexts/NavigationContext';
 import { useAuth } from '@lib/contexts/AuthContext';
 import { useElectron } from '@lib/contexts/ElectronContext';
-import { useAuthenticatedFetch } from '@lib/hooks/useAuthenticatedFetch';
+import { useCameras } from '@lib/contexts/CamerasContext';
+import { useTeams } from '@lib/contexts/TeamsContext';
 import type { CameraTeam, Team, Player } from '@lib/types';
 import Image from 'next/image';
 
@@ -14,7 +15,8 @@ export default function CameraSetupListPage() {
   const { setActiveModule } = useNavigation();
   const { user, isLoading: authLoading } = useAuth();
   const { isElectron, useLocalData } = useElectron();
-  const { authenticatedFetch } = useAuthenticatedFetch();
+  const { teams: cameraTeams, loading: camerasLoading, updateCameraSettings } = useCameras();
+  const { teams: userTeams } = useTeams();
 
   const [teams, setTeams] = useState<CameraTeam[]>([]);
   const [loading, setLoading] = useState(true);
@@ -22,7 +24,7 @@ export default function CameraSetupListPage() {
   useEffect(() => {
     setActiveModule('cameras');
 
-    if (!authLoading) {
+    if (!authLoading && !camerasLoading) {
       // Only redirect to auth if not authenticated and not using Electron local data
       if (!user && !(isElectron && useLocalData)) {
         router.push('/auth');
@@ -32,11 +34,22 @@ export default function CameraSetupListPage() {
       const loadCameraSettings = async () => {
         try {
           setLoading(true);
-          const response = await authenticatedFetch('/api/v1/cameras/settings');
-
-          if (response.ok) {
-            const data = await response.json();
-            setTeams(data.teams || []);
+          
+          if (cameraTeams.length > 0) {
+            // Convert camera teams to the format expected by this page
+            const formattedTeams: CameraTeam[] = cameraTeams.map(team => ({
+              teamId: team.id,
+              teamName: team.name,
+              teamLogo: team.logo?.data || '',
+              players: team.players.main.map(player => ({
+                playerId: player.id,
+                playerName: player.inGameName,
+                role: player.role,
+                url: '',
+                imagePath: ''
+              }))
+            }));
+            setTeams(formattedTeams);
           } else {
             // If no camera settings exist, auto-setup from teams
             await autoSetupFromTeams();
@@ -51,30 +64,27 @@ export default function CameraSetupListPage() {
 
       loadCameraSettings();
     }
-  }, [router, setActiveModule, user, authLoading, isElectron, useLocalData, authenticatedFetch]);
+  }, [router, setActiveModule, user, authLoading, isElectron, useLocalData, cameraTeams, camerasLoading]);
 
   const autoSetupFromTeams = async () => {
     try {
-      const teamsResponse = await authenticatedFetch('/api/v1/teams');
+      if (userTeams.length > 0) {
+        const cameraTeams = userTeams.map((team: Team & { logoUrl?: string }) => ({
+          teamId: team.id,
+          teamName: team.name,
+          teamLogo: team.logoUrl || team.logo?.data || '',
+          players: team.players.main.map((player: Player) => ({
+            playerId: player.id,
+            playerName: player.inGameName,
+            role: player.role,
+            url: '',
+            imagePath: ''
+          }))
+        }));
 
-      if (teamsResponse.ok) {
-        const teamsData = await teamsResponse.json();
-        const existingTeams = teamsData.teams || [];
-
-        if (existingTeams.length > 0) {
-          const cameraTeams = existingTeams.map((team: Team & { logoUrl?: string }) => ({
-            teamId: team.id,
-            teamName: team.name,
-            teamLogo: team.logoUrl || team.logo?.data || '',
-            players: team.players.main.map((player: Player) => ({
-              playerId: player.id,
-              playerName: player.inGameName,
-              role: player.role,
-              url: '',
-              imagePath: ''
-            }))
-          }));
-
+        // Save camera settings using context
+        const result = await updateCameraSettings({ teams: cameraTeams });
+        if (result.success) {
           setTeams(cameraTeams);
         }
       }

@@ -10,10 +10,38 @@ contextBridge.exposeInMainWorld('electronAPI', {
     saveChampionsCache: (championsData) => ipcRenderer.invoke('save-champions-cache', championsData),
     loadChampionsCache: () => ipcRenderer.invoke('load-champions-cache'),
 
+    // Enhanced champion caching system
+    getChampionCachePath: () => ipcRenderer.invoke('get-champion-cache-path'),
+    checkFileExists: (filePath) => ipcRenderer.invoke('check-file-exists', filePath),
+    loadChampionData: (filePath) => ipcRenderer.invoke('load-champion-data', filePath),
+    saveChampionData: (filePath, data) => ipcRenderer.invoke('save-champion-data', filePath, data),
+    createChampionDirectory: (dirPath) => ipcRenderer.invoke('create-champion-directory', dirPath),
+    downloadChampionImage: (url, localPath) => ipcRenderer.invoke('download-champion-image', url, localPath),
+    clearChampionCache: (cacheDir) => ipcRenderer.invoke('clear-champion-cache', cacheDir),
+    getChampionCacheStats: (cacheDir) => ipcRenderer.invoke('get-champion-cache-stats', cacheDir),
+
     // Asset management
     copyAssetFile: (sourcePath, fileName) => ipcRenderer.invoke('copy-asset-file', sourcePath, fileName),
     saveCameraUpload: (fileBuffer, fileName) => ipcRenderer.invoke('save-camera-upload', fileBuffer, fileName),
     getUserDataPath: () => ipcRenderer.invoke('get-user-data-path'),
+
+    // Asset caching system
+    downloadAsset: (url, category, assetKey) => ipcRenderer.invoke('download-asset', url, category, assetKey),
+    loadAssetManifest: () => ipcRenderer.invoke('load-asset-manifest'),
+    saveAssetManifest: (manifestData) => ipcRenderer.invoke('save-asset-manifest', manifestData),
+    scanAndUpdateManifest: () => ipcRenderer.invoke('scan-and-update-manifest'),
+    getFileSize: (filePath) => ipcRenderer.invoke('get-file-size', filePath),
+    removeAsset: (filePath) => ipcRenderer.invoke('remove-asset', filePath),
+    clearAssetCache: () => ipcRenderer.invoke('clear-asset-cache'),
+    getAssetCacheStats: () => ipcRenderer.invoke('get-asset-cache-stats'),
+
+    // LCU Data communication for overlay
+    getLCUData: () => ipcRenderer.invoke('get-lcu-data'),
+    updateLCUData: (data) => ipcRenderer.invoke('update-lcu-data', data),
+    setMockData: (enabled) => ipcRenderer.invoke('set-mock-data', enabled),
+    onLCUDataUpdate: (callback) => ipcRenderer.on('lcu-data-update', callback),
+    onLCUConnectionChange: (callback) => ipcRenderer.on('lcu-connection-change', callback),
+    onMockDataToggle: (callback) => ipcRenderer.on('mock-data-toggle', callback),
 
     // Electron menu events
     onCreateTournament: (callback) => ipcRenderer.on('create-tournament', callback),
@@ -35,4 +63,18 @@ contextBridge.exposeInMainWorld('electronAPI', {
 });
 
 // Log that preload script has loaded
-console.log('League Stream Utils Electron preload script loaded'); 
+console.log('League Stream Utils Electron preload script loaded');
+
+// Log the exposed API methods
+const exposedMethods = [
+    'saveTournamentFile', 'saveChampionsCache', 'loadChampionsCache',
+    'getChampionCachePath', 'checkFileExists', 'loadChampionData', 'saveChampionData',
+    'createChampionDirectory', 'downloadChampionImage', 'clearChampionCache', 'getChampionCacheStats',
+    'copyAssetFile', 'saveCameraUpload', 'getUserDataPath',
+    'downloadAsset', 'loadAssetManifest', 'saveAssetManifest', 'scanAndUpdateManifest', 'getFileSize', 'removeAsset', 'clearAssetCache', 'getAssetCacheStats',
+    'getLCUData', 'updateLCUData', 'setMockData', 'onLCUDataUpdate', 'onLCUConnectionChange', 'onMockDataToggle',
+    'onCreateTournament', 'onLoadTournament', 'onSaveTournament', 'onImportLogos', 'onExportTournament',
+    'onUpdateChampions', 'onChampionsCacheCleared', 'onOpenOBSControl', 'onOpenSettings',
+    'removeAllListeners', 'platform', 'isElectron'
+];
+console.log('Exposed electronAPI methods:', exposedMethods); 

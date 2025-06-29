@@ -165,8 +165,8 @@ class LCUConnector {
     this.reconnectAttempts = 0;
 
     try {
-      // Use the working direct test endpoint to verify LCU connection
-      const testResponse = await fetch('/api/v1/pickban/leagueclient/lcu-test-direct');
+      // Use the test endpoint to verify LCU connection
+      const testResponse = await fetch('/api/v1/pickban/leagueclient/lcu-test');
       const testResult = await testResponse.json();
 
       if (!testResult.success) {
@@ -216,7 +216,7 @@ class LCUConnector {
 
   public async testConnection(): Promise<{ success: boolean; message: string; summoner?: unknown }> {
     try {
-      const response = await fetch('/api/v1/pickban/leagueclient/lcu-test-direct');
+      const response = await fetch('/api/v1/pickban/leagueclient/lcu-test');
       const result = await response.json();
 
       if (result.success) {
@@ -242,28 +242,33 @@ class LCUConnector {
 
   public async checkStatus(): Promise<{ success: boolean; message: string; checks?: unknown }> {
     try {
-      const response = await fetch('/api/v1/pickban/leagueclient/lcu-status');
+      // Use the test endpoint to check LCU status
+      const response = await fetch('/api/v1/pickban/leagueclient/lcu-test');
       const result = await response.json();
 
-      const checks = result.checks;
-      let statusMsg = `📊 League Status:\n`;
-      statusMsg += `• Platform: ${checks.platform}\n`;
-      statusMsg += `• Installed: ${checks.leagueInstalled ? '✅' : '❌'}\n`;
-      statusMsg += `• Running: ${checks.leagueRunning ? '✅' : '❌'}\n`;
-      statusMsg += `• Lockfile: ${checks.lockfileExists ? '✅' : '❌'}\n`;
+      if (result.success) {
+        const summoner = result.summoner;
+        const statusMsg = `✅ League Client Connected!\n• Summoner: ${summoner?.displayName || 'Unknown'}\n• Level: ${summoner?.summonerLevel || '?'}\n• Port: ${result.credentials?.port}\n• Protocol: ${result.credentials?.protocol}`;
 
-      if (checks.lockfileDetails) {
-        statusMsg += `• Port: ${checks.lockfileDetails.port}\n`;
-        statusMsg += `• Protocol: ${checks.lockfileDetails.protocol}`;
+        return {
+          success: true,
+          message: statusMsg,
+          checks: {
+            connected: true,
+            summoner: summoner,
+            credentials: result.credentials
+          }
+        };
+      } else {
+        return {
+          success: false,
+          message: `❌ League Client not found: ${result.message || result.error}`,
+          checks: {
+            connected: false,
+            error: result.error
+          }
+        };
       }
-
-      const success = checks.leagueInstalled && checks.leagueRunning && checks.lockfileExists;
-
-      return {
-        success,
-        message: statusMsg,
-        checks
-      };
     } catch (err) {
       return {
         success: false,

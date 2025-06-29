@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { useAuthenticatedFetch } from '@lib/hooks/useAuthenticatedFetch';
 import { useAuth } from './AuthContext';
+import { useElectron } from './ElectronContext';
 import { storage } from '@lib/utils/storage';
 import type { Team, CreateTeamRequest } from '@lib/types';
 
@@ -32,8 +33,45 @@ const CACHE_KEY = 'teams-data';
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 const SYNC_CHECK_INTERVAL = 30000; // 30 seconds
 
+// Simple electron storage helper to avoid blocking localStorage operations
+const electronStorage = {
+  async get<T>(key: string): Promise<T | null> {
+    if (typeof window !== 'undefined' && window.electronAPI?.storage?.get) {
+      try {
+        const data = await window.electronAPI.storage.get(key);
+        return data as T;
+      } catch (err) {
+        console.debug('Electron storage get failed:', err);
+        return null;
+      }
+    }
+    return null;
+  },
+
+  async set<T>(key: string, data: T): Promise<void> {
+    if (typeof window !== 'undefined' && window.electronAPI?.storage?.set) {
+      try {
+        await window.electronAPI.storage.set(key, data);
+      } catch (err) {
+        console.debug('Electron storage set failed:', err);
+      }
+    }
+  },
+
+  async remove(key: string): Promise<void> {
+    if (typeof window !== 'undefined' && window.electronAPI?.storage?.remove) {
+      try {
+        await window.electronAPI.storage.remove(key);
+      } catch (err) {
+        console.debug('Electron storage remove failed:', err);
+      }
+    }
+  }
+};
+
 export function TeamsProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
+  const { isElectron, useLocalData } = useElectron();
   const { authenticatedFetch } = useAuthenticatedFetch();
   
   const [teams, setTeams] = useState<Team[]>([]);
@@ -41,21 +79,27 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null);
   const [lastFetch, setLastFetch] = useState<number>(0);
 
+  // Check if we're in local data mode
+  const isLocalDataMode = isElectron && useLocalData;
+
   // Load cached data on mount
   useEffect(() => {
-    loadCachedData();
+    // Use setTimeout to avoid blocking the UI thread
+    setTimeout(() => {
+      loadCachedData();
+    }, 0);
   }, [user]);
 
-  // Periodic sync check
+  // Periodic sync check (only in online mode)
   useEffect(() => {
-    if (!user) return;
+    if (!user || isLocalDataMode) return;
 
     const interval = setInterval(() => {
       checkDataSync();
     }, SYNC_CHECK_INTERVAL);
 
     return () => clearInterval(interval);
-  }, [user, lastFetch]);
+  }, [user, lastFetch, isLocalDataMode]);
 
   const loadCachedData = async (): Promise<void> => {
     // Don't fetch data if user is not authenticated
@@ -65,32 +109,54 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      const cachedTeams = await storage.get<Team[]>(CACHE_KEY, { 
-        ttl: CACHE_TTL,
-        enableChecksum: true 
-      });
-      
-      if (cachedTeams) {
-        setTeams(cachedTeams);
-        setLoading(false);
-        const timestamp = await storage.getTimestamp(CACHE_KEY);
-        if (timestamp) {
-          setLastFetch(timestamp);
+      if (isLocalDataMode) {
+        // Use electron storage directly for local mode - non-blocking
+        const cachedTeams = await electronStorage.get<Team[]>(CACHE_KEY);
+        if (cachedTeams && Array.isArray(cachedTeams)) {
+          setTeams(cachedTeams);
+        } else {
+          setTeams([]);
         }
-        
-        // Still fetch fresh data in background for potential updates
-        fetchTeamsFromAPI(false);
+        setLoading(false);
       } else {
-        // No cache, fetch fresh data
-        await fetchTeamsFromAPI(true);
+        // Use universal storage for online mode
+        const cachedTeams = await storage.get<Team[]>(CACHE_KEY, { 
+          ttl: CACHE_TTL,
+          enableChecksum: true 
+        });
+        
+        if (cachedTeams) {
+          setTeams(cachedTeams);
+          setLoading(false);
+          const timestamp = await storage.getTimestamp(CACHE_KEY);
+          if (timestamp) {
+            setLastFetch(timestamp);
+          }
+          
+          // Still fetch fresh data in background for potential updates
+          fetchTeamsFromAPI(false);
+        } else {
+          // No cache, fetch fresh data
+          await fetchTeamsFromAPI(true);
+        }
       }
     } catch (err) {
       console.error('Failed to load cached teams:', err);
-      await fetchTeamsFromAPI(true);
+      if (!isLocalDataMode) {
+        await fetchTeamsFromAPI(true);
+      } else {
+        setLoading(false);
+      }
     }
   };
 
   const fetchTeamsFromAPI = async (showLoading = true): Promise<Team[]> => {
+    // Skip API calls in local data mode
+    if (isLocalDataMode) {
+      if (showLoading) setLoading(false);
+      return teams;
+    }
+
     // Don't fetch if user is not authenticated
     if (!user) {
       if (showLoading) setLoading(false);
@@ -131,6 +197,9 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
   };
 
   const checkDataSync = async (): Promise<void> => {
+    // Skip sync checks in local data mode
+    if (isLocalDataMode) return;
+    
     // Don't sync if user is not authenticated
     if (!user) return;
 
@@ -168,11 +237,73 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
   };
 
   const refreshTeams = useCallback(async (): Promise<void> => {
-    await fetchTeamsFromAPI(true);
-  }, []);
+    if (isLocalDataMode) {
+      // In local mode, just reload from electron storage
+      await loadCachedData();
+    } else {
+      await fetchTeamsFromAPI(true);
+    }
+  }, [isLocalDataMode]);
 
   const createTeam = useCallback(async (teamData: CreateTeamRequest): Promise<{ success: boolean; team?: Team; error?: string }> => {
     try {
+      if (isLocalDataMode) {
+        // Create team locally
+        const mainPlayers: Team['players']['main'] = teamData.players.main.map(player => ({
+          ...player,
+          id: `local-${Date.now()}-${Math.random()}`,
+          verified: false,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }));
+
+        const substitutePlayers: Team['players']['substitutes'] = teamData.players.substitutes.map(player => ({
+          ...player,
+          id: `local-${Date.now()}-${Math.random()}`,
+          verified: false,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }));
+
+        const staff: Team['staff'] = {};
+        if (teamData.staff?.coach) {
+          staff.coach = { ...teamData.staff.coach, id: `local-${Date.now()}-coach` };
+        }
+        if (teamData.staff?.analyst) {
+          staff.analyst = { ...teamData.staff.analyst, id: `local-${Date.now()}-analyst` };
+        }
+        if (teamData.staff?.manager) {
+          staff.manager = { ...teamData.staff.manager, id: `local-${Date.now()}-manager` };
+        }
+
+        const newTeam: Team = {
+          id: `local-${Date.now()}`,
+          name: teamData.name,
+          tag: teamData.tag,
+          logo: teamData.logo,
+          colors: teamData.colors,
+          players: {
+            main: mainPlayers,
+            substitutes: substitutePlayers
+          },
+          staff,
+          region: teamData.region,
+          tier: teamData.tier,
+          founded: new Date(),
+          verified: false,
+          socialMedia: teamData.socialMedia,
+          userId: user?.id || 'electron-admin',
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+        
+        const updatedTeams = [newTeam, ...teams];
+        setTeams(updatedTeams);
+        await electronStorage.set(CACHE_KEY, updatedTeams);
+        return { success: true, team: newTeam };
+      }
+
+      // Online mode - use API
       const response = await authenticatedFetch('/api/v1/teams', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -194,10 +325,22 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
       const error = err instanceof Error ? err.message : 'Failed to create team';
       return { success: false, error };
     }
-  }, [teams, authenticatedFetch]);
+  }, [teams, authenticatedFetch, isLocalDataMode, user]);
 
   const updateTeam = useCallback(async (teamId: string, updates: Partial<Team>): Promise<{ success: boolean; team?: Team; error?: string }> => {
     try {
+      if (isLocalDataMode) {
+        // Update team locally
+        const updatedTeams = teams.map(team => 
+          team.id === teamId ? { ...team, ...updates, updatedAt: new Date() } : team
+        );
+        setTeams(updatedTeams);
+        await electronStorage.set(CACHE_KEY, updatedTeams);
+        const updatedTeam = updatedTeams.find(t => t.id === teamId);
+        return { success: true, team: updatedTeam };
+      }
+
+      // Online mode - use API
       const response = await authenticatedFetch(`/api/v1/teams/${teamId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -221,10 +364,19 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
       const error = err instanceof Error ? err.message : 'Failed to update team';
       return { success: false, error };
     }
-  }, [teams, authenticatedFetch]);
+  }, [teams, authenticatedFetch, isLocalDataMode]);
 
   const deleteTeam = useCallback(async (teamId: string): Promise<{ success: boolean; error?: string }> => {
     try {
+      if (isLocalDataMode) {
+        // Delete team locally
+        const updatedTeams = teams.filter(team => team.id !== teamId);
+        setTeams(updatedTeams);
+        await electronStorage.set(CACHE_KEY, updatedTeams);
+        return { success: true };
+      }
+
+      // Online mode - use API
       const response = await authenticatedFetch(`/api/v1/teams/${teamId}`, {
         method: 'DELETE'
       });
@@ -242,19 +394,32 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
       const error = err instanceof Error ? err.message : 'Failed to delete team';
       return { success: false, error };
     }
-  }, [teams, authenticatedFetch]);
+  }, [teams, authenticatedFetch, isLocalDataMode]);
 
   const verifyTeam = useCallback(async (teamId: string): Promise<{ success: boolean; error?: string }> => {
     try {
+      if (isLocalDataMode) {
+        // Verify team locally
+        const updatedTeams = teams.map(team => 
+          team.id === teamId ? { ...team, verified: true, updatedAt: new Date() } : team
+        );
+        setTeams(updatedTeams);
+        await electronStorage.set(CACHE_KEY, updatedTeams);
+        return { success: true };
+      }
+
+      // Online mode - use API
       const response = await authenticatedFetch(`/api/v1/teams/${teamId}/verify`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ verified: true, verifyPlayers: true })
+        method: 'POST'
       });
 
       if (response.ok) {
-        // Refresh teams to get updated verification status
-        await fetchTeamsFromAPI(false);
+        const data = await response.json();
+        const updatedTeams = teams.map(team => 
+          team.id === teamId ? data.team : team
+        );
+        setTeams(updatedTeams);
+        await storage.set(CACHE_KEY, updatedTeams, { enableChecksum: true });
         return { success: true };
       } else {
         const data = await response.json();
@@ -264,17 +429,48 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
       const error = err instanceof Error ? err.message : 'Failed to verify team';
       return { success: false, error };
     }
-  }, [authenticatedFetch]);
+  }, [teams, authenticatedFetch, isLocalDataMode]);
 
   const verifyPlayer = useCallback(async (teamId: string, playerId: string): Promise<{ success: boolean; error?: string }> => {
     try {
+      if (isLocalDataMode) {
+        // Verify player locally
+        const updatedTeams = teams.map(team => {
+          if (team.id === teamId) {
+            const updatedMainPlayers = team.players.main.map(player => 
+              player.id === playerId ? { ...player, verified: true, verifiedAt: new Date(), updatedAt: new Date() } : player
+            );
+            const updatedSubPlayers = team.players.substitutes.map(player => 
+              player.id === playerId ? { ...player, verified: true, verifiedAt: new Date(), updatedAt: new Date() } : player
+            );
+            return {
+              ...team,
+              players: {
+                main: updatedMainPlayers,
+                substitutes: updatedSubPlayers
+              },
+              updatedAt: new Date()
+            };
+          }
+          return team;
+        });
+        setTeams(updatedTeams);
+        await electronStorage.set(CACHE_KEY, updatedTeams);
+        return { success: true };
+      }
+
+      // Online mode - use API
       const response = await authenticatedFetch(`/api/v1/teams/${teamId}/players/${playerId}/verify`, {
         method: 'POST'
       });
 
       if (response.ok) {
-        // Refresh teams to get updated verification status
-        await fetchTeamsFromAPI(false);
+        const data = await response.json();
+        const updatedTeams = teams.map(team => 
+          team.id === teamId ? data.team : team
+        );
+        setTeams(updatedTeams);
+        await storage.set(CACHE_KEY, updatedTeams, { enableChecksum: true });
         return { success: true };
       } else {
         const data = await response.json();
@@ -284,48 +480,87 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
       const error = err instanceof Error ? err.message : 'Failed to verify player';
       return { success: false, error };
     }
-  }, [authenticatedFetch]);
+  }, [teams, authenticatedFetch, isLocalDataMode]);
 
   const verifyAllPlayers = useCallback(async (teamId: string): Promise<{ success: boolean; error?: string }> => {
     try {
-      const team = teams.find(t => t.id === teamId);
-      if (!team) {
-        return { success: false, error: 'Team not found' };
+      if (isLocalDataMode) {
+        // Verify all players locally
+        const updatedTeams = teams.map(team => {
+          if (team.id === teamId) {
+            const now = new Date();
+            const updatedMainPlayers = team.players.main.map(player => ({ 
+              ...player, 
+              verified: true, 
+              verifiedAt: now, 
+              updatedAt: now 
+            }));
+            const updatedSubPlayers = team.players.substitutes.map(player => ({ 
+              ...player, 
+              verified: true, 
+              verifiedAt: now, 
+              updatedAt: now 
+            }));
+            return {
+              ...team,
+              players: {
+                main: updatedMainPlayers,
+                substitutes: updatedSubPlayers
+              },
+              updatedAt: now
+            };
+          }
+          return team;
+        });
+        setTeams(updatedTeams);
+        await electronStorage.set(CACHE_KEY, updatedTeams);
+        return { success: true };
       }
 
-      // Verify all main players
-      const allPlayers = [...team.players.main, ...team.players.substitutes];
-      const verificationPromises = allPlayers.map(player => 
-        verifyPlayer(teamId, player.id)
-      );
+      // Online mode - use API
+      const response = await authenticatedFetch(`/api/v1/teams/${teamId}/verify-all`, {
+        method: 'POST'
+      });
 
-      const results = await Promise.all(verificationPromises);
-      const failed = results.filter(r => !r.success);
-
-      if (failed.length === 0) {
+      if (response.ok) {
+        const data = await response.json();
+        const updatedTeams = teams.map(team => 
+          team.id === teamId ? data.team : team
+        );
+        setTeams(updatedTeams);
+        await storage.set(CACHE_KEY, updatedTeams, { enableChecksum: true });
         return { success: true };
       } else {
-        return { 
-          success: false, 
-          error: `Failed to verify ${failed.length} player(s)` 
-        };
+        const data = await response.json();
+        return { success: false, error: data.error || 'Failed to verify all players' };
       }
     } catch (err) {
-      const error = err instanceof Error ? err.message : 'Failed to verify players';
+      const error = err instanceof Error ? err.message : 'Failed to verify all players';
       return { success: false, error };
     }
-  }, [teams, verifyPlayer]);
+  }, [teams, authenticatedFetch, isLocalDataMode]);
 
   const clearCache = useCallback(async (): Promise<void> => {
-    await storage.remove(CACHE_KEY);
+    if (isLocalDataMode) {
+      await electronStorage.remove(CACHE_KEY);
+    } else {
+      await storage.remove(CACHE_KEY);
+    }
     setTeams([]);
-    setLastFetch(0);
-  }, []);
+  }, [isLocalDataMode]);
 
   const getLastSync = useCallback(async (): Promise<Date | null> => {
-    const timestamp = await storage.getTimestamp(CACHE_KEY);
-    return timestamp ? new Date(timestamp) : null;
-  }, []);
+    try {
+      if (isLocalDataMode) {
+        return null; // No sync in local mode
+      } else {
+        const timestamp = await storage.getTimestamp(CACHE_KEY);
+        return timestamp ? new Date(timestamp) : null;
+      }
+    } catch {
+      return null;
+    }
+  }, [isLocalDataMode]);
 
   const value: TeamsContextType = {
     teams,

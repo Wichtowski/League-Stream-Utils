@@ -1,10 +1,27 @@
 import { MatchFormat } from "./tournament";
+import { GamePhase, PlayerRole } from "./common";
 
 export interface Champion {
     id: number;
     name: string;
     key: string;
     image: string;
+    // Extended champion data for comprehensive caching
+    attackSpeed?: number;
+    splashCenteredImg?: string;
+    splashImg?: string;
+    loadingImg?: string;
+    squareImg?: string;
+    spells?: ChampionSpell[];
+}
+
+export interface ChampionSpell {
+    spellName: string;
+    iconAsset: string;
+    iconName: string;
+    isPassive?: boolean;
+    isRecast?: boolean;
+    baseSpell?: string;
 }
 
 export interface Coach {
@@ -45,11 +62,12 @@ export interface GameConfig {
 
 export interface GameSession {
     id: string;
+    type?: 'static' | 'lcu' | 'tournament' | 'web';
     teams: {
         blue: Team;
         red: Team;
     };
-    phase: 'config' | 'lobby' | 'ban1' | 'pick1' | 'ban2' | 'pick2' | 'completed';
+    phase: GamePhase;
     currentTeam: 'blue' | 'red';
     turnNumber: number;
     createdAt: Date;
@@ -69,7 +87,58 @@ export interface GameSession {
 
 export type TeamSide = 'blue' | 'red';
 export type ActionType = 'pick' | 'ban';
-export type GamePhase = 'config' | 'lobby' | 'ban1' | 'pick1' | 'ban2' | 'pick2' | 'completed';
+
+export interface Player {
+    id: string;
+    name: string;
+    role: PlayerRole;
+    profileImage?: string;
+    rank?: string;
+    puuid?: string;
+}
+
+export interface TournamentTeam {
+    id: string;
+    name: string;
+    tag: string;
+    logo: string;
+    colors: {
+        primary: string;
+        secondary: string;
+        accent: string;
+    };
+    players: Player[];
+    coach?: {
+        name: string;
+        profileImage?: string;
+    };
+}
+
+export interface PickbanPlayer {
+    id: string;
+    name: string;
+    role: PlayerRole;
+    profileImage?: string;
+    rank?: string;
+    puuid?: string;
+}
+
+export interface PickbanTournamentTeam {
+    id: string;
+    name: string;
+    tag: string;
+    logo: string;
+    colors: {
+        primary: string;
+        secondary: string;
+        accent: string;
+    };
+    players: PickbanPlayer[];
+    coach?: {
+        name: string;
+        profileImage?: string;
+    };
+}
 
 // Pickban specific types
 export interface PickbanConfig {
@@ -84,17 +153,27 @@ export interface PickbanConfig {
             prefix?: string;
             coach?: Coach;
             logoUrl?: string;
+            // Enhanced tournament team data
+            tournamentTeam?: PickbanTournamentTeam;
         };
         red: {
             name: string;
             prefix?: string;
             coach?: Coach;
             logoUrl?: string;
+            // Enhanced tournament team data
+            tournamentTeam?: PickbanTournamentTeam;
         };
     };
     tournament?: {
+        id: string;
         name: string;
         logoUrl?: string;
+        matchInfo?: {
+            roundName?: string;
+            matchNumber?: number;
+            bestOf: number;
+        };
     };
     timers: {
         pickPhase: number;
@@ -183,6 +262,24 @@ export interface ChampSelectSession {
     };
     localPlayerCellId: number;
     isSpectating: boolean;
+}
+
+export interface EnhancedChampSelectPlayer extends ChampSelectPlayer {
+    // Additional tournament data
+    playerInfo?: PickbanPlayer;
+    role?: 'TOP' | 'JUNGLE' | 'MID' | 'ADC' | 'SUPPORT';
+    profileImage?: string;
+}
+
+export interface EnhancedChampSelectSession extends Omit<ChampSelectSession, 'myTeam' | 'theirTeam'> {
+    myTeam: EnhancedChampSelectPlayer[];
+    theirTeam: EnhancedChampSelectPlayer[];
+    // Tournament context
+    tournamentData?: {
+        tournament: PickbanConfig['tournament'];
+        blueTeam: PickbanTournamentTeam;
+        redTeam: PickbanTournamentTeam;
+    };
 }
 
 export interface LCUStatus {

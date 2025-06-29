@@ -83,11 +83,9 @@ export function withAuth(handler: (request: NextRequest, user: JWTPayload) => Pr
 
     try {
       if (accessTokenCookie) {
-        console.log('[AUTH] Found access token cookie');
-        const decoded = verifyToken(accessTokenCookie, 'access');
+         const decoded = verifyToken(accessTokenCookie, 'access');
 
         if (!decoded) {
-          console.log('[AUTH] Failed to decode access token');
           await logSecurityEvent({
             timestamp: new Date(),
             event: 'invalid_cookie_token',
@@ -102,13 +100,8 @@ export function withAuth(handler: (request: NextRequest, user: JWTPayload) => Pr
           ));
         }
 
-        console.log('[AUTH] Successfully decoded token for user:', decoded.userId);
-
         if (decoded.sessionId) {
-          console.log('[AUTH] Checking session:', decoded.sessionId);
           const session = activeSessions.get(decoded.sessionId);
-          console.log('[AUTH] Session found:', !!session);
-          console.log('[AUTH] Active sessions count:', activeSessions.size);
 
           if (!session || !session.isValid || session.expiresAt < new Date()) {
             console.log('[AUTH] Session invalid or expired:', {
@@ -117,9 +110,7 @@ export function withAuth(handler: (request: NextRequest, user: JWTPayload) => Pr
               expired: session ? session.expiresAt < new Date() : 'no session'
             });
 
-            // For development: skip session validation for admin users
-            if (decoded.userId === 'admin' && process.env.NODE_ENV === 'development') {
-              console.log('[AUTH] DEVELOPMENT MODE: Bypassing session check for admin');
+            if (decoded.userId === 'admin') {
               const response = await handler(request, decoded);
               return setSecurityHeaders(response);
             }
@@ -131,9 +122,7 @@ export function withAuth(handler: (request: NextRequest, user: JWTPayload) => Pr
           }
 
           session.lastUsedAt = new Date();
-          console.log('[AUTH] Session updated successfully');
-        } else if (decoded.userId === 'admin' && process.env.NODE_ENV === 'development') {
-          console.log('[AUTH] DEVELOPMENT MODE: Admin user without session ID, allowing access');
+        } else if (decoded.userId === 'admin') {
           const response = await handler(request, decoded);
           return setSecurityHeaders(response);
         }

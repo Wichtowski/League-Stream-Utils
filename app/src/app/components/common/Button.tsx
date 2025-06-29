@@ -7,13 +7,13 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
 }
 
-export const Button: React.FC<ButtonProps> = ({
+export const Button = ({
   variant = 'primary',
   size = 'md',
   children,
   className = '',
   ...props
-}) => {
+}: ButtonProps): React.ReactElement => {
   const theme = useTheme();
   const buttonColors = theme.getButtonColors(variant);
 

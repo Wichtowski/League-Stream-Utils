@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigation } from '@lib/contexts/NavigationContext';
 import { useAuth } from '@lib/contexts/AuthContext';
+import { useLCU } from '@lib/contexts/LCUContext';
+import { useMockData } from '@lib/contexts/MockDataContext';
 import { AuthGuard } from '@lib/components/AuthGuard';
 import { getChampionById } from '@lib/champions';
-import { LCUConnector, type ConnectionStatus } from '@lib/services/lcu-connector';
-import type { ChampSelectSession } from '@lib/types';
 import { useElectron } from '@lib/contexts/ElectronContext';
 import Image from 'next/image';
 
@@ -14,64 +14,41 @@ export default function LeagueClientPickBanPage() {
   const { setActiveModule } = useNavigation();
   const { user: _user, isLoading: _authLoading } = useAuth();
   const { isElectron } = useElectron();
+  const { useMockTournamentData, toggleMockTournamentData } = useMockData();
+  const { 
+    isConnected, 
+    isConnecting, 
+    connectionError, 
+    connect, 
+    disconnect, 
+    champSelectSession,
+    autoReconnect,
+    setAutoReconnect
+  } = useLCU();
   
-  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('disconnected');
-  const [champSelectData, setChampSelectData] = useState<ChampSelectSession | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [autoReconnect, setAutoReconnect] = useState(true);
-  
-  const lcuConnectorRef = useRef<LCUConnector | null>(null);
 
   useEffect(() => {
     setActiveModule('pickban');
   }, [setActiveModule]);
 
-  // Check if running in Electron
-  useEffect(() => {
-    if (!isElectron) {
-      setError('League Client integration is only available in the desktop app. Please download and use the Electron version.');
-    }
-  }, [isElectron]);
-
-  useEffect(() => {
-    // Only initialize LCU connector in Electron
-    if (!isElectron) return;
-
-    // Initialize LCU connector
-    const connector = new LCUConnector({
-      autoReconnect,
-      maxReconnectAttempts: 5,
-      pollInterval: 1000
-    });
-
-    // Set up event handlers
-    connector.setOnStatusChange(setConnectionStatus);
-    connector.setOnChampSelectUpdate(setChampSelectData);
-    connector.setOnError(setError);
-
-    lcuConnectorRef.current = connector;
-
-    // Cleanup on unmount
-    return () => {
-      connector.destroy();
-      lcuConnectorRef.current = null;
-    };
-  }, [autoReconnect, isElectron]);
-
   const connectToLCU = async (): Promise<void> => {
     if (!isElectron) {
-      setError('League Client integration requires the desktop app.');
       return;
     }
     
-    setError(null);
+    if (useMockTournamentData) {
+      setSuccessMessage('Mock data enabled - no LCU connection needed');
+      setTimeout(() => setSuccessMessage(null), 3000);
+      return;
+    }
+    
     setSuccessMessage(null);
-    lcuConnectorRef.current?.connect();
+    await connect();
   };
 
-  const disconnect = (): void => {
-    lcuConnectorRef.current?.disconnect();
+  const disconnectFromLCU = (): void => {
+    disconnect();
   };
 
   const formatTime = (ms: number) => {
@@ -125,27 +102,27 @@ export default function LeagueClientPickBanPage() {
   }
 
   const renderConnectionStatus = () => {
-    const statusColors = {
-      disconnected: 'bg-red-600',
-      connecting: 'bg-yellow-600',
-      connected: 'bg-green-600',
-      error: 'bg-red-600'
+    const getStatusColor = () => {
+      if (useMockTournamentData) return 'bg-purple-600';
+      if (isConnected) return 'bg-green-600';
+      if (isConnecting) return 'bg-yellow-600';
+      return 'bg-red-600';
     };
 
-    const statusTexts = {
-      disconnected: 'Disconnected',
-      connecting: 'Connecting...',
-      connected: 'Connected',
-      error: 'Connection Error'
+    const getStatusText = () => {
+      if (useMockTournamentData) return 'Mock Mode';
+      if (isConnected) return 'Connected';
+      if (isConnecting) return 'Connecting...';
+      return 'Disconnected';
     };
 
     return (
       <div className="bg-gray-700 rounded-lg p-4 mb-6">
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-center mb-4">
           <div className="flex items-center space-x-3">
-            <div className={`w-3 h-3 rounded-full ${statusColors[connectionStatus]}`} />
+            <div className={`w-3 h-3 rounded-full ${getStatusColor()}`} />
             <span className="font-medium">League Client Status</span>
-            <span className="text-gray-400">{statusTexts[connectionStatus]}</span>
+            <span className="text-gray-400">{getStatusText()}</span>
           </div>
           <div className="flex items-center space-x-3">
             <label className="flex items-center space-x-2">
@@ -153,11 +130,25 @@ export default function LeagueClientPickBanPage() {
                 type="checkbox"
                 checked={autoReconnect}
                 onChange={(e) => setAutoReconnect(e.target.checked)}
+                disabled={useMockTournamentData}
                 className="rounded"
               />
-              <span className="text-sm">Auto-reconnect</span>
+              <span className={`text-sm ${useMockTournamentData ? 'text-gray-500' : ''}`}>Auto-reconnect</span>
             </label>
-            {connectionStatus === 'disconnected' || connectionStatus === 'error' ? (
+            <label className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={useMockTournamentData}
+                onChange={toggleMockTournamentData}
+                className="rounded"
+              />
+              <span className="text-sm">Mock Tournament Data</span>
+            </label>
+            {useMockTournamentData ? (
+              <div className="text-purple-400 text-sm font-medium">
+                🎭 Mock Mode Active
+              </div>
+            ) : !isConnected && !isConnecting ? (
               <button
                 onClick={connectToLCU}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
@@ -166,7 +157,7 @@ export default function LeagueClientPickBanPage() {
               </button>
             ) : (
               <button
-                onClick={disconnect}
+                onClick={disconnectFromLCU}
                 className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors"
               >
                 Disconnect
@@ -174,12 +165,53 @@ export default function LeagueClientPickBanPage() {
             )}
           </div>
         </div>
+        
+        {/* Overlay Navigation */}
+        <div className="border-t border-gray-600 pt-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h4 className="font-medium text-white mb-1">Tournament Overlay</h4>
+              <p className="text-sm text-gray-400">
+                {useMockTournamentData 
+                  ? 'Professional esports-style overlay with mock tournament data'
+                  : 'Professional esports-style champion select overlay'
+                }
+              </p>
+              {useMockTournamentData && (
+                <p className="text-xs text-purple-400 mt-1">🎭 Using mock tournament data - no LCU connection required</p>
+              )}
+            </div>
+            <div className="flex gap-3">
+              <a
+                href="/modules/pickban/leagueclient/champselect-overlay"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors inline-flex items-center gap-2"
+              >
+                <span>🎥</span>
+                Open Overlay
+              </a>
+              <button
+                onClick={() => {
+                  const overlayUrl = `${window.location.origin}/modules/pickban/leagueclient/champselect-overlay?backend=http://localhost:2137/api/champselect`;
+                  navigator.clipboard.writeText(overlayUrl);
+                  setSuccessMessage('Overlay URL copied to clipboard!');
+                  setTimeout(() => setSuccessMessage(null), 3000);
+                }}
+                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors inline-flex items-center gap-2"
+              >
+                <span>📋</span>
+                Copy URL
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     );
   };
 
   const renderChampSelectInterface = () => {
-    if (!champSelectData) {
+    if (!champSelectSession) {
       return (
         <div className="text-center py-12">
           <div className="text-gray-400 mb-4">
@@ -192,7 +224,7 @@ export default function LeagueClientPickBanPage() {
       );
     }
 
-    const { phase, timer, myTeam, theirTeam, bans, actions } = champSelectData;
+    const { phase, timer, myTeam, theirTeam, bans, actions } = champSelectSession;
     const currentAction = actions?.flat().find(action => action.isInProgress);
 
     return (
@@ -388,9 +420,9 @@ export default function LeagueClientPickBanPage() {
             </p>
           </div>
 
-          {error && (
+          {connectionError && (
             <div className="bg-red-600/20 border border-red-600 rounded-lg p-4 mb-6">
-              <p className="text-red-400">{error}</p>
+              <p className="text-red-400">{connectionError}</p>
             </div>
           )}
 

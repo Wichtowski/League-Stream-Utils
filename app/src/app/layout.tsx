@@ -5,11 +5,16 @@ import { NavigationProvider } from "./lib/contexts/NavigationContext";
 import { ModalProvider } from "./lib/contexts/ModalContext";
 import { AuthProvider } from "./lib/contexts/AuthContext";
 import { ElectronProvider } from "./lib/contexts/ElectronContext";
+import { LCUProvider } from "./lib/contexts/LCUContext";
+import { CamerasProvider } from "./lib/contexts/CamerasContext";
 import { TeamsProvider } from "./lib/contexts/TeamsContext";
 import { TournamentsProvider } from "./lib/contexts/TournamentsContext";
 import { PickbanProvider } from "./lib/contexts/PickbanContext";
 import { SettingsProvider } from "./lib/contexts/SettingsContext";
+import { MockDataProvider } from "./lib/contexts/MockDataContext";
+import { DownloadProvider } from "./lib/contexts/DownloadContext";
 import { NavigationGuard } from "./lib/components/NavigationGuard";
+import ChampionCacheInitializer from "./components/common/ChampionCacheInitializer";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -39,24 +44,33 @@ export default function RootLayout({
       >
         <ElectronProvider>
           <AuthProvider>
-            <SettingsProvider>
-              <TeamsProvider>
-                <TournamentsProvider>
-                  <PickbanProvider>
-                    <NavigationProvider>
-                      <ModalProvider>
-                        <NavigationGuard>
-                          <main className="flex-1">
-                            {children}
-                          </main>
-                          <Footer />
-                        </NavigationGuard>
-                      </ModalProvider>
-                    </NavigationProvider>
-                  </PickbanProvider>
-                </TournamentsProvider>
-              </TeamsProvider>
-            </SettingsProvider>
+            <LCUProvider>
+              <CamerasProvider>
+                <SettingsProvider>
+                  <TeamsProvider>
+                    <TournamentsProvider>
+                      <PickbanProvider>
+                        <MockDataProvider>
+                          <DownloadProvider>
+                            <NavigationProvider>
+                              <ModalProvider>
+                                <NavigationGuard>
+                                  <main className="flex-1">
+                                    {children}
+                                  </main>
+                                  <Footer />
+                                  <ChampionCacheInitializer />
+                                </NavigationGuard>
+                              </ModalProvider>
+                            </NavigationProvider>
+                          </DownloadProvider>
+                        </MockDataProvider>
+                      </PickbanProvider>
+                    </TournamentsProvider>
+                  </TeamsProvider>
+                </SettingsProvider>
+              </CamerasProvider>
+            </LCUProvider>
           </AuthProvider>
         </ElectronProvider>
       </body>

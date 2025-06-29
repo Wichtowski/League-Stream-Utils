@@ -7,7 +7,7 @@ import { useNavigation } from '@lib/contexts/NavigationContext';
 import { useElectron } from '@lib/contexts/ElectronContext';
 import { useModal } from '@lib/contexts/ModalContext';
 import { AuthGuard } from '@lib/components/AuthGuard';
-import { LoadingSpinner } from '@components/common';
+import { LoadingSpinner, LCUStatusIndicator } from '@components/common';
 import { TournamentCreationForm, TournamentList } from './components';
 import type { TournamentStatus } from '@lib/types';
 
@@ -73,7 +73,10 @@ export default function TournamentsPage() {
                 <div className="min-h-screen text-white">
                     <div className="container mx-auto px-6 py-8">
                         <div className="flex justify-between items-center mb-8">
-                            <h1 className="text-3xl font-bold">My Tournaments</h1>
+                            <div className="flex items-center space-x-4">
+                                <h1 className="text-3xl font-bold">My Tournaments</h1>
+                                {isElectron && <LCUStatusIndicator />}
+                            </div>
                             <div className="flex items-center space-x-4">
                                 {!isLocalDataMode && user && (
                                     <p>You are logged in as {user.username}</p>

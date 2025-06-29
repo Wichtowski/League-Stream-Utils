@@ -7,6 +7,7 @@ import { riotAPI } from '@lib/services/riot-api';
 import { refreshChampionsCache } from '@lib/champions';
 import tournamentTemplates, { type TournamentTemplate } from '@lib/services/tournament-templates';
 import ElectronDataModeSelector from './dataModeSelector';
+import { Button } from '@/components/ui/button';
 
 interface RiotAPISettings {
     apiKey: string;
@@ -19,6 +20,7 @@ interface CacheStats {
     champions: { count: number; lastUpdated: string };
     players: { count: number; memoryUsage: string };
     matches: { count: number; memoryUsage: string };
+    assets: { totalSize: string; fileCount: number; formattedSize: string };
 }
 
 export default function ElectronSettings() {
@@ -39,7 +41,8 @@ export default function ElectronSettings() {
     const [cacheStats, setCacheStats] = useState<CacheStats>({
         champions: { count: 0, lastUpdated: 'Never' },
         players: { count: 0, memoryUsage: '0 MB' },
-        matches: { count: 0, memoryUsage: '0 MB' }
+        matches: { count: 0, memoryUsage: '0 MB' },
+        assets: { totalSize: '0 MB', fileCount: 0, formattedSize: '0 MB' }
     });
 
     const [templates, setTemplates] = useState<TournamentTemplate[]>([]);
@@ -80,6 +83,19 @@ export default function ElectronSettings() {
             const stats = riotAPI.getCacheStats();
             const version = await riotAPI.getLatestGameVersion();
 
+            // Load asset cache stats if in Electron
+            let assetStats = { totalSize: '0 MB', fileCount: 0, formattedSize: '0 MB' };
+            if (isElectron && window.electronAPI?.getAssetCacheStats) {
+                const assetResult = await window.electronAPI.getAssetCacheStats();
+                if (assetResult.success && assetResult.stats) {
+                    assetStats = {
+                        totalSize: assetResult.stats.formattedSize,
+                        fileCount: assetResult.stats.fileCount,
+                        formattedSize: assetResult.stats.formattedSize
+                    };
+                }
+            }
+
             setCacheStats({
                 champions: {
                     count: stats.keys,
@@ -92,7 +108,8 @@ export default function ElectronSettings() {
                 matches: {
                     count: stats.misses,
                     memoryUsage: `${Math.round(stats.keys * 0.05)} MB`
-                }
+                },
+                assets: assetStats
             });
             setChampionsVersion(version);
         } catch (error) {
@@ -128,9 +145,61 @@ export default function ElectronSettings() {
         setCacheStats({
             champions: { count: 0, lastUpdated: 'Never' },
             players: { count: 0, memoryUsage: '0 MB' },
-            matches: { count: 0, memoryUsage: '0 MB' }
+            matches: { count: 0, memoryUsage: '0 MB' },
+            assets: { totalSize: '0 MB', fileCount: 0, formattedSize: '0 MB' }
         });
         await showAlert({ type: 'success', message: 'Cache cleared successfully!' });
+    };
+
+    const handleClearAssetCache = async () => {
+        if (!isElectron || !window.electronAPI?.clearAssetCache) {
+            await showAlert({ type: 'error', message: 'Asset cache clearing not available in web mode.' });
+            return;
+        }
+
+        try {
+            setLoading(true);
+            const result = await window.electronAPI.clearAssetCache();
+            if (result.success) {
+                setCacheStats(prev => ({
+                    ...prev,
+                    assets: { totalSize: '0 MB', fileCount: 0, formattedSize: '0 MB' }
+                }));
+                await showAlert({ type: 'success', message: 'Asset cache cleared successfully!' });
+            } else {
+                await showAlert({ type: 'error', message: 'Failed to clear asset cache.' });
+            }
+        } catch (error) {
+            console.error('Failed to clear asset cache:', error);
+            await showAlert({ type: 'error', message: 'Failed to clear asset cache.' });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handlePreloadChampionAssets = async () => {
+        if (!isElectron) {
+            await showAlert({ type: 'error', message: 'Asset preloading not available in web mode.' });
+            return;
+        }
+
+        try {
+            setLoading(true);
+            const champions = await getChampions();
+            const championKeys = champions.map(champ => champ.key);
+            
+            // Import the asset cache service
+            const { assetCache } = await import('@lib/services/asset-cache');
+            await assetCache.preloadChampionAssets(championKeys, championsVersion);
+            
+            await loadCacheStats();
+            await showAlert({ type: 'success', message: 'Champion assets preloaded successfully!' });
+        } catch (error) {
+            console.error('Failed to preload champion assets:', error);
+            await showAlert({ type: 'error', message: 'Failed to preload champion assets.' });
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleExportTemplate = async (templateId: string): Promise<void> => {
@@ -156,6 +225,62 @@ export default function ElectronSettings() {
         { id: 'templates', name: 'Tournament Templates', icon: DocumentDuplicateIcon },
         { id: 'cache', name: 'Cache Management', icon: CloudIcon }
     ];
+
+    const renderCacheTab = () => (
+        <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-gray-800 rounded-lg p-4">
+                    <h3 className="text-lg font-semibold mb-4">Champions Cache</h3>
+                    <div className="space-y-2">
+                        <p>Count: {cacheStats.champions.count}</p>
+                        <p>Last Updated: {cacheStats.champions.lastUpdated}</p>
+                    </div>
+                    <div className="mt-4 space-y-2">
+                        <Button onClick={handleUpdateChampions} disabled={loading} className="w-full">
+                            Update Champions Database
+                        </Button>
+                    </div>
+                </div>
+
+                <div className="bg-gray-800 rounded-lg p-4">
+                    <h3 className="text-lg font-semibold mb-4">Asset Cache</h3>
+                    <div className="space-y-2">
+                        <p>Files: {cacheStats.assets.fileCount}</p>
+                        <p>Size: {cacheStats.assets.formattedSize}</p>
+                    </div>
+                    <div className="mt-4 space-y-2">
+                        <Button onClick={handlePreloadChampionAssets} disabled={loading} className="w-full">
+                            Preload Champion Assets
+                        </Button>
+                        <Button onClick={handleClearAssetCache} disabled={loading} variant="destructive" className="w-full">
+                            Clear Asset Cache
+                        </Button>
+                    </div>
+                </div>
+
+                <div className="bg-gray-800 rounded-lg p-4">
+                    <h3 className="text-lg font-semibold mb-4">API Cache</h3>
+                    <div className="space-y-2">
+                        <p>Players: {cacheStats.players.count}</p>
+                        <p>Matches: {cacheStats.matches.count}</p>
+                    </div>
+                    <div className="mt-4">
+                        <Button onClick={handleClearCache} disabled={loading} variant="destructive" className="w-full">
+                            Clear All Cache
+                        </Button>
+                    </div>
+                </div>
+
+                <div className="bg-gray-800 rounded-lg p-4">
+                    <h3 className="text-lg font-semibold mb-4">Cache Info</h3>
+                    <div className="space-y-2">
+                        <p>Champions Version: {championsVersion}</p>
+                        <p>Total Memory: {cacheStats.players.memoryUsage}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
 
     return (
         <div className="max-w-6xl mx-auto p-6">
@@ -344,60 +469,7 @@ export default function ElectronSettings() {
             )}
 
             {/* Cache Management */}
-            {activeTab === 'cache' && (
-                <div className="space-y-6">
-                    <div className="bg-white shadow rounded-lg p-6">
-                        <h3 className="text-lg font-medium text-gray-900 mb-6">Cache Statistics</h3>
-
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <div className="bg-blue-50 p-4 rounded-lg">
-                                <h4 className="text-sm font-medium text-blue-900 mb-2">Champions Cache</h4>
-                                <p className="text-2xl font-bold text-blue-600">{cacheStats.champions.count}</p>
-                                <p className="text-xs text-blue-700">Last updated: {cacheStats.champions.lastUpdated}</p>
-                            </div>
-
-                            <div className="bg-green-50 p-4 rounded-lg">
-                                <h4 className="text-sm font-medium text-green-900 mb-2">Player Cache</h4>
-                                <p className="text-2xl font-bold text-green-600">{cacheStats.players.count}</p>
-                                <p className="text-xs text-green-700">Memory: {cacheStats.players.memoryUsage}</p>
-                            </div>
-
-                            <div className="bg-purple-50 p-4 rounded-lg">
-                                <h4 className="text-sm font-medium text-purple-900 mb-2">Match Cache</h4>
-                                <p className="text-2xl font-bold text-purple-600">{cacheStats.matches.count}</p>
-                                <p className="text-xs text-purple-700">Memory: {cacheStats.matches.memoryUsage}</p>
-                            </div>
-                        </div>
-
-                        <div className="mt-6 flex gap-3">
-                            <button
-                                onClick={loadCacheStats}
-                                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium"
-                            >
-                                Refresh Stats
-                            </button>
-
-                            <button
-                                onClick={handleClearCache}
-                                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium"
-                            >
-                                Clear All Cache
-                            </button>
-                        </div>
-
-                        {isElectron && (
-                            <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                                <h4 className="text-sm font-medium text-gray-900 mb-2">Desktop Features</h4>
-                                <ul className="text-sm text-gray-600 space-y-1">
-                                    <li>• Persistent local champion database</li>
-                                    <li>• Local tournament template storage</li>
-                                    <li>• Asset file management</li>
-                                </ul>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            )}
+            {activeTab === 'cache' && renderCacheTab()}
         </div>
     );
 } 
