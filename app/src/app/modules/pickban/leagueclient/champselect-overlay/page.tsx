@@ -1,10 +1,12 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useChampSelectData } from '@lib/hooks/useChampSelectData';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import type { EnhancedChampSelectPlayer, PickbanTournamentTeam } from '@lib/types';
+import type { ChampSelectTimer, EnhancedChampSelectPlayer, EnhancedChampSelectSession, PickbanTournamentTeam } from '@lib/types';
+import { getChampionById, getChampions } from '@lib/champions';
+import { useNavigation } from '@/app/lib/contexts/NavigationContext';
 
 const roleIcons: Record<string, string> = {
   TOP: '⚔️',
@@ -19,14 +21,52 @@ const formatTime = (ms: number): string => {
   return `${Math.floor(seconds / 60)}:${(seconds % 60).toString().padStart(2, '0')}`;
 };
 
+// Cache user data path for asset-cache resolution
+let userDataPathCache: string | null = null;
+if (typeof window !== 'undefined' && window.electronAPI?.getUserDataPath) {
+  window.electronAPI.getUserDataPath().then((p) => { userDataPathCache = p; }).catch(() => {
+    userDataPathCache = null;
+  });
+}
+
 const getChampionName = (championId: number): string => {
-  // TODO: Replace with actual champion lookup if available
-  return championId ? `Champion ${championId}` : '';
+  if (!championId) return '';
+  const champ = getChampionById(championId);
+  console.log(champ?.name);
+  if (!champ?.name) return `Champion ${championId}`;
+  return champ.name;
+};
+
+const resolveCachedPath = (relativePath: string): string => {
+  if (!userDataPathCache) return relativePath;
+  const base = userDataPathCache.replace(/\\/g, '/');
+  const rel = relativePath.replace(/\\/g, '/');
+  return `file://${base}/asset-cache/${rel}`;
 };
 
 const getChampionImage = (championId: number): string | null => {
-  // TODO: Replace with actual champion image lookup if available
-  return championId ? `/assets/champions/${championId}.png` : null;
+  if (!championId) return null;
+  const champ = getChampionById(championId);
+  if (!champ?.image) return null;
+
+  // If already an http/https url return directly
+  if (/^https?:\/\//.test(champ.image)) return champ.image;
+
+  // Resolve cached relative path (starts with 'cache/')
+  if (champ.image.startsWith('cache/')) {
+    return resolveCachedPath(champ.image);
+  }
+
+  // Convert DataDragon URL to asset-cache path if possible
+  const ddragonMatch = champ.image.match(/\/cdn\/([^/]+)\/img\/champion\/([^.]+)\.png$/);
+  if (ddragonMatch) {
+    const [, version, key] = ddragonMatch;
+    const rel = `cache/game/${version}/champion/${key}/square.png`;
+    return resolveCachedPath(rel);
+  }
+
+  // Fallback
+  return champ.image;
 };
 
 const renderBanPhases = (bans: { myTeamBans: number[]; theirTeamBans: number[] }) => {
@@ -44,7 +84,7 @@ const renderBanPhases = (bans: { myTeamBans: number[]; theirTeamBans: number[] }
               const championId = row[i];
               const image = getChampionImage(championId);
               return (
-                <motion.div key={i} initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: (rowIndex * 5 + i) * 0.05, duration: 0.4 }} className="w-16 h-16 bg-gray-900/80 rounded-lg border-2 border-gray-600 overflow-hidden relative backdrop-blur-sm">
+                <motion.div key={i} initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: (rowIndex * 5 + i) * 0.05, duration: 0.4 }} className="w-16 h-16 /80 rounded-lg border-2 border-gray-600 overflow-hidden relative backdrop-blur-sm">
                   {image ? (
                     <>
                       <Image src={image} alt={getChampionName(championId)} width={64} height={64} className="w-full h-full object-cover grayscale" />
@@ -65,7 +105,7 @@ const renderBanPhases = (bans: { myTeamBans: number[]; theirTeamBans: number[] }
   );
 };
 
-const renderTournamentHeader = (tournamentData: any, timer: any) => {
+const renderTournamentHeader = (tournamentData: EnhancedChampSelectSession['tournamentData'], timer: ChampSelectTimer | undefined) => {
   if (!tournamentData?.tournament) return null;
   const { tournament } = tournamentData;
   return (
@@ -106,7 +146,7 @@ const renderPlayerSlot = (player: EnhancedChampSelectPlayer, index: number, team
         </div>
         <div className={`w-20 h-20 rounded-lg overflow-hidden border-2 ${teamColor === 'blue' ? 'border-blue-400' : 'border-red-400'} flex-shrink-0`}>
           {image ? (
-            <Image src={image} alt={getChampionName(player.championId)} width={80} height={80} className="w-full h-full object-cover" />
+            <Image src={image} alt={getChampionName(player.championId)} width={80} height={80} className="w-full h-full object-cover" unoptimized />
           ) : (
             <div className="w-full h-full bg-gray-800 flex items-center justify-center text-gray-500 text-sm">{index + 1}</div>
           )}
@@ -144,6 +184,11 @@ const renderTeamSection = (team: EnhancedChampSelectPlayer[], teamData: PickbanT
 
 const ChampSelectOverlayPage: React.FC = () => {
   const { data, loading, error } = useChampSelectData();
+  const { setActiveModule } = useNavigation();
+
+  useEffect(() => {
+    setActiveModule(null);
+  }, [setActiveModule]);
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center bg-black text-white">Loading champion select data...</div>;
@@ -157,8 +202,14 @@ const ChampSelectOverlayPage: React.FC = () => {
 
   const { myTeam, theirTeam, tournamentData, bans, timer } = data;
 
+  // Ensure champions cache is populated
+  if (typeof window !== 'undefined') {
+    // Trigger load once; ignore errors
+    getChampions().catch(console.error);
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 relative overflow-hidden">
+    <div className="min-h-screen relative overflow-hidden bg-transparent">
       <div className="absolute inset-0 bg-black/40"></div>
       <div className="relative z-10 p-8">
         {renderBanPhases(bans)}

@@ -13,8 +13,8 @@ export function Footer() {
   const pathname = usePathname();
   const isAuthenticated = !!user;
 
-  // Don't show footer on the main page
-  if (pathname === '/' || pathname === '/auth') {
+  // Don't show footer on main/auth pages or when no module active
+  if (activeModule === null || pathname === '/' || pathname === '/auth') {
     return null;
   }
 
@@ -46,28 +46,39 @@ export function Footer() {
               
               {/* Champions - Always show except when fully authenticated without electron */}
               {(showBasicNav || showFullNav) && (
-                <Link
-                  href="/modules/champions"
-                  className={`px-4 py-2 text-white rounded-lg font-medium transition-all duration-200 shadow-lg ${activeModule === 'champions'
-                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 shadow-purple-500/20'
-                    : 'bg-gray-700 hover:bg-gray-600 hover:shadow-blue-500/20'
-                    }`}
-                >
-                  Champions
-                </Link>
+                <>
+                  <Link
+                    href="/modules"
+                    className={`px-4 py-2 text-white rounded-lg font-medium transition-all duration-200 shadow-lg ${activeModule === 'modules'
+                      ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 shadow-purple-500/20'
+                      : 'bg-gray-700 hover:bg-gray-600 hover:shadow-blue-500/20'
+                      }`}
+                  >
+                    Modules
+                  </Link>
+                  <Link
+                    href="/modules/champions"
+                    className={`px-4 py-2 text-white rounded-lg font-medium transition-all duration-200 shadow-lg ${activeModule === 'champions'
+                      ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 shadow-purple-500/20'
+                      : 'bg-gray-700 hover:bg-gray-600 hover:shadow-blue-500/20'
+                      }`}
+                  >
+                    Champions
+                  </Link>
+                </>
               )}
 
               {/* Full navigation - Show if authenticated OR (electron with local data) */}
               {showFullNav && (
                 <>
                   <Link
-                    href="/modules/pickban"
-                    className={`px-4 py-2 text-white rounded-lg font-medium transition-all duration-200 shadow-lg ${activeModule === 'pickban' || activeModule === 'home'
+                    href="/modules/pickban/static"
+                    className={`px-4 py-2 text-white rounded-lg font-medium transition-all duration-200 shadow-lg ${activeModule === 'pickban/static'
                       ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 shadow-purple-500/20'
                       : 'bg-gray-700 hover:bg-gray-600 hover:shadow-blue-500/20'
                       }`}
                   >
-                    Pick & Ban
+                    {isElectron ? 'Static Pick & Ban' : 'Pick & Ban'}
                   </Link>
                   <Link
                     href="/modules/cameras"
@@ -101,15 +112,27 @@ export function Footer() {
 
               {/* Settings - Always show for electron, or for web users */}
               {(isElectron || !showBasicNav) && (
-                <Link
-                  href="/settings"
-                  className={`px-4 py-2 text-white rounded-lg font-medium transition-all duration-200 shadow-lg ${pathname === '/settings'
-                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 shadow-purple-500/20'
-                    : 'bg-gray-700 hover:bg-gray-600 hover:shadow-blue-500/20'
-                    }`}
-                >
-                  Settings
-                </Link>
+                <>
+                  <Link
+                    href="/settings"
+                    className={`px-4 py-2 text-white rounded-lg font-medium transition-all duration-200 shadow-lg ${activeModule === 'leagueclient'
+                      ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 shadow-purple-500/20'
+                      : 'bg-gray-700 hover:bg-gray-600 hover:shadow-blue-500/20'
+                      }`}
+                  >
+                    League Client
+                  </Link>
+                  <Link
+                    href="/settings"
+                    className={`px-4 py-2 text-white rounded-lg font-medium transition-all duration-200 shadow-lg ${activeModule === 'settings'
+                      ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 shadow-purple-500/20'
+                      : 'bg-gray-700 hover:bg-gray-600 hover:shadow-blue-500/20'
+                      }`}
+                  >
+                    Settings
+                  </Link>
+                </>
+
               )}
             </div>
             <div className="text-center text-gray-400 text-sm">

@@ -5,18 +5,20 @@ import { useAuth } from '@lib/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import ElectronSettings from '@/app/components/common/electron/settings';
 import { LoadingSpinner } from '@components/common';
+import { useNavigation } from '@/app/lib/contexts/NavigationContext';
 
 export default function SettingsPage() {
     const { user, isLoading: authLoading } = useAuth();
     const router = useRouter();
     const [isElectron, setIsElectron] = useState(false);
     const [isInitialized, setIsInitialized] = useState(false);
+    const { setActiveModule } = useNavigation();
 
     useEffect(() => {
         const electronCheck = typeof window !== 'undefined' && !!window.electronAPI?.isElectron;
         setIsElectron(electronCheck);
         setIsInitialized(true);
-
+        setActiveModule('settings')
         // Redirect non-admin users in browser mode
         if (typeof window !== 'undefined' && !electronCheck && !authLoading && !user?.isAdmin) {
             router.push('/modules');

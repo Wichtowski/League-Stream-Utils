@@ -118,7 +118,7 @@ export default function StaticPickBanPage() {
 
   return (
     <AuthGuard loadingMessage="Loading Static Pick & Ban...">
-      <div className="min-h-screen bg-gray-900 text-white">
+      <div className="min-h-screen  text-white">
         <div className="container mx-auto px-4 py-8">
           <div className="mb-8">
             <h1 className="text-3xl font-bold mb-2">Pick & Ban</h1>

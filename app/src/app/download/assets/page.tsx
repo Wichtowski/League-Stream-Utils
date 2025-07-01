@@ -34,14 +34,14 @@ const DownloadAssetsPage: React.FC = (): React.JSX.Element => {
 
   if (!progress) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">
+      <div className="min-h-screen flex items-center justify-center  text-white">
         Preparing downloads…
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-900 text-white space-y-6 p-6">
+    <div className="min-h-screen flex flex-col items-center justify-center  text-white space-y-6 p-6">
       <h1 className="text-3xl font-bold">Downloading Game Assets</h1>
       <p className="text-sm text-gray-300">{progress.text}</p>
       <div className="w-full max-w-md bg-gray-700 rounded-full h-4 overflow-hidden">

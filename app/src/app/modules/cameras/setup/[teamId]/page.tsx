@@ -122,7 +122,7 @@ export default function TeamCameraSetupPage() {
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen  flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400"></div>
       </div>
     );
@@ -130,7 +130,7 @@ export default function TeamCameraSetupPage() {
 
   if (!team) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen  flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-white mb-4">Team Not Found</h2>
           <button
@@ -333,7 +333,7 @@ export default function TeamCameraSetupPage() {
                 {/* Stream Preview */}
                 {((player.useDelay && player.delayedUrl) || (!player.useDelay && player.url)) && (
                   <div className="relative">
-                    <div className="aspect-video bg-gray-900 rounded-lg overflow-hidden">
+                    <div className="aspect-video  rounded-lg overflow-hidden">
                       <iframe
                         src={player.useDelay ? player.delayedUrl : player.url}
                         className="w-full h-full"

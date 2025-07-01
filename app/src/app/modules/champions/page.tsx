@@ -399,7 +399,7 @@ export default function App() {
           onClick={() => setSelected(null)}
         >
           <div
-            className="bg-gray-900 rounded-lg p-6 max-w-lg w-full relative"
+            className=" rounded-lg p-6 max-w-lg w-full relative"
             onClick={e => e.stopPropagation()}
           >
             <button

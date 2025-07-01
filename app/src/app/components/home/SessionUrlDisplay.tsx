@@ -13,7 +13,7 @@ export function SessionUrlDisplay({ urls }: SessionUrlDisplayProps) {
             <div className="space-y-3">
                 <div>
                     <span className="font-medium text-amber-300">Configuration URL:</span>
-                    <div className="bg-gray-900 p-2 rounded mt-1 break-all flex items-center justify-between">
+                    <div className="p-2 rounded mt-1 break-all flex items-center justify-between">
                         <Link
                             href={`/modules/pickban/config/${urls.sessionId}`}
                             target="_blank"
@@ -31,7 +31,7 @@ export function SessionUrlDisplay({ urls }: SessionUrlDisplayProps) {
 
                 <div>
                     <span className="font-medium text-blue-300">Blue Team URL:</span>
-                    <div className="bg-gray-900 p-2 rounded mt-1 break-all flex items-center justify-between">
+                    <div className="p-2 rounded mt-1 break-all flex items-center justify-between">
                         <Link
                             href={urls.blue}
                             target="_blank"
@@ -46,7 +46,7 @@ export function SessionUrlDisplay({ urls }: SessionUrlDisplayProps) {
 
                 <div>
                     <span className="font-medium text-red-300">Red Team URL:</span>
-                    <div className="bg-gray-900 p-2 rounded mt-1 break-all flex items-center justify-between">
+                    <div className=" p-2 rounded mt-1 break-all flex items-center justify-between">
                         <Link
                             href={urls.red}
                             target="_blank"
@@ -61,7 +61,7 @@ export function SessionUrlDisplay({ urls }: SessionUrlDisplayProps) {
 
                 <div>
                     <span className="font-medium text-green-300">Spectator URL:</span>
-                    <div className="bg-gray-900 p-2 rounded mt-1 break-all flex items-center justify-between">
+                    <div className=" p-2 rounded mt-1 break-all flex items-center justify-between">
                         <Link
                             href={urls.spectator}
                             target="_blank"
@@ -76,7 +76,7 @@ export function SessionUrlDisplay({ urls }: SessionUrlDisplayProps) {
 
                 <div>
                     <span className="font-medium text-purple-300">OBS Overlay URL:</span>
-                    <div className="bg-gray-900 p-2 rounded mt-1 break-all flex items-center justify-between">
+                    <div className=" p-2 rounded mt-1 break-all flex items-center justify-between">
                         <Link
                             href={urls.obs}
                             target="_blank"

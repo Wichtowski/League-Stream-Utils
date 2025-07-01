@@ -41,7 +41,7 @@ export default function PickBanPage(): React.ReactElement {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
+    <div className="min-h-screen  text-white flex items-center justify-center">
       <div className="max-w-md text-center">
         <div className="mb-6">
           <div className="w-16 h-16 bg-blue-600 rounded-full mx-auto mb-4 flex items-center justify-center">

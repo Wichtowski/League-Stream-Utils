@@ -94,7 +94,7 @@ export default function CamerasPage() {
 
   if (authLoading || loading) {
     return (
-      <LoadingSpinner fullscreen text="Loading cameras..." className="bg-gray-900" />
+      <LoadingSpinner fullscreen text="Loading cameras..." className="" />
     );
   }
 

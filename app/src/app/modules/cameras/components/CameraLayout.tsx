@@ -13,7 +13,7 @@ export default function CameraLayout({
     backgroundColor = 'black',
     className = ''
 }: CameraLayoutProps) {
-    const bgClass = backgroundColor === 'black' ? 'bg-black' : 'bg-gray-900';
+    const bgClass = backgroundColor === 'black' ? 'bg-black' : '';
 
     return (
         <div className={`min-h-screen ${bgClass} ${className}`}>

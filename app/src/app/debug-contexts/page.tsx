@@ -8,7 +8,7 @@ import { useAuth } from '@lib/contexts/AuthContext';
 
 export default function DebugContextsPage() {
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-8">
+    <div className="min-h-screen  text-white p-8">
       <h1 className="text-3xl font-bold mb-8">Context Debug Dashboard</h1>
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

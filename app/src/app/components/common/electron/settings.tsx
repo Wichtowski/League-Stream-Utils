@@ -4,10 +4,10 @@ import { useState, useEffect } from 'react';
 import { Cog6ToothIcon, CloudIcon, DocumentDuplicateIcon, ShieldCheckIcon, ComputerDesktopIcon } from '@heroicons/react/24/outline';
 import { useModal } from '@lib/contexts/ModalContext';
 import { riotAPI } from '@lib/services/riot-api';
-import { refreshChampionsCache } from '@lib/champions';
+import { refreshChampionsCache, getChampions } from '@lib/champions';
 import tournamentTemplates, { type TournamentTemplate } from '@lib/services/tournament-templates';
 import ElectronDataModeSelector from './dataModeSelector';
-import { Button } from '@/components/ui/button';
+import { Button } from '@components/common/Button';
 
 interface RiotAPISettings {
     apiKey: string;
@@ -186,7 +186,7 @@ export default function ElectronSettings() {
         try {
             setLoading(true);
             const champions = await getChampions();
-            const championKeys = champions.map(champ => champ.key);
+            const championKeys = champions.map((champ): string => champ.key);
             
             // Import the asset cache service
             const { assetCache } = await import('@lib/services/asset-cache');
@@ -252,7 +252,7 @@ export default function ElectronSettings() {
                         <Button onClick={handlePreloadChampionAssets} disabled={loading} className="w-full">
                             Preload Champion Assets
                         </Button>
-                        <Button onClick={handleClearAssetCache} disabled={loading} variant="destructive" className="w-full">
+                        <Button onClick={handleClearAssetCache} disabled={loading} variant="secondary" className="w-full">
                             Clear Asset Cache
                         </Button>
                     </div>
@@ -265,7 +265,7 @@ export default function ElectronSettings() {
                         <p>Matches: {cacheStats.matches.count}</p>
                     </div>
                     <div className="mt-4">
-                        <Button onClick={handleClearCache} disabled={loading} variant="destructive" className="w-full">
+                        <Button onClick={handleClearCache} disabled={loading} variant="secondary" className="w-full">
                             Clear All Cache
                         </Button>
                     </div>
@@ -287,7 +287,7 @@ export default function ElectronSettings() {
             <div className="mb-8">
                 <div className="flex items-center gap-3 mb-4">
                     <Cog6ToothIcon className="w-8 h-8 text-blue-600" />
-                    <h1 className="text-3xl font-bold text-gray-900">Tournament Management Settings</h1>
+                    <h1 className="text-3xl font-bold">Tournament Management Settings</h1>
                     {isElectron && (
                         <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">
                             Desktop App

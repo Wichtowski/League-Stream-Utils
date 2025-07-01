@@ -10,11 +10,20 @@ import { getChampionById } from '@lib/champions';
 import { useElectron } from '@lib/contexts/ElectronContext';
 import Image from 'next/image';
 
+// Cache user data path for image resolution outside component
+let userDataPathCache: string | null = null;
+if (typeof window !== 'undefined' && window.electronAPI?.getUserDataPath) {
+  window.electronAPI.getUserDataPath().then((p) => { userDataPathCache = p; }).catch(() => {
+    userDataPathCache = null;
+  });
+}
+
 export default function LeagueClientPickBanPage() {
   const { setActiveModule } = useNavigation();
   const { user: _user, isLoading: _authLoading } = useAuth();
   const { isElectron } = useElectron();
   const { useMockTournamentData, toggleMockTournamentData } = useMockData();
+  
   const { 
     isConnected, 
     isConnecting, 
@@ -29,7 +38,7 @@ export default function LeagueClientPickBanPage() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    setActiveModule('pickban');
+    setActiveModule('leagueclient');
   }, [setActiveModule]);
 
   const connectToLCU = async (): Promise<void> => {
@@ -62,17 +71,42 @@ export default function LeagueClientPickBanPage() {
     return champion?.name || `Champion ${championId}`;
   };
 
-  const getChampionImage = (championId: number) => {
+  const getChampionImage = (championId: number): string | null => {
     if (!championId) return null;
     const champion = getChampionById(championId);
-    return champion?.image || null;
+    if (!champion?.image) return null;
+
+    if (/^https?:\/\//.test(champion.image)) return champion.image;
+
+    if (champion.image.startsWith('cache/')) {
+      if (userDataPathCache) {
+        const base = userDataPathCache.replace(/\\/g, '/');
+        const rel = champion.image.replace(/\\/g, '/');
+        return `file://${base}/asset-cache/${rel}`;
+      }
+      return champion.image;
+    }
+
+    // Convert DataDragon URL to local cache path
+    const ddragonMatch = champion.image.match(/\/cdn\/([^/]+)\/img\/champion\/([^.]+)\.png$/);
+    if (ddragonMatch) {
+      const [, version, key] = ddragonMatch;
+      if (userDataPathCache) {
+        const base = userDataPathCache.replace(/\\/g, '/');
+        const rel = `cache/game/${version}/champion/${key}/square.png`;
+        return `file://${base}/asset-cache/${rel}`;
+      }
+      return `cache/game/${ddragonMatch[1]}/champion/${ddragonMatch[2]}/loading.png`;
+    }
+
+    return champion.image;
   };
 
   // Show Electron requirement message if not in Electron
   if (!isElectron) {
     return (
       <AuthGuard>
-        <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
+        <div className="min-h-screen  text-white flex items-center justify-center">
           <div className="max-w-md text-center">
             <div className="mb-6">
               <div className="w-20 h-20 bg-red-600 rounded-full mx-auto mb-4 flex items-center justify-center">
@@ -131,18 +165,20 @@ export default function LeagueClientPickBanPage() {
                 checked={autoReconnect}
                 onChange={(e) => setAutoReconnect(e.target.checked)}
                 disabled={useMockTournamentData}
-                className="rounded"
+                className="cursor-pointer rounded"
               />
-              <span className={`text-sm ${useMockTournamentData ? 'text-gray-500' : ''}`}>Auto-reconnect</span>
+              <span className={`cursor-pointer text-sm ${useMockTournamentData ? 'text-gray-500' : ''}`}>Auto-reconnect</span>
             </label>
-            <label className="flex items-center space-x-2">
+            <label className="relative inline-flex items-center cursor-pointer">
               <input
                 type="checkbox"
+                className="sr-only peer"
                 checked={useMockTournamentData}
-                onChange={toggleMockTournamentData}
-                className="rounded"
+                onChange={(e) => toggleMockTournamentData(e.target.checked)}
               />
-              <span className="text-sm">Mock Tournament Data</span>
+              {/* Track */}
+              <div className="w-11 h-6 bg-gray-600 peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer dark:peer-focus:ring-blue-800 peer-checked:bg-blue-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:border-gray-300 after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full peer-checked:after:border-white" />
+              <span className="ml-3 text-sm select-none">Mock Tournament Data</span>
             </label>
             {useMockTournamentData ? (
               <div className="text-purple-400 text-sm font-medium">
@@ -151,7 +187,7 @@ export default function LeagueClientPickBanPage() {
             ) : !isConnected && !isConnecting ? (
               <button
                 onClick={connectToLCU}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+                className="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
               >
                 Connect to League
               </button>
@@ -183,7 +219,7 @@ export default function LeagueClientPickBanPage() {
             </div>
             <div className="flex gap-3">
               <a
-                href="/modules/pickban/leagueclient/champselect-overlay"
+                href="/modules/pickban/leagueclient/champselect-overlay?backend=http://localhost:2137/api/cs"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors inline-flex items-center gap-2"
@@ -193,12 +229,12 @@ export default function LeagueClientPickBanPage() {
               </a>
               <button
                 onClick={() => {
-                  const overlayUrl = `${window.location.origin}/modules/pickban/leagueclient/champselect-overlay?backend=http://localhost:2137/api/champselect`;
+                  const overlayUrl = `${window.location.origin}/modules/pickban/leagueclient/champselect-overlay?backend=http://localhost:2137/api/cs`;
                   navigator.clipboard.writeText(overlayUrl);
                   setSuccessMessage('Overlay URL copied to clipboard!');
                   setTimeout(() => setSuccessMessage(null), 3000);
                 }}
-                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors inline-flex items-center gap-2"
+                className="cursor-pointer bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors inline-flex items-center gap-2"
               >
                 <span>📋</span>
                 Copy URL
@@ -273,7 +309,8 @@ export default function LeagueClientPickBanPage() {
                             alt={getChampionName(championId)}
                             width={48}
                             height={48}
-                            className="w-full h-full object-cover grayscale"
+                            className="w-full h-full object-cover"
+                            unoptimized
                           />
                           <div className="absolute inset-0 bg-red-600/70 flex items-center justify-center">
                             <span className="text-white text-xs font-bold">X</span>
@@ -307,6 +344,7 @@ export default function LeagueClientPickBanPage() {
                           width={48}
                           height={48}
                           className="w-full h-full object-cover"
+                          unoptimized
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-gray-500 text-xs">
@@ -349,7 +387,8 @@ export default function LeagueClientPickBanPage() {
                             alt={getChampionName(championId)}
                             width={48}
                             height={48}
-                            className="w-full h-full object-cover grayscale"
+                            className="w-full h-full object-cover"
+                            unoptimized
                           />
                           <div className="absolute inset-0 bg-red-600/70 flex items-center justify-center">
                             <span className="text-white text-xs font-bold">X</span>
@@ -383,6 +422,7 @@ export default function LeagueClientPickBanPage() {
                           width={48}
                           height={48}
                           className="w-full h-full object-cover"
+                          unoptimized
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-gray-500 text-xs">
@@ -410,7 +450,7 @@ export default function LeagueClientPickBanPage() {
 
   return (
     <AuthGuard>
-      <div className="min-h-screen bg-gray-900 text-white">
+      <div className="min-h-screen  text-white">
         <div className="container mx-auto px-4 py-8">
           <div className="mb-8">
             <h1 className="text-3xl font-bold mb-2">League Client Integration</h1>

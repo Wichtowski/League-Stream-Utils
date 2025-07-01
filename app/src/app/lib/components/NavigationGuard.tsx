@@ -53,7 +53,6 @@ const NavigationGuard = ({ children }: NavigationGuardProps) => {
     const isElectronLocal = isElectron && useLocalData;
 
     console.log('NavigationGuard: Invalid route detected:', pathname);
-    console.log('NavigationGuard: Redirecting based on auth status:', { isAuthenticated, isElectronLocal });
 
     if (isElectronLocal || isAuthenticated) {
       // Redirect authenticated users or electron local users to modules
