@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { downloadAllAssets, BootstrapProgress } from '@lib/services/asset-bootstrapper';
+import { useElectron } from '@lib/contexts/ElectronContext';
 
 interface LocalProgress {
   text: string;
@@ -13,31 +14,35 @@ const DownloadAssetsPage: React.FC = (): React.JSX.Element => {
   const router = useRouter();
   const [progress, setProgress] = useState<LocalProgress | null>(null);
   const startedRef = useRef(false);
-  const redirectedRef = useRef(false);
+  const { isElectron, isElectronLoading } = useElectron();
 
   useEffect(() => {
+    // Wait until Electron detection is finished
+    if (isElectronLoading) return;
+
     if (startedRef.current) return;
     startedRef.current = true;
+
     const run = async (): Promise<void> => {
       // Only useful in Electron
-      if (typeof window === 'undefined' || !window.electronAPI?.isElectron) {
+      if (!isElectron) {
         router.replace('/modules');
         return;
       }
 
       await downloadAllAssets((p: BootstrapProgress) => {
         const pct = p.percentage ?? Math.round((p.current / (p.total || 1)) * 100);
-        const text = `${p.stage === 'downloading' ? 'Downloading' : p.stage === 'checking' ? 'Checking' : p.stage === 'complete' ? 'Finishing' : ''}: ${p.currentAsset || p.itemName || p.category} ${pct}%`;
+        const stage = p.stage.slice(0, 1).toUpperCase() + p.stage.slice(1);
+        const text = `${stage}: ${p.currentAsset || p.itemName || p.category} ${pct}%`;
         setProgress({ text, percentage: pct });
-        
-        if (pct >= 100 && !redirectedRef.current) {
-          redirectedRef.current = true;
-          router.replace('/modules');
-        }
       });
+
+      // Redirect after all assets have been downloaded
+      router.replace('/modules');
     };
+
     void run();
-  }, [router]);
+  }, [isElectronLoading, isElectron, router]);
 
   if (!progress) {
     return (

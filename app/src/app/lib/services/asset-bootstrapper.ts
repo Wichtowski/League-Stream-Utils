@@ -73,7 +73,7 @@ export const downloadAllAssets = async (
 
     const tasks: Array<() => Promise<void>> = [championTask, itemTask, noopTask, noopTask];
 
-    await runWithConcurrency(tasks, 3);
+    await runWithConcurrency(tasks, 10);
 
     // Final completion notification
     onProgress?.({
