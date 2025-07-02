@@ -57,20 +57,20 @@ const modules: ModuleCard[] = [
         status: 'available'
     },
     {
-        id: 'allCameras',
-        name: 'All Cameras',
-        description: 'View all player cameras simultaneously in a multi-feed grid layout',
+        id: 'leagueclient',
+        name: 'League Client',
+        description: 'Connect',
         icon: '📱',
-        path: '/modules/cameras/all',
+        path: '/modules/leagueclient',
         color: 'from-teal-500 to-cyan-500',
-        status: 'available'
+        status: 'beta'
     },
     {
-        id: 'champions',
-        name: 'Champions',
-        description: 'Browse League of Legends champions with stats and information',
+        id: 'champ-ability',
+        name: 'Champions Abilities',
+        description: 'Browse League of Legends champions abilities with stats and information',
         icon: '⚡',
-        path: '/modules/champions',
+        path: '/modules/champ-ability',
         color: 'from-indigo-500 to-purple-500',
         status: 'available'
     },
@@ -309,40 +309,6 @@ export default function ModulesPage() {
                         </div>
                     ))}
                 </div>
-
-                {/* Quick Actions */}
-                <div className="mt-16 text-center">
-                    <h2 className="text-3xl font-bold text-white mb-8">Quick Actions</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-                        <button
-                            onClick={() => router.push('/modules/teams')}
-                            className="cursor-pointer p-6 bg-gradient-to-r from-blue-600/20 to-cyan-600/20 rounded-xl border border-blue-500/30 hover:border-blue-400/50 transition-all duration-300 hover:scale-105"
-                        >
-                            <div className="text-3xl mb-3">👥</div>
-                            <h3 className="text-xl font-semibold text-white mb-2">Create Team</h3>
-                            <p className="text-gray-400 text-sm">Set up a new tournament team with players</p>
-                        </button>
-
-                        <button
-                            onClick={() => router.push('/modules/tournaments')}
-                            className="cursor-pointer p-6 bg-gradient-to-r from-yellow-600/20 to-orange-600/20 rounded-xl border border-yellow-500/30 hover:border-yellow-400/50 transition-all duration-300 hover:scale-105"
-                        >
-                            <div className="text-3xl mb-3">🏆</div>
-                            <h3 className="text-xl font-semibold text-white mb-2">New Tournament</h3>
-                            <p className="text-gray-400 text-sm">Start organizing a new tournament</p>
-                        </button>
-
-                        <button
-                            onClick={() => router.push('/modules/pickban')}
-                            className="cursor-pointer p-6 bg-gradient-to-r from-purple-600/20 to-pink-600/20 rounded-xl border border-purple-500/30 hover:border-purple-400/50 transition-all duration-300 hover:scale-105"
-                        >
-                            <div className="text-3xl mb-3">⚔️</div>
-                            <h3 className="text-xl font-semibold text-white mb-2">Pick & Ban</h3>
-                            <p className="text-gray-400 text-sm">Start a champion draft session</p>
-                        </button>
-                    </div>
-                </div>
-
                 {/* Footer Info */}
                 <div className="mt-16 text-center">
                     <div className="bg-gray-800/30 rounded-xl p-6 border border-gray-700/50">

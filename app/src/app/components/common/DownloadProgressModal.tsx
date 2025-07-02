@@ -1,5 +1,5 @@
 import React from 'react';
-import { DownloadProgress } from '@lib/services/champion-cache';
+import { DownloadProgress } from '@lib/types/progress';
 
 interface DownloadProgressModalProps {
   isOpen: boolean;
@@ -13,6 +13,17 @@ const stageLabels = {
   'ability-images': 'Downloading ability images',
   'complete': 'Download complete'
 };
+
+// Type guard for championName
+function hasChampionName(progress: DownloadProgress | { championName?: string }): progress is DownloadProgress & { championName: string } {
+  return (
+    typeof progress === 'object' &&
+    progress !== null &&
+    'championName' in progress &&
+    typeof (progress as { championName?: unknown }).championName === 'string' &&
+    Boolean((progress as { championName?: string }).championName)
+  );
+}
 
 export const DownloadProgressModal: React.FC<DownloadProgressModalProps> = ({
   isOpen,
@@ -31,10 +42,11 @@ export const DownloadProgressModal: React.FC<DownloadProgressModalProps> = ({
           
           <div className="mb-4">
             <div className="text-sm text-gray-300 mb-2">
-              {stageLabels[progress.stage]}
+              {stageLabels[progress.stage as keyof typeof stageLabels] || progress.stage}
             </div>
             
-            {progress.championName && (
+            {/* Champion Name Progress */}
+            {hasChampionName(progress) && (
               <div className="text-sm text-blue-300 mb-2">
                 Processing: {progress.championName}
               </div>

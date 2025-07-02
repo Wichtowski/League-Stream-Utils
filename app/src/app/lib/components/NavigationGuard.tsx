@@ -33,6 +33,7 @@ const NavigationGuard = ({ children }: NavigationGuardProps) => {
       '/modules',
       '/settings',
       '/debug-contexts',
+      '/download/assets',
     ];
 
     // Check if current path starts with any valid route

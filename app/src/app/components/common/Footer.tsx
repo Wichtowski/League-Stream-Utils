@@ -57,8 +57,8 @@ export function Footer() {
                     Modules
                   </Link>
                   <Link
-                    href="/modules/champions"
-                    className={`px-4 py-2 text-white rounded-lg font-medium transition-all duration-200 shadow-lg ${activeModule === 'champions'
+                    href="/modules/champ-ability"
+                    className={`px-4 py-2 text-white rounded-lg font-medium transition-all duration-200 shadow-lg ${activeModule === 'champ-ability'
                       ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 shadow-purple-500/20'
                       : 'bg-gray-700 hover:bg-gray-600 hover:shadow-blue-500/20'
                       }`}

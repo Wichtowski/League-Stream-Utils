@@ -1,5 +1,5 @@
 {
-  "name": "league-stream-utils",
+  "name": "League Stream Utils",
   "version": "1.0.0",
   "description": "League of Legends Stream Management",
   "main": "electron/main.js",

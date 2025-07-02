@@ -6,9 +6,10 @@ import { DDRAGON_CDN } from '@lib/constants';
 import { useNavigation } from '@lib/contexts/NavigationContext';
 import { getChampions, getChampionCacheStats } from '@lib/champions';
 import { assetCache } from '@lib/services/asset-cache';
-import { championCacheService, DownloadProgress } from '@lib/services/champion-cache';
+import { championCacheService } from '@lib/services/champion-cache';
 import { DownloadProgressModal } from '../../components/common/DownloadProgressModal';
 import type { Champion } from '@lib/types/game';
+import { ChampionDownloadProgress } from '@lib/types/progress';
 
 type Spell = {
   id: string;
@@ -71,9 +72,10 @@ export default function App() {
   const [cacheStats, setCacheStats] = useState<CacheStats | null>(null);
   
   // Download progress state
-  const [downloadProgress, setDownloadProgress] = useState<DownloadProgress>({
+  const [downloadProgress, setDownloadProgress] = useState<ChampionDownloadProgress>({
     current: 0,
     total: 0,
+    itemName: '',
     championName: '',
     stage: 'champion-data',
     percentage: 0
@@ -82,7 +84,7 @@ export default function App() {
   const [isDownloading, setIsDownloading] = useState(false);
 
   useEffect(() => {
-    setActiveModule('champions');
+    setActiveModule('champ-ability');
     setIsElectron(typeof window !== 'undefined' && !!window.electronAPI?.isElectron);
     loadChampions();
     loadCacheStats();

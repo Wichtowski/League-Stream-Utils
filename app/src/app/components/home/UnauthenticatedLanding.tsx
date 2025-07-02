@@ -41,7 +41,7 @@ export function UnauthenticatedLanding() {
                         </Link>
 
                         <Link
-                            href="/modules/champions"
+                            href="/modules/champ-ability"
                             className="group bg-gray-700/30 hover:bg-gray-700/50 border border-gray-600/50 hover:border-purple-500/50 rounded-xl p-8 transition-all duration-300 hover:scale-105 hover:shadow-purple-500/20"
                         >
                             <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center mx-auto mb-4 group-hover:bg-purple-500/30 transition-colors">

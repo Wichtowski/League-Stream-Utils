@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { downloadAllAssets, BootstrapProgress } from '@lib/services/asset-bootstrapper';
 
@@ -12,8 +12,12 @@ interface LocalProgress {
 const DownloadAssetsPage: React.FC = (): React.JSX.Element => {
   const router = useRouter();
   const [progress, setProgress] = useState<LocalProgress | null>(null);
+  const startedRef = useRef(false);
+  const redirectedRef = useRef(false);
 
   useEffect(() => {
+    if (startedRef.current) return;
+    startedRef.current = true;
     const run = async (): Promise<void> => {
       // Only useful in Electron
       if (typeof window === 'undefined' || !window.electronAPI?.isElectron) {
@@ -23,11 +27,14 @@ const DownloadAssetsPage: React.FC = (): React.JSX.Element => {
 
       await downloadAllAssets((p: BootstrapProgress) => {
         const pct = p.percentage ?? Math.round((p.current / (p.total || 1)) * 100);
-        const text = `${p.stage === 'downloading' ? 'Downloading' : p.stage === 'checking' ? 'Checking' : 'Finishing'}: ${p.currentAsset || p.itemName || p.category}`;
+        const text = `${p.stage === 'downloading' ? 'Downloading' : p.stage === 'checking' ? 'Checking' : p.stage === 'complete' ? 'Finishing' : ''}: ${p.currentAsset || p.itemName || p.category} ${pct}%`;
         setProgress({ text, percentage: pct });
+        
+        if (pct >= 100 && !redirectedRef.current) {
+          redirectedRef.current = true;
+          router.replace('/modules');
+        }
       });
-
-      router.replace('/modules');
     };
     void run();
   }, [router]);

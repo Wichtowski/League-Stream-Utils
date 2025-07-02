@@ -625,23 +625,11 @@ class ChampionCacheService extends BaseCacheService<Champion> {
             const allChampionKeys = Object.keys(data.data);
             const totalExpected = allChampionKeys.length;
 
-            // Check which champions are cached by checking if files exist
             const missingChampions: string[] = [];
-            const userDataPath = await window.electronAPI.getUserDataPath();
-            console.log('User data path:', userDataPath);
 
             for (const championKey of allChampionKeys) {
-                // Check if the champion's square image exists (this is the most reliable indicator)
                 const squareImagePath = `cache/game/${version}/champion/${championKey}/square.png`;
-
-                // Use a simple file existence check
                 const fileExists = await this.checkFileExists(squareImagePath);
-
-                // Debug logging for first few champions
-                if (championKey === 'Aatrox' || championKey === 'Ahri' || championKey === 'Akali' || championKey === 'Cassiopeia') {
-                    const fullPath = path.join(userDataPath, 'asset-cache', squareImagePath);
-                    console.log(`Checking ${championKey}: ${fullPath} - Exists: ${Boolean(fileExists)}`);
-                }
 
                 if (!fileExists) {
                     missingChampions.push(championKey);
