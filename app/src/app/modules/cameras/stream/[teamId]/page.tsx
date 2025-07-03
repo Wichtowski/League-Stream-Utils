@@ -22,6 +22,7 @@ export default function TeamCameraStreamPage() {
     const [accessReason, setAccessReason] = useState<string>('');
     const [tournamentMode, setTournamentMode] = useState(false);
     const [delayMinutes, setDelayMinutes] = useState(3);
+    const [_streamFailed, setStreamFailed] = useState(false);
 
     const getRandomPlayer = useCallback((): CameraPlayer | null => {
         if (players.length === 0) return null;
@@ -78,7 +79,18 @@ export default function TeamCameraStreamPage() {
 
                     if (team) {
                         setTeamName(team.teamName);
-                        setPlayers(team.players || []);
+                        const basePlayers = team.players || [];
+                        const playersWithTeamStream: CameraPlayer[] = team.teamStreamUrl && team.teamStreamUrl.trim() !== ''
+                            ? [{
+                                playerId: 'team-stream',
+                                playerName: 'TEAM STREAM',
+                                inGameName: 'Team Stream',
+                                url: team.teamStreamUrl.trim(),
+                                imagePath: ''
+                              }, ...basePlayers]
+                            : basePlayers;
+
+                        setPlayers(playersWithTeamStream);
                         setTournamentMode(team.globalDelayEnabled || false);
                         setDelayMinutes(team.delayMinutes || 3);
                     } else {

@@ -2,8 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useModal } from '@lib/contexts/ModalContext';
-import type { Tournament } from '@lib/types';
-import type { Team } from '@lib/types/tournament';
+import type { Tournament, Team, Player } from '@lib/types';
 import { OverlayLoader } from '@components/common';
 
 interface MyTeamRegistrationProps {
@@ -14,7 +13,7 @@ interface MyTeamRegistrationProps {
 
 export default function MyTeamRegistration({ tournament, onClose, onTeamRegistered }: MyTeamRegistrationProps) {
     const { showAlert } = useModal();
-    const [myTeams, setMyTeams] = useState<any[]>([]);
+    const [myTeams, setMyTeams] = useState<Team[]>([]);
     const [loading, setLoading] = useState(true);
     const [registering, setRegistering] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
@@ -111,7 +110,7 @@ export default function MyTeamRegistration({ tournament, onClose, onTeamRegister
         }
     };
 
-    const filteredTeams = myTeams.filter((team: any) =>
+    const filteredTeams = myTeams.filter((team: Team) =>
         team.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         team.tag.toLowerCase().includes(searchTerm.toLowerCase())
     );
@@ -237,7 +236,7 @@ export default function MyTeamRegistration({ tournament, onClose, onTeamRegister
 }
 
 interface TeamRegistrationCardProps {
-    team: any;
+    team: Team;
     tournament: Tournament;
     isRegistered: boolean;
     onRegister: () => void;
@@ -248,7 +247,7 @@ interface TeamRegistrationCardProps {
 function TeamRegistrationCard({ team, tournament, isRegistered, onRegister, onUnregister, isLoading }: TeamRegistrationCardProps) {
     const getTeamStatus = () => {
         const hasCompleteRoster = team.players?.main?.length === 5;
-        const unverifiedPlayers = team.players?.main?.filter((player: any) => !player.verified) || [];
+        const unverifiedPlayers = team.players?.main?.filter((player: Player) => !player.verified) || [];
         const hasUnverifiedPlayers = unverifiedPlayers.length > 0;
 
         return {

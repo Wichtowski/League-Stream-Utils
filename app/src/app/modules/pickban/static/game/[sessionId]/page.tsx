@@ -36,7 +36,6 @@ export default function StaticPickBanGamePage() {
   const [currentTeam, setCurrentTeam] = useState<'blue' | 'red'>('blue');
   const [currentPosition, setCurrentPosition] = useState(1);
   const [loading, setLoading] = useState(true);
-  const [selectedChampion, setSelectedChampion] = useState<Champion | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [showChampionSelect, setShowChampionSelect] = useState(false);
   const [pendingAction, setPendingAction] = useState<'pick' | 'ban' | null>(null);
@@ -56,7 +55,7 @@ export default function StaticPickBanGamePage() {
   );
 
   useEffect(() => {
-    setActiveModule('pickban');
+    setActiveModule('pickban/static');
     if (sessionId) {
       fetchSession();
     }
@@ -113,13 +112,12 @@ export default function StaticPickBanGamePage() {
         setActions(prev => [...prev, newAction]);
         advancePhase();
         setShowChampionSelect(false);
-        setSelectedChampion(null);
         setPendingAction(null);
       } else {
         const data = await response.json();
         await showAlert({ type: 'error', message: data.error || 'Failed to perform action' });
       }
-    } catch (error) {
+    } catch (_error) {
       await showAlert({ type: 'error', message: 'Failed to perform action' });
     }
   };

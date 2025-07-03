@@ -5,6 +5,7 @@ export type CameraPlayer = {
     name?: string;
     url?: string;
     imagePath?: string;
+    role?: string;
 };
 
 export type CameraTeam = {
@@ -12,6 +13,7 @@ export type CameraTeam = {
     teamName: string;
     teamLogo?: string;
     players: CameraPlayer[];
+    teamStreamUrl?: string;
 };
 
 export type CameraSettings = {

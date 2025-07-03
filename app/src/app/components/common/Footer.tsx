@@ -14,16 +14,29 @@ export function Footer() {
   const isAuthenticated = !!user;
 
   // Don't show footer on main/auth pages or when no module active
-  if (activeModule === null || pathname === '/' || pathname === '/auth') {
+  if (activeModule === null || pathname === '/') {
     return null;
   }
 
-  // Navigation logic
-  // - If unauthenticated OR (electron and not using local data): Login + Champions
-  // - If authenticated OR (electron with local data): All modules
-  // - Electron always shows settings
-  const showBasicNav = !isAuthenticated && (!isElectron || !useLocalData);
-  const showFullNav = isAuthenticated || (isElectron && useLocalData);
+  // Navigation display rules
+  // 1. Electron (local data): show everything except Login
+  // 2. Electron (remote data) unauthenticated: Login, Champions, Settings
+  // 3. Electron (remote data) authenticated: show everything
+  // 4. Web app unauthenticated: Login, Champions
+  // 5. Web app authenticated: All (except League Client, Login, Settings)
+
+  // Evaluate environment helpers
+  const isElectronLocal = isElectron && useLocalData;
+  const isElectronRemote = isElectron && !useLocalData;
+
+  // League Client link visibility
+  const showLeagueClient = isElectron && (isElectronLocal || isAuthenticated);
+
+  // Basic navigation (Login button visibility)
+  const showBasicNav = !isAuthenticated && (isElectronRemote || !isElectron);
+
+  // Full navigation (Modules, Pick & Ban, Cameras, etc.)
+  const showFullNav = isAuthenticated || isElectronLocal; // Web authenticated or Electron local
 
   return (
     <footer className="mt-auto">
@@ -37,38 +50,46 @@ export function Footer() {
               <h3 className="text-lg font-bold text-white">Navigation</h3>
             </div>
             <div className="flex flex-wrap justify-center gap-4">
-              {/* Login - Show if unauthenticated OR (electron and not using local data) */}
+              {/* Login */}
               {showBasicNav && (
-                <Link href="/auth" className="px-4 py-2 text-white rounded-lg font-medium transition-all duration-200 shadow-lg bg-gray-700 hover:bg-gray-600 hover:shadow-blue-500/20">
+                <Link 
+                  href="/auth" 
+                  className={`px-4 py-2 text-white rounded-lg font-medium transition-all duration-200 shadow-lg ${activeModule === 'auth'
+                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 shadow-purple-500/20'
+                    : 'bg-gray-700 hover:bg-gray-600 hover:shadow-blue-500/20'
+                    }`}
+                >
                   Login
                 </Link>
               )}
               
-              {/* Champions - Always show except when fully authenticated without electron */}
-              {(showBasicNav || showFullNav) && (
-                <>
-                  <Link
-                    href="/modules"
-                    className={`px-4 py-2 text-white rounded-lg font-medium transition-all duration-200 shadow-lg ${activeModule === 'modules'
-                      ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 shadow-purple-500/20'
-                      : 'bg-gray-700 hover:bg-gray-600 hover:shadow-blue-500/20'
-                      }`}
-                  >
-                    Modules
-                  </Link>
-                  <Link
-                    href="/modules/champ-ability"
-                    className={`px-4 py-2 text-white rounded-lg font-medium transition-all duration-200 shadow-lg ${activeModule === 'champ-ability'
-                      ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 shadow-purple-500/20'
-                      : 'bg-gray-700 hover:bg-gray-600 hover:shadow-blue-500/20'
-                      }`}
-                  >
-                    Champions
-                  </Link>
-                </>
+              {/* Champions link is always visible. Modules link requires full nav. */}
+
+              {/* Champions */}
+              <Link
+                href="/modules/champ-ability"
+                className={`px-4 py-2 text-white rounded-lg font-medium transition-all duration-200 shadow-lg ${activeModule === 'champ-ability'
+                  ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 shadow-purple-500/20'
+                  : 'bg-gray-700 hover:bg-gray-600 hover:shadow-blue-500/20'
+                  }`}
+              >
+                Champions
+              </Link>
+
+              {/* Modules - only when full navigation is allowed */}
+              {showFullNav && (
+                <Link
+                  href="/modules"
+                  className={`px-4 py-2 text-white rounded-lg font-medium transition-all duration-200 shadow-lg ${activeModule === 'modules'
+                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 shadow-purple-500/20'
+                    : 'bg-gray-700 hover:bg-gray-600 hover:shadow-blue-500/20'
+                    }`}
+                >
+                  Modules
+                </Link>
               )}
 
-              {/* Full navigation - Show if authenticated OR (electron with local data) */}
+              {/* Full navigation */}
               {showFullNav && (
                 <>
                   <Link
@@ -110,18 +131,20 @@ export function Footer() {
                 </>
               )}
 
-              {/* Settings - Always show for electron, or for web users */}
-              {(isElectron || !showBasicNav) && (
+              {/* Electron-specific links */}
+              {isElectron && (
                 <>
-                  <Link
-                    href="/settings"
-                    className={`px-4 py-2 text-white rounded-lg font-medium transition-all duration-200 shadow-lg ${activeModule === 'leagueclient'
-                      ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 shadow-purple-500/20'
-                      : 'bg-gray-700 hover:bg-gray-600 hover:shadow-blue-500/20'
-                      }`}
-                  >
-                    League Client
-                  </Link>
+                  {showLeagueClient && (
+                    <Link
+                      href="/modules/leagueclient"
+                      className={`px-4 py-2 text-white rounded-lg font-medium transition-all duration-200 shadow-lg ${activeModule === 'leagueclient'
+                        ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 shadow-purple-500/20'
+                        : 'bg-gray-700 hover:bg-gray-600 hover:shadow-blue-500/20'
+                        }`}
+                    >
+                      League Client
+                    </Link>
+                  )}
                   <Link
                     href="/settings"
                     className={`px-4 py-2 text-white rounded-lg font-medium transition-all duration-200 shadow-lg ${activeModule === 'settings'
@@ -132,8 +155,8 @@ export function Footer() {
                     Settings
                   </Link>
                 </>
-
               )}
+
             </div>
             <div className="text-center text-gray-400 text-sm">
               <p>2025 Oskar Wichtowski. Tournament utilities for stream management.</p>
@@ -143,4 +166,4 @@ export function Footer() {
       </div>
     </footer>
   );
-} 
+}

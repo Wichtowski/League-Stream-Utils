@@ -14,6 +14,7 @@ export type {
     ChampSelectSession,
     Coach,
     Team,
+    Player,
     PickbanPlayer,
     PickbanTournamentTeam,
     EnhancedChampSelectPlayer,

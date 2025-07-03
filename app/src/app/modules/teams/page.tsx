@@ -15,10 +15,7 @@ export default function TeamsPage() {
     const { 
         teams, 
         loading, 
-        error, 
         createTeam, 
-        updateTeam, 
-        deleteTeam, 
         verifyPlayer, 
         verifyAllPlayers,
         refreshTeams 
@@ -578,13 +575,12 @@ export default function TeamsPage() {
 
                                                                 const response = await verifyAllPlayers(team.id);
 
-                                                                if (response.ok) {
+                                                                if (response.success) {
                                                                     await showAlert({ type: 'success', message: 'Team verified successfully!' });
                                                                     refreshTeams();
                                                                 } else {
-                                                                    const errorData = await response.json();
-                                                                    console.error('Verification failed:', errorData);
-                                                                    await showAlert({ type: 'error', message: `Failed to verify team: ${errorData.error || 'Unknown error'}` });
+                                                                    console.error('Verification failed:', response.error);
+                                                                    await showAlert({ type: 'error', message: `Failed to verify team: ${response.error || 'Unknown error'}` });
                                                                 }
                                                             } catch (error) {
                                                                 console.error('Failed to verify team:', error);

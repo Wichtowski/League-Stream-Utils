@@ -8,7 +8,6 @@ interface AuthenticatedHomeProps {
     user: User;
     sessions: GameSession[];
     sessionsLoading: boolean;
-    onLogout: () => void;
     onCreateSession: () => Promise<void>;
     onDeleteSession: (sessionId: string) => Promise<void>;
     loading: boolean;
@@ -20,14 +19,13 @@ export function AuthenticatedHome({
     user,
     sessions,
     sessionsLoading,
-    onLogout,
     onCreateSession,
     onDeleteSession,
     loading,
     error,
     newSessionUrls,
 }: AuthenticatedHomeProps) {
-    const { isElectron, useLocalData, setUseLocalData } = useElectron();
+    const { isElectron, useLocalData } = useElectron();
     const isLocalDataMode = isElectron && useLocalData;
     return (
         <div className="min-h-screen text-white p-8">
@@ -59,21 +57,6 @@ export function AuthenticatedHome({
                                 {user.isAdmin ? 'Unlimited' : `${user.sessionsCreatedToday} / 2`}
                             </div>
                         </div>
-                        {isLocalDataMode ? (
-                            <button
-                                onClick={() => setUseLocalData(false)}
-                                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition-colors"
-                            >
-                                Switch to Server Mode
-                            </button>
-                        ) : (
-                            <button
-                                onClick={onLogout}
-                                className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded transition-colors"
-                            >
-                                Logout
-                            </button>
-                        )}
                     </div>
                 </div>
 
