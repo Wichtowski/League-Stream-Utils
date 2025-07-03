@@ -203,68 +203,6 @@ export default function TeamCameraSetupPage() {
           </div>
         </div>
 
-        {/* Tournament Mode Settings */}
-        <div className="mb-8 bg-gray-800 rounded-lg p-6 border border-gray-700">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-red-600/20 rounded-lg flex items-center justify-center">
-              <span className="text-red-400 text-xl">🏆</span>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-white">Tournament Mode Settings</h3>
-              <p className="text-sm text-gray-400">Configure delayed streams for competitive integrity</p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <input
-                  type="checkbox"
-                  id="globalDelayEnabled"
-                  checked={team.globalDelayEnabled || false}
-                  onChange={(e) => {
-                    setTeam({
-                      ...team,
-                      globalDelayEnabled: e.target.checked
-                    });
-                  }}
-                  className="w-5 h-5 text-red-600 bg-gray-700 border-gray-600 rounded focus:ring-red-500 focus:ring-2"
-                />
-                <label htmlFor="globalDelayEnabled" className="text-white font-medium">
-                  Enable tournament mode (3-minute delay)
-                </label>
-              </div>
-
-              <div>
-                <label className="block text-sm text-gray-300 mb-2">Delay Duration (minutes)</label>
-                <input
-                  type="number"
-                  min="1"
-                  max="10"
-                  value={team.delayMinutes || 3}
-                  onChange={(e) => {
-                    setTeam({
-                      ...team,
-                      delayMinutes: parseInt(e.target.value) || 3
-                    });
-                  }}
-                  className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:border-red-500 focus:outline-none transition-colors"
-                />
-              </div>
-            </div>
-
-            <div className="bg-gray-700/50 rounded-lg p-4">
-              <h4 className="font-medium text-white mb-2">Tournament Mode Benefits:</h4>
-              <ul className="text-sm text-gray-300 space-y-1">
-                <li>• Prevents stream sniping during matches</li>
-                <li>• Maintains competitive integrity</li>
-                <li>• Standard for professional esports</li>
-                <li>• Required when not using official spectator mode</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
         {/* Players Configuration */}
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
           {team.players.map((player) => (
@@ -288,68 +226,6 @@ export default function TeamCameraSetupPage() {
                     className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none transition-colors"
                   />
                 </div>
-
-                <div>
-                  <label className="block text-sm text-gray-300 mb-2">
-                    Delayed Stream URL (Tournament Mode)
-                    <span className="text-red-400 ml-1">🏆</span>
-                  </label>
-                  <input
-                    type="url"
-                    placeholder="https://twitch.tv/player with 3min delay or delayed OBS URL"
-                    value={player.delayedUrl || ''}
-                    onChange={(e) => {
-                      setTeam({
-                        ...team,
-                        players: team.players.map(p => 
-                          p.playerId === player.playerId ? { ...p, delayedUrl: e.target.value } : p
-                        )
-                      });
-                    }}
-                    className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white placeholder-gray-400 focus:border-red-500 focus:outline-none transition-colors"
-                  />
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <input
-                    type="checkbox"
-                    id={`useDelay-${player.playerId}`}
-                    checked={player.useDelay || false}
-                    onChange={(e) => {
-                      setTeam({
-                        ...team,
-                        players: team.players.map(p => 
-                          p.playerId === player.playerId ? { ...p, useDelay: e.target.checked } : p
-                        )
-                      });
-                    }}
-                    className="w-4 h-4 text-red-600 bg-gray-700 border-gray-600 rounded focus:ring-red-500 focus:ring-2"
-                  />
-                  <label htmlFor={`useDelay-${player.playerId}`} className="text-sm text-gray-300">
-                    Use delayed stream by default
-                  </label>
-                </div>
-
-                {/* Stream Preview */}
-                {((player.useDelay && player.delayedUrl) || (!player.useDelay && player.url)) && (
-                  <div className="relative">
-                    <div className="aspect-video  rounded-lg overflow-hidden">
-                      <iframe
-                        src={player.useDelay ? player.delayedUrl : player.url}
-                        className="w-full h-full"
-                        allow="autoplay; fullscreen"
-                        title={`${player.playerName} stream preview${player.useDelay ? ' (delayed)' : ''}`}
-                      />
-                    </div>
-                    <div className="absolute top-2 right-2 z-10">
-                      <div className={`px-2 py-1 rounded text-xs font-semibold ${
-                        player.useDelay ? 'bg-red-600/90 text-white' : 'bg-green-600/90 text-white'
-                      }`}>
-                        {player.useDelay ? 'DELAYED' : 'LIVE'}
-                      </div>
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
           ))}

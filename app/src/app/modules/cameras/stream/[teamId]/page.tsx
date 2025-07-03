@@ -16,10 +16,8 @@ export default function TeamCameraStreamPage() {
     const { authenticatedFetch } = useAuthenticatedFetch();
     const [players, setPlayers] = useState<CameraPlayer[]>([]);
     const [currentPlayer, setCurrentPlayer] = useState<CameraPlayer | null>(null);
-    const [streamFailed, setStreamFailed] = useState(false);
     const [randomMode, setRandomMode] = useState(false);
     const [teamName, setTeamName] = useState<string>('');
-    const [teamLogo, setTeamLogo] = useState<string>('');
     const [accessDenied, setAccessDenied] = useState(false);
     const [accessReason, setAccessReason] = useState<string>('');
     const [tournamentMode, setTournamentMode] = useState(false);
@@ -80,7 +78,6 @@ export default function TeamCameraStreamPage() {
 
                     if (team) {
                         setTeamName(team.teamName);
-                        setTeamLogo(team.teamLogo || '');
                         setPlayers(team.players || []);
                         setTournamentMode(team.globalDelayEnabled || false);
                         setDelayMinutes(team.delayMinutes || 3);
@@ -224,49 +221,32 @@ export default function TeamCameraStreamPage() {
                         </div>
                     )}
 
-                    {/* Preload all streams as hidden iframes - only for players with valid URLs */}
-                    {players.filter(player => {
-                        const streamUrl = tournamentMode && player.delayedUrl ? player.delayedUrl : (player.url || player.imagePath);
-                        return streamUrl && streamUrl.trim() !== '';
-                    }).map((player) => {
-                        const streamUrl = tournamentMode && player.delayedUrl ? player.delayedUrl : (player.url || player.imagePath);
-                        return (
-                            <iframe
-                                key={`stream-${player.playerId || player.inGameName}-${tournamentMode ? 'delayed' : 'live'}`}
-                                src={streamUrl}
-                                className={`absolute inset-0 w-full h-full ${
-                                    currentPlayer?.playerId === player.playerId || 
-                                    (currentPlayer?.inGameName === player.inGameName && player.inGameName)
-                                        ? 'block' 
-                                        : 'hidden'
-                                }`}
-                                allow="autoplay; fullscreen"
-                                onError={handleStreamError}
-                                title={`${player.inGameName || player.playerName} camera feed${tournamentMode ? ` (${delayMinutes}min delay)` : ''}`}
-                            />
-                        );
-                    })}
-                    
-                    {/* Fallback display when no stream is available */}
-                    {(!currentPlayer?.imagePath || streamFailed) && (
-                        <div className="absolute inset-0 w-full h-full bg-gray-800 flex items-center justify-center">
-                            <div className="text-center">
-                                {teamLogo ? (
-                                    <Image 
-                                        src={teamLogo} 
-                                        alt={teamName}
-                                        width={128}
-                                        height={128}
-                                        className="w-32 h-32 object-contain mx-auto mb-4 opacity-50"
-                                    />
-                                ) : (
-                                    <div className="text-gray-400 text-6xl mb-4">📹</div>
-                                )}
-                                <h2 className="text-2xl font-bold text-white mb-2">No Stream Available</h2>
-                                <p className="text-gray-400">
-                                    {currentPlayer?.inGameName || currentPlayer?.playerName || 'Player'} stream is not configured
-                                </p>
-                            </div>
+                    {/* Main Stream Display */}
+                    {currentPlayer && (
+                        <div className="absolute inset-0 w-full h-full block">
+                            {currentPlayer.url ? (
+                                <iframe
+                                    src={currentPlayer.url}
+                                    className="w-full h-full"
+                                    allow="autoplay; fullscreen"
+                                    onError={handleStreamError}
+                                    title={`${currentPlayer.inGameName || currentPlayer.playerName} camera feed`}
+                                />
+                            ) : currentPlayer.imagePath ? (
+                                <Image
+                                    src={currentPlayer.imagePath}
+                                    alt={currentPlayer.inGameName || currentPlayer.playerName || 'Player'}
+                                    fill
+                                    className="object-cover"
+                                />
+                            ) : (
+                                <div className="w-full h-full bg-gray-800 flex items-center justify-center">
+                                    <div className="text-center text-gray-400">
+                                        <div className="text-2xl mb-2">📹</div>
+                                        <p className="text-sm">No feed</p>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
 

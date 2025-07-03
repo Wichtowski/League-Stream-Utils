@@ -16,7 +16,7 @@ interface CamerasContextType {
   
   // Actions
   refreshCameras: () => Promise<void>;
-  updateCameraSettings: (settings: any) => Promise<{ success: boolean; error?: string }>;
+  updateCameraSettings: (settings: { teams: Team[] }) => Promise<{ success: boolean; error?: string }>;
   
   // Cache management
   clearCache: () => Promise<void>;
@@ -205,7 +205,7 @@ export function CamerasProvider({ children }: { children: ReactNode }) {
     }
   }, [isLocalDataMode]);
 
-  const updateCameraSettings = useCallback(async (settings: any): Promise<{ success: boolean; error?: string }> => {
+  const updateCameraSettings = useCallback(async (settings: { teams: Team[] }): Promise<{ success: boolean; error?: string }> => {
     try {
       if (isLocalDataMode) {
         // Update settings locally
@@ -216,7 +216,7 @@ export function CamerasProvider({ children }: { children: ReactNode }) {
         return { success: true };
       }
 
-      // Online mode - use API
+      // nline moe - use API
       const response = await authenticatedFetch('/api/v1/cameras/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

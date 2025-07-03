@@ -9,6 +9,9 @@ const nextConfig: NextConfig = {
         pathname: '/cdn/**',
       },
     ],
+    domains: [
+      'vdo.ninja',
+    ],
   },
 };
 

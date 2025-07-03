@@ -1,3 +1,4 @@
+import { Player, Team } from "./game";
 import { PlayerRole } from "./common";
 
 export type MatchFormat = 'BO1' | 'BO3' | 'BO5';
@@ -29,83 +30,11 @@ export interface TournamentTemplate {
     logo: ImageStorage;
 }
 
-export interface Player {
-    id: string;
-    role: PlayerRole;
-    inGameName: string;
-    tag: string;
-    puuid?: string; // From Riot API
-
-    // Optional personal info
-    firstName?: string;
-    lastName?: string;
-    country?: string;
-
-    // Riot API data (cached)
-    summonerLevel?: number;
-    rank?: string;
-    lastGameAt?: Date;
-
-    // Verification
-    verified: boolean;
-    verifiedAt?: Date;
-    createdAt: Date;
-    updatedAt: Date;
-}
-
 export interface Staff {
     id: string;
     name: string;
     role: 'coach' | 'analyst' | 'manager';
     contact?: string;
-}
-
-export interface Team {
-    id: string;
-    name: string;
-    tag: string; // Team prefix
-    logo: ImageStorage;
-
-    // Colors
-    colors: {
-        primary: string;
-        secondary: string;
-        accent: string;
-    };
-
-    // Players
-    players: {
-        main: Player[]; // Exactly 5 players
-        substitutes: Player[]; // Additional subs
-    };
-
-    // Staff
-    staff: {
-        coach?: Staff;
-        analyst?: Staff;
-        manager?: Staff;
-    };
-
-    // Team metadata
-    region: string;
-    tier: TeamTier;
-    founded: Date;
-
-    // Verification
-    verified: boolean;
-    verificationSubmittedAt?: Date;
-
-    // Social media
-    socialMedia?: {
-        twitter?: string;
-        discord?: string;
-        website?: string;
-    };
-
-    // Ownership & timestamps
-    userId: string; // Creator/owner
-    createdAt: Date;
-    updatedAt: Date;
 }
 
 export interface Tournament {

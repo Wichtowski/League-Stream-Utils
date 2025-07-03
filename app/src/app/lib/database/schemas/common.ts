@@ -9,19 +9,17 @@ export const ImageStorageSchema = new Schema({
 
 export const PlayerSchema = new Schema({
     id: { type: String, required: true },
-    role: { type: String, enum: ['TOP', 'JUNGLE', 'MID', 'ADC', 'SUPPORT'], required: true },
     inGameName: { type: String, required: true },
     tag: { type: String, required: true },
+    role: { type: String, enum: ['TOP', 'JUNGLE', 'MID', 'ADC', 'SUPPORT'], required: true },
+    profileImage: { type: String },
     puuid: { type: String },
-
     firstName: { type: String },
     lastName: { type: String },
     country: { type: String },
-
     summonerLevel: { type: Number },
     rank: { type: String },
     lastGameAt: { type: Date },
-
     verified: { type: Boolean, default: false },
     verifiedAt: { type: Date },
     createdAt: { type: Date, default: Date.now },

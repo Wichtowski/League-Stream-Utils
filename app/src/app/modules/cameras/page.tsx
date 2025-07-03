@@ -7,7 +7,6 @@ import { useAuth } from '@lib/contexts/AuthContext';
 import { useCameras } from '@lib/contexts/CamerasContext';
 import { useTeams } from '@lib/contexts/TeamsContext';
 import { CameraPlayer } from '@lib/types';
-import { Player, Team } from '@lib/types/tournament';
 import { LoadingSpinner } from '@components/common';
 
 // Import proper types from database schemas
@@ -31,48 +30,20 @@ export default function CamerasPage() {
   const autoSetupFromTeams = useCallback(async () => {
     try {
       if (userTeams.length > 0) {
-        // Convert teams to camera settings format
-        const cameraTeams = userTeams.map((team: any) => ({
-          teamId: team.id,
-          teamName: team.name,
-          teamLogo: team.logoUrl || (team.logo?.data || ''),
-          players: (team.players?.main || []).map((player: any) => ({
-            playerId: player.id,
-            playerName: player.inGameName || player.name,
-            role: player.role,
-            url: '',
-            imagePath: ''
-          }))
-        }));
-
-        // Save camera settings using context
         const result = await updateCameraSettings({ teams: cameraTeams });
         if (result.success) {
-          setTeams(cameraTeams);
+          setTeams(cameraTeams as unknown as TeamCamera[]);
         }
       }
     } catch (error) {
       console.error('Error auto-setting up camera teams:', error);
     }
-  }, [userTeams, updateCameraSettings]);
+  }, [userTeams, updateCameraSettings, cameraTeams]);
 
   const loadTeams = useCallback(async () => {
     try {
       if (cameraTeams.length > 0) {
-        // Convert camera teams to the format expected by this page
-        const formattedTeams: TeamCamera[] = cameraTeams.map((team: any) => ({
-          teamId: team.id,
-          teamName: team.name,
-          teamLogo: team.logo?.data || '',
-          players: (team.players?.main || []).map((player: any) => ({
-            playerId: player.id,
-            playerName: player.inGameName || player.name,
-            role: player.role,
-            url: '',
-            imagePath: ''
-          }))
-        }));
-        setTeams(formattedTeams);
+        setTeams(cameraTeams as unknown as TeamCamera[]);
       } else {
         await autoSetupFromTeams();
       }

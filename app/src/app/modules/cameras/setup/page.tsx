@@ -7,8 +7,11 @@ import { useAuth } from '@lib/contexts/AuthContext';
 import { useElectron } from '@lib/contexts/ElectronContext';
 import { useCameras } from '@lib/contexts/CamerasContext';
 import { useTeams } from '@lib/contexts/TeamsContext';
-import type { CameraTeam, Team, Player } from '@lib/types';
 import Image from 'next/image';
+import type { CameraTeam } from '@lib/types';
+
+// Temporary patch if type is out of sync:
+type CameraPlayerWithDelay = CameraTeam['players'][number] & { delayedUrl?: string };
 
 export default function CameraSetupListPage() {
   const router = useRouter();
@@ -25,67 +28,42 @@ export default function CameraSetupListPage() {
     setActiveModule('cameras');
 
     if (!authLoading && !camerasLoading) {
-      // Only redirect to auth if not authenticated and not using Electron local data
-      if (!user && !(isElectron && useLocalData)) {
-        router.push('/auth');
-        return;
-      }
-
-      const loadCameraSettings = async () => {
-        try {
-          setLoading(true);
-          
-          if (cameraTeams.length > 0) {
-            // Convert camera teams to the format expected by this page
-            const formattedTeams: CameraTeam[] = cameraTeams.map(team => ({
-              teamId: team.id,
-              teamName: team.name,
-              teamLogo: team.logo?.data || '',
-              players: team.players.main.map(player => ({
-                playerId: player.id,
-                playerName: player.inGameName,
-                role: player.role,
-                url: '',
-                imagePath: ''
-              }))
-            }));
-            setTeams(formattedTeams);
-          } else {
-            // If no camera settings exist, auto-setup from teams
-            await autoSetupFromTeams();
-          }
-        } catch (error) {
-          console.error('Error loading camera settings:', error);
-          await autoSetupFromTeams();
-        } finally {
+      if (cameraTeams.length > 0) {
+        setTeams(cameraTeams as unknown as CameraTeam[]);
+        setLoading(false);
+      } else {
+        // Only redirect to auth if not authenticated and not using Electron local data
+        if (!user && !(isElectron && useLocalData)) {
+          router.push('/auth');
           setLoading(false);
+          return;
         }
-      };
-
-      loadCameraSettings();
+        const loadCameraSettings = async () => {
+          try {
+            setLoading(true);
+            if (cameraTeams.length > 0) {
+              setTeams(cameraTeams as unknown as CameraTeam[]);
+            } else {
+              await autoSetupFromTeams();
+            }
+          } catch (error) {
+            console.error('Error loading camera settings:', error);
+            await autoSetupFromTeams();
+          } finally {
+            setLoading(false);
+          }
+        };
+        loadCameraSettings();
+      }
     }
   }, [router, setActiveModule, user, authLoading, isElectron, useLocalData, cameraTeams, camerasLoading]);
 
   const autoSetupFromTeams = async () => {
     try {
       if (userTeams.length > 0) {
-        const cameraTeams = userTeams.map((team: Team & { logoUrl?: string }) => ({
-          teamId: team.id,
-          teamName: team.name,
-          teamLogo: team.logoUrl || team.logo?.data || '',
-          players: team.players.main.map((player: Player) => ({
-            playerId: player.id,
-            playerName: player.inGameName,
-            role: player.role,
-            url: '',
-            imagePath: ''
-          }))
-        }));
-
-        // Save camera settings using context
         const result = await updateCameraSettings({ teams: cameraTeams });
         if (result.success) {
-          setTeams(cameraTeams);
+          setTeams(cameraTeams as unknown as CameraTeam[]);
         }
       }
     } catch (error) {
@@ -134,9 +112,9 @@ export default function CameraSetupListPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {teams.map((team) => (
+            {teams.map((team, idx) => (
               <div
-                key={team.teamId}
+                key={team.teamId || idx}
                 onClick={() => router.push(`/modules/cameras/setup/${team.teamId}`)}
                 className="bg-gray-800 hover:bg-gray-750 border border-gray-700 hover:border-blue-500 rounded-lg p-6 cursor-pointer transition-all duration-200 transform hover:scale-105"
               >
@@ -164,7 +142,9 @@ export default function CameraSetupListPage() {
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-400">Streams configured:</span>
                     <span className="text-blue-400">
-                      {team.players.filter(p => p.url && p.url.trim() !== '').length} / {team.players.length}
+                      {((team.players as CameraPlayerWithDelay[]).filter(
+                        p => (p.url && p.url.trim() !== '') || (p.delayedUrl && p.delayedUrl.trim() !== '')
+                      ).length)} / {team.players.length} 
                     </span>
                   </div>
                   
@@ -172,7 +152,9 @@ export default function CameraSetupListPage() {
                     <div 
                       className="bg-blue-500 h-2 rounded-full transition-all duration-300"
                       style={{ 
-                        width: `${(team.players.filter(p => p.url && p.url.trim() !== '').length / team.players.length) * 100}%` 
+                        width: `${((team.players as CameraPlayerWithDelay[]).filter(
+                          p => (p.url && p.url.trim() !== '') || (p.delayedUrl && p.delayedUrl.trim() !== '')
+                        ).length / team.players.length) * 100}%` 
                       }}
                     ></div>
                   </div>

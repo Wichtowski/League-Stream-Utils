@@ -1,6 +1,6 @@
 import { Schema } from 'mongoose';
 import { ImageStorageSchema, PlayerSchema, StaffSchema } from './common';
-import { Player } from '../../types';
+import { Player } from '../../types/game';
 
 export const TeamSchema = new Schema({
     id: { type: String, required: true, unique: true },

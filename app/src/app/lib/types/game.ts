@@ -1,5 +1,8 @@
 import { MatchFormat } from "./tournament";
 import { GamePhase, PlayerRole } from "./common";
+import { ImageStorage } from './tournament';
+import { Staff } from './tournament';
+import { TeamTier } from './tournament';
 
 export interface Champion {
     id: number;
@@ -32,14 +35,35 @@ export interface Coach {
 export interface Team {
     id: string;
     name: string;
-    side: 'blue' | 'red';
-    bans: Champion[];
-    picks: Champion[];
-    currentPick?: Champion;
-    isReady: boolean;
-    coach?: Coach;
-    logoUrl?: string;
-    usedChampions?: Champion[];
+    tag: string;
+    logo: ImageStorage;
+    colors: {
+        primary: string;
+        secondary: string;
+        accent: string;
+    };
+    players: {
+        main: Player[];
+        substitutes: Player[];
+    };
+    staff?: {
+        coach?: Staff;
+        analyst?: Staff;
+        manager?: Staff;
+    };
+    region: string;
+    tier: TeamTier;
+    founded: Date;
+    verified: boolean;
+    verificationSubmittedAt?: Date;
+    socialMedia?: {
+        twitter?: string;
+        discord?: string;
+        website?: string;
+    };
+    userId: string;
+    createdAt: Date;
+    updatedAt: Date;
 }
 
 export interface GameConfig {
@@ -90,11 +114,21 @@ export type ActionType = 'pick' | 'ban';
 
 export interface Player {
     id: string;
-    name: string;
+    inGameName: string;
+    tag: string;
     role: PlayerRole;
     profileImage?: string;
-    rank?: string;
     puuid?: string;
+    firstName?: string;
+    lastName?: string;
+    country?: string;
+    summonerLevel?: number;
+    rank?: string;
+    lastGameAt?: Date;
+    verified: boolean;
+    verifiedAt?: Date;
+    createdAt: Date;
+    updatedAt: Date;
 }
 
 export interface TournamentTeam {
