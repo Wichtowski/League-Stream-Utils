@@ -44,13 +44,13 @@ export default function RootLayout({
       >
         <ElectronProvider>
           <AuthProvider>
-            <LCUProvider>
-              <CamerasProvider>
-                <SettingsProvider>
-                  <TeamsProvider>
-                    <TournamentsProvider>
-                      <PickbanProvider>
-                        <MockDataProvider>
+            <MockDataProvider>
+              <LCUProvider>
+                <CamerasProvider>
+                  <SettingsProvider>
+                    <TeamsProvider>
+                      <TournamentsProvider>
+                        <PickbanProvider>
                           <DownloadProvider>
                             <NavigationProvider>
                               <ModalProvider>
@@ -64,13 +64,13 @@ export default function RootLayout({
                               </ModalProvider>
                             </NavigationProvider>
                           </DownloadProvider>
-                        </MockDataProvider>
-                      </PickbanProvider>
-                    </TournamentsProvider>
-                  </TeamsProvider>
-                </SettingsProvider>
-              </CamerasProvider>
-            </LCUProvider>
+                        </PickbanProvider>
+                      </TournamentsProvider>
+                    </TeamsProvider>
+                  </SettingsProvider>
+                </CamerasProvider>
+              </LCUProvider>
+            </MockDataProvider>
           </AuthProvider>
         </ElectronProvider>
       </body>

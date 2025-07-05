@@ -18,7 +18,8 @@ export type {
     PickbanPlayer,
     PickbanTournamentTeam,
     EnhancedChampSelectPlayer,
-    EnhancedChampSelectSession
+    EnhancedChampSelectSession,
+    SessionTeam
 } from './game';
 export type { AuthCredentials, User, UserRegistration } from './auth';
 export type { SessionUrls, SessionResponse } from './api';

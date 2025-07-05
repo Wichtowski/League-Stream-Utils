@@ -191,13 +191,13 @@ const ChampSelectOverlayPage: React.FC = () => {
   }, [setActiveModule]);
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center bg-black text-white">Loading champion select data...</div>;
+    return <></>;
   }
   if (error) {
-    return <div className="min-h-screen flex items-center justify-center bg-black text-red-400">{error}</div>;
+    return <></>;
   }
   if (!data) {
-    return <div className="min-h-screen flex items-center justify-center bg-black text-white">Waiting for Champion Select...</div>;
+    return <></>;
   }
 
   const { myTeam, theirTeam, tournamentData, bans, timer } = data;

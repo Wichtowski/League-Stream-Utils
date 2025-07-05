@@ -78,15 +78,15 @@ export function Footer() {
 
               {/* Modules - only when full navigation is allowed */}
               {showFullNav && (
-                <Link
-                  href="/modules"
-                  className={`px-4 py-2 text-white rounded-lg font-medium transition-all duration-200 shadow-lg ${activeModule === 'modules'
-                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 shadow-purple-500/20'
-                    : 'bg-gray-700 hover:bg-gray-600 hover:shadow-blue-500/20'
-                    }`}
-                >
-                  Modules
-                </Link>
+                  <Link
+                    href="/modules"
+                    className={`px-4 py-2 text-white rounded-lg font-medium transition-all duration-200 shadow-lg ${activeModule === 'modules'
+                      ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 shadow-purple-500/20'
+                      : 'bg-gray-700 hover:bg-gray-600 hover:shadow-blue-500/20'
+                      }`}
+                  >
+                    Modules
+                  </Link>
               )}
 
               {/* Full navigation */}
@@ -135,15 +135,15 @@ export function Footer() {
               {isElectron && (
                 <>
                   {showLeagueClient && (
-                    <Link
-                      href="/modules/leagueclient"
-                      className={`px-4 py-2 text-white rounded-lg font-medium transition-all duration-200 shadow-lg ${activeModule === 'leagueclient'
-                        ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 shadow-purple-500/20'
-                        : 'bg-gray-700 hover:bg-gray-600 hover:shadow-blue-500/20'
-                        }`}
-                    >
-                      League Client
-                    </Link>
+                  <Link
+                    href="/modules/leagueclient"
+                    className={`px-4 py-2 text-white rounded-lg font-medium transition-all duration-200 shadow-lg ${activeModule === 'leagueclient'
+                      ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 shadow-purple-500/20'
+                      : 'bg-gray-700 hover:bg-gray-600 hover:shadow-blue-500/20'
+                      }`}
+                  >
+                    League Client
+                  </Link>
                   )}
                   <Link
                     href="/settings"
@@ -166,4 +166,4 @@ export function Footer() {
       </div>
     </footer>
   );
-}
+} 

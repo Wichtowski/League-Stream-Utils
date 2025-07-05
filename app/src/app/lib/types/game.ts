@@ -10,12 +10,14 @@ export interface Champion {
     key: string;
     image: string;
     // Extended champion data for comprehensive caching
+    title?: string;
     attackSpeed?: number;
     splashCenteredImg?: string;
     splashImg?: string;
     loadingImg?: string;
     squareImg?: string;
     spells?: ChampionSpell[];
+    tags?: string[];
 }
 
 export interface ChampionSpell {
@@ -64,6 +66,15 @@ export interface Team {
     userId: string;
     createdAt: Date;
     updatedAt: Date;
+
+    // In-game draft fields (optional so tournament objects remain valid)
+    side?: 'blue' | 'red';
+    bans?: Champion[];
+    picks?: Champion[];
+    isReady?: boolean;
+    usedChampions?: Champion[];
+    logoUrl?: string;
+    coach?: Coach;
 }
 
 export interface GameConfig {
@@ -88,14 +99,15 @@ export interface GameSession {
     id: string;
     type?: 'static' | 'lcu' | 'tournament' | 'web';
     teams: {
-        blue: Team;
-        red: Team;
+        blue: SessionTeam;
+        red: SessionTeam;
     };
     phase: GamePhase;
     currentTeam: 'blue' | 'red';
     turnNumber: number;
     createdAt: Date;
     lastActivity: Date;
+    name?: string;
     timer: {
         remaining: number;
         totalTime: number;
@@ -348,4 +360,18 @@ export interface LCUStatus {
         };
     };
     lastUpdated: Date;
+}
+
+// Team representation used within an in-progress GameSession (simplified vs full tournament Team).
+export interface SessionTeam {
+    id: string;
+    name: string;
+    side: 'blue' | 'red';
+    bans: Champion[];
+    picks: Champion[];
+    isReady: boolean;
+    usedChampions: Champion[];
+    prefix?: string;
+    logoUrl?: string;
+    coach?: Coach;
 }

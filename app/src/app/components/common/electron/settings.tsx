@@ -8,6 +8,7 @@ import { refreshChampionsCache, getChampions } from '@lib/champions';
 import tournamentTemplates, { type TournamentTemplate } from '@lib/services/tournament-templates';
 import ElectronDataModeSelector from './dataModeSelector';
 import { Button } from '@components/common/Button';
+import Link from 'next/link';
 
 interface RiotAPISettings {
     apiKey: string;
@@ -345,10 +346,10 @@ export default function ElectronSettings() {
                                 />
                                 <p className="text-xs text-gray-500 mt-1">
                                     Get your API key from{' '}
-                                    <a href="https://developer.riotgames.com" target="_blank" rel="noopener noreferrer"
+                                    <Link href="https://developer.riotgames.com" target="_blank" rel="noopener noreferrer"
                                         className="text-blue-600 hover:underline">
                                         Riot Developer Portal
-                                    </a>
+                                    </Link>
                                 </p>
                             </div>
 

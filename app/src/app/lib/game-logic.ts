@@ -11,8 +11,8 @@ import {
   recordGameResult
 } from './database';
 
-import type { Team } from '@lib/types/tournament';
-import { getTeamLogoUrl } from '@lib/types/tournament';
+import type { Team } from '@lib/types';
+import { getTeamLogoUrl } from '@lib/utils/image';
 
 // Pick and ban phase configuration
 const PICK_BAN_ORDER = [

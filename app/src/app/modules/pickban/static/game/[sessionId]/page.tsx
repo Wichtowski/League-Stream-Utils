@@ -51,7 +51,7 @@ export default function StaticPickBanGamePage() {
   
   const filteredChampions = champions.filter((champion: Champion) =>
     champion.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    champion.tags.some((tag: string) => tag.toLowerCase().includes(searchTerm.toLowerCase()))
+    champion.tags?.some((tag: string) => tag.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   useEffect(() => {
@@ -76,7 +76,7 @@ export default function StaticPickBanGamePage() {
         await showAlert({ type: 'error', message: 'Failed to load session' });
         router.push('/modules/pickban/static');
       }
-    } catch (error) {
+    } catch (_error) {
       await showAlert({ type: 'error', message: 'Failed to load session' });
       router.push('/modules/pickban/static');
     } finally {
@@ -157,7 +157,7 @@ export default function StaticPickBanGamePage() {
     if (actions.length === 0) return;
 
     const confirmed = await showConfirm({
-      type: 'warning',
+      type: 'danger',
       title: 'Undo Action',
       message: 'Are you sure you want to undo the last action?',
       confirmText: 'Undo',
@@ -178,7 +178,7 @@ export default function StaticPickBanGamePage() {
         const data = await response.json();
         await showAlert({ type: 'error', message: data.error || 'Failed to undo action' });
       }
-    } catch (error) {
+    } catch (_error) {
       await showAlert({ type: 'error', message: 'Failed to undo action' });
     }
   };

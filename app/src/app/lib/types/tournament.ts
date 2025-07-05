@@ -1,4 +1,4 @@
-import { Player, Team } from "./game";
+import { Player } from "./game";
 import { PlayerRole } from "./common";
 
 export type MatchFormat = 'BO1' | 'BO3' | 'BO5';
@@ -493,22 +493,6 @@ export interface TournamentAnalytics {
         organizerShare: number;
         prizes: { position: number; amount: number }[];
     };
-}
-
-export function getImageUrl(image: ImageStorage): string {
-    if (image.type === 'url') {
-        return image.data;
-    } else if (image.type === 'upload') {
-        // For uploaded images, the data contains the file path or base64
-        // You might need to adjust this based on your upload strategy
-        return image.data.startsWith('data:') ? image.data : `/uploads/${image.data}`;
-    }
-    return '';
-}
-
-export function getTeamLogoUrl(team: Team, fallbackUrl?: string): string {
-    const logoUrl = getImageUrl(team.logo);
-    return logoUrl || fallbackUrl || '/assets/default-team-logo.png';
 }
 
 // Additional types for contexts

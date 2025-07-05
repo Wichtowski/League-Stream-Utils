@@ -62,19 +62,18 @@ contextBridge.exposeInMainWorld('electronAPI', {
     isElectron: true
 });
 
-// Log that preload script has loaded
-console.log('League Stream Utils Electron preload script loaded');
+// console.log('League Stream Utils Electron preload script loaded');
 
-// Log the exposed API methods
-const exposedMethods = [
-    'saveTournamentFile', 'saveChampionsCache', 'loadChampionsCache',
-    'getChampionCachePath', 'checkFileExists', 'loadChampionData', 'saveChampionData',
-    'createChampionDirectory', 'downloadChampionImage', 'clearChampionCache', 'getChampionCacheStats',
-    'copyAssetFile', 'saveCameraUpload', 'getUserDataPath',
-    'downloadAsset', 'loadAssetManifest', 'saveAssetManifest', 'scanAndUpdateManifest', 'getFileSize', 'removeAsset', 'clearAssetCache', 'getAssetCacheStats',
-    'getLCUData', 'updateLCUData', 'setMockData', 'onLCUDataUpdate', 'onLCUConnectionChange', 'onMockDataToggle',
-    'onCreateTournament', 'onLoadTournament', 'onSaveTournament', 'onImportLogos', 'onExportTournament',
-    'onUpdateChampions', 'onChampionsCacheCleared', 'onOpenOBSControl', 'onOpenSettings',
-    'removeAllListeners', 'platform', 'isElectron'
-];
-console.log('Exposed electronAPI methods:', exposedMethods); 
+// // Log the exposed API methods
+// const exposedMethods = [
+//     'saveTournamentFile', 'saveChampionsCache', 'loadChampionsCache',
+//     'getChampionCachePath', 'checkFileExists', 'loadChampionData', 'saveChampionData',
+//     'createChampionDirectory', 'downloadChampionImage', 'clearChampionCache', 'getChampionCacheStats',
+//     'copyAssetFile', 'saveCameraUpload', 'getUserDataPath',
+//     'downloadAsset', 'loadAssetManifest', 'saveAssetManifest', 'scanAndUpdateManifest', 'getFileSize', 'removeAsset', 'clearAssetCache', 'getAssetCacheStats',
+//     'getLCUData', 'updateLCUData', 'setMockData', 'onLCUDataUpdate', 'onLCUConnectionChange', 'onMockDataToggle',
+//     'onCreateTournament', 'onLoadTournament', 'onSaveTournament', 'onImportLogos', 'onExportTournament',
+//     'onUpdateChampions', 'onChampionsCacheCleared', 'onOpenOBSControl', 'onOpenSettings',
+//     'removeAllListeners', 'platform', 'isElectron'
+// ];
+// console.log('Exposed electronAPI methods:', exposedMethods); 
