@@ -3,8 +3,11 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { LCUConnector } from '@lib/services/lcu-connector';
 import { storage } from '@lib/utils/storage';
-import { useElectron } from './ElectronContext';
+
 import type { ChampSelectSession } from '@lib/types';
+
+import { LCUData, LCUChampSelectSession } from '../types/electron';
+import { MOCK_CHAMP_SELECT_DATA } from '@lib/mocks/champselect';
 
 interface LCUContextType {
   // Connection state
@@ -41,7 +44,17 @@ interface LCUSettings {
 }
 
 export function LCUProvider({ children }: { children: ReactNode }) {
-  const { isElectron } = useElectron();
+  // Check if we're in Electron environment without depending on the context
+  const isElectron = typeof window !== 'undefined' && window.electronAPI?.isElectron;
+  
+  // Get mock data state directly from localStorage to avoid circular dependency
+  const [useMockData] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('useMockData');
+      return stored === 'true';
+    }
+    return false;
+  });
   
   // Connection state
   const [isConnected, setIsConnected] = useState(false);
@@ -63,7 +76,7 @@ export function LCUProvider({ children }: { children: ReactNode }) {
   }));
 
   // Function to update Electron with LCU data
-  const updateElectronLCUData = useCallback(async (data: any) => {
+  const updateElectronLCUData = useCallback(async (data: Partial<LCUData>) => {
     if (isElectron && window.electronAPI?.updateLCUData) {
       try {
         await window.electronAPI.updateLCUData(data);
@@ -136,7 +149,8 @@ export function LCUProvider({ children }: { children: ReactNode }) {
       updateElectronLCUData({
         isConnected: status === 'connected',
         isConnecting: status === 'connecting',
-        connectionError: status === 'error' ? connectionError : null
+        connectionError: status === 'error' ? connectionError : null,
+        useMockData: useMockData
       });
       
       if (status === 'connected') {
@@ -157,7 +171,8 @@ export function LCUProvider({ children }: { children: ReactNode }) {
       
       // Update Electron with champion select data
       updateElectronLCUData({
-        champSelectSession: data
+        champSelectSession: data as LCUChampSelectSession | null,
+        useMockData: useMockData
       });
     });
 
@@ -171,10 +186,58 @@ export function LCUProvider({ children }: { children: ReactNode }) {
       });
     });
 
-    return () => {
-      lcuConnector.destroy();
-    };
-  }, [lcuConnector, updateElectronLCUData, connectionError]);
+  }, [updateElectronLCUData, connectionError, useMockData]);
+
+  // Handle mock data toggle
+  useEffect(() => {
+    if (useMockData) {
+      // When mock data is enabled, provide static mock champion select data
+      setIsConnected(true);
+      setIsConnecting(false);
+      setConnectionError(null);
+      setChampSelectSession(MOCK_CHAMP_SELECT_DATA as ChampSelectSession);
+      
+      // Update Electron with mock data
+      updateElectronLCUData({
+        isConnected: true,
+        isConnecting: false,
+        connectionError: null,
+        champSelectSession: MOCK_CHAMP_SELECT_DATA as unknown as LCUChampSelectSession,
+        useMockData: true
+      });
+    } else {
+      // When mock data is disabled, try to connect to real LCU first
+      // Don't clear champSelectSession immediately to avoid flickering
+      setIsConnected(false);
+      setIsConnecting(true);
+      setConnectionError(null);
+      
+      // Update Electron with connection attempt
+      updateElectronLCUData({
+        isConnected: false,
+        isConnecting: true,
+        connectionError: null,
+        useMockData: false
+      });
+      
+      // Try to connect to real LCU
+      setTimeout(() => {
+        lcuConnector.connect().catch((error) => {
+          console.error('Failed to connect to LCU after disabling mock data:', error);
+          // If connection fails, clear the mock data
+          setChampSelectSession(null);
+          setIsConnecting(false);
+          updateElectronLCUData({
+            isConnected: false,
+            isConnecting: false,
+            connectionError: error instanceof Error ? error.message : 'Connection failed',
+            champSelectSession: null,
+            useMockData: false
+          });
+        });
+      }, 100);
+    }
+  }, [useMockData, updateElectronLCUData, lcuConnector]);
 
   const connect = useCallback(async () => {
     try {

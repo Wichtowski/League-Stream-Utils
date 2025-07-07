@@ -119,6 +119,17 @@ export interface GameSession {
     // series tracking
     gameHistory?: GameSession[];
     seriesScore?: { blue: number; red: number };
+    // Hover state for champion selection
+    hoverState?: {
+        blueTeam?: {
+            hoveredChampionId: number | null;
+            actionType: 'pick' | 'ban' | null;
+        };
+        redTeam?: {
+            hoveredChampionId: number | null;
+            actionType: 'pick' | 'ban' | null;
+        };
+    };
 }
 
 export type TeamSide = 'blue' | 'red';
@@ -325,6 +336,15 @@ export interface EnhancedChampSelectSession extends Omit<ChampSelectSession, 'my
         tournament: PickbanConfig['tournament'];
         blueTeam: PickbanTournamentTeam;
         redTeam: PickbanTournamentTeam;
+    };
+    // Hover and selection state for dynamic mock
+    hoverState?: {
+        isHovering: boolean;
+        isSelecting: boolean;
+        hoveredChampionId: number | null;
+        currentTeam: 'blue' | 'red' | null;
+        currentActionType: 'pick' | 'ban' | null;
+        currentTurn?: number;
     };
 }
 

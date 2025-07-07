@@ -1,21 +1,25 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useElectron } from './ElectronContext';
 
 interface MockDataContextType {
-  useMockTournamentData: boolean;
-  toggleMockTournamentData: (enabled: boolean) => void;
-  setUseMockTournamentData: (enabled: boolean) => void;
+  useMockData: boolean;
+  toggleMockData: (enabled: boolean) => void;
+  setUseMockData: (enabled: boolean) => void;
 }
 
 const MockDataContext = createContext<MockDataContextType | undefined>(undefined);
 
 export function MockDataProvider({ children }: { children: ReactNode }) {
-  const { isElectron } = useElectron();
-  const [useMockTournamentData, setUseMockTournamentData] = useState<boolean>(() => {
+  let isElectron = false;
+  
+  // Check if we're in Electron environment without depending on the context
+  if (typeof window !== 'undefined' && window.electronAPI?.isElectron) {
+    isElectron = true;
+  }
+  const [useMockData, setUseMockData] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('useMockTournamentData');
+      const stored = localStorage.getItem('useMockData');
       return stored === 'true';
     }
     return false;
@@ -24,9 +28,9 @@ export function MockDataProvider({ children }: { children: ReactNode }) {
   // Persist to localStorage whenever it changes
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      localStorage.setItem('useMockTournamentData', String(useMockTournamentData));
+      localStorage.setItem('useMockData', String(useMockData));
     }
-  }, [useMockTournamentData]);
+  }, [useMockData]);
 
   // Function to update Electron with mock data state
   const updateElectronMockData = async (enabled: boolean) => {
@@ -44,7 +48,7 @@ export function MockDataProvider({ children }: { children: ReactNode }) {
     if (isElectron && window.electronAPI?.onMockDataToggle) {
       window.electronAPI.onMockDataToggle((...params: [boolean] | [unknown, boolean]) => {
         const enabled = params.length === 1 ? params[0] as boolean : params[1];
-        setUseMockTournamentData(enabled);
+        setUseMockData(enabled);
       });
 
       return () => {
@@ -53,20 +57,20 @@ export function MockDataProvider({ children }: { children: ReactNode }) {
     }
   }, [isElectron]);
 
-  const toggleMockTournamentData = (enabled: boolean) => {
-    setUseMockTournamentData(enabled);
+  const toggleMockData = (enabled: boolean) => {
+    setUseMockData(enabled);
     updateElectronMockData(enabled);
   };
 
-  const setUseMockTournamentDataState = (enabled: boolean) => {
-    setUseMockTournamentData(enabled);
+  const setUseMockDataState = (enabled: boolean) => {
+    setUseMockData(enabled);
     updateElectronMockData(enabled);
   };
 
   const value: MockDataContextType = {
-    useMockTournamentData,
-    toggleMockTournamentData,
-    setUseMockTournamentData: setUseMockTournamentDataState
+    useMockData,
+    toggleMockData,
+    setUseMockData: setUseMockDataState
   };
 
   return (
@@ -76,7 +80,7 @@ export function MockDataProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export function useMockData() {
+export function useMockDataContext() {
   const context = useContext(MockDataContext);
   if (context === undefined) {
     throw new Error('useMockData must be used within a MockDataProvider');

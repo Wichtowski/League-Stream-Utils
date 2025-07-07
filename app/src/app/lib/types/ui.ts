@@ -36,4 +36,15 @@ export interface GameState {
     bothTeamsReady: boolean;
     config?: GameConfig;
     seriesScore?: { blue: number; red: number };
+    // Hover state for champion selection
+    hoverState?: {
+        blueTeam?: {
+            hoveredChampionId: number | null;
+            actionType: 'pick' | 'ban' | null;
+        };
+        redTeam?: {
+            hoveredChampionId: number | null;
+            actionType: 'pick' | 'ban' | null;
+        };
+    };
 } 

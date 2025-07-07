@@ -490,7 +490,7 @@ export function PickbanProvider({ children }: { children: ReactNode }) {
 
     try {
       // Get champion select data from LCU
-      const response = await authenticatedFetch('/api/v1/pickban/leagueclient/lcu-champselect');
+      const response = await authenticatedFetch('/api/cs');
 
       if (response.ok) {
         const data = await response.json();

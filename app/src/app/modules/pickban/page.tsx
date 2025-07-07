@@ -14,7 +14,7 @@ export default function PickBanPage(): React.ReactElement {
   const { user: authUser, isLoading: authLoading } = useAuth();
 
   useEffect(() => {
-    setActiveModule('pickban');
+    setActiveModule(null);
   }, [setActiveModule]);
 
   useEffect(() => {

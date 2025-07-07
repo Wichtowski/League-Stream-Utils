@@ -10,6 +10,7 @@ import { getChampionById, getChampions } from '@lib/champions';
 import type { GameSession, Champion } from '@lib/types';
 import { API_BASE_URL } from '@lib/constants';
 import Image from 'next/image';
+import { useChampionHoverAnimation, useTurnSequence } from '@lib/hooks/useChampSelectData';
 
 interface PickBanAction {
   id: string;
@@ -40,6 +41,27 @@ export default function StaticPickBanGamePage() {
   const [showChampionSelect, setShowChampionSelect] = useState(false);
   const [pendingAction, setPendingAction] = useState<'pick' | 'ban' | null>(null);
   const [champions, setChampions] = useState<Champion[]>([]);
+  
+  // Create mock EnhancedChampSelectSession for hover animations
+  const mockChampSelectData = {
+    phase: currentPhase,
+    timer: { adjustedTimeLeftInPhase: 0, totalTimeInPhase: 0, phase: currentPhase, isInfinite: false },
+    chatDetails: { chatRoomName: '', chatRoomPassword: '' },
+    myTeam: [],
+    theirTeam: [],
+    trades: [],
+    actions: [],
+    bans: {
+      myTeamBans: getTeamBans('blue').map(ban => ban.championId),
+      theirTeamBans: getTeamBans('red').map(ban => ban.championId)
+    },
+    localPlayerCellId: 0,
+    isSpectating: false
+  };
+
+  // Hover animation hooks
+  const turnInfo = useTurnSequence(mockChampSelectData);
+  const hoverAnimation = useChampionHoverAnimation(mockChampSelectData, turnInfo);
   
   useEffect(() => {
     const loadChampions = async () => {
@@ -264,7 +286,11 @@ export default function StaticPickBanGamePage() {
                     <button
                       key={champion.id}
                       onClick={() => handleChampionAction(champion.id, pendingAction!)}
-                      className="group relative aspect-square bg-gray-700 rounded-lg overflow-hidden border-2 border-gray-600 hover:border-blue-500 transition-colors"
+                      onMouseEnter={() => hoverAnimation.setHoveredChampionId(champion.id)}
+                      onMouseLeave={() => hoverAnimation.setHoveredChampionId(null)}
+                      className={`group relative aspect-square bg-gray-700 rounded-lg overflow-hidden border-2 border-gray-600 hover:border-blue-500 transition-colors ${
+                        hoverAnimation.hoveredChampionId === champion.id ? hoverAnimation.animationClasses : ''
+                      }`}
                     >
                       <Image
                         src={champion.image}

@@ -165,7 +165,7 @@ class ChampionCacheService extends BaseCacheService<Champion> {
         const imageUrls = {
             square: `${DDRAGON_CDN}/${version}/img/champion/${championKey}.png`,
             splash: `${DDRAGON_CDN}/img/champion/splash/${championKey}_0.jpg`,
-            splashCentered: `${DDRAGON_CDN}/img/champion/splash/${championKey}_0.jpg`, // Use regular splash as fallback
+            splashCentered: `${DDRAGON_CDN}/img/champion/centered/${championKey}_0.jpg`,
             loading: `${DDRAGON_CDN}/img/champion/loading/${championKey}_0.jpg`
         };
 

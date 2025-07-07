@@ -49,7 +49,7 @@ export default function StaticConfigPage(): React.ReactElement {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    setActiveModule('pickban');
+    setActiveModule('pickban/static');
     if (sessionId) {
       fetchSession();
     }

@@ -14,9 +14,9 @@ import {
 import type { Team } from '@lib/types';
 import { getTeamLogoUrl } from '@lib/utils/image';
 
-// Pick and ban phase configuration
+// Pick and ban phase configuration - 22 turns total
 const PICK_BAN_ORDER = [
-  // Ban phase 1
+  // Ban phase 1 (6 bans)
   { phase: 'ban1', team: 'blue', type: 'ban' },
   { phase: 'ban1', team: 'red', type: 'ban' },
   { phase: 'ban1', team: 'blue', type: 'ban' },
@@ -24,31 +24,34 @@ const PICK_BAN_ORDER = [
   { phase: 'ban1', team: 'blue', type: 'ban' },
   { phase: 'ban1', team: 'red', type: 'ban' },
 
-  // Pick phase 1
+  // Pick phase 1 (6 picks)
   { phase: 'pick1', team: 'blue', type: 'pick' },
   { phase: 'pick1', team: 'red', type: 'pick' },
   { phase: 'pick1', team: 'red', type: 'pick' },
   { phase: 'pick1', team: 'blue', type: 'pick' },
+  { phase: 'pick1', team: 'blue', type: 'pick' },
+  { phase: 'pick1', team: 'red', type: 'pick' },
 
-  // Ban phase 2
+  // Ban phase 2 (4 bans)
   { phase: 'ban2', team: 'red', type: 'ban' },
   { phase: 'ban2', team: 'blue', type: 'ban' },
   { phase: 'ban2', team: 'red', type: 'ban' },
   { phase: 'ban2', team: 'blue', type: 'ban' },
 
-  // Pick phase 2
-  { phase: 'pick2', team: 'blue', type: 'pick' },
-  { phase: 'pick2', team: 'red', type: 'pick' },
+  // Pick phase 2 (6 picks)
   { phase: 'pick2', team: 'red', type: 'pick' },
   { phase: 'pick2', team: 'blue', type: 'pick' },
   { phase: 'pick2', team: 'blue', type: 'pick' },
-  { phase: 'pick2', team: 'red', type: 'pick' }
+  { phase: 'pick2', team: 'red', type: 'pick' },
+  { phase: 'pick2', team: 'red', type: 'pick' },
+  { phase: 'pick2', team: 'blue', type: 'pick' }
 ];
 
 // Timer management
 const TIMER_DURATIONS = {
-  ban: 30000,
-  pick: 35000,
+  ban: 27000, // 27 seconds for bans
+  pick: 27000, // 27 seconds for picks
+  finalization: 59000, // 59 seconds for finalization
   lobby: 0
 };
 
@@ -232,7 +235,12 @@ export function startTimer(session: GameSession): void {
   const currentTurn = getCurrentTurn(session);
   if (!currentTurn) return;
 
-  const duration = TIMER_DURATIONS[currentTurn.type] || TIMER_DURATIONS.ban;
+  let duration: number;
+  if (session.phase === 'finalization') {
+    duration = TIMER_DURATIONS.finalization;
+  } else {
+    duration = TIMER_DURATIONS[currentTurn.type] || TIMER_DURATIONS.ban;
+  }
 
   session.timer = {
     remaining: duration,
@@ -369,6 +377,11 @@ function updateGamePhase(session: GameSession): void {
   const currentTurn = getCurrentTurn(session);
 
   if (!currentTurn) {
+    // Check if all picks and bans are complete (22 turns)
+    if (session.turnNumber >= PICK_BAN_ORDER.length) {
+      session.phase = 'finalization';
+      return;
+    }
     session.phase = 'completed';
     return;
   }
@@ -399,7 +412,8 @@ export function getGameState(session: GameSession): GameState {
     timer: session.timer,
     bothTeamsReady: session.bothTeamsReady,
     config: session.config,
-    seriesScore: session.seriesScore
+    seriesScore: session.seriesScore,
+    hoverState: session.hoverState
   };
 }
 

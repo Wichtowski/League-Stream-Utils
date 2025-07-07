@@ -26,6 +26,6 @@
       "@auth/*": ["./src/app/auth/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/app/pages/404/page.js"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/app/pages/404/page.js", "src/app/modules/pickban/leagueclient/champselect-overlay/components/champ-select-layout"],
   "exclude": ["node_modules"]
 }

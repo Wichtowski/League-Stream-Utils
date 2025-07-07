@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, use, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { Champion, GameState } from '@lib/types';
+import { useGameStateHoverAnimation } from '@lib/hooks/useChampSelectData';
 
 export default function GamePage({ params }: { params: Promise<{ sessionId: string }> }) {
   const resolvedParams = use(params);
@@ -21,6 +22,9 @@ export default function GamePage({ params }: { params: Promise<{ sessionId: stri
   const lastActionTime = useRef<number>(0);
   const lastStateUpdate = useRef<number>(0);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Hover animation hooks
+  const hoverAnimation = useGameStateHoverAnimation(gameState);
   
   const connectWebSocket = useCallback(() => {
     if (ws && ws.readyState === WebSocket.OPEN) {
@@ -133,6 +137,19 @@ export default function GamePage({ params }: { params: Promise<{ sessionId: stri
       teamSide: teamSide,
       payload: { championId }
     }));
+  };
+  
+  const handleChampionHover = (championId: number | null, action: 'pick' | 'ban') => {
+    if (!ws || !teamSide) return;
+    
+    if (championId) {
+      ws.send(JSON.stringify({
+        type: 'hover',
+        sessionId: resolvedParams.sessionId,
+        teamSide: teamSide,
+        payload: { championId, actionType: action }
+      }));
+    }
   };
   
   const handleReadyToggle = () => {
@@ -551,18 +568,21 @@ export default function GamePage({ params }: { params: Promise<{ sessionId: stri
               const disabled = isChampionDisabled(champion.id);
               const canAct = canTakeAction();
               const currentAction = getCurrentAction();
+              const hoverClasses = hoverAnimation.getAnimationClasses(champion.id);
               
               return (
                 <button
                   key={champion.id}
                   onClick={() => canAct && currentAction && handleChampionAction(champion.id, currentAction)}
-                  disabled={disabled || !canAct}
+                  onMouseEnter={() => currentAction && handleChampionHover(champion.id, currentAction as 'pick' | 'ban')}
+                  onMouseLeave={() => currentAction && handleChampionHover(null, currentAction as 'pick' | 'ban')}
+                  disabled={disabled}
                   className={`relative w-18 h-18 rounded-xl transition-all duration-300 transform ${
                     disabled 
                       ? 'opacity-30 cursor-not-allowed scale-95' 
                       : canAct 
                         ? 'hover:scale-110 cursor-pointer hover:z-10 hover:shadow-2xl' 
-                        : 'cursor-default scale-95 opacity-75'
+                        : 'cursor-default hover:scale-105'
                   } ${
                     status === 'blue-ban' || status === 'red-ban'
                       ? 'ring-4 ring-red-500 shadow-lg shadow-red-500/50'
@@ -570,9 +590,11 @@ export default function GamePage({ params }: { params: Promise<{ sessionId: stri
                         ? 'ring-4 ring-blue-500 shadow-lg shadow-blue-500/50'
                         : status === 'red-pick'
                           ? 'ring-4 ring-red-500 shadow-lg shadow-red-500/50'
-                          : canAct
-                            ? 'hover:ring-4 hover:ring-white/50 hover:shadow-xl'
-                            : ''
+                          : hoverClasses
+                            ? hoverClasses
+                            : canAct
+                              ? 'hover:ring-4 hover:ring-white/50 hover:shadow-xl'
+                              : ''
                   }`}
                   title={champion.name}
                 >

@@ -12,6 +12,7 @@ interface LCUConnectorOptions {
   autoReconnect?: boolean;
   maxReconnectAttempts?: number;
   pollInterval?: number;
+  useMockData?: boolean;
 }
 
 class LCUConnector {
@@ -24,6 +25,7 @@ class LCUConnector {
   private readonly autoReconnect: boolean;
   private readonly maxReconnectAttempts: number;
   private readonly pollInterval: number;
+  private readonly useMockData: boolean;
 
   // Event handlers
   private onStatusChange?: (status: ConnectionStatus) => void;
@@ -34,6 +36,7 @@ class LCUConnector {
     this.autoReconnect = options.autoReconnect ?? true;
     this.maxReconnectAttempts = options.maxReconnectAttempts ?? 5;
     this.pollInterval = options.pollInterval ?? 1000;
+    this.useMockData = options.useMockData ?? false;
   }
 
   // Event handler setters
@@ -119,8 +122,13 @@ class LCUConnector {
   }
 
   private async pollChampSelect(): Promise<void> {
+    // If using mock data, don't make real API calls
+    if (this.useMockData) {
+      return;
+    }
+
     try {
-      const response = await fetch('/api/v1/pickban/leagueclient/lcu-champselect');
+      const response = await fetch('/api/cs');
       const result = await response.json();
 
       if (result.success) {
@@ -136,6 +144,11 @@ class LCUConnector {
   }
 
   private startPolling(): void {
+    // Don't start polling if using mock data
+    if (this.useMockData) {
+      return;
+    }
+
     if (this.pollingInterval) {
       clearInterval(this.pollingInterval);
     }
@@ -180,7 +193,7 @@ class LCUConnector {
       this.credentials = credentials;
       this.setConnectionStatus('connected');
 
-      // Start polling for champion select data
+      // Start polling for champion select data (only if not already polling for mock data)
       this.startPolling();
 
     } catch (error) {
@@ -205,12 +218,14 @@ class LCUConnector {
   }
 
   public disconnect(): void {
+    // Only stop polling if not using mock data
     this.stopPolling();
     this.clearRetryTimeout();
 
     this.setConnectionStatus('disconnected');
     this.credentials = null;
     this.reconnectAttempts = 0;
+
     this.onChampSelectUpdate?.(null);
   }
 

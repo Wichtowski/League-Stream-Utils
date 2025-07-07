@@ -4,13 +4,14 @@ import { useState, useEffect } from 'react';
 import { useNavigation } from '@lib/contexts/NavigationContext';
 import { useAuth } from '@lib/contexts/AuthContext';
 import { useLCU } from '@lib/contexts/LCUContext';
-import { useMockData } from '@lib/contexts/MockDataContext';
+import { useMockDataContext } from '@lib/contexts/MockDataContext';
 import { AuthGuard } from '@lib/components/AuthGuard';
 import { getChampionById } from '@lib/champions';
 import { useElectron } from '@lib/contexts/ElectronContext';
 import Image from 'next/image';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
-// Cache user data path for image resolution outside component
 let userDataPathCache: string | null = null;
 if (typeof window !== 'undefined' && window.electronAPI?.getUserDataPath) {
   window.electronAPI.getUserDataPath().then((p) => { userDataPathCache = p; }).catch(() => {
@@ -19,10 +20,11 @@ if (typeof window !== 'undefined' && window.electronAPI?.getUserDataPath) {
 }
 
 export default function LeagueClientPickBanPage() {
+  const router = useRouter();
   const { setActiveModule } = useNavigation();
   const { user: _user, isLoading: _authLoading } = useAuth();
   const { isElectron } = useElectron();
-  const { useMockTournamentData, toggleMockTournamentData } = useMockData();
+  const { useMockData, toggleMockData } = useMockDataContext();
   
   const { 
     isConnected, 
@@ -46,7 +48,7 @@ export default function LeagueClientPickBanPage() {
       return;
     }
     
-    if (useMockTournamentData) {
+    if (useMockData) {
       setSuccessMessage('Mock data enabled - no LCU connection needed');
       setTimeout(() => setSuccessMessage(null), 3000);
       return;
@@ -102,49 +104,23 @@ export default function LeagueClientPickBanPage() {
     return champion.image;
   };
 
-  // Show Electron requirement message if not in Electron
+  // Redirect to modules if not in Electron
+  useEffect(() => {
   if (!isElectron) {
-    return (
-      <AuthGuard>
-        <div className="min-h-screen  text-white flex items-center justify-center">
-          <div className="max-w-md text-center">
-            <div className="mb-6">
-              <div className="w-20 h-20 bg-red-600 rounded-full mx-auto mb-4 flex items-center justify-center">
-                <span className="text-3xl">⚠️</span>
-              </div>
-              <h1 className="text-2xl font-bold mb-2">Desktop App Required</h1>
-              <p className="text-gray-400">
-                League Client integration is only available in the desktop app. 
-                The web version uses static pick & ban instead.
-              </p>
-            </div>
-            <div className="space-y-3">
-              <a 
-                href="/modules/pickban/static" 
-                className="block bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors"
-              >
-                Use Static Pick & Ban
-              </a>
-              <p className="text-sm text-gray-500">
-                Or download the desktop app for full League Client integration
-              </p>
-            </div>
-          </div>
-        </div>
-      </AuthGuard>
-    );
+    router.push('/modules');
   }
+  }, [isElectron, router]);
 
   const renderConnectionStatus = () => {
     const getStatusColor = () => {
-      if (useMockTournamentData) return 'bg-purple-600';
+      if (useMockData) return 'bg-purple-600';
       if (isConnected) return 'bg-green-600';
       if (isConnecting) return 'bg-yellow-600';
       return 'bg-red-600';
     };
 
     const getStatusText = () => {
-      if (useMockTournamentData) return 'Mock Mode';
+      if (useMockData) return 'Mock Mode';
       if (isConnected) return 'Connected';
       if (isConnecting) return 'Connecting...';
       return 'Disconnected';
@@ -164,23 +140,23 @@ export default function LeagueClientPickBanPage() {
                 type="checkbox"
                 checked={autoReconnect}
                 onChange={(e) => setAutoReconnect(e.target.checked)}
-                disabled={useMockTournamentData}
+                disabled={useMockData}
                 className="cursor-pointer rounded"
               />
-              <span className={`cursor-pointer text-sm ${useMockTournamentData ? 'text-gray-500' : ''}`}>Auto-reconnect</span>
+              <span className={`cursor-pointer text-sm ${useMockData ? 'text-gray-500' : ''}`}>Auto-reconnect</span>
             </label>
             <label className="relative inline-flex items-center cursor-pointer">
               <input
                 type="checkbox"
                 className="sr-only peer"
-                checked={useMockTournamentData}
-                onChange={(e) => toggleMockTournamentData(e.target.checked)}
+                checked={useMockData}
+                onChange={(e) => toggleMockData(e.target.checked)}
               />
               {/* Track */}
               <div className="w-11 h-6 bg-gray-600 peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer dark:peer-focus:ring-blue-800 peer-checked:bg-blue-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:border-gray-300 after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full peer-checked:after:border-white" />
-              <span className="ml-3 text-sm select-none">Mock Tournament Data</span>
+              <span className="ml-3 text-sm select-none">Mock Data</span>
             </label>
-            {useMockTournamentData ? (
+            {useMockData ? (
               <div className="text-purple-400 text-sm font-medium">
                 🎭 Mock Mode Active
               </div>
@@ -208,28 +184,28 @@ export default function LeagueClientPickBanPage() {
             <div>
               <h4 className="font-medium text-white mb-1">Tournament Overlay</h4>
               <p className="text-sm text-gray-400">
-                {useMockTournamentData 
-                  ? 'Professional esports-style overlay with mock tournament data'
+                {useMockData 
+                  ? 'Professional esports-style overlay with mock data'
                   : 'Professional esports-style champion select overlay'
                 }
               </p>
-              {useMockTournamentData && (
-                <p className="text-xs text-purple-400 mt-1">🎭 Using mock tournament data - no LCU connection required</p>
+              {useMockData && (
+                <p className="text-xs text-purple-400 mt-1">🎭 Using mock data - no LCU connection required</p>
               )}
             </div>
             <div className="flex gap-3">
-              <a
-                href="/modules/pickban/leagueclient/champselect-overlay?backend=http://localhost:2137/api/cs"
+              <Link 
+                href={useMockData ? `/modules/pickban/leagueclient/champselect-overlay?backend=http://localhost:2137/api/cs&mock=true` : `/modules/pickban/leagueclient/champselect-overlay?backend=http://localhost:2137/api/cs`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors inline-flex items-center gap-2"
               >
                 <span>🎥</span>
                 Open Overlay
-              </a>
+              </Link>
               <button
                 onClick={() => {
-                  const overlayUrl = `${window.location.origin}/modules/pickban/leagueclient/champselect-overlay?backend=http://localhost:2137/api/cs`;
+                  const overlayUrl = window.location.origin + (useMockData ? `/modules/pickban/leagueclient/champselect-overlay?backend=http://localhost:2137/api/cs&mock=true` : `/modules/pickban/leagueclient/champselect-overlay?backend=http://localhost:2137/api/cs`);
                   navigator.clipboard.writeText(overlayUrl);
                   setSuccessMessage('Overlay URL copied to clipboard!');
                   setTimeout(() => setSuccessMessage(null), 3000);
@@ -336,7 +312,7 @@ export default function LeagueClientPickBanPage() {
                   <div key={player.cellId} className={`flex items-center bg-blue-900/30 rounded p-2 ${
                     player.isActingNow ? 'ring-2 ring-yellow-400' : ''
                   }`}>
-                    <div className="w-12 h-12 bg-gray-700 rounded border-2 border-blue-400 overflow-hidden mr-3">
+                    <div className="w-12 h-12 bg-gray-700 rounded border-left-2 border-blue-400 overflow-hidden mr-3">
                       {image ? (
                         <Image
                           src={image}

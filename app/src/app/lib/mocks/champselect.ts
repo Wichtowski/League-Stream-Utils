@@ -3,7 +3,7 @@ import type { EnhancedChampSelectSession } from '@lib/types';
 export const MOCK_CHAMP_SELECT_DATA: EnhancedChampSelectSession = {
     phase: 'FINALIZATION',
     timer: {
-        adjustedTimeLeftInPhase: 30000,
+        adjustedTimeLeftInPhase: 15000,
         totalTimeInPhase: 30000,
         phase: 'FINALIZATION',
         isInfinite: false

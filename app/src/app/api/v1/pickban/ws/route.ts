@@ -1,11 +1,12 @@
 import { WebSocketServer, WebSocket } from 'ws';
-import { 
-  getGameSession, 
-  banChampion, 
-  pickChampion, 
-  getGameState, 
+import {
+  getGameSession,
+  banChampion,
+  pickChampion,
+  getGameState,
   canTeamAct,
-  setTeamReady
+  setTeamReady,
+  updateGameSession
 } from '@lib/game-logic';
 import type { WSMessage, TeamSide } from '@lib/types';
 
@@ -21,15 +22,15 @@ let wss: WebSocketServer | null = null;
 
 function initWebSocketServer() {
   if (wss) return wss;
-  
-  wss = new WebSocketServer({ 
+
+  wss = new WebSocketServer({
     port: 8080,
     verifyClient: () => true
   });
-  
+
   wss.on('connection', (ws) => {
     console.log('New WebSocket connection');
-    
+
     ws.on('message', async (data) => {
       try {
         const message: WSMessage = JSON.parse(data.toString());
@@ -42,7 +43,7 @@ function initWebSocketServer() {
         }));
       }
     });
-    
+
     ws.on('close', () => {
       console.log('WebSocket connection closed');
       for (const [sessionId, sessionConnections] of connections.entries()) {
@@ -53,13 +54,13 @@ function initWebSocketServer() {
       }
     });
   });
-  
+
   return wss;
 }
 
 async function handleWebSocketMessage(ws: ExtendedWebSocket, message: WSMessage) {
   const { type, payload, sessionId, teamSide } = message;
-  
+
   if (!sessionId) {
     ws.send(JSON.stringify({
       type: 'error',
@@ -67,7 +68,7 @@ async function handleWebSocketMessage(ws: ExtendedWebSocket, message: WSMessage)
     }));
     return;
   }
-  
+
   const session = await getGameSession(sessionId);
   if (!session) {
     ws.send(JSON.stringify({
@@ -76,12 +77,12 @@ async function handleWebSocketMessage(ws: ExtendedWebSocket, message: WSMessage)
     }));
     return;
   }
-  
+
   switch (type) {
     case 'join':
       await handleJoinSession(ws, sessionId, teamSide);
       break;
-      
+
     case 'ban':
       if (!teamSide || !payload.championId) {
         ws.send(JSON.stringify({
@@ -90,7 +91,7 @@ async function handleWebSocketMessage(ws: ExtendedWebSocket, message: WSMessage)
         }));
         return;
       }
-      
+
       if (!canTeamAct(session, teamSide)) {
         ws.send(JSON.stringify({
           type: 'error',
@@ -98,7 +99,7 @@ async function handleWebSocketMessage(ws: ExtendedWebSocket, message: WSMessage)
         }));
         return;
       }
-      
+
       if (await banChampion(session, payload.championId, teamSide)) {
         await broadcastGameState(sessionId);
       } else {
@@ -108,7 +109,7 @@ async function handleWebSocketMessage(ws: ExtendedWebSocket, message: WSMessage)
         }));
       }
       break;
-      
+
     case 'pick':
       if (!teamSide || !payload.championId) {
         ws.send(JSON.stringify({
@@ -117,7 +118,7 @@ async function handleWebSocketMessage(ws: ExtendedWebSocket, message: WSMessage)
         }));
         return;
       }
-      
+
       if (!canTeamAct(session, teamSide)) {
         ws.send(JSON.stringify({
           type: 'error',
@@ -125,7 +126,7 @@ async function handleWebSocketMessage(ws: ExtendedWebSocket, message: WSMessage)
         }));
         return;
       }
-      
+
       if (await pickChampion(session, payload.championId, teamSide)) {
         await broadcastGameState(sessionId);
       } else {
@@ -135,7 +136,33 @@ async function handleWebSocketMessage(ws: ExtendedWebSocket, message: WSMessage)
         }));
       }
       break;
-      
+
+    case 'hover':
+      if (!teamSide || !payload.championId || !payload.actionType) {
+        ws.send(JSON.stringify({
+          type: 'error',
+          payload: { message: 'Team side, champion ID, and action type required for hover' }
+        }));
+        return;
+      }
+
+      // Update hover state in the session
+      if (!session.hoverState) {
+        session.hoverState = {};
+      }
+
+      session.hoverState[`${teamSide}Team`] = {
+        hoveredChampionId: payload.championId,
+        actionType: payload.actionType
+      };
+
+      // Save the session to persist hover state
+      await updateGameSession(sessionId, { hoverState: session.hoverState });
+
+      // Broadcast updated game state to all clients
+      await broadcastGameState(sessionId);
+      break;
+
     case 'ready':
       if (!teamSide) {
         ws.send(JSON.stringify({
@@ -144,7 +171,7 @@ async function handleWebSocketMessage(ws: ExtendedWebSocket, message: WSMessage)
         }));
         return;
       }
-      
+
       const readyResult = await setTeamReady(session, teamSide, payload.ready || false);
       if (readyResult) {
         await broadcastGameState(sessionId);
@@ -155,7 +182,7 @@ async function handleWebSocketMessage(ws: ExtendedWebSocket, message: WSMessage)
         }));
       }
       break;
-      
+
     default:
       ws.send(JSON.stringify({
         type: 'error',
@@ -168,13 +195,13 @@ async function handleJoinSession(ws: ExtendedWebSocket, sessionId: string, teamS
   if (!connections.has(sessionId)) {
     connections.set(sessionId, new Set());
   }
-  
+
   connections.get(sessionId)!.add(ws);
-  
+
   // Store team info on the websocket
   ws.sessionId = sessionId;
   ws.teamSide = teamSide;
-  
+
   // Send current game state
   const session = await getGameSession(sessionId);
   if (session) {
@@ -188,13 +215,13 @@ async function handleJoinSession(ws: ExtendedWebSocket, sessionId: string, teamS
 async function broadcastGameState(sessionId: string) {
   const session = await getGameSession(sessionId);
   if (!session) return;
-  
+
   const gameState = getGameState(session);
   const message = JSON.stringify({
     type: 'gameState',
     payload: gameState
   });
-  
+
   const sessionConnections = connections.get(sessionId);
   if (sessionConnections) {
     sessionConnections.forEach(ws => {
@@ -208,7 +235,7 @@ async function broadcastGameState(sessionId: string) {
 export async function GET() {
   // Initialize WebSocket server on first request
   initWebSocketServer();
-  
+
   return new Response('WebSocket server running on port 8080', {
     status: 200,
     headers: {

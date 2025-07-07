@@ -13,10 +13,11 @@ export interface WSMessagePayload {
     remaining?: number;
     totalTime?: number;
     isActive?: boolean;
+    actionType?: 'pick' | 'ban';
 }
 
 export interface WSMessage {
-    type: 'join' | 'ban' | 'pick' | 'gameState' | 'error' | 'teamUpdate' | 'ready' | 'timerUpdate' | 'configUpdate';
+    type: 'join' | 'ban' | 'pick' | 'hover' | 'gameState' | 'error' | 'teamUpdate' | 'ready' | 'timerUpdate' | 'configUpdate';
     payload: WSMessagePayload;
     sessionId?: string;
     teamSide?: 'blue' | 'red';
