@@ -10,14 +10,13 @@ interface MongooseDocument extends Omit<GameSessionType, '_id'> {
 
 // Helper function to transform mongoose document to GameSession
 function transformToGameSession(doc: MongooseDocument): GameSessionType {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { _id, __v, ...gameSession } = doc;
   return gameSession as GameSessionType;
 }
 
 export async function createGameSession(sessionData: Partial<GameSessionType>): Promise<GameSessionType> {
   await connectToDatabase();
-  
+
   const defaultTeam = {
     id: '',
     name: '',
@@ -71,16 +70,16 @@ export async function createGameSession(sessionData: Partial<GameSessionType>): 
   const sessionToSave = { ...defaultSession, ...sessionData };
   const session = new GameSessionModel(sessionToSave);
   const saved = await session.save();
-  
+
   return transformToGameSession(saved.toObject());
 }
 
 export async function saveGameSession(session: GameSessionType): Promise<GameSessionType> {
   await connectToDatabase();
-  
+
   try {
     const existingSession = await GameSessionModel.findOne({ id: session.id });
-    
+
     if (existingSession) {
       const updated = await GameSessionModel.findOneAndUpdate(
         { id: session.id },
@@ -102,7 +101,7 @@ export async function saveGameSession(session: GameSessionType): Promise<GameSes
 
 export async function getGameSession(sessionId: string): Promise<GameSessionType | null> {
   await connectToDatabase();
-  
+
   try {
     const session = await GameSessionModel.findOne({ id: sessionId }).lean();
     if (!session) return null;
@@ -115,19 +114,19 @@ export async function getGameSession(sessionId: string): Promise<GameSessionType
 
 export async function updateGameSession(sessionId: string, updateData: Partial<GameSessionType>): Promise<GameSessionType | null> {
   await connectToDatabase();
-  
+
   const session = await GameSessionModel.findOneAndUpdate(
     { id: sessionId },
     { ...updateData, lastActivity: new Date() },
     { new: true }
   );
-  
+
   return session ? transformToGameSession(session.toObject()) : null;
 }
 
 export async function deleteGameSession(sessionId: string): Promise<boolean> {
   await connectToDatabase();
-  
+
   try {
     const result = await GameSessionModel.deleteOne({ id: sessionId });
     return result.deletedCount > 0;
@@ -139,7 +138,7 @@ export async function deleteGameSession(sessionId: string): Promise<boolean> {
 
 export async function getAllGameSessions(): Promise<GameSessionType[]> {
   await connectToDatabase();
-  
+
   try {
     const sessions = await GameSessionModel.find({}).lean();
     return sessions.map(doc => transformToGameSession(doc as MongooseDocument));
@@ -151,7 +150,7 @@ export async function getAllGameSessions(): Promise<GameSessionType[]> {
 
 export async function cleanupOldSessions(olderThanHours: number = 24): Promise<number> {
   await connectToDatabase();
-  
+
   try {
     const cutoffDate = new Date(Date.now() - olderThanHours * 60 * 60 * 1000);
     const result = await GameSessionModel.deleteMany({
@@ -168,22 +167,22 @@ export async function cleanupOldSessions(olderThanHours: number = 24): Promise<n
 // Fearless draft helpers
 export async function getUsedChampionsInSeries(sessionId: string): Promise<Champion[]> {
   await connectToDatabase();
-  
+
   try {
     const session = await GameSessionModel.findOne({ id: sessionId }).lean();
     if (!session) return [];
-    
+
     const transformedSession = transformToGameSession(session as MongooseDocument);
-    
+
     const allUsedChampions = [
       ...(transformedSession.teams.blue.usedChampions || []),
       ...(transformedSession.teams.red.usedChampions || [])
     ];
-    
+
     const uniqueChampions = allUsedChampions.filter((champion, index, self) =>
       index === self.findIndex(c => c.id === champion.id)
     );
-    
+
     return uniqueChampions;
   } catch (error) {
     console.error('Error getting used champions:', error);
@@ -193,11 +192,11 @@ export async function getUsedChampionsInSeries(sessionId: string): Promise<Champ
 
 export async function addUsedChampion(sessionId: string, teamSide: 'blue' | 'red', champion: Champion): Promise<void> {
   await connectToDatabase();
-  
+
   try {
     await GameSessionModel.findOneAndUpdate(
       { id: sessionId },
-      { 
+      {
         $addToSet: { [`teams.${teamSide}.usedChampions`]: champion },
         lastActivity: new Date()
       }

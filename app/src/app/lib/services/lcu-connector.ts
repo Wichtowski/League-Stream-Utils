@@ -134,7 +134,7 @@ class LCUConnector {
       if (result.success) {
         this.onChampSelectUpdate?.(result.data || null);
       } else {
-        console.error('Champion select polling failed:', result.message);
+        console.warn('Champion select polling failed:', result.message);
         this.onChampSelectUpdate?.(null);
       }
     } catch (error) {

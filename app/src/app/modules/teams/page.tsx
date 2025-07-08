@@ -57,10 +57,8 @@ export default function TeamsPage() {
 
     useEffect(() => {
         setActiveModule('teams');
-        if (user) {
-            refreshTeams();
-        }
-    }, [user]);
+        refreshTeams();
+    }, [refreshTeams, setActiveModule]);
 
     const handleCreateTeam = async (e: React.FormEvent) => {
         e.preventDefault();

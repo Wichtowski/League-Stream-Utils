@@ -135,12 +135,68 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Load cached data on mount
-  useEffect(() => {
-    loadCachedData();
-  }, [user]);
+  const getSystemInfo = useCallback(async (): Promise<void> => {
+    try {
+      const sysInfo: SystemInfo = {
+        version: '1.0.0',
+        buildNumber: process.env.NEXT_PUBLIC_BUILD_NUMBER || '0',
+        electron: typeof window !== 'undefined' && !!window.electronAPI?.isElectron,
+        platform: typeof window !== 'undefined' ? 
+          (window.electronAPI?.platform || navigator.platform) : 'unknown'
+      };
 
-  const loadCachedData = async (): Promise<void> => {
+      // Get additional info if in Electron and method exists
+      if (sysInfo.electron && window.electronAPI?.getVersions) {
+        try {
+          const versions = await window.electronAPI.getVersions();
+          sysInfo.nodeVersion = versions.node;
+          sysInfo.electronVersion = versions.electron;
+        } catch (err) {
+          console.debug('getVersions not available:', err);
+        }
+      }
+
+      setSystemInfo(sysInfo);
+      await storage.set(SYSTEM_INFO_CACHE_KEY, sysInfo);
+    } catch (err) {
+      console.error('Failed to get system info:', err);
+    }
+  }, []);
+
+  const fetchSettingsFromAPI = useCallback(async (showLoading = true): Promise<void> => {
+    if (showLoading) setLoading(true);
+    setError(null);
+
+    try {
+      // In cloud mode, fetch from API
+      const [appResponse, userResponse] = await Promise.all([
+        authenticatedFetch('/api/v1/settings/app'),
+        authenticatedFetch('/api/v1/settings/user')
+      ]);
+
+      if (appResponse.ok) {
+        const appData = await appResponse.json();
+        const fetchedAppSettings = { ...DEFAULT_APP_SETTINGS, ...appData.settings };
+        setAppSettings(fetchedAppSettings);
+        await storage.set(APP_SETTINGS_CACHE_KEY, fetchedAppSettings);
+      }
+
+      if (userResponse.ok) {
+        const userData = await userResponse.json();
+        const fetchedUserPreferences = { ...DEFAULT_USER_PREFERENCES, ...userData.preferences };
+        setUserPreferences(fetchedUserPreferences);
+        await storage.set(USER_PREFERENCES_CACHE_KEY, fetchedUserPreferences);
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch settings';
+      setError(errorMessage);
+      console.error('Settings fetch error:', err);
+    } finally {
+      if (showLoading) setLoading(false);
+    }
+  }, [authenticatedFetch]);
+
+  const loadCachedData = useCallback(async (): Promise<void> => {
     try {
       const [cachedAppSettings, cachedUserPreferences, cachedSystemInfo] = await Promise.all([
         storage.get<AppSettings>(APP_SETTINGS_CACHE_KEY, { ttl: CACHE_TTL }),
@@ -175,40 +231,11 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
         setLoading(false);
       }
     }
-  };
+  }, [user, fetchSettingsFromAPI, getSystemInfo, setAppSettings, setUserPreferences, setSystemInfo, setLoading]);
 
-  const fetchSettingsFromAPI = async (showLoading = true): Promise<void> => {
-    if (showLoading) setLoading(true);
-    setError(null);
-
-    try {
-      // In cloud mode, fetch from API
-      const [appResponse, userResponse] = await Promise.all([
-        authenticatedFetch('/api/v1/settings/app'),
-        authenticatedFetch('/api/v1/settings/user')
-      ]);
-
-      if (appResponse.ok) {
-        const appData = await appResponse.json();
-        const fetchedAppSettings = { ...DEFAULT_APP_SETTINGS, ...appData.settings };
-        setAppSettings(fetchedAppSettings);
-        await storage.set(APP_SETTINGS_CACHE_KEY, fetchedAppSettings);
-      }
-
-      if (userResponse.ok) {
-        const userData = await userResponse.json();
-        const fetchedUserPreferences = { ...DEFAULT_USER_PREFERENCES, ...userData.preferences };
-        setUserPreferences(fetchedUserPreferences);
-        await storage.set(USER_PREFERENCES_CACHE_KEY, fetchedUserPreferences);
-      }
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch settings';
-      setError(errorMessage);
-      console.error('Settings fetch error:', err);
-    } finally {
-      if (showLoading) setLoading(false);
-    }
-  };
+  useEffect(() => {
+    loadCachedData();
+  }, [user, loadCachedData]);
 
   const updateAppSettings = useCallback(async (settings: Partial<AppSettings>): Promise<{ success: boolean; error?: string }> => {
     const updatedSettings = { ...appSettings, ...settings };
@@ -339,34 +366,6 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     });
   }, [appSettings.notifications, updateAppSettings]);
 
-  const getSystemInfo = useCallback(async (): Promise<void> => {
-    try {
-      const sysInfo: SystemInfo = {
-        version: '1.0.0',
-        buildNumber: process.env.NEXT_PUBLIC_BUILD_NUMBER || '0',
-        electron: typeof window !== 'undefined' && !!window.electronAPI?.isElectron,
-        platform: typeof window !== 'undefined' ? 
-          (window.electronAPI?.platform || navigator.platform) : 'unknown'
-      };
-
-      // Get additional info if in Electron and method exists
-      if (sysInfo.electron && window.electronAPI?.getVersions) {
-        try {
-          const versions = await window.electronAPI.getVersions();
-          sysInfo.nodeVersion = versions.node;
-          sysInfo.electronVersion = versions.electron;
-        } catch (err) {
-          console.debug('getVersions not available:', err);
-        }
-      }
-
-      setSystemInfo(sysInfo);
-      await storage.set(SYSTEM_INFO_CACHE_KEY, sysInfo);
-    } catch (err) {
-      console.error('Failed to get system info:', err);
-    }
-  }, []);
-
   const exportSettings = useCallback(async (): Promise<{ success: boolean; data?: string; error?: string }> => {
     try {
       const exportData = {
@@ -408,7 +407,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       await fetchSettingsFromAPI(true);
     }
     await getSystemInfo();
-  }, [user]);
+  }, [user, fetchSettingsFromAPI, getSystemInfo]);
 
   const clearCache = useCallback(async (): Promise<void> => {
     await Promise.all([

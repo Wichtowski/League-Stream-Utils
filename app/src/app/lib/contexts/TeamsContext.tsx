@@ -82,26 +82,53 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
   // Check if we're in local data mode
   const isLocalDataMode = isElectron && useLocalData;
 
-  // Load cached data on mount
-  useEffect(() => {
-    // Use setTimeout to avoid blocking the UI thread
-    setTimeout(() => {
-      loadCachedData();
-    }, 0);
-  }, [user]);
+  const fetchTeamsFromAPI = useCallback(async (showLoading = true): Promise<Team[]> => {
+    // Skip API calls in local data mode
+    if (isLocalDataMode) {
+      if (showLoading) setLoading(false);
+      return teams;
+    }
 
-  // Periodic sync check (only in online mode)
-  useEffect(() => {
-    if (!user || isLocalDataMode) return;
+    // Don't fetch if user is not authenticated
+    if (!user) {
+      if (showLoading) setLoading(false);
+      return [];
+    }
 
-    const interval = setInterval(() => {
-      checkDataSync();
-    }, SYNC_CHECK_INTERVAL);
+    if (showLoading) setLoading(true);
+    setError(null);
 
-    return () => clearInterval(interval);
-  }, [user, lastFetch, isLocalDataMode]);
+    try {
+      const response = await authenticatedFetch('/api/v1/teams');
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
 
-  const loadCachedData = async (): Promise<void> => {
+      const data = await response.json();
+      const fetchedTeams = data.teams || [];
+      
+      // Check if data has changed
+      const dataChanged = !areTeamsEqual(teams, fetchedTeams);
+      
+      if (dataChanged || teams.length === 0) {
+        setTeams(fetchedTeams);
+        await storage.set(CACHE_KEY, fetchedTeams, { enableChecksum: true });
+      }
+      
+      setLastFetch(Date.now());
+      return fetchedTeams;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch teams';
+      setError(errorMessage);
+      console.error('Teams fetch error:', err);
+      return [];
+    } finally {
+      if (showLoading) setLoading(false);
+    }
+  }, [user, isLocalDataMode, teams, authenticatedFetch]);
+
+  const loadCachedData = useCallback(async (): Promise<void> => {
     // Don't fetch data if user is not authenticated
     if (!user) {
       setLoading(false);
@@ -148,81 +175,47 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
         setLoading(false);
       }
     }
-  };
+  }, [user, isLocalDataMode, fetchTeamsFromAPI]);
 
-  const fetchTeamsFromAPI = async (showLoading = true): Promise<Team[]> => {
-    // Skip API calls in local data mode
-    if (isLocalDataMode) {
-      if (showLoading) setLoading(false);
-      return teams;
-    }
-
-    // Don't fetch if user is not authenticated
-    if (!user) {
-      if (showLoading) setLoading(false);
-      return [];
-    }
-
-    if (showLoading) setLoading(true);
-    setError(null);
-
-    try {
-      const response = await authenticatedFetch('/api/v1/teams');
-      
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      const fetchedTeams = data.teams || [];
-      
-      // Check if data has changed
-      const dataChanged = !areTeamsEqual(teams, fetchedTeams);
-      
-      if (dataChanged || teams.length === 0) {
-        setTeams(fetchedTeams);
-        await storage.set(CACHE_KEY, fetchedTeams, { enableChecksum: true });
-      }
-      
-      setLastFetch(Date.now());
-      return fetchedTeams;
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch teams';
-      setError(errorMessage);
-      console.error('Teams fetch error:', err);
-      return [];
-    } finally {
-      if (showLoading) setLoading(false);
-    }
-  };
-
-  const checkDataSync = async (): Promise<void> => {
+  const checkDataSync = useCallback(async (): Promise<void> => {
     // Skip sync checks in local data mode
     if (isLocalDataMode) return;
-    
-    // Don't sync if user is not authenticated
-    if (!user) return;
 
     try {
       // Quick HEAD request to check if data has changed
       const response = await authenticatedFetch('/api/v1/teams', { method: 'HEAD' });
       const lastModified = response.headers.get('Last-Modified');
       const etag = response.headers.get('ETag');
-      
+
       if (lastModified || etag) {
         const cachedTimestamp = await storage.getTimestamp(CACHE_KEY);
         const serverTimestamp = lastModified ? new Date(lastModified).getTime() : 0;
-        
+
         if (!cachedTimestamp || serverTimestamp > cachedTimestamp) {
           console.log('Teams data outdated, refreshing...');
           await fetchTeamsFromAPI(false);
         }
       }
     } catch (err) {
-      // Silent fail for background sync checks
       console.debug('Background sync check failed:', err);
     }
-  };
+  }, [isLocalDataMode, fetchTeamsFromAPI, authenticatedFetch]);
+
+  useEffect(() => {
+    setTimeout(() => {
+      loadCachedData();
+    }, 0);
+  }, [user, loadCachedData]);
+
+  useEffect(() => {
+    if (!user || isLocalDataMode) return;
+
+    const interval = setInterval(() => {
+      checkDataSync();
+    }, SYNC_CHECK_INTERVAL);
+
+    return () => clearInterval(interval);
+  }, [user, lastFetch, isLocalDataMode, checkDataSync, authenticatedFetch, fetchTeamsFromAPI]);
 
   const areTeamsEqual = (teams1: Team[], teams2: Team[]): boolean => {
     if (teams1.length !== teams2.length) return false;
@@ -243,7 +236,7 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
     } else {
       await fetchTeamsFromAPI(true);
     }
-  }, [isLocalDataMode]);
+  }, [isLocalDataMode, loadCachedData, fetchTeamsFromAPI]);
 
   const createTeam = useCallback(async (teamData: CreateTeamRequest): Promise<{ success: boolean; team?: Team; error?: string }> => {
     try {

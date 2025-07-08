@@ -26,6 +26,7 @@ const CamerasContext = createContext<CamerasContextType | undefined>(undefined);
 
 const CACHE_KEY = 'cameras-settings';
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+const SYNC_CHECK_INTERVAL = 30 * 1000; // 30 seconds
 
 // Simple electron storage helper
 const electronStorage = {
@@ -76,16 +77,71 @@ export function CamerasProvider({ children }: { children: ReactNode }) {
   // Check if we're in local data mode
   const isLocalDataMode = isElectron && useLocalData;
 
-  // Load cached data on mount
-  useEffect(() => {
-    if (user) {
-      loadCachedData();
-    } else {
-      setLoading(false);
-    }
-  }, [user]);
+  const processPlayers = useCallback((teamsData: Team[]): void => {
+    // Flatten all players with team info
+    const players: CameraPlayer[] = teamsData.flatMap(team => {
+      const teamPlayers = team.players || [];
+      if (Array.isArray(teamPlayers)) {
+        // If players is directly an array
+        return teamPlayers.map(player => ({
+          ...player,
+          teamName: team.name,
+          teamLogo: team.logo?.data
+        }));
+      } else if (teamPlayers.main && Array.isArray(teamPlayers.main)) {
+        // If players has main array structure
+        return teamPlayers.main.map(player => ({
+          ...player,
+          teamName: team.name,
+          teamLogo: team.logo?.data
+        }));
+      }
+      return [];
+    });
+    setAllPlayers(players);
+  }, []);
 
-  const loadCachedData = async (): Promise<void> => {
+  const fetchCamerasFromAPI = useCallback(async (showLoading = true): Promise<Team[]> => {
+    // Skip API calls in local data mode
+    if (isLocalDataMode) {
+      if (showLoading) setLoading(false);
+      return teams;
+    }
+
+    if (!user) {
+      if (showLoading) setLoading(false);
+      return [];
+    }
+
+    if (showLoading) setLoading(true);
+    setError(null);
+
+    try {
+      const response = await authenticatedFetch('/api/v1/cameras/settings');
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      const fetchedTeams = data.teams || [];
+      
+      setTeams(fetchedTeams);
+      processPlayers(fetchedTeams);
+      
+      await storage.set(CACHE_KEY, { teams: fetchedTeams }, { enableChecksum: true });
+      return fetchedTeams;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch camera settings';
+      setError(errorMessage);
+      console.error('Camera settings fetch error:', err);
+      return [];
+    } finally {
+      if (showLoading) setLoading(false);
+    }
+  }, [isLocalDataMode, user, teams, authenticatedFetch, processPlayers]);
+
+  const loadCachedData = useCallback(async (): Promise<void> => {
     if (!user) {
       setLoading(false);
       return;
@@ -130,80 +186,25 @@ export function CamerasProvider({ children }: { children: ReactNode }) {
         setLoading(false);
       }
     }
-  };
+  }, [user, isLocalDataMode, fetchCamerasFromAPI, setTeams, processPlayers, setAllPlayers, setLoading]);
 
-  const processPlayers = (teamsData: Team[]): void => {
-    // Flatten all players with team info
-    const players: CameraPlayer[] = teamsData.flatMap(team => {
-      const teamPlayers = team.players || [];
-      if (Array.isArray(teamPlayers)) {
-        // If players is directly an array
-        return teamPlayers.map(player => ({
-          ...player,
-          teamName: team.name,
-          teamLogo: team.logo?.data
-        }));
-      } else if (teamPlayers.main && Array.isArray(teamPlayers.main)) {
-        // If players has main array structure
-        return teamPlayers.main.map(player => ({
-          ...player,
-          teamName: team.name,
-          teamLogo: team.logo?.data
-        }));
-      }
-      return [];
-    });
-    setAllPlayers(players);
-  };
-
-  const fetchCamerasFromAPI = async (showLoading = true): Promise<Team[]> => {
-    // Skip API calls in local data mode
-    if (isLocalDataMode) {
-      if (showLoading) setLoading(false);
-      return teams;
-    }
-
-    if (!user) {
-      if (showLoading) setLoading(false);
-      return [];
-    }
-
-    if (showLoading) setLoading(true);
-    setError(null);
-
-    try {
-      const response = await authenticatedFetch('/api/v1/cameras/settings');
-      
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      const fetchedTeams = data.teams || [];
-      
-      setTeams(fetchedTeams);
-      processPlayers(fetchedTeams);
-      
-      await storage.set(CACHE_KEY, { teams: fetchedTeams }, { enableChecksum: true });
-      return fetchedTeams;
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch camera settings';
-      setError(errorMessage);
-      console.error('Camera settings fetch error:', err);
-      return [];
-    } finally {
-      if (showLoading) setLoading(false);
-    }
-  };
-
-  const refreshCameras = useCallback(async (): Promise<void> => {
-    if (isLocalDataMode) {
-      // In local mode, just reload from electron storage
-      await loadCachedData();
+  // Load cached data on mount
+  useEffect(() => {
+    if (user) {
+      loadCachedData();
     } else {
-      await fetchCamerasFromAPI(true);
+      setLoading(false);
     }
-  }, [isLocalDataMode]);
+  }, [user, loadCachedData]);
+
+  // Periodic sync check (only in online mode)
+  useEffect(() => {
+    if (!user || isLocalDataMode) return;
+    const interval = setInterval(() => {
+      // checkDataSync(); // This function was removed
+    }, SYNC_CHECK_INTERVAL);
+    return () => clearInterval(interval);
+  }, [user, isLocalDataMode]); // Removed lastFetch
 
   const updateCameraSettings = useCallback(async (settings: { teams: Team[] }): Promise<{ success: boolean; error?: string }> => {
     try {
@@ -238,7 +239,16 @@ export function CamerasProvider({ children }: { children: ReactNode }) {
       const error = err instanceof Error ? err.message : 'Failed to update camera settings';
       return { success: false, error };
     }
-  }, [authenticatedFetch, isLocalDataMode]);
+  }, [authenticatedFetch, isLocalDataMode, processPlayers]);
+
+  const refreshCameras = useCallback(async (): Promise<void> => {
+    if (isLocalDataMode) {
+      // In local mode, just reload from electron storage
+      await loadCachedData();
+    } else {
+      await fetchCamerasFromAPI(true);
+    }
+  }, [isLocalDataMode, loadCachedData, fetchCamerasFromAPI]);
 
   const clearCache = useCallback(async (): Promise<void> => {
     if (isLocalDataMode) {

@@ -1,15 +1,15 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, memo } from "react";
+import { useNavigation } from '@lib/contexts/NavigationContext';
+import type { Champion } from '@lib/types/game';
 import Image from 'next/image';
 import { DDRAGON_CDN } from '@lib/constants';
-import { useNavigation } from '@lib/contexts/NavigationContext';
 import { getChampions, getChampionCacheStats } from '@lib/champions';
+import { ChampionDownloadProgress } from '@lib/types/progress';
 import { assetCache } from '@lib/services/asset-cache';
 import { championCacheService } from '@lib/services/champion-cache';
 import { DownloadProgressModal } from '../../components/common/DownloadProgressModal';
-import type { Champion } from '@lib/types/game';
-import { ChampionDownloadProgress } from '@lib/types/progress';
 
 type Spell = {
   id: string;
@@ -83,14 +83,7 @@ export default function App() {
   const [showProgressModal, setShowProgressModal] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
 
-  useEffect(() => {
-    setActiveModule('champ-ability');
-    setIsElectron(typeof window !== 'undefined' && !!window.electronAPI?.isElectron);
-    loadChampions();
-    loadCacheStats();
-  }, [setActiveModule]);
-
-  const loadChampions = async () => {
+  const loadChampions = useCallback(async () => {
     try {
       setLoading(true);
       const champs = await getChampions();
@@ -101,9 +94,9 @@ export default function App() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const loadCacheStats = async () => {
+  const loadCacheStats = useCallback(async () => {
     if (!isElectron) return;
     
     try {
@@ -112,9 +105,16 @@ export default function App() {
     } catch (error) {
       console.warn('Failed to load cache stats:', error);
     }
-  };
+  }, [isElectron]);
 
-  const handleRefreshCache = async () => {
+  useEffect(() => {
+    setActiveModule('champ-ability');
+    setIsElectron(typeof window !== 'undefined' && !!window.electronAPI?.isElectron);
+    loadChampions();
+    loadCacheStats();
+  }, [setActiveModule, isElectron, setIsElectron, loadChampions, loadCacheStats]);
+
+  const handleRefreshCache = useCallback(async () => {
     if (!isElectron) return;
     
     try {
@@ -142,14 +142,14 @@ export default function App() {
         setShowProgressModal(false);
       }, 2000);
     }
-  };
+  }, [isElectron, setIsDownloading, setShowProgressModal, loadCacheStats, loadChampions]);
 
-  const handleCancelDownload = () => {
+  const handleCancelDownload = useCallback(() => {
     setShowProgressModal(false);
     setIsDownloading(false);
-  };
+  }, [setShowProgressModal, setIsDownloading]);
 
-  const getChampionIconUrl = async (championKey: string): Promise<string> => {
+  const getChampionIconUrl = useCallback(async (championKey: string): Promise<string> => {
     if (isElectron) {
       try {
         const cachedUrl = await assetCache.getChampionIcon(championKey, VERSION);
@@ -160,9 +160,9 @@ export default function App() {
       }
     }
     return ICON_URL(championKey);
-  };
+  }, [isElectron]);
 
-  const getAbilityIconUrl = async (abilityImage: string): Promise<string> => {
+  const getAbilityIconUrl = useCallback(async (abilityImage: string): Promise<string> => {
     if (isElectron) {
       try {
         const cachedUrl = await assetCache.getAbilityIcon(abilityImage, VERSION);
@@ -173,7 +173,7 @@ export default function App() {
       }
     }
     return SPELL_ICON_URL(abilityImage);
-  };
+  }, [isElectron]);
 
   useEffect(() => {
     if (!selected) return;
@@ -186,12 +186,12 @@ export default function App() {
       });
   }, [selected, language]);
 
-  const scrollToFooter = () => {
+  const scrollToFooter = useCallback(() => {
     window.scrollTo({
       top: document.body.scrollHeight,
       behavior: 'smooth'
     });
-  };
+  }, []);
 
   if (loading) return <div className="flex justify-center items-center h-screen">Loading...</div>;
 
@@ -482,7 +482,7 @@ export default function App() {
   );
 }
 
-function TeamChampionAbilities({ champId, showOnlyR = false, language }: { champId: string, showOnlyR?: boolean, language: string }) {
+const TeamChampionAbilities = memo(({ champId, showOnlyR = false, language }: { champId: string, showOnlyR?: boolean, language: string }) => {
   const [abilities, setAbilities] = useState<{ passive: Passive; spells: Spell[] } | null>(null);
   const [isElectron, setIsElectron] = useState(false);
 
@@ -543,4 +543,5 @@ function TeamChampionAbilities({ champId, showOnlyR = false, language }: { champ
       })}
     </div>
   );
-} 
+});
+TeamChampionAbilities.displayName = "TeamChampionAbilities";

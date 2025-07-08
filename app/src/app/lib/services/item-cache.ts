@@ -1,5 +1,5 @@
 import { DDRAGON_CDN } from '../constants';
-import { BaseCacheService, DownloadProgress } from './base-cache';
+import { BaseCacheService } from './base-cache';
 
 export interface Item {
     id: number;
@@ -96,7 +96,7 @@ export class ItemCacheService extends BaseCacheService {
         const itemPath = `${this.cacheDir}/game/${version}/item/${itemId}`;
         const dataPath = `${itemPath}/data.json`;
         const cachedData = await this.loadData(dataPath);
-        if (cachedData) return cachedData;
+        if (cachedData && Object.keys(cachedData).length > 0) return cachedData as Item;
         if (!itemData) {
             const response = await fetch(`${DDRAGON_CDN}/${version}/data/en_US/item.json`);
             const allData: DataDragonItemResponse = await response.json();

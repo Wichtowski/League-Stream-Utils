@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { dynamicMock, MockPhase } from '@lib/mocks/dynamic-champselect';
 
 interface MockControlPanelProps {
@@ -32,7 +32,7 @@ const MockControlPanel: React.FC<MockControlPanelProps> = ({ isVisible, onToggle
     return () => clearInterval(intervalId);
   }, []);
 
-  const handleMouseDown = (e: React.MouseEvent) => {
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     if (panelRef.current) {
@@ -43,9 +43,9 @@ const MockControlPanel: React.FC<MockControlPanelProps> = ({ isVisible, onToggle
       });
       setIsDragging(true);
     }
-  };
+  }, []);
 
-  const handleMouseMove = (e: MouseEvent) => {
+  const handleMouseMove = useCallback((e: MouseEvent) => {
     if (isDragging) {
       e.preventDefault();
       const newX = e.clientX - dragOffset.x;
@@ -60,11 +60,11 @@ const MockControlPanel: React.FC<MockControlPanelProps> = ({ isVisible, onToggle
         y: Math.max(0, Math.min(newY, maxY))
       });
     }
-  };
+  }, [isDragging, dragOffset]);
 
-  const handleMouseUp = () => {
+  const handleMouseUp = useCallback(() => {
     setIsDragging(false);
-  };
+  }, []);
 
   useEffect(() => {
     if (isDragging) {
@@ -75,19 +75,24 @@ const MockControlPanel: React.FC<MockControlPanelProps> = ({ isVisible, onToggle
         document.removeEventListener('mouseup', handleMouseUp);
       };
     }
-  }, [isDragging, dragOffset]);
+  }, [isDragging, dragOffset, handleMouseMove, handleMouseUp]);
 
-  const handlePhaseChange = (phase: MockPhase) => {
+  useEffect(() => {
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, [handleMouseMove]);
+
+  const handlePhaseChange = useCallback((phase: MockPhase) => {
     dynamicMock.setPhase(phase);
     setCurrentState(dynamicMock.getCurrentState());
-  };
+  }, []);
 
-  const handleTurnChange = (turn: number) => {
+  const handleTurnChange = useCallback((turn: number) => {
     dynamicMock.setTurn(turn);
     setCurrentState(dynamicMock.getCurrentState());
-  };
+  }, []);
 
-  const handleAutoAdvanceToggle = () => {
+  const handleAutoAdvanceToggle = useCallback(() => {
     if (autoAdvance) {
       dynamicMock.stopAutoAdvance();
       setAutoAdvance(false);
@@ -95,17 +100,17 @@ const MockControlPanel: React.FC<MockControlPanelProps> = ({ isVisible, onToggle
       dynamicMock.startAutoAdvance(autoAdvanceInterval);
       setAutoAdvance(true);
     }
-  };
+  }, [autoAdvance, autoAdvanceInterval]);
 
-  const handleSeedChange = (newSeed: number) => {
+  const handleSeedChange = useCallback((newSeed: number) => {
     setSeed(newSeed);
     dynamicMock.setSeed(newSeed);
-  };
+  }, []);
 
-  const handleAdvanceTurn = () => {
+  const handleAdvanceTurn = useCallback(() => {
     dynamicMock.advanceTurn();
     setCurrentState(dynamicMock.getCurrentState());
-  };
+  }, []);
 
   if (!isVisible) {
     return (

@@ -591,14 +591,16 @@ class ChampionCacheService extends BaseCacheService<Champion> {
         await window.electronAPI.clearAssetCache();
     }
 
-    async getCacheStats(): Promise<{ totalItems: number; cacheSize: number; version: string }> {
+    async getCacheStats(): Promise<{ totalItems: number; totalChampions: number; cacheSize: number; version: string }> {
         await this.initialize();
         if (typeof window === 'undefined' || !window.electronAPI) {
             throw new Error('Electron API not available');
         }
         const statsResult = await window.electronAPI.getAssetCacheStats();
+        const count = statsResult.stats?.fileCount || 0;
         return {
-            totalItems: statsResult.stats?.fileCount || 0,
+            totalItems: count,
+            totalChampions: count,
             cacheSize: statsResult.stats?.totalSize || 0,
             version: this.version
         };

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useModal } from '@lib/contexts/ModalContext';
 import type {
     BracketStructure,
@@ -29,11 +29,7 @@ export default function BracketManager({ tournament, isOwner }: BracketManagerPr
     const [selectedMatch, setSelectedMatch] = useState<BracketNode | null>(null);
     const [showResultForm, setShowResultForm] = useState(false);
 
-    useEffect(() => {
-        loadBracket();
-    }, [tournament.id]);
-
-    const loadBracket = async () => {
+    const loadBracket = useCallback(async () => {
         try {
             setLoading(true);
             const response = await fetch(`/api/v1/tournaments/${tournament.id}/bracket`, {
@@ -53,9 +49,13 @@ export default function BracketManager({ tournament, isOwner }: BracketManagerPr
         } finally {
             setLoading(false);
         }
-    };
+    }, [tournament.id]);
 
-    const generateBracket = async () => {
+    useEffect(() => {
+        loadBracket();
+    }, [loadBracket]);
+
+    const generateBracket = useCallback(async () => {
         const confirmed = await showConfirm({
             message: 'Generate tournament bracket? This will create matches based on current team registration.',
             confirmText: 'Generate Bracket'
@@ -95,9 +95,9 @@ export default function BracketManager({ tournament, isOwner }: BracketManagerPr
         } finally {
             setGenerating(false);
         }
-    };
+    }, [tournament.id, showAlert, showConfirm]);
 
-    const updateMatchResult = async (matchId: string, winner: string, score1: number, score2: number) => {
+    const updateMatchResult = useCallback(async (matchId: string, winner: string, score1: number, score2: number) => {
         try {
             const updateData: UpdateMatchResultRequest = {
                 matchId,
@@ -139,9 +139,9 @@ export default function BracketManager({ tournament, isOwner }: BracketManagerPr
                 message: 'Failed to update match result'
             });
         }
-    };
+    }, [tournament.id, showAlert]);
 
-    const resetBracket = async () => {
+    const resetBracket = useCallback(async () => {
         const confirmed = await showConfirm({
             message: 'Delete the current bracket? This action cannot be undone.',
             confirmText: 'Delete Bracket'
@@ -171,7 +171,7 @@ export default function BracketManager({ tournament, isOwner }: BracketManagerPr
                 message: 'Failed to delete bracket'
             });
         }
-    };
+    }, [tournament.id, showAlert, showConfirm]);
 
     if (loading) {
         return (

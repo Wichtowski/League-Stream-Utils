@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useModal } from '@lib/contexts/ModalContext';
 import type { Tournament, Team } from '@lib/types';
 import { OverlayLoader } from '@components/common';
@@ -18,11 +18,7 @@ export default function MyTeamRegistration({ tournament, onClose, onTeamRegister
     const [registering, setRegistering] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
 
-    useEffect(() => {
-        fetchMyTeams();
-    }, []);
-
-    const fetchMyTeams = async (): Promise<void> => {
+    const fetchMyTeams = useCallback(async (): Promise<void> => {
         try {
             const response = await fetch('/api/v1/teams', {
                 headers: {
@@ -42,9 +38,13 @@ export default function MyTeamRegistration({ tournament, onClose, onTeamRegister
         } finally {
             setLoading(false);
         }
-    };
+    }, [showAlert]);
 
-    const handleRegisterTeam = async (teamId: string): Promise<void> => {
+    useEffect(() => {
+        fetchMyTeams();
+    }, [fetchMyTeams]);
+
+    const handleRegisterTeam = useCallback(async (teamId: string): Promise<void> => {
         setRegistering(true);
         try {
             const response = await fetch(`/api/v1/tournaments/${tournament.id}/register`, {
@@ -75,9 +75,9 @@ export default function MyTeamRegistration({ tournament, onClose, onTeamRegister
         } finally {
             setRegistering(false);
         }
-    };
+    }, [tournament.id, tournament.name, myTeams, showAlert, onTeamRegistered]);
 
-    const handleUnregisterTeam = async (teamId: string): Promise<void> => {
+    const handleUnregisterTeam = useCallback(async (teamId: string): Promise<void> => {
         setRegistering(true);
         try {
             const response = await fetch(`/api/v1/tournaments/${tournament.id}/register`, {
@@ -108,7 +108,7 @@ export default function MyTeamRegistration({ tournament, onClose, onTeamRegister
         } finally {
             setRegistering(false);
         }
-    };
+    }, [tournament.id, tournament.name, myTeams, showAlert, onTeamRegistered]);
 
     const filteredTeams = myTeams.filter(team =>
         team.name.toLowerCase().includes(searchTerm.toLowerCase()) ||

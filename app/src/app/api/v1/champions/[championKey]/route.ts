@@ -3,10 +3,10 @@ import { getChampionByKeyEnhanced } from '@lib/champions';
 
 export async function GET(
     request: NextRequest,
-    { params }: { params: { championKey: string } }
+    { params }: { params: Promise<{ championKey: string }> }
 ) {
     try {
-        const { championKey } = params;
+        const { championKey } = await params;
 
         if (!championKey) {
             return NextResponse.json(

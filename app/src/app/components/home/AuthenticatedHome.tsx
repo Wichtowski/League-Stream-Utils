@@ -10,6 +10,7 @@ interface AuthenticatedHomeProps {
     sessionsLoading: boolean;
     onCreateSession: () => Promise<void>;
     onDeleteSession: (sessionId: string) => Promise<void>;
+    onLogout?: () => void;
     loading: boolean;
     error: string | null;
     newSessionUrls: SessionUrls | null;
@@ -21,6 +22,7 @@ export function AuthenticatedHome({
     sessionsLoading,
     onCreateSession,
     onDeleteSession,
+    onLogout,
     loading,
     error,
     newSessionUrls,
@@ -57,6 +59,14 @@ export function AuthenticatedHome({
                                 {user.isAdmin ? 'Unlimited' : `${user.sessionsCreatedToday} / 2`}
                             </div>
                         </div>
+                        {onLogout && (
+                            <button
+                                onClick={onLogout}
+                                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors"
+                            >
+                                Logout
+                            </button>
+                        )}
                     </div>
                 </div>
 

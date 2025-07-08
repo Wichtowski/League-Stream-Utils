@@ -116,7 +116,7 @@ export default function GamePage({ params }: { params: Promise<{ sessionId: stri
         setWs(null);
       }
     };
-  }, [resolvedParams.sessionId, teamSide]); // Remove connectWebSocket and ws from dependencies
+  }, [resolvedParams.sessionId, teamSide, connectWebSocket, ws]);
   
   const handleChampionAction = (championId: number, action: 'pick' | 'ban') => {
     if (!ws || !gameState || !teamSide) return;

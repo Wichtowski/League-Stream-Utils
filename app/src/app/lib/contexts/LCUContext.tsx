@@ -186,7 +186,7 @@ export function LCUProvider({ children }: { children: ReactNode }) {
       });
     });
 
-  }, [updateElectronLCUData, connectionError, useMockData]);
+  }, [lcuConnector, updateElectronLCUData, connectionError, useMockData]);
 
   // Handle mock data toggle
   useEffect(() => {

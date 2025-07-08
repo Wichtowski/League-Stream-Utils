@@ -1,9 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useModal } from '@lib/contexts/ModalContext';
-import type { Tournament } from '@lib/types';
-import type { Team } from '@lib/types/tournament';
+import type { Tournament, Team } from '@lib/types';
 import { OverlayLoader } from '@components/common';
 
 interface AdminTournamentManagerProps {
@@ -20,11 +19,7 @@ export default function AdminTournamentManager({ onClose }: AdminTournamentManag
     const [registering, setRegistering] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
 
-    useEffect(() => {
-        fetchAdminData();
-    }, []);
-
-    const fetchAdminData = async (): Promise<void> => {
+    const fetchAdminData = useCallback(async (): Promise<void> => {
         try {
             const response = await fetch('/api/v1/admin/tournaments/register', {
                 headers: {
@@ -45,7 +40,11 @@ export default function AdminTournamentManager({ onClose }: AdminTournamentManag
         } finally {
             setLoading(false);
         }
-    };
+    }, [showAlert]);
+
+    useEffect(() => {
+        fetchAdminData();
+    }, [fetchAdminData]);
 
     const handleRegisterTeam = async (): Promise<void> => {
         if (!selectedTournament || !selectedTeam) {

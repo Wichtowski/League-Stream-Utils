@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { User } from '@lib/types/auth';
 import { useElectron } from './ElectronContext';
 
@@ -20,11 +20,11 @@ export function AuthProvider({ children }: { children: ReactNode }): React.React
     const [isLoading, setIsLoading] = useState(true);
     const { isElectron, isElectronLoading, useLocalData } = useElectron();
 
-    const clearAuthData = () => {
+    const clearAuthData = useCallback(() => {
         setUser(null);
-    };
+    }, []);
 
-    const refreshToken = async (): Promise<boolean> => {
+    const refreshToken = useCallback(async (): Promise<boolean> => {
         try {
             const response = await fetch('/api/v1/auth/refresh', {
                 method: 'POST',
@@ -42,9 +42,52 @@ export function AuthProvider({ children }: { children: ReactNode }): React.React
             clearAuthData();
             return false;
         }
+    }, [clearAuthData]);
+
+
+
+    const login = async (username: string, password: string): Promise<{ success: boolean; message?: string }> => {
+        try {
+            const response = await fetch('/api/v1/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+                body: JSON.stringify({ username, password }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                setUser(data.user);
+                return { success: true };
+            } else {
+                return { success: false, message: data.error || 'Login failed' };
+            }
+        } catch (error) {
+            console.error('Login error:', error);
+            return { success: false, message: 'Network error occurred' };
+        }
     };
 
-    const checkAuth = async () => {
+    const logout = async () => {
+        try {
+            await fetch('/api/v1/auth/logout', {
+                method: 'POST',
+                credentials: 'include'
+            });
+        } catch (error) {
+            console.error('Logout error:', error);
+        } finally {
+            clearAuthData();
+            if (typeof window !== 'undefined') {
+                window.location.href = '/auth';
+            }
+        }
+    };
+
+    const checkAuthCallback = useCallback(async () => {
         // Wait for Electron detection to complete
         if (isElectronLoading) {
             return;
@@ -99,59 +142,18 @@ export function AuthProvider({ children }: { children: ReactNode }): React.React
         } finally {
             setIsLoading(false);
         }
-    };
-
-    const login = async (username: string, password: string): Promise<{ success: boolean; message?: string }> => {
-        try {
-            const response = await fetch('/api/v1/auth/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                credentials: 'include',
-                body: JSON.stringify({ username, password }),
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                setUser(data.user);
-                return { success: true };
-            } else {
-                return { success: false, message: data.error || 'Login failed' };
-            }
-        } catch (error) {
-            console.error('Login error:', error);
-            return { success: false, message: 'Network error occurred' };
-        }
-    };
-
-    const logout = async () => {
-        try {
-            await fetch('/api/v1/auth/logout', {
-                method: 'POST',
-                credentials: 'include'
-            });
-        } catch (error) {
-            console.error('Logout error:', error);
-        } finally {
-            clearAuthData();
-            if (typeof window !== 'undefined') {
-                window.location.href = '/auth';
-            }
-        }
-    };
+    }, [isElectronLoading, isElectron, useLocalData, refreshToken, clearAuthData]);
 
     useEffect(() => {
-        checkAuth();
-    }, [isElectronLoading, isElectron, useLocalData]);
+        checkAuthCallback();
+    }, [checkAuthCallback]);
 
     const value = {
         user,
         isLoading,
         login,
         logout,
-        checkAuth,
+        checkAuth: checkAuthCallback,
         refreshToken
     };
 

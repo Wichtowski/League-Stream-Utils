@@ -92,7 +92,7 @@ export default function OBSView({ params }: { params: Promise<{ sessionId: strin
       }
       isConnectingRef.current = false;
     };
-  }, [resolvedParams.sessionId]);
+  }, [resolvedParams.sessionId, connectWebSocket, ws]);
 
   const formatTime = (ms: number) => {
     const seconds = Math.ceil(ms / 1000);

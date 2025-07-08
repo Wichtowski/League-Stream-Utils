@@ -21,11 +21,6 @@ export default function StaticPickBanPage() {
   const [newSessionUrls, setNewSessionUrls] = useState<SessionUrls | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    setActiveModule('pickban');
-    fetchSessions();
-  }, []);
-
   const fetchSessions = useCallback(async () => {
     try {
       setSessionsLoading(true);
@@ -45,6 +40,11 @@ export default function StaticPickBanPage() {
       setSessionsLoading(false);
     }
   }, [authenticatedFetch]);
+
+  useEffect(() => {
+    setActiveModule('pickban/static');
+    fetchSessions();
+  }, [fetchSessions, setActiveModule]);
 
   const createSession = async () => {
     if (!authUser) return;

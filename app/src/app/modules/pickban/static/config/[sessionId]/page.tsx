@@ -7,7 +7,6 @@ import { useModal } from '@lib/contexts/ModalContext';
 import { useAuth } from '@lib/contexts/AuthContext';
 import { useAuthenticatedFetch } from '@lib/hooks/useAuthenticatedFetch';
 import type { GameSession } from '@lib/types';
-import { API_BASE_URL } from '@lib/constants';
 
 interface PickBanConfig {
   format: 'tournament' | 'ranked' | 'custom';
@@ -48,17 +47,10 @@ export default function StaticConfigPage(): React.ReactElement {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    setActiveModule('pickban/static');
-    if (sessionId) {
-      fetchSession();
-    }
-  }, [sessionId]);
-
   const fetchSession = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await authenticatedFetch(`${API_BASE_URL}/pickban/sessions/${sessionId}`);
+      const response = await authenticatedFetch(`/api/v1/pickban/sessions/${sessionId}`);
       
       if (response.ok) {
         const data = await response.json();
@@ -78,12 +70,17 @@ export default function StaticConfigPage(): React.ReactElement {
     }
   }, [sessionId, authenticatedFetch, showAlert, router]);
 
+  useEffect(() => {
+    setActiveModule('pickban/static');
+    fetchSession();
+  }, [fetchSession, setActiveModule, authenticatedFetch, showAlert, router]);
+
   const saveConfig = async () => {
     if (!session || !authUser) return;
 
     setSaving(true);
     try {
-      const response = await authenticatedFetch(`${API_BASE_URL}/pickban/sessions/${sessionId}/config`, {
+      const response = await authenticatedFetch(`/api/v1/pickban/sessions/${sessionId}/config`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ config })
@@ -120,7 +117,7 @@ export default function StaticConfigPage(): React.ReactElement {
     if (!confirmed) return;
 
     try {
-      const response = await authenticatedFetch(`${API_BASE_URL}/pickban/sessions/${sessionId}/start`, {
+      const response = await authenticatedFetch(`/api/v1/pickban/sessions/${sessionId}/start`, {
         method: 'POST'
       });
 

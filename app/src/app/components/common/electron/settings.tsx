@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Cog6ToothIcon, CloudIcon, DocumentDuplicateIcon, ShieldCheckIcon, ComputerDesktopIcon } from '@heroicons/react/24/outline';
 import { useModal } from '@lib/contexts/ModalContext';
 import { riotAPI } from '@lib/services/riot-api';
@@ -49,37 +49,7 @@ export default function ElectronSettings() {
     const [templates, setTemplates] = useState<TournamentTemplate[]>([]);
     const [championsVersion, setChampionsVersion] = useState('');
 
-    useEffect(() => {
-        setIsElectron(typeof window !== 'undefined' && !!window.electronAPI?.isElectron);
-
-        // Set up Electron event listeners
-        if (window.electronAPI) {
-            window.electronAPI.onUpdateChampions(() => {
-                handleUpdateChampions();
-            });
-
-            window.electronAPI.onChampionsCacheCleared(() => {
-                setCacheStats(prev => ({
-                    ...prev,
-                    champions: { count: 0, lastUpdated: 'Never' }
-                }));
-            });
-        }
-
-        // Load initial data
-        loadCacheStats();
-        loadTemplates();
-
-        return () => {
-            // Cleanup
-            if (window.electronAPI) {
-                window.electronAPI.removeAllListeners('update-champions');
-                window.electronAPI.removeAllListeners('champions-cache-cleared');
-            }
-        };
-    }, []);
-
-    const loadCacheStats = async () => {
+    const loadCacheStats = useCallback(async () => {
         try {
             const stats = riotAPI.getCacheStats();
             const version = await riotAPI.getLatestGameVersion();
@@ -116,18 +86,9 @@ export default function ElectronSettings() {
         } catch (error) {
             console.error('Failed to load cache stats:', error);
         }
-    };
+    }, [isElectron]);
 
-    const loadTemplates = async () => {
-        try {
-            const templateList = await tournamentTemplates.getAllTemplates();
-            setTemplates(templateList);
-        } catch (error) {
-            console.error('Failed to load templates:', error);
-        }
-    };
-
-    const handleUpdateChampions = async () => {
+    const handleUpdateChampions = useCallback(async () => {
         setLoading(true);
         try {
             await refreshChampionsCache();
@@ -138,6 +99,46 @@ export default function ElectronSettings() {
             await showAlert({ type: 'error', message: 'Failed to update champions database. Please check your API key and internet connection.' });
         } finally {
             setLoading(false);
+        }
+    }, [loadCacheStats, showAlert]);
+
+    useEffect(() => {
+        setIsElectron(typeof window !== 'undefined' && !!window.electronAPI?.isElectron);
+
+        // Set up Electron event listeners
+        if (window.electronAPI) {
+            window.electronAPI.onUpdateChampions(() => {
+                handleUpdateChampions();
+            });
+
+            window.electronAPI.onChampionsCacheCleared(() => {
+                setCacheStats(prev => ({
+                    ...prev,
+                    champions: { count: 0, lastUpdated: 'Never' }
+                }));
+            });
+        }
+
+        // Load initial data
+        loadCacheStats();
+        handleUpdateChampions();
+        loadTemplates();
+
+        return () => {
+            // Cleanup
+            if (window.electronAPI) {
+                window.electronAPI.removeAllListeners('update-champions');
+                window.electronAPI.removeAllListeners('champions-cache-cleared');
+            }
+        };
+    }, [loadCacheStats, handleUpdateChampions]);
+
+    const loadTemplates = async () => {
+        try {
+            const templateList = await tournamentTemplates.getAllTemplates();
+            setTemplates(templateList);
+        } catch (error) {
+            console.error('Failed to load templates:', error);
         }
     };
 

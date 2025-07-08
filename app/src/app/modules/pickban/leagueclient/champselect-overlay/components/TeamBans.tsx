@@ -77,7 +77,6 @@ const TeamBans: React.FC<TeamBansProps> = ({ bans, teamColor, hoverState }) => {
                   width={64} 
                   height={64} 
                   className="w-full h-full object-cover opacity-50" 
-                  unoptimized
                 />
                 {/* Ban placeholder overlay to indicate banned champion */}
                 <div className="absolute inset-0 flex items-center justify-center bg-red-900/30">
@@ -87,7 +86,6 @@ const TeamBans: React.FC<TeamBansProps> = ({ bans, teamColor, hoverState }) => {
                     width={64} 
                     height={64} 
                     className="w-full h-full object-cover opacity-60" 
-                    unoptimized
                   />
                 </div>
               </>
@@ -98,7 +96,6 @@ const TeamBans: React.FC<TeamBansProps> = ({ bans, teamColor, hoverState }) => {
                 width={64} 
                 height={64} 
                 className="w-full h-full object-cover opacity-40" 
-                unoptimized
               />
             )}
             
@@ -111,7 +108,6 @@ const TeamBans: React.FC<TeamBansProps> = ({ bans, teamColor, hoverState }) => {
                   width={64} 
                   height={64} 
                   className="w-full h-full object-cover opacity-60" 
-                  unoptimized
                 />
               </div>
             )}

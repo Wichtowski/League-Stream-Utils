@@ -11,7 +11,7 @@ import { LoadingSpinner } from '@components/common';
 export default function AllCamerasPage() {
     const router = useRouter();
     const { setActiveModule } = useNavigation();
-    const { teams, allPlayers, loading, error, refreshCameras } = useCameras();
+    const { teams, allPlayers, loading, error: _error, refreshCameras } = useCameras();
     const [streamErrors, setStreamErrors] = useState<Set<string>>(new Set());
 
     useEffect(() => {

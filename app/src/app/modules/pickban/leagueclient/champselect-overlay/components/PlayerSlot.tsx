@@ -136,7 +136,6 @@ const PlayerSlot: React.FC<PlayerSlotProps> = ({ player, index, teamColor, _curr
             alt={getChampionName(player.championId) || player.summonerName || `Player ${index + 1}`} 
             fill
             className="object-cover object-center absolute inset-0 z-0" 
-            unoptimized 
             priority
           />
         ) : (
@@ -148,7 +147,6 @@ const PlayerSlot: React.FC<PlayerSlotProps> = ({ player, index, teamColor, _curr
               width={24}
               height={24}
               className="w-full h-full object-contain"
-              unoptimized
             />
             ) : (
               <div className="text-center">
@@ -162,7 +160,9 @@ const PlayerSlot: React.FC<PlayerSlotProps> = ({ player, index, teamColor, _curr
         <div className="relative z-20 p-3 flex flex-col">
           <div className="flex items-center justify-between mb-2">
             <div className="text-sm font-semibold text-white truncate">
-              {isPlaceholder ? 'Empty Slot' : (player.playerInfo?.name || player.summonerName || `Player ${index + 1}`)}
+              {isPlaceholder
+                ? 'Empty Slot'
+                : (player.summonerName || player.playerInfo?.name || `Player ${index + 1}`)}
             </div>
             {!isPlaceholder && player.role && roleIcons[player.role] && (
               <div 

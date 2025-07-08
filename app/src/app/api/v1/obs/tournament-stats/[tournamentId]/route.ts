@@ -24,6 +24,7 @@ export async function GET(req: NextRequest) {
                 tournament: {
                     id: tournamentId,
                     name: tournament.name,
+                    abbreviation: tournament.abbreviation,
                     totalGames: 0,
                     lastUpdated: new Date()
                 },
@@ -33,10 +34,17 @@ export async function GET(req: NextRequest) {
             });
         }
 
-        obsData.tournament.name = tournament.name;
-        obsData.tournament.abbreviation = tournament.abbreviation;
+        // Create a new object with tournament data
+        const responseData = {
+            ...obsData,
+            tournament: {
+                ...obsData.tournament,
+                name: tournament.name,
+                abbreviation: tournament.abbreviation
+            }
+        };
 
-        const response = NextResponse.json(obsData);
+        const response = NextResponse.json(responseData);
         response.headers.set('Access-Control-Allow-Origin', '*');
         response.headers.set('Access-Control-Allow-Methods', 'GET');
         response.headers.set('Access-Control-Allow-Headers', 'Content-Type');

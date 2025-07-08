@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useModal } from '@lib/contexts/ModalContext';
 import type { Tournament, Team } from '@lib/types';
 import { OverlayLoader } from '@components/common';
@@ -19,11 +19,7 @@ export default function AdminTournamentManager({ onClose }: AdminTournamentManag
     const [registering, setRegistering] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
 
-    useEffect(() => {
-        fetchAdminData();
-    }, []);
-
-    const fetchAdminData = async (): Promise<void> => {
+    const fetchAdminData = useCallback(async (): Promise<void> => {
         try {
             const response = await fetch('/api/v1/admin/tournaments/register', {
                 headers: {
@@ -44,9 +40,14 @@ export default function AdminTournamentManager({ onClose }: AdminTournamentManag
         } finally {
             setLoading(false);
         }
-    };
+    }, [showAlert]);
 
-    const handleRegisterTeam = async (): Promise<void> => {
+
+    useEffect(() => {
+        fetchAdminData();
+    }, [fetchAdminData]);
+
+    const handleRegisterTeam = useCallback(async (): Promise<void> => {
         if (!selectedTournament || !selectedTeam) {
             await showAlert({ type: 'error', message: 'Please select both a tournament and a team' });
             return;
@@ -85,9 +86,9 @@ export default function AdminTournamentManager({ onClose }: AdminTournamentManag
         } finally {
             setRegistering(false);
         }
-    };
+    }, [tournaments, showAlert, selectedTournament, selectedTeam]);
 
-    const handleUnregisterTeam = async (tournamentId: string, teamId: string): Promise<void> => {
+    const handleUnregisterTeam = useCallback(async (tournamentId: string, teamId: string): Promise<void> => {
         try {
             const response = await fetch('/api/v1/admin/tournaments/register', {
                 method: 'DELETE',
@@ -113,7 +114,7 @@ export default function AdminTournamentManager({ onClose }: AdminTournamentManag
             await showAlert({ type: 'error', message: 'Failed to unregister team' });
             console.error('Failed to unregister team:', error);
         }
-    };
+    }, [tournaments, showAlert]);
 
     const filteredTournaments = tournaments.filter(tournament =>
         tournament.name.toLowerCase().includes(searchTerm.toLowerCase()) ||

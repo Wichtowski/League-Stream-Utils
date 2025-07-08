@@ -11,7 +11,7 @@ import ChampSelectDisplay from './components/ChampSelectDisplay';
 
 const ChampSelectOverlayPage: React.FC = () => {
   const { useMockData } = useMockDataContext();
-  const { champSelectSession, isConnected, connect, isConnecting, connectionError } = useLCU();
+  const { champSelectSession, isConnected, connect, isConnecting, connectionError: _connectionError } = useLCU();
   const { setActiveModule } = useNavigation();
   
   // Check for URL parameters
@@ -39,18 +39,17 @@ const ChampSelectOverlayPage: React.FC = () => {
     }
   }, [useMockData, urlMockEnabled, isConnected, isConnecting, connect]);
 
-  // Debug logging
-  useEffect(() => {
-    console.log('Overlay state:', {
-      useMockData,
-      urlMockEnabled,
-      isConnected,
-      isConnecting,
-      hasChampSelectData: !!champSelectSession,
-      connectionError,
-      champSelectData: champSelectSession
-    });
-  }, [useMockData, urlMockEnabled, isConnected, isConnecting, champSelectSession, connectionError]);
+  // useEffect(() => {
+  //   console.log('Overlay state:', {
+  //     useMockData,
+  //     urlMockEnabled,
+  //     isConnected,
+  //     isConnecting,
+  //     hasChampSelectData: !!champSelectSession,
+  //     connectionError,
+  //     champSelectData: champSelectSession
+  //   });
+  // }, [useMockData, urlMockEnabled, isConnected, isConnecting, champSelectSession, connectionError]);
 
   // Determine which data source to use
   const shouldUseUrlMock = urlMockEnabled;

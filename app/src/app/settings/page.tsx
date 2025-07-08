@@ -15,10 +15,13 @@ export default function SettingsPage() {
     const { setActiveModule } = useNavigation();
 
     useEffect(() => {
+        setActiveModule('settings');
+    }, [setActiveModule]);
+
+    useEffect(() => {
         const electronCheck = typeof window !== 'undefined' && !!window.electronAPI?.isElectron;
         setIsElectron(electronCheck);
         setIsInitialized(true);
-        setActiveModule('settings')
         // Redirect non-admin users in browser mode
         if (typeof window !== 'undefined' && !electronCheck && !authLoading && !user?.isAdmin) {
             router.push('/modules');

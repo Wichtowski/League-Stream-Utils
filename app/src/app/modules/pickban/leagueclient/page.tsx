@@ -286,7 +286,6 @@ export default function LeagueClientPickBanPage() {
                             width={48}
                             height={48}
                             className="w-full h-full object-cover"
-                            unoptimized
                           />
                           <div className="absolute inset-0 bg-red-600/70 flex items-center justify-center">
                             <span className="text-white text-xs font-bold">X</span>
@@ -320,7 +319,6 @@ export default function LeagueClientPickBanPage() {
                           width={48}
                           height={48}
                           className="w-full h-full object-cover"
-                          unoptimized
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-gray-500 text-xs">
@@ -364,7 +362,6 @@ export default function LeagueClientPickBanPage() {
                             width={48}
                             height={48}
                             className="w-full h-full object-cover"
-                            unoptimized
                           />
                           <div className="absolute inset-0 bg-red-600/70 flex items-center justify-center">
                             <span className="text-white text-xs font-bold">X</span>
@@ -398,7 +395,6 @@ export default function LeagueClientPickBanPage() {
                           width={48}
                           height={48}
                           className="w-full h-full object-cover"
-                          unoptimized
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-gray-500 text-xs">

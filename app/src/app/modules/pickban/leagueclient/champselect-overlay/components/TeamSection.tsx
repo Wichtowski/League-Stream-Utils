@@ -13,6 +13,11 @@ interface TeamSectionProps {
     redTeamBans: number[];
   };
   currentPhase?: string;
+  timer?: {
+    adjustedTimeLeftInPhase: number;
+    totalTimeInPhase: number;
+    phase: string;
+  };
   hoverState?: {
     isHovering: boolean;
     isSelecting: boolean;
@@ -23,7 +28,7 @@ interface TeamSectionProps {
   };
 }
 
-const TeamSection: React.FC<TeamSectionProps> = ({ team, bans, teamColor, currentPhase, hoverState }) => {
+const TeamSection: React.FC<TeamSectionProps> = ({ team, bans, teamColor, currentPhase, timer, hoverState }) => {
   // Create a full team array with placeholder players if needed
   const fullTeam = [...team];
   while (fullTeam.length < 5) {
@@ -46,6 +51,25 @@ const TeamSection: React.FC<TeamSectionProps> = ({ team, bans, teamColor, curren
       <div className={`flex items-center gap-4 mb-6 ${teamColor === 'red' ? 'justify-end' : 'justify-start'}`}>
         <TeamBans bans={teamColor === 'blue' ? bans.blueTeamBans : bans.redTeamBans} teamColor={teamColor} hoverState={hoverState} />
       </div>
+      
+      {/* Timer - full width between bans and players */}
+      {timer && (
+        <div className="w-full mb-4">
+          <div className={`w-full h-2 rounded-full overflow-hidden ${teamColor === 'blue' ? 'bg-blue-900/50' : 'bg-red-900/50'}`}>
+            <div 
+              className={`h-full transition-all duration-1000 ${teamColor === 'blue' ? 'bg-blue-500' : 'bg-red-500'}`}
+              style={{ 
+                width: `${Math.max(0, (timer.adjustedTimeLeftInPhase / timer.totalTimeInPhase) * 100)}%` 
+              }}
+            />
+          </div>
+          <div className="text-center mt-2">
+            <div className={`text-lg font-bold ${teamColor === 'blue' ? 'text-blue-300' : 'text-red-300'}`}>
+              {timer.adjustedTimeLeftInPhase}s
+            </div>
+          </div>
+        </div>
+      )}
       
       <div className="flex flex-row items-end w-full max-h-screen">
         {fullTeam.map((player, index) => (

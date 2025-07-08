@@ -56,7 +56,7 @@ const MatchInfo: React.FC<MatchInfoProps> = ({
         
         {/* Tournament Logo */}
         <div className="w-16 h-16 rounded-lg overflow-hidden mb-3">
-          <Image src={"/assets/" + tournamentLogo || "/VML-Nexus-Cup-logo.png"} alt="Tournament" width={64} height={64} className="w-full h-full object-cover" unoptimized/>
+          <Image src={"/assets/" + tournamentLogo || "/VML-Nexus-Cup-logo.png"} alt="Tournament" width={64} height={64} className="w-full h-full object-cover" />
         </div>
         
         <ProgressBar progress={progress} />

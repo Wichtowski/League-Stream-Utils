@@ -56,7 +56,7 @@ const ChampSelectDisplay: React.FC<ChampSelectDisplayProps> = ({
       </div>
         
       <ChampSelectLayout
-        left={<TeamSection team={myTeam} bans={{ blueTeamBans: bans.myTeamBans, redTeamBans: bans.theirTeamBans }} teamColor="blue" currentPhase={data.phase} hoverState={hoverState} />}
+        left={<TeamSection team={myTeam} bans={{ blueTeamBans: bans.myTeamBans, redTeamBans: bans.theirTeamBans }} teamColor="blue" currentPhase={data.phase} timer={timer} hoverState={hoverState} />}
         center={
           tournamentData ? (
             <MatchInfo 
@@ -78,7 +78,7 @@ const ChampSelectDisplay: React.FC<ChampSelectDisplayProps> = ({
             </div>
           )
         }
-        right={<TeamSection team={theirTeam} bans={{ blueTeamBans: bans.myTeamBans, redTeamBans: bans.theirTeamBans }} teamColor="red" currentPhase={data.phase} hoverState={hoverState} />}
+        right={<TeamSection team={theirTeam} bans={{ blueTeamBans: bans.myTeamBans, redTeamBans: bans.theirTeamBans }} teamColor="red" currentPhase={data.phase} timer={timer} hoverState={hoverState} />}
       />
     </>
   );

@@ -42,6 +42,10 @@ export default function StaticPickBanGamePage() {
   const [pendingAction, setPendingAction] = useState<'pick' | 'ban' | null>(null);
   const [champions, setChampions] = useState<Champion[]>([]);
   
+  const getTeamBans = (team: 'blue' | 'red') => {
+    return actions.filter(action => action.type === 'ban' && action.team === team);
+  };
+
   // Create mock EnhancedChampSelectSession for hover animations
   const mockChampSelectData = {
     phase: currentPhase,
@@ -76,13 +80,6 @@ export default function StaticPickBanGamePage() {
     champion.tags?.some((tag: string) => tag.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
-  useEffect(() => {
-    setActiveModule('pickban/static');
-    if (sessionId) {
-      fetchSession();
-    }
-  }, [sessionId]);
-
   const fetchSession = useCallback(async () => {
     try {
       setLoading(true);
@@ -105,6 +102,13 @@ export default function StaticPickBanGamePage() {
       setLoading(false);
     }
   }, [sessionId, authenticatedFetch, showAlert, router]);
+
+  useEffect(() => {
+    setActiveModule('pickban/static');
+    if (sessionId) {
+      fetchSession();
+    }
+  }, [sessionId, fetchSession, setActiveModule]);
 
   const handleChampionAction = async (championId: number, actionType: 'pick' | 'ban') => {
     if (!session || !authUser) return;
@@ -215,10 +219,6 @@ export default function StaticPickBanGamePage() {
 
   const getTeamPicks = (team: 'blue' | 'red') => {
     return actions.filter(action => action.type === 'pick' && action.team === team);
-  };
-
-  const getTeamBans = (team: 'blue' | 'red') => {
-    return actions.filter(action => action.type === 'ban' && action.team === team);
   };
 
   const openChampionSelect = (actionType: 'pick' | 'ban') => {

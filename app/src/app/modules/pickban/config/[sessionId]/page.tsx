@@ -5,8 +5,8 @@ import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useAuth } from '@lib/contexts/AuthContext';
 import { useAuthenticatedFetch } from '@lib/hooks/useAuthenticatedFetch';
-import type { GameConfig } from '@lib/types';
-import type { Tournament, Team } from '@lib/types/tournament';
+import type { GameConfig, Team } from '@lib/types';
+import type { Tournament } from '@lib/types/tournament';
 
 export default function ConfigPage() {
   const params = useParams();

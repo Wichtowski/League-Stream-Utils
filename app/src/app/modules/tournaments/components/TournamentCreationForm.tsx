@@ -4,6 +4,7 @@ import { useState } from 'react';
 import type { Tournament, CreateTournamentRequest, MatchFormat, TournamentFormat } from '@lib/types';
 import { useModal } from '@lib/contexts/ModalContext';
 import Image from 'next/image';
+import { useTournaments } from '@lib/contexts/TournamentsContext';
 
 interface TournamentCreationFormProps {
     onTournamentCreated: (tournament: Tournament) => void;
@@ -12,6 +13,7 @@ interface TournamentCreationFormProps {
 
 export default function TournamentCreationForm({ onTournamentCreated, onCancel }: TournamentCreationFormProps) {
     const { showAlert } = useModal();
+    const { createTournament } = useTournaments();
     const [creating, setCreating] = useState(false);
 
     const [formData, setFormData] = useState<Partial<CreateTournamentRequest>>({
@@ -33,7 +35,7 @@ export default function TournamentCreationForm({ onTournamentCreated, onCancel }
         defaultMatchTime: '19:00',
         logo: {
             type: 'url',
-            data: 'https://via.placeholder.com/200x200/1f2937/ffffff?text=Tournament',
+            data: '',
             size: 0,
             format: 'png'
         }
@@ -69,19 +71,11 @@ export default function TournamentCreationForm({ onTournamentCreated, onCancel }
                 };
             }
 
-            const response = await fetch('/api/v1/tournaments', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                },
-                body: JSON.stringify(cleanedFormData)
-            });
+            // Use context's createTournament (handles local/remote logic)
+            const result = await createTournament(cleanedFormData as CreateTournamentRequest);
 
-            const data = await response.json();
-
-            if (response.ok) {
-                onTournamentCreated(data.tournament);
+            if (result.success && result.tournament) {
+                onTournamentCreated(result.tournament);
                 setFormData({
                     name: '',
                     abbreviation: '',
@@ -108,7 +102,7 @@ export default function TournamentCreationForm({ onTournamentCreated, onCancel }
                     }
                 });
             } else {
-                await showAlert({ type: 'error', message: data.error || 'Failed to create tournament' });
+                await showAlert({ type: 'error', message: result.error || 'Failed to create tournament' });
             }
         } catch (error) {
             await showAlert({ type: 'error', message: 'Failed to create tournament' });

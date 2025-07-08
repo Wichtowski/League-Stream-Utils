@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useRouter } from "next/navigation";
 import { useNavigation } from '@lib/contexts/NavigationContext';
 import { useAuth } from '@lib/contexts/AuthContext';
@@ -23,6 +23,19 @@ export default function CameraSetupListPage() {
 
   const [teams, setTeams] = useState<CameraTeam[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const autoSetupFromTeams = useCallback(async () => {
+    try {
+      if (userTeams.length > 0) {
+        const result = await updateCameraSettings({ teams: cameraTeams });
+        if (result.success) {
+          setTeams(cameraTeams as unknown as CameraTeam[]);
+        }
+      }
+    } catch (error) {
+      console.error('Error auto-setting up camera teams:', error);
+    }
+  }, [userTeams, cameraTeams, updateCameraSettings]);
 
   useEffect(() => {
     setActiveModule('cameras');
@@ -56,20 +69,7 @@ export default function CameraSetupListPage() {
         loadCameraSettings();
       }
     }
-  }, [router, setActiveModule, user, authLoading, isElectron, useLocalData, cameraTeams, camerasLoading]);
-
-  const autoSetupFromTeams = async () => {
-    try {
-      if (userTeams.length > 0) {
-        const result = await updateCameraSettings({ teams: cameraTeams });
-        if (result.success) {
-          setTeams(cameraTeams as unknown as CameraTeam[]);
-        }
-      }
-    } catch (error) {
-      console.error('Error auto-setting up camera teams:', error);
-    }
-  };
+  }, [router, setActiveModule, user, authLoading, isElectron, useLocalData, cameraTeams, camerasLoading, autoSetupFromTeams]);
 
   if (authLoading || loading) {
     return (
