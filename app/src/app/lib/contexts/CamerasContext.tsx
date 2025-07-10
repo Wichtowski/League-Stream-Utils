@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode, useMemo } from 'react';
 import { useAuthenticatedFetch } from '@lib/hooks/useAuthenticatedFetch';
 import { useAuth } from './AuthContext';
 import { useElectron } from './ElectronContext';
@@ -139,7 +139,7 @@ export function CamerasProvider({ children }: { children: ReactNode }) {
     } finally {
       if (showLoading) setLoading(false);
     }
-  }, [isLocalDataMode, user, teams, authenticatedFetch, processPlayers]);
+  }, [isLocalDataMode, user, authenticatedFetch, processPlayers]);
 
   const loadCachedData = useCallback(async (): Promise<void> => {
     if (!user) {
@@ -171,8 +171,8 @@ export function CamerasProvider({ children }: { children: ReactNode }) {
           processPlayers(cachedSettings.teams);
           setLoading(false);
           
-          // Still fetch fresh data in background
-          fetchCamerasFromAPI(false);
+          // Don't fetch fresh data in background to avoid infinite loops
+          // Data will be refreshed on next user interaction or manual refresh
         } else {
           // No cache, fetch fresh data
           await fetchCamerasFromAPI(true);
@@ -260,7 +260,7 @@ export function CamerasProvider({ children }: { children: ReactNode }) {
     setAllPlayers([]);
   }, [isLocalDataMode]);
 
-  const value: CamerasContextType = {
+  const value: CamerasContextType = useMemo(() => ({
     teams,
     allPlayers,
     loading,
@@ -268,7 +268,15 @@ export function CamerasProvider({ children }: { children: ReactNode }) {
     refreshCameras,
     updateCameraSettings,
     clearCache
-  };
+  }), [
+    teams,
+    allPlayers,
+    loading,
+    error,
+    refreshCameras,
+    updateCameraSettings,
+    clearCache
+  ]);
 
   return (
     <CamerasContext.Provider value={value}>

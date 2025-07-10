@@ -16,7 +16,7 @@ type MatchInfoProps = {
   gameVersion?: string;
 };
 
-const MatchInfo: React.FC<MatchInfoProps> = ({ 
+const MatchInfoComponent: React.FC<MatchInfoProps> = ({ 
   blueTeam, 
   redTeam, 
   timer, 
@@ -69,4 +69,6 @@ const MatchInfo: React.FC<MatchInfoProps> = ({
   );
 };
 
-export default MatchInfo; 
+const MatchInfo = React.memo(MatchInfoComponent);
+
+export { MatchInfo }; 

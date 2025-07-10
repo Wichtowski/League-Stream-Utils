@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode, useMemo } from 'react';
 import { useAuthenticatedFetch } from '@lib/hooks/useAuthenticatedFetch';
 import { useAuth } from './AuthContext';
 import { useElectron } from './ElectronContext';
@@ -82,6 +82,19 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
   // Check if we're in local data mode
   const isLocalDataMode = isElectron && useLocalData;
 
+  const areTeamsEqual = useCallback((teams1: Team[], teams2: Team[]): boolean => {
+    if (teams1.length !== teams2.length) return false;
+    
+    return teams1.every((team, index) => {
+      const otherTeam = teams2[index];
+      return team.id === otherTeam.id && 
+             team.name === otherTeam.name &&
+             team.verified === otherTeam.verified &&
+             team.players.main.length === otherTeam.players.main.length &&
+             team.players.substitutes.length === otherTeam.players.substitutes.length;
+    });
+  }, []);
+
   const fetchTeamsFromAPI = useCallback(async (showLoading = true): Promise<Team[]> => {
     // Skip API calls in local data mode
     if (isLocalDataMode) {
@@ -126,7 +139,7 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
     } finally {
       if (showLoading) setLoading(false);
     }
-  }, [user, isLocalDataMode, teams, authenticatedFetch]);
+  }, [user, isLocalDataMode, teams, authenticatedFetch, areTeamsEqual]);
 
   const loadCachedData = useCallback(async (): Promise<void> => {
     // Don't fetch data if user is not authenticated
@@ -216,18 +229,6 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
 
     return () => clearInterval(interval);
   }, [user, lastFetch, isLocalDataMode, checkDataSync, authenticatedFetch, fetchTeamsFromAPI]);
-
-  const areTeamsEqual = (teams1: Team[], teams2: Team[]): boolean => {
-    if (teams1.length !== teams2.length) return false;
-    
-    return teams1.every((team, index) => {
-      const otherTeam = teams2[index];
-      return team.id === otherTeam.id && 
-             team.name === otherTeam.name &&
-             team.verified === otherTeam.verified &&
-             JSON.stringify(team.players) === JSON.stringify(otherTeam.players);
-    });
-  };
 
   const refreshTeams = useCallback(async (): Promise<void> => {
     if (isLocalDataMode) {
@@ -555,7 +556,7 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
     }
   }, [isLocalDataMode]);
 
-  const value: TeamsContextType = {
+  const value: TeamsContextType = useMemo(() => ({
     teams,
     loading,
     error,
@@ -568,7 +569,20 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
     verifyAllPlayers,
     clearCache,
     getLastSync
-  };
+  }), [
+    teams,
+    loading,
+    error,
+    refreshTeams,
+    createTeam,
+    updateTeam,
+    deleteTeam,
+    verifyTeam,
+    verifyPlayer,
+    verifyAllPlayers,
+    clearCache,
+    getLastSync
+  ]);
 
   return (
     <TeamsContext.Provider value={value}>

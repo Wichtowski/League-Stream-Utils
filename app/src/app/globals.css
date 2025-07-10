@@ -125,22 +125,25 @@ body {
   }
 }
 
-/* Pick and Ban Animation Styles */
+/* Pick and Ban Animation Styles - Optimized with transform */
 .is-picking {
   animation: pulse-shadow 3s infinite;
   z-index: 10;
+  will-change: box-shadow;
 }
 
 .is-picking-blue {
   animation: pulse-shadow-blue 3s infinite;
   z-index: 10;
   background-color: rgba(59, 130, 246, 0.3) !important;
+  will-change: box-shadow;
 }
 
 .is-picking-red {
   animation: pulse-shadow-red 3s infinite;
   z-index: 10;
   background-color: rgba(239, 68, 68, 0.3) !important;
+  will-change: box-shadow;
 }
 
 @keyframes pulse-shadow {
@@ -182,5 +185,81 @@ body {
 
   100% {
     box-shadow: inset rgba(239, 68, 68, 1) 0 0 100px 30px;
+  }
+}
+
+/* Player Slot Animation - Optimized with transform */
+@keyframes player-slot-enter {
+  0% {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-player-slot {
+  animation: player-slot-enter 0.6s ease-out forwards;
+}
+
+/* Tournament Header Animation - Optimized with transform */
+@keyframes tournament-header-enter {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-tournament-header {
+  animation: tournament-header-enter 0.8s ease-out 0.5s forwards;
+  opacity: 0;
+}
+
+/* Champ Select Layout Animation - Optimized with transform */
+@keyframes champ-select-layout-enter {
+  0% {
+    transform: translateY(200px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-champ-select-layout {
+  animation: champ-select-layout-enter 0.8s ease-out forwards;
+}
+
+/* Prefers reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .animate-player-slot {
+    animation: none;
+    transform: translateY(0);
+    opacity: 1;
+  }
+  
+  .animate-tournament-header {
+    animation: none;
+    transform: scale(1);
+    opacity: 1;
+  }
+  
+  .animate-champ-select-layout {
+    animation: none;
+    transform: translateY(0);
+    opacity: 1;
+  }
+  
+  .is-picking,
+  .is-picking-blue,
+  .is-picking-red {
+    animation: none;
   }
 }

@@ -13,9 +13,10 @@ export default function OBSView({ params }: { params: Promise<{ sessionId: strin
   // Throttling and connection management refs
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isConnectingRef = useRef(false);
+  const wsRef = useRef<WebSocket | null>(null);
 
   const connectWebSocket = useCallback(() => {
-    if (ws && ws.readyState === WebSocket.OPEN) {
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       return; // Already connected
     }
 
@@ -67,6 +68,7 @@ export default function OBSView({ params }: { params: Promise<{ sessionId: strin
         };
 
         setWs(websocket);
+        wsRef.current = websocket;
       }).catch((error) => {
         isConnectingRef.current = false;
         console.error('Failed to initialize WebSocket server:', error);
@@ -77,7 +79,7 @@ export default function OBSView({ params }: { params: Promise<{ sessionId: strin
       console.error('Failed to connect:', error);
       setTimeout(connectWebSocket, 5000);
     }
-  }, [resolvedParams.sessionId, ws]);
+  }, [resolvedParams.sessionId]);
 
   useEffect(() => {
     connectWebSocket();
@@ -92,7 +94,7 @@ export default function OBSView({ params }: { params: Promise<{ sessionId: strin
       }
       isConnectingRef.current = false;
     };
-  }, [resolvedParams.sessionId, connectWebSocket, ws]);
+  }, [resolvedParams.sessionId, connectWebSocket, gameState, ws]);
 
   const formatTime = (ms: number) => {
     const seconds = Math.ceil(ms / 1000);

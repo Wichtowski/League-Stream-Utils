@@ -4,7 +4,7 @@ import React from 'react';
 import type { EnhancedChampSelectSession } from '@lib/types';
 import { TournamentHeader, TeamSection, MatchInfo, TeamBans } from './';
 import TimeBar from './TimeBar';
-import MockControlPanel from './MockControlPanel';
+import { MockControlPanel} from './MockControlPanel';
 import { ChampSelectLayout } from './ChampSelectLayout';
 import { FearlessDraftBans } from './FearlessDraftBans';
 
@@ -15,7 +15,7 @@ interface ChampSelectDisplayProps {
   onToggleControls?: () => void;
 }
 
-const ChampSelectDisplay: React.FC<ChampSelectDisplayProps> = ({ 
+const ChampSelectDisplayComponent: React.FC<ChampSelectDisplayProps> = ({ 
   data, 
   isOverlay = false, 
   showControls = false, 
@@ -51,16 +51,16 @@ const ChampSelectDisplay: React.FC<ChampSelectDisplayProps> = ({
         above={
           <>
             <div className="flex justify-between mb-2 items-center">
-              <TeamBans bans={bans.myTeamBans} teamColor="blue" isFearlessDraft={data.isFearlessDraft} usedChampions={data.usedChampions} hoverState={hoverState} />
+              <TeamBans bans={bans.myTeamBans} teamColor={tournamentData?.blueTeam?.colors?.primary || '#3B82F6'} isFearlessDraft={data.isFearlessDraft} usedChampions={data.usedChampions} hoverState={hoverState} />
               {data.isFearlessDraft && data.fearlessBans && (
-                <FearlessDraftBans bans={data.fearlessBans} customTeamColor={tournamentData?.blueTeam?.colors.primary || 'default'} />
+                <FearlessDraftBans bans={data.fearlessBans} customTeamColor={tournamentData?.blueTeam?.colors?.primary || '#3B82F6'} />
               )}
-              <TeamBans bans={bans.theirTeamBans} teamColor="red" isFearlessDraft={data.isFearlessDraft} usedChampions={data.usedChampions} hoverState={hoverState} />
+              <TeamBans bans={bans.theirTeamBans} teamColor={tournamentData?.redTeam?.colors?.primary || '#EF4444'} isFearlessDraft={data.isFearlessDraft} usedChampions={data.usedChampions} hoverState={hoverState} />
             </div>
             <TimeBar timer={timer} tournamentData={tournamentData} hoverState={hoverState} />
           </>
         }
-        left={<TeamSection team={myTeam} bans={{ blueTeamBans: bans.myTeamBans, redTeamBans: bans.theirTeamBans }} teamColor="blue" currentPhase={data.phase} hoverState={hoverState} />}
+        left={<TeamSection team={myTeam} bans={{ blueTeamBans: bans.myTeamBans, redTeamBans: bans.theirTeamBans }} teamColor={tournamentData?.blueTeam?.colors?.primary || '#3B82F6'} currentPhase={data.phase} hoverState={hoverState} />}
         center={
           tournamentData ? (
             <MatchInfo 
@@ -81,7 +81,7 @@ const ChampSelectDisplay: React.FC<ChampSelectDisplayProps> = ({
             </div>
           )
         }
-        right={<TeamSection team={theirTeam} bans={{ blueTeamBans: bans.myTeamBans, redTeamBans: bans.theirTeamBans }} teamColor="red" currentPhase={data.phase} hoverState={hoverState} />}
+        right={<TeamSection team={theirTeam} bans={{ blueTeamBans: bans.myTeamBans, redTeamBans: bans.theirTeamBans }} teamColor={tournamentData?.redTeam?.colors?.primary || '#EF4444'} currentPhase={data.phase} hoverState={hoverState} />}
       />
     </>
   );
@@ -129,4 +129,6 @@ const ChampSelectDisplay: React.FC<ChampSelectDisplayProps> = ({
   );
 };
 
-export default ChampSelectDisplay; 
+const ChampSelectDisplay = React.memo(ChampSelectDisplayComponent);
+
+export { ChampSelectDisplay }; 

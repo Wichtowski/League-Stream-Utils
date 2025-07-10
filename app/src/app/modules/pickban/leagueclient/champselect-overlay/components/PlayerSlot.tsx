@@ -2,7 +2,6 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { motion } from 'framer-motion';
 import type { EnhancedChampSelectPlayer } from '@lib/types';
 import { getChampionName, getChampionCenteredSplashImage } from './common';
 import { PLAYER_CARD_ROLE_ICONS } from '@lib/constants';
@@ -58,7 +57,7 @@ interface PlayerSlotProps {
   };
 }
 
-const PlayerSlot: React.FC<PlayerSlotProps> = ({ player, index, teamColor, _currentPhase, hoverState }) => {
+const PlayerSlotComponent: React.FC<PlayerSlotProps> = ({ player, index, teamColor, _currentPhase, hoverState }) => {
   const image = getChampionCenteredSplashImage(player.championId);
   const isPlaceholder = player.cellId < 0;
   
@@ -99,28 +98,22 @@ const PlayerSlot: React.FC<PlayerSlotProps> = ({ player, index, teamColor, _curr
   const isCurrentPickingPlayer = getCurrentPickingPlayerIndex() === index;
   const isCurrentlyPicking = hoverState?.currentActionType === 'pick' && isCurrentPickingPlayer;
   
-  // Debug logging
-  // console.log('PlayerSlot Debug:', {
-  //   teamColor,
-  //   index,
-  //   currentTurn: hoverState?.currentTurn,
-  //   currentActionType: hoverState?.currentActionType,
-  //   currentTeam: hoverState?.currentTeam,
-  //   isCurrentPickingPlayer,
-  //   isCurrentlyPicking,
-  //   animationClass: isCurrentlyPicking ? (teamColor === 'blue' ? 'is-picking-blue' : 'is-picking-red') : ''
-  // });
-  
   return (
-    <motion.div 
+    <div 
       key={player.cellId} 
-      initial={{ y: 20, opacity: 0 }} 
-      animate={{ y: 0, opacity: 1 }} 
-      transition={{ delay: index * 0.1, duration: 0.6 }} 
-      className="relative w-full"
+      className="relative w-full animate-player-slot"
+      style={{
+        animationDelay: `${index * 0.1}s`,
+        animationFillMode: 'both'
+      }}
     >
       <div 
-        className={`flex-1 h-96 max-h-screen ${teamColor === 'blue' ? 'bg-blue-900/30 border-l border-r border-blue-500/50' : 'bg-red-900/30 border-l border-r border-red-500/50'} ${isPlaceholder ? 'bg-gray-800/50 border-gray-600/50' : ''} overflow-hidden relative flex flex-col justify-end transition-all duration-3000 ${isCurrentlyPicking ? (teamColor === 'blue' ? 'is-picking-blue' : 'is-picking-red') : ''}`}
+        className={`flex-1 h-96 max-h-screen ${isPlaceholder ? 'bg-gray-800/50 border-gray-600/50' : ''} overflow-hidden relative flex flex-col justify-end transition-all duration-3000 ${isCurrentlyPicking ? 'is-picking-custom' : ''}`}
+        style={!isPlaceholder ? {
+          backgroundColor: `${teamColor}20`,
+          borderLeft: `1px solid ${teamColor}80`,
+          borderRight: `1px solid ${teamColor}80`
+        } : {}}
       >
         {!isPlaceholder && image && image.trim() !== '' ? (
           <Image 
@@ -163,13 +156,15 @@ const PlayerSlot: React.FC<PlayerSlotProps> = ({ player, index, teamColor, _curr
               />
             )}
           </div>
-          <div className={`text-xs ${teamColor === 'blue' ? 'text-blue-300' : 'text-red-300'}`}>
+          <div className="text-xs" style={{ color: isPlaceholder ? '#9CA3AF' : `${teamColor}CC` }}>
             {isPlaceholder ? 'No Champion' : (getChampionName(player.championId) || 'No Champion Selected')}
           </div>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 };
 
-export default PlayerSlot; 
+const PlayerSlot = React.memo(PlayerSlotComponent);
+
+export { PlayerSlot }; 

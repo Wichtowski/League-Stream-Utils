@@ -75,12 +75,7 @@ const MockControlPanel: React.FC<MockControlPanelProps> = ({ isVisible, onToggle
         document.removeEventListener('mouseup', handleMouseUp);
       };
     }
-  }, [isDragging, dragOffset, handleMouseMove, handleMouseUp]);
-
-  useEffect(() => {
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, [handleMouseMove]);
+  }, [isDragging, handleMouseMove, handleMouseUp]);
 
   const handlePhaseChange = useCallback((phase: MockPhase) => {
     dynamicMock.setPhase(phase);
@@ -111,6 +106,37 @@ const MockControlPanel: React.FC<MockControlPanelProps> = ({ isVisible, onToggle
     dynamicMock.advanceTurn();
     setCurrentState(dynamicMock.getCurrentState());
   }, []);
+
+
+
+  const handleChampionHoverFromInput = useCallback(() => {
+    const input = document.querySelector('input[placeholder="Champion ID"]') as HTMLInputElement;
+    const championId = parseInt(input?.value || '0');
+    if (championId > 0) {
+      dynamicMock.forceChampionHover(championId);
+    }
+  }, []);
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      const championId = parseInt(e.currentTarget.value);
+      if (championId > 0) {
+        dynamicMock.forceChampionHover(championId);
+      }
+    }
+  }, []);
+
+  const handleAutoAdvanceIntervalChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setAutoAdvanceInterval(Math.max(5000, parseInt(e.target.value)));
+  }, []);
+
+  const handleGoToStart = useCallback(() => {
+    handleTurnChange(0);
+  }, [handleTurnChange]);
+
+  const handleGoToEnd = useCallback(() => {
+    handleTurnChange(currentState?.totalTurns ? currentState.totalTurns - 1 : 0);
+  }, [handleTurnChange, currentState?.totalTurns]);
 
   if (!isVisible) {
     return (
@@ -226,23 +252,10 @@ const MockControlPanel: React.FC<MockControlPanelProps> = ({ isVisible, onToggle
               min="1"
               max="999"
               className="flex-1 bg-gray-700 text-white rounded px-3 py-2 border border-gray-600 text-sm"
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  const championId = parseInt(e.currentTarget.value);
-                  if (championId > 0) {
-                    dynamicMock.forceChampionHover(championId);
-                  }
-                }
-              }}
+              onKeyDown={handleKeyDown}
             />
             <button
-              onClick={() => {
-                const input = document.querySelector('input[placeholder="Champion ID"]') as HTMLInputElement;
-                const championId = parseInt(input?.value || '0');
-                if (championId > 0) {
-                  dynamicMock.forceChampionHover(championId);
-                }
-              }}
+              onClick={handleChampionHoverFromInput}
               className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded text-sm"
             >
               Hover
@@ -284,7 +297,7 @@ const MockControlPanel: React.FC<MockControlPanelProps> = ({ isVisible, onToggle
             <input
               type="number"
               value={autoAdvanceInterval}
-              onChange={(e) => setAutoAdvanceInterval(Math.max(5000, parseInt(e.target.value)))}
+              onChange={handleAutoAdvanceIntervalChange}
               min="5000"
               max="30000"
               step="1000"
@@ -297,13 +310,13 @@ const MockControlPanel: React.FC<MockControlPanelProps> = ({ isVisible, onToggle
         <div className="border-t border-gray-600 pt-4">
           <div className="grid grid-cols-2 gap-2">
             <button
-              onClick={() => handleTurnChange(0)}
+              onClick={handleGoToStart}
               className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded text-sm"
             >
               Start
             </button>
             <button
-              onClick={() => handleTurnChange(currentState.totalTurns - 1)}
+              onClick={handleGoToEnd}
               className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-sm"
             >
               End
@@ -315,4 +328,4 @@ const MockControlPanel: React.FC<MockControlPanelProps> = ({ isVisible, onToggle
   );
 };
 
-export default MockControlPanel; 
+export { MockControlPanel }; 

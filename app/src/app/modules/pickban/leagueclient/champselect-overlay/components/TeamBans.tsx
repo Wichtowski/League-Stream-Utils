@@ -3,10 +3,11 @@ import Image from 'next/image';
 import { getChampionById } from '@lib/champions';
 import { getChampionSquareImage } from './common';
 import type { Champion } from '@lib/types';
+import { banPlaceholder } from '@lib/constants';
 
 type TeamBansProps = {
   bans: number[];
-  teamColor: 'blue' | 'red';
+  teamColor: string;
   isFearlessDraft?: boolean;
   usedChampions?: Champion[];
   hoverState?: {
@@ -19,9 +20,8 @@ type TeamBansProps = {
   };
 };
 
-const TeamBans: React.FC<TeamBansProps> = ({ bans, teamColor, isFearlessDraft = false, usedChampions = [], hoverState }) => {
+const TeamBansComponent: React.FC<TeamBansProps> = ({ bans, teamColor, isFearlessDraft = false, usedChampions = [], hoverState }) => {
   const maxBans = 5; // Maximum number of bans per team
-  const banPlaceholder = "data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2060%2060'%3e%3cdefs%3e%3cstyle%3e.cls-1{fill:%23666;}%3c/style%3e%3c/defs%3e%3ctitle%3eban_placeholder%3c/title%3e%3cg%20id='BG'%3e%3crect%20width='60'%20height='60'%20fill='%23111'/%3e%3c/g%3e%3cg%20id='Top'%3e%3cpath%20class='cls-1'%20d='M30,13A17,17,0,1,0,47,30,17,17,0,0,0,30,13ZM17.64,30A12.37,12.37,0,0,1,37,19.77L19.77,37A12.36,12.36,0,0,1,17.64,30ZM30,42.36a12.36,12.36,0,0,1-6.95-2.13L40.23,23.05A12.37,12.37,0,0,1,30,42.36Z'/%3e%3c/g%3e%3c/svg%3e";
   
   // Check if this team should show hover effect for bans
   const isBanHovering = hoverState?.isHovering && 
@@ -73,7 +73,7 @@ const TeamBans: React.FC<TeamBansProps> = ({ bans, teamColor, isFearlessDraft = 
   }
   
   return (
-    <div className={`flex ${teamColor === 'blue' ? 'flex-row justify-start' : 'flex-row-reverse justify-end'}`}>
+    <div className="flex flex-row justify-start">
       {Array.from({ length: maxBans }, (_, index) => {
         const championId = bans[index];
         const champ = championId ? getChampionById(championId) : null;
@@ -139,4 +139,6 @@ const TeamBans: React.FC<TeamBansProps> = ({ bans, teamColor, isFearlessDraft = 
   );
 };
 
-export default TeamBans; 
+const TeamBans = React.memo(TeamBansComponent);
+
+export { TeamBans }; 

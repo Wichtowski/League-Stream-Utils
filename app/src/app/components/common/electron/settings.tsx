@@ -88,6 +88,15 @@ export default function ElectronSettings() {
         }
     }, [isElectron]);
 
+    const loadTemplates = useCallback(async () => {
+        try {
+            const templateList = await tournamentTemplates.getAllTemplates();
+            setTemplates(templateList);
+        } catch (error) {
+            console.error('Failed to load templates:', error);
+        }
+    }, []);
+
     const handleUpdateChampions = useCallback(async () => {
         setLoading(true);
         try {
@@ -131,16 +140,7 @@ export default function ElectronSettings() {
                 window.electronAPI.removeAllListeners('champions-cache-cleared');
             }
         };
-    }, [loadCacheStats, handleUpdateChampions]);
-
-    const loadTemplates = async () => {
-        try {
-            const templateList = await tournamentTemplates.getAllTemplates();
-            setTemplates(templateList);
-        } catch (error) {
-            console.error('Failed to load templates:', error);
-        }
-    };
+    }, [loadCacheStats, handleUpdateChampions, loadTemplates]);
 
     const handleClearCache = async () => {
         riotAPI.clearCache();

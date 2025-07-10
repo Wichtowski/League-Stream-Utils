@@ -2,7 +2,7 @@
 
 import React from 'react';
 import type { EnhancedChampSelectPlayer } from '@lib/types';
-import PlayerSlot from './PlayerSlot';
+import { PlayerSlot } from './PlayerSlot';
 import { TeamColors } from '@/app/lib/types/tournament';
 
 interface TeamSectionProps {
@@ -57,4 +57,4 @@ const TeamSection: React.FC<TeamSectionProps> = ({ team, teamColor, currentPhase
   );
 };
 
-export default TeamSection; 
+export { TeamSection }; 

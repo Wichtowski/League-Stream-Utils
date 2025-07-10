@@ -9,26 +9,26 @@
 - [x] Fix ESLint errors in `src/app/modules/pickban/leagueclient/champselect-overlay/page.tsx`
 
 ### 2. Fix useEffect Dependencies (High Impact - 2 hours)
-- [ ] Fix missing dependencies in `src/app/components/common/electron/settings.tsx`
-- [ ] Fix missing dependencies in `src/app/lib/contexts/AuthContext.tsx`
-- [ ] Fix missing dependencies in `src/app/lib/contexts/CamerasContext.tsx`
-- [ ] Fix missing dependencies in `src/app/lib/contexts/LCUContext.tsx`
-- [ ] Fix missing dependencies in `src/app/lib/contexts/SettingsContext.tsx`
-- [ ] Fix missing dependencies in `src/app/lib/contexts/TeamsContext.tsx`
-- [ ] Fix missing dependencies in `src/app/modules/cameras/setup/page.tsx`
-- [ ] Fix missing dependencies in `src/app/modules/champ-ability/page.tsx`
-- [ ] Fix missing dependencies in `src/app/modules/pickban/game/[sessionId]/page.tsx`
-- [ ] Fix missing dependencies in `src/app/modules/pickban/leagueclient/champselect-overlay/components/MockControlPanel.tsx`
-- [ ] Fix missing dependencies in `src/app/modules/pickban/obs/[sessionId]/page.tsx`
+- [x] Fix missing dependencies in `src/app/components/common/electron/settings.tsx`
+- [x] Fix missing dependencies in `src/app/lib/contexts/AuthContext.tsx`
+- [x] Fix missing dependencies in `src/app/lib/contexts/CamerasContext.tsx`
+- [x] Fix missing dependencies in `src/app/lib/contexts/LCUContext.tsx`
+- [x] Fix missing dependencies in `src/app/lib/contexts/SettingsContext.tsx`
+- [x] Fix missing dependencies in `src/app/lib/contexts/TeamsContext.tsx`
+- [x] Fix missing dependencies in `src/app/modules/cameras/setup/page.tsx`
+- [x] Fix missing dependencies in `src/app/modules/champ-ability/page.tsx`
+- [x] Fix missing dependencies in `src/app/modules/pickban/game/[sessionId]/page.tsx`
+- [x] Fix missing dependencies in `src/app/modules/pickban/leagueclient/champselect-overlay/components/MockControlPanel.tsx`
+- [x] Fix missing dependencies in `src/app/modules/pickban/obs/[sessionId]/page.tsx`
 - [x] Fix missing dependencies in `src/app/modules/pickban/static/config/[sessionId]/page.tsx`
-- [ ] Fix missing dependencies in `src/app/modules/pickban/static/game/[sessionId]/page.tsx`
-- [ ] Fix missing dependencies in `src/app/modules/pickban/static/page.tsx`
-- [ ] Fix missing dependencies in `src/app/modules/teams/page.tsx`
-- [ ] Fix missing dependencies in `src/app/modules/tournaments/components/AdminTournamentManager.tsx`
-- [ ] Fix missing dependencies in `src/app/modules/tournaments/components/BracketManager.tsx`
-- [ ] Fix missing dependencies in `src/app/modules/tournaments/components/MyTeamRegistration.tsx`
-- [ ] Fix missing dependencies in `src/app/modules/tournaments/tournaments/AdminTournamentManager.tsx`
-- [ ] Fix missing dependencies in `src/app/settings/page.tsx`
+- [x] Fix missing dependencies in `src/app/modules/pickban/static/game/[sessionId]/page.tsx`
+- [x] Fix missing dependencies in `src/app/modules/pickban/static/page.tsx`
+- [x] Fix missing dependencies in `src/app/modules/teams/page.tsx`
+- [x] Fix missing dependencies in `src/app/modules/tournaments/components/AdminTournamentManager.tsx`
+- [x] Fix missing dependencies in `src/app/modules/tournaments/components/BracketManager.tsx`
+- [x] Fix missing dependencies in `src/app/modules/tournaments/components/MyTeamRegistration.tsx`
+- [x] Fix missing dependencies in `src/app/modules/tournaments/tournaments/AdminTournamentManager.tsx`
+- [x] Fix missing dependencies in `src/app/settings/page.tsx`
 
 ### 3. Remove Unoptimized Images (High Impact - 1 hour)
 - [x] Remove `unoptimized` from `src/app/modules/pickban/leagueclient/page.tsx` (4 instances)
@@ -40,30 +40,30 @@
 ## 🟡 **High Priority (Do Next)**
 
 ### 4. Add Component Memoization (Medium Impact - 3 hours)
-- [ ] Add `React.memo` to `PlayerSlot` component
-- [ ] Add `React.memo` to `TeamBans` component
-- [ ] Add `React.memo` to `TournamentHeader` component
-- [ ] Add `React.memo` to `MatchInfo` component
-- [ ] Add `React.memo` to `ChampSelectDisplay` component
-- [ ] Add `useMemo` for expensive computations in contexts
-- [ ] Add `useCallback` for event handlers in overlay components
+- [x] Add `React.memo` to `PlayerSlot` component
+- [x] Add `React.memo` to `TeamBans` component
+- [x] Add `React.memo` to `TournamentHeader` component
+- [x] Add `React.memo` to `MatchInfo` component
+- [x] Add `React.memo` to `ChampSelectDisplay` component
+- [x] Add `useMemo` for expensive computations in contexts
+- [x] Add `useCallback` for event handlers in overlay components
 
 ### 5. Optimize Context Performance (Medium Impact - 4 hours)
-- [ ] Split large contexts into smaller, focused contexts
-- [ ] Add proper memoization to context values
-- [ ] Implement subscription patterns to reduce re-renders
-- [ ] Optimize `TournamentsContext` data fetching
-- [ ] Optimize `TeamsContext` data fetching
-- [ ] Optimize `CamerasContext` data fetching
-- [ ] Add proper error boundaries around contexts
+- [x] Split large contexts into smaller, focused contexts
+- [x] Add proper memoization to context values
+- [x] Implement subscription patterns to reduce re-renders
+- [x] Optimize `TournamentsContext` data fetching
+- [x] Optimize `TeamsContext` data fetching
+- [x] Optimize `CamerasContext` data fetching
+- [x] Add proper error boundaries around contexts
 
 ### 6. Reduce Animation Complexity (High Impact - 6 hours)
-- [ ] Replace Framer Motion with CSS transitions in overlay
-- [ ] Use `transform` instead of layout animations
-- [ ] Add `prefers-reduced-motion` support
-- [ ] Optimize animation performance in `PlayerSlot`
-- [ ] Optimize animation performance in `TournamentHeader`
-- [ ] Optimize animation performance in `champ-select-layout`
+- [x] Replace Framer Motion with CSS transitions in overlay
+- [x] Use `transform` instead of layout animations
+- [x] Add `prefers-reduced-motion` support
+- [x] Optimize animation performance in `PlayerSlot`
+- [x] Optimize animation performance in `TournamentHeader`
+- [x] Optimize animation performance in `champ-select-layout`
 
 ## 🟢 **Medium Priority (Do Later)**
 
@@ -162,4 +162,4 @@
 
 **Estimated Total Time**: 40-60 hours
 **Expected Performance Gain**: 40-60% improvement
-**Priority Order**: Critical → High → Medium → Low 
+**Priority Order**: Critical → High → Medium → Low

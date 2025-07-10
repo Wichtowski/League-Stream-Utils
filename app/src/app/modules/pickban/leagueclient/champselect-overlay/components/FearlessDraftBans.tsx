@@ -50,7 +50,8 @@ export const FearlessDraftBans: React.FC<FearlessDraftBansProps> = ({ customTeam
                     width={32}
                     src={getChampionSquareImage(blueBans[idx].championId) || ''}
                     alt={blueBans[idx].championId.toString()}
-                    className="w-8 h-8 rounded bg-gray-800 border border-blue-500"
+                    className="w-8 h-8 rounded bg-gray-800"
+                    style={{ border: `2px solid ${customTeamColor}` }}
                   />
                 ) : null}
               </div>
@@ -64,7 +65,8 @@ export const FearlessDraftBans: React.FC<FearlessDraftBansProps> = ({ customTeam
                     width={32}
                     src={getChampionSquareImage(redBans[idx].championId) || ''}
                     alt={redBans[idx].championId.toString()}
-                    className="w-8 h-8 rounded bg-gray-800 border border-red-500"
+                    className="w-8 h-8 rounded bg-gray-800"
+                    style={{ border: `2px solid ${customTeamColor}` }}
                   />
                 ) : null}
               </div>

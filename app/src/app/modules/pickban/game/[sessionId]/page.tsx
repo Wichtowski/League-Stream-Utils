@@ -22,12 +22,13 @@ export default function GamePage({ params }: { params: Promise<{ sessionId: stri
   const lastActionTime = useRef<number>(0);
   const lastStateUpdate = useRef<number>(0);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const wsRef = useRef<WebSocket | null>(null);
 
   // Hover animation hooks
   const hoverAnimation = useGameStateHoverAnimation(gameState);
   
   const connectWebSocket = useCallback(() => {
-    if (ws && ws.readyState === WebSocket.OPEN) {
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       return; // Already connected
     }
     
@@ -71,7 +72,12 @@ export default function GamePage({ params }: { params: Promise<{ sessionId: stri
           // Reconnect after 3 seconds, but only if component is still mounted
           reconnectTimeoutRef.current = setTimeout(() => {
             if (document.visibilityState === 'visible') {
-              connectWebSocket();
+              // Use a ref to avoid circular dependency
+              reconnectTimeoutRef.current = setTimeout(() => {
+                if (document.visibilityState === 'visible') {
+                  connectWebSocket();
+                }
+              }, 3000);
             }
           }, 3000);
         };
@@ -83,17 +89,18 @@ export default function GamePage({ params }: { params: Promise<{ sessionId: stri
         };
         
         setWs(websocket);
+        wsRef.current = websocket;
       }).catch((error) => {
         console.error('Failed to initialize WebSocket server:', error);
         setError('Failed to connect to game server');
-        setTimeout(connectWebSocket, 5000);
+        setTimeout(() => connectWebSocket(), 5000);
       });
     } catch (error) {
       console.error('Failed to connect:', error);
       setError('Failed to connect to game server');
-      setTimeout(connectWebSocket, 5000);
+      setTimeout(() => connectWebSocket(), 5000);
     }
-  }, [resolvedParams.sessionId, teamSide, ws]);
+  }, [resolvedParams.sessionId, teamSide]);
   
   // Separate effect for fetching champions (only once)
   useEffect(() => {
@@ -116,7 +123,7 @@ export default function GamePage({ params }: { params: Promise<{ sessionId: stri
         setWs(null);
       }
     };
-  }, [resolvedParams.sessionId, teamSide, connectWebSocket, ws]);
+  }, [resolvedParams.sessionId, teamSide, connectWebSocket]);
   
   const handleChampionAction = (championId: number, action: 'pick' | 'ban') => {
     if (!ws || !gameState || !teamSide) return;

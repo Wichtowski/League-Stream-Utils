@@ -1,5 +1,4 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 
 type ChampSelectLayoutProps = {
   left: React.ReactNode;
@@ -10,11 +9,8 @@ type ChampSelectLayoutProps = {
 
 export const ChampSelectLayout: React.FC<ChampSelectLayoutProps> = ({ left, center, right, above }) => {
   return (
-    <motion.div 
-      initial={{ y: 200, opacity: 0 }} 
-      animate={{ y: 0, opacity: 1 }} 
-      transition={{ duration: 0.8, ease: "easeOut" }} 
-      className="fixed bottom-0 left-0 w-full z-10"
+    <div 
+      className="fixed bottom-0 left-0 w-full z-10 animate-champ-select-layout"
     >
       {above && <div className="w-full">{above}</div>}
       <div className="w-full flex flex-row items-end justify-between">
@@ -28,6 +24,6 @@ export const ChampSelectLayout: React.FC<ChampSelectLayoutProps> = ({ left, cent
           {right}
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 };

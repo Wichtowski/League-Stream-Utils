@@ -2,7 +2,6 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { motion } from 'framer-motion';
 import type { ChampSelectTimer, EnhancedChampSelectSession } from '@lib/types';
 
 const formatTime = (ms: number): string => {
@@ -15,12 +14,12 @@ interface TournamentHeaderProps {
   timer: ChampSelectTimer | undefined;
 }
 
-const TournamentHeader: React.FC<TournamentHeaderProps> = ({ tournamentData, timer }) => {
+const TournamentHeaderComponent: React.FC<TournamentHeaderProps> = ({ tournamentData, timer }) => {
   if (!tournamentData?.tournament) return null;
   const { tournament } = tournamentData;
   
   return (
-    <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.8, delay: 0.5 }} className="text-center mb-6">
+    <div className="text-center mb-6 animate-tournament-header">
       <div className="flex items-center justify-center gap-4 mb-4">
         {tournament.logoUrl && <Image src={tournament.logoUrl} alt={tournament.name} width={80} height={80} className="rounded-lg" />}
         <div>
@@ -32,8 +31,10 @@ const TournamentHeader: React.FC<TournamentHeaderProps> = ({ tournamentData, tim
         <div className="text-2xl font-bold text-white mb-2">PATCH 15.4</div>
         {timer && <div className="text-3xl font-mono text-yellow-400">{timer.isInfinite ? '∞' : formatTime(timer.adjustedTimeLeftInPhase || 0)}</div>}
       </div>
-    </motion.div>
+    </div>
   );
 };
 
-export default TournamentHeader; 
+const TournamentHeader = React.memo(TournamentHeaderComponent);
+
+export { TournamentHeader };

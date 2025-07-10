@@ -7,7 +7,7 @@ import { useNavigation } from '@/app/lib/contexts/NavigationContext';
 import { useMockDataContext } from '@/app/lib/contexts/MockDataContext';
 import { useLCU } from '@/app/lib/contexts/LCUContext';
 import { getDynamicMockData } from '@lib/mocks/dynamic-champselect';
-import ChampSelectDisplay from './components/ChampSelectDisplay';
+import { ChampSelectDisplay } from './components/ChampSelectDisplay';
 
 const ChampSelectOverlayPage: React.FC = () => {
   const { useMockData } = useMockDataContext();

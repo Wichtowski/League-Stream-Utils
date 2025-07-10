@@ -39,6 +39,7 @@ interface PickbanContextType {
   connectToLCU: () => Promise<{ success: boolean; error?: string }>;
   disconnectFromLCU: () => Promise<{ success: boolean; error?: string }>;
   checkLCUStatus: () => Promise<void>;
+  initializeLCUCheck: () => Promise<void>;
   syncWithLCU: () => Promise<{ success: boolean; error?: string }>;
   
   // Data management
@@ -249,12 +250,12 @@ export function PickbanProvider({ children }: { children: ReactNode }) {
       
       // Fetch fresh data in background
       fetchSessionsFromAPI(false);
-      checkLCUStatus();
+      // Don't check LCU status on initial load - only when actively using pickban
     } catch (err) {
       console.error('Failed to load cached pickban data:', err);
       await fetchSessionsFromAPI(true);
     }
-  }, [user, fetchSessionsFromAPI, checkLCUStatus]);
+  }, [user, fetchSessionsFromAPI]);
 
   // Load cached data on mount - wait for auth to complete
   useEffect(() => {
@@ -273,6 +274,17 @@ export function PickbanProvider({ children }: { children: ReactNode }) {
 
     return () => clearInterval(interval);
   }, [user, authLoading, currentSession, checkLCUStatus]);
+
+  // Initial LCU status check - only when user explicitly accesses pickban features
+  const initializeLCUCheck = useCallback(async (): Promise<void> => {
+    if (!user || authLoading) return;
+    
+    // Only check LCU status if we have cached sessions or user is actively using pickban
+    const cachedSessions = await storage.get<PickbanSession[]>(SESSIONS_CACHE_KEY, { ttl: CACHE_TTL });
+    if (cachedSessions && cachedSessions.length > 0) {
+      await checkLCUStatus();
+    }
+  }, [user, authLoading, checkLCUStatus]);
 
   // Cleanup WebSocket on unmount
   useEffect(() => {
@@ -552,7 +564,8 @@ export function PickbanProvider({ children }: { children: ReactNode }) {
     syncWithLCU,
     refreshSessions,
     clearCache,
-    getLastSync
+    getLastSync,
+    initializeLCUCheck
   };
 
   return (

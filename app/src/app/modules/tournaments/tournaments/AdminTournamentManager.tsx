@@ -46,7 +46,7 @@ export default function AdminTournamentManager({ onClose }: AdminTournamentManag
         fetchAdminData();
     }, [fetchAdminData]);
 
-    const handleRegisterTeam = async (): Promise<void> => {
+    const handleRegisterTeam = useCallback(async (): Promise<void> => {
         if (!selectedTournament || !selectedTeam) {
             await showAlert({ type: 'error', message: 'Please select both a tournament and a team' });
             return;
@@ -85,9 +85,9 @@ export default function AdminTournamentManager({ onClose }: AdminTournamentManag
         } finally {
             setRegistering(false);
         }
-    };
+    }, [tournaments, showAlert, selectedTournament, selectedTeam]);
 
-    const handleUnregisterTeam = async (tournamentId: string, teamId: string): Promise<void> => {
+    const handleUnregisterTeam = useCallback(async (tournamentId: string, teamId: string): Promise<void> => {
         try {
             const response = await fetch('/api/v1/admin/tournaments/register', {
                 method: 'DELETE',
@@ -113,7 +113,7 @@ export default function AdminTournamentManager({ onClose }: AdminTournamentManag
             await showAlert({ type: 'error', message: 'Failed to unregister team' });
             console.error('Failed to unregister team:', error);
         }
-    };
+    }, [tournaments, showAlert]);
 
     const filteredTournaments = tournaments.filter(tournament =>
         tournament.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
