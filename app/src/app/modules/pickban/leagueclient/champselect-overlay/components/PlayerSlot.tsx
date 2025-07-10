@@ -5,16 +5,8 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 import type { EnhancedChampSelectPlayer } from '@lib/types';
 import { getChampionName, getChampionCenteredSplashImage } from './common';
+import { PLAYER_CARD_ROLE_ICONS } from '@lib/constants';
 
-const rolePrefix = `data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20308%20560'%3e%3cdefs%3e%3cstyle%3e.cls-1{fill:`
-
-const roleIcons: Record<string, string> = {
-  TOP: `${rolePrefix}%23666;}.cls-2{fill:%23fff;}%3c/style%3e%3c/defs%3e%3ctitle%3etop_splash_placeholder%3c/title%3e%3cg%20id='Top'%3e%3crect%20class='cls-1'%20x='145'%20y='187'%20width='24'%20height='24'/%3e%3cpolygon%20class='cls-1'%20points='186%20175.81%20186%20228%20133.3%20228%20121.18%20240%20198%20240%20198%20163.93%20186%20175.81'/%3e%3cpolygon%20class='cls-2'%20points='130%20219%20130%20172%20177%20172%20192%20157%20115%20157%20115%20234%20130%20219'/%3e%3c/g%3e%3c/svg%3e`,
-  JUNGLE: `${rolePrefix}%23fff;}%3c/style%3e%3c/defs%3e%3ctitle%3ejung_splash_placeholder%3c/title%3e%3cg%20id='Top'%3e%3cpath%20class='cls-1'%20d='M127,217l25.5,24,6-7.5s6-37.5-27-76.5c7.5,21,12,42,12,51-6-13.5-21-25.5-27-27C127,193,127,217,127,217Z'/%3e%3cpath%20class='cls-1'%20d='M155.5,188.5s7.5-21,21-31.5C172,169,165,187.5,162,210A90.81,90.81,0,0,0,155.5,188.5Z'/%3e%3cpath%20class='cls-1'%20d='M163,230l13-14s4-23.5,14.5-34C178.5,188,163,206,163,230Z'/%3e%3c/g%3e%3c/svg%3e`,
-  MID: `${rolePrefix}%23fff;}.cls-2{fill:%23666;}%3c/style%3e%3c/defs%3e%3ctitle%3emid_splash_placeholder%3c/title%3e%3cg%20id='Top'%3e%3cpolygon%20class='cls-1'%20points='180%20157%20115%20222%20115%20240%20133%20240%20198%20175%20198%20157%20180%20157'/%3e%3cpolygon%20class='cls-2'%20points='127%20200.89%20127%20169%20158.89%20169%20170.89%20157%20115%20157%20115%20212.89%20127%20200.89'/%3e%3cpolygon%20class='cls-2'%20points='186%20196.11%20186%20228%20154.11%20228%20142.11%20240%20198%20240%20198%20184.11%20186%20196.11'/%3e%3c/g%3e%3c/svg%3e`,
-  ADC: `${rolePrefix}%23666;}.cls-2{fill:%23fff;}%3c/style%3e%3c/defs%3e%3ctitle%3ebot_splash_placeholder%3c/title%3e%3cg%20id='Ebene_2'%20data-name='Ebene%202'%3e%3crect%20class='cls-1'%20x='144'%20y='186'%20width='24'%20height='24'%20transform='translate(312%20396)%20rotate(180)'/%3e%3cpolygon%20class='cls-1'%20points='127%20221.19%20127%20169%20179.7%20169%20191.82%20157%20115%20157%20115%20233.07%20127%20221.19'/%3e%3c/g%3e%3cg%20id='Top'%3e%3cpolygon%20class='cls-2'%20points='183%20178%20183%20225%20136%20225%20121%20240%20198%20240%20198%20163%20183%20178'/%3e%3c/g%3e%3c/svg%3e`,
-  SUPPORT: `${rolePrefix}%23fff;}%3c/style%3e%3c/defs%3e%3ctitle%3esup_splash_placeholder%3c/title%3e%3cg%20id='Top'%3e%3cpath%20class='cls-1'%20d='M166.28,182.11,172.91,202l18.21-3.31-11.59-13.25s14.91-1.65,31.47-13.25H174.56Z'/%3e%3cpath%20class='cls-1'%20d='M149.72,182.11,143.09,202l-18.22-3.31,11.6-13.25s-14.91-1.65-31.47-13.25h36.44Z'/%3e%3cpolygon%20class='cls-1'%20points='161.31%20185.42%20158%20187.08%20154.69%20185.42%20143.09%20233.45%20158%20243.39%20172.91%20233.45%20161.31%20185.42'/%3e%3cpolygon%20class='cls-1'%20points='141.44%20160.58%20158%20182.11%20174.56%20160.58%20169.59%20155.61%20146.41%20155.61%20141.44%20160.58'/%3e%3c/g%3e%3c/svg%3e`
-};
 
 // Pick and ban phase configuration - 20 turns total
 const PICK_BAN_ORDER: Array<{
@@ -54,7 +46,7 @@ const PICK_BAN_ORDER: Array<{
 interface PlayerSlotProps {
   player: EnhancedChampSelectPlayer;
   index: number;
-  teamColor: 'blue' | 'red';
+  teamColor: 'blue' | 'red' | string;
   _currentPhase?: string;
   hoverState?: {
     isHovering: boolean;
@@ -140,9 +132,9 @@ const PlayerSlot: React.FC<PlayerSlotProps> = ({ player, index, teamColor, _curr
           />
         ) : (
           <div className="absolute inset-0 w-full h-full bg-transparent flex items-center justify-center text-gray-500 text-sm z-0">
-            {!isPlaceholder && player.role && roleIcons[player.role] ? (
+            {!isPlaceholder && player.role && PLAYER_CARD_ROLE_ICONS[player.role] ? (
             <Image
-                src={roleIcons[player.role]}
+                src={PLAYER_CARD_ROLE_ICONS[player.role]}
                 alt={player.role}
               width={24}
               height={24}
@@ -164,10 +156,10 @@ const PlayerSlot: React.FC<PlayerSlotProps> = ({ player, index, teamColor, _curr
                 ? 'Empty Slot'
                 : (player.summonerName || player.playerInfo?.name || `Player ${index + 1}`)}
             </div>
-            {!isPlaceholder && player.role && roleIcons[player.role] && (
+            {!isPlaceholder && player.role && PLAYER_CARD_ROLE_ICONS[player.role] && (
               <div 
                 className="w-6 h-6 flex-shrink-0 bg-cover bg-center bg-no-repeat"
-                style={{ backgroundImage: `url(${roleIcons[player.role]})` }}
+                style={{ backgroundImage: `url(${PLAYER_CARD_ROLE_ICONS[player.role]})` }}
               />
             )}
           </div>

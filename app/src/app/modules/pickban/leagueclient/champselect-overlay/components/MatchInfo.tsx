@@ -13,6 +13,7 @@ type MatchInfoProps = {
   isBO5?: boolean;
   blueScore?: number;
   redScore?: number;
+  gameVersion?: string;
 };
 
 const MatchInfo: React.FC<MatchInfoProps> = ({ 
@@ -24,7 +25,8 @@ const MatchInfo: React.FC<MatchInfoProps> = ({
   isBO3 = false, 
   isBO5 = false, 
   blueScore = 0, 
-  redScore = 0 
+  redScore = 0,
+  gameVersion = '25.13'
 }) => {
   const progress = (timer / maxTimer) * 100;
   const showScores = isBO3 || isBO5;
@@ -61,7 +63,7 @@ const MatchInfo: React.FC<MatchInfoProps> = ({
         
         <ProgressBar progress={progress} />
 
-        <div className="text-gray-300 text-sm">PATCH 25.13</div>
+        <div className="text-gray-300 text-sm">PATCH {gameVersion}</div>
       </div>
     </div>
   );

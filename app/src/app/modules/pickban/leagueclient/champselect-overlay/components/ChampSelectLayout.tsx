@@ -5,9 +5,10 @@ type ChampSelectLayoutProps = {
   left: React.ReactNode;
   center: React.ReactNode;
   right: React.ReactNode;
+  above?: React.ReactNode;
 };
 
-const ChampSelectLayout: React.FC<ChampSelectLayoutProps> = ({ left, center, right }) => {
+export const ChampSelectLayout: React.FC<ChampSelectLayoutProps> = ({ left, center, right, above }) => {
   return (
     <motion.div 
       initial={{ y: 200, opacity: 0 }} 
@@ -15,6 +16,7 @@ const ChampSelectLayout: React.FC<ChampSelectLayoutProps> = ({ left, center, rig
       transition={{ duration: 0.8, ease: "easeOut" }} 
       className="fixed bottom-0 left-0 w-full z-10"
     >
+      {above && <div className="w-full">{above}</div>}
       <div className="w-full flex flex-row items-end justify-between">
         <div className="flex-1 flex justify-start">
           {left}
@@ -29,5 +31,3 @@ const ChampSelectLayout: React.FC<ChampSelectLayoutProps> = ({ left, center, rig
     </motion.div>
   );
 };
-
-export default ChampSelectLayout; 

@@ -37,8 +37,12 @@ const DownloadAssetsPage: React.FC = (): React.JSX.Element => {
         setProgress({ text, percentage: pct });
       });
 
-      // Redirect after all assets have been downloaded
       router.replace('/modules');
+      setTimeout(() => {
+        if (window.location.pathname !== '/modules') {
+          window.location.href = '/modules';
+        }
+      }, 500);
     };
 
     void run();

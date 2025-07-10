@@ -111,15 +111,17 @@ export interface CreateTournamentRequest {
     broadcastLanguage?: string;
 }
 
+export interface TeamColors {
+    primary: string;
+    secondary: string;
+    accent: string;
+}
+
 export interface CreateTeamRequest {
     name: string;
     tag: string;
     logo: ImageStorage;
-    colors: {
-        primary: string;
-        secondary: string;
-        accent: string;
-    };
+    colors: TeamColors;
     players: {
         main: Omit<Player, 'id' | 'createdAt' | 'updatedAt' | 'verified' | 'verifiedAt'>[];
         substitutes: Omit<Player, 'id' | 'createdAt' | 'updatedAt' | 'verified' | 'verifiedAt'>[];

@@ -346,6 +346,13 @@ export interface EnhancedChampSelectSession extends Omit<ChampSelectSession, 'my
         currentActionType: 'pick' | 'ban' | null;
         currentTurn?: number;
     };
+    // Series data for Fearless Draft
+    isFearlessDraft?: boolean;
+    usedChampions?: Champion[];
+    fearlessBans?: {
+        blue: { championId: number; role: 'TOP' | 'JUNGLE' | 'MID' | 'ADC' | 'SUPPORT' }[];
+        red: { championId: number; role: 'TOP' | 'JUNGLE' | 'MID' | 'ADC' | 'SUPPORT' }[];
+    };
 }
 
 export interface LCUStatus {

@@ -223,6 +223,8 @@ export interface DynamicMockConfig {
 export class DynamicChampSelectMock {
     private config: DynamicMockConfig;
     private intervalId: NodeJS.Timeout | null = null;
+    private prevPhase: MockPhase | null = null;
+    private prevTurn: number | null = null;
 
     constructor(config: Partial<DynamicMockConfig> = {}) {
         this.config = {
@@ -382,14 +384,29 @@ export class DynamicChampSelectMock {
         const currentAction = PICK_BAN_ORDER[this.config.currentTurn];
         const selectionState = this.getSelectionState();
 
-        // Debug logging
-        console.log('Mock Debug:', {
-            currentTurn: this.config.currentTurn,
-            currentAction,
-            actionType: currentAction?.type,
-            team: currentAction?.team
-        });
+        // Reset timerStartTime if phase or turn changed
+        if (this.prevPhase !== this.config.currentPhase || this.prevTurn !== this.config.currentTurn) {
+            this.config.timerStartTime = Date.now();
+        }
+        this.prevPhase = this.config.currentPhase;
+        this.prevTurn = this.config.currentTurn;
 
+        // Calculate timer - use actual timer start time for proper countdown
+        const isInfinite = this.config.currentPhase === 'FINALIZATION';
+        const baseTime = isInfinite ? 59000 : 27000; // 59 seconds for finalization, 27 seconds for ban/pick phases
+        const startTime = this.config.timerStartTime || Date.now();
+        let elapsed = Date.now() - startTime;
+        let timeLeft = Math.max(0, baseTime - elapsed);
+
+        // Auto-advance turn if timer runs out
+        if (timeLeft <= 0 && !isInfinite) {
+            this.advanceTurn();
+            // After advancing, recalculate timer
+            const newBaseTime = this.config.currentPhase === 'FINALIZATION' ? 59000 : 27000;
+            this.config.timerStartTime = Date.now();
+            elapsed = 0;
+            timeLeft = newBaseTime;
+        }
         // Calculate bans and picks
         const blueBans = completedActions.filter(a => a.team === 'blue' && a.type === 'ban').map(a => a.championId);
         const redBans = completedActions.filter(a => a.team === 'red' && a.type === 'ban').map(a => a.championId);
@@ -442,15 +459,6 @@ export class DynamicChampSelectMock {
             { cellId: 9, championId: redPicks[4] || 0, summonerId: 10, summonerName: 'RedPlayer5', puuid: 'mock10', isBot: false, isActingNow: getCurrentPickingPlayerIndex('red') === 4, pickTurn: 10, banTurn: 10, team: 200, playerInfo: { id: '10', name: 'RedPlayer5', role: 'ADC' as const, profileImage: '/assets/default/player.png' }, role: 'ADC' as const, profileImage: '/assets/default/player.png' }
         ];
 
-        // Calculate timer - use actual timer start time for proper countdown
-        const isInfinite = this.config.currentPhase === 'FINALIZATION';
-        const baseTime = isInfinite ? 59000 : 27000; // 59 seconds for finalization, 27 seconds for ban/pick phases
-
-        // Use actual timer start time if available, otherwise use current time
-        const startTime = this.config.timerStartTime || Date.now();
-        const elapsed = Date.now() - startTime;
-        const timeLeft = Math.max(0, baseTime - elapsed);
-
         return {
             phase: this.config.currentPhase,
             timer: {
@@ -481,6 +489,72 @@ export class DynamicChampSelectMock {
                 currentTeam: (currentAction?.team as 'blue' | 'red') || null,
                 currentActionType: (currentAction?.type as 'pick' | 'ban') || null,
                 currentTurn: this.config.currentTurn
+            },
+            // Series data for Fearless Draft
+            isFearlessDraft: true,
+            fearlessBans: {
+                blue: [
+                    // TOP - 4 bans
+                    { championId: 266, role: 'TOP' }, // Aatrox
+                    { championId: 122, role: 'TOP' }, // Darius
+                    { championId: 164, role: 'TOP' }, // Camille
+                    { championId: 86, role: 'TOP' },  // Garen
+                    
+                    // JUNGLE - 4 bans
+                    { championId: 103, role: 'JUNGLE' }, // Ahri
+                    { championId: 64, role: 'JUNGLE' },  // Lee Sin
+                    { championId: 121, role: 'JUNGLE' }, // Kha'Zix
+                    { championId: 104, role: 'JUNGLE' }, // Graves
+                    
+                    // MID - 4 bans
+                    { championId: 84, role: 'MID' },   // Akali
+                    { championId: 13, role: 'MID' },   // Ryze
+                    { championId: 157, role: 'MID' },  // Yasuo
+                    { championId: 7, role: 'MID' },    // LeBlanc
+                    
+                    // ADC - 4 bans
+                    { championId: 777, role: 'ADC' },  // Yone
+                    { championId: 51, role: 'ADC' },   // Caitlyn
+                    { championId: 202, role: 'ADC' },  // Jhin
+                    { championId: 222, role: 'ADC' },  // Jinx
+                    
+                    // SUPPORT - 4 bans
+                    { championId: 21, role: 'SUPPORT' }, // Miss Fortune
+                    { championId: 12, role: 'SUPPORT' }, // Alistar
+                    { championId: 201, role: 'SUPPORT' }, // Braum
+                    { championId: 412, role: 'SUPPORT' }  // Thresh
+                ],
+                red: [
+                    // TOP - 4 bans
+                    { championId: 32, role: 'TOP' },   // Amumu
+                    { championId: 82, role: 'TOP' },   // Mordekaiser
+                    { championId: 58, role: 'TOP' },   // Renekton
+                    { championId: 92, role: 'TOP' },   // Riven
+                    
+                    // JUNGLE - 4 bans
+                    { championId: 34, role: 'JUNGLE' }, // Anivia
+                    { championId: 60, role: 'JUNGLE' }, // Elise
+                    { championId: 203, role: 'JUNGLE' }, // Kindred
+                    { championId: 113, role: 'JUNGLE' }, // Sejuani
+                    
+                    // MID - 4 bans
+                    { championId: 1, role: 'MID' },    // Annie
+                    { championId: 69, role: 'MID' },   // Cassiopeia
+                    { championId: 61, role: 'MID' },   // Orianna
+                    { championId: 134, role: 'MID' },  // Syndra
+                    
+                    // ADC - 4 bans
+                    { championId: 523, role: 'ADC' },  // Aphelios
+                    { championId: 22, role: 'ADC' },   // Ashe
+                    { championId: 145, role: 'ADC' },  // Kai'Sa
+                    { championId: 429, role: 'ADC' },  // Kalista
+                    
+                    // SUPPORT - 4 bans
+                    { championId: 44, role: 'SUPPORT' }, // Taric
+                    { championId: 267, role: 'SUPPORT' }, // Nami
+                    { championId: 117, role: 'SUPPORT' }, // Lulu
+                    { championId: 16, role: 'SUPPORT' }   // Soraka
+                ]
             },
             tournamentData: {
                 tournament: {
