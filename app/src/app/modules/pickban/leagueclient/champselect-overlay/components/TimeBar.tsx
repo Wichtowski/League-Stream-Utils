@@ -1,6 +1,7 @@
 'use client';
 
 import { TeamColors } from '@/app/lib/types/tournament';
+import { redColor, blueColor } from '@/app/lib/constants';
 import React from 'react';
 
 interface TimeBarProps {
@@ -30,7 +31,10 @@ const TimeBar: React.FC<TimeBarProps> = ({ timer, tournamentData, hoverState }) 
   const currentTeam = hoverState?.currentTeam || 'blue';
 
   // Determine timer color
-  let timerColor = currentTeam === 'blue' ? '#3b82f6' : '#ef4444';
+  const blueTeamColor = tournamentData?.blueTeam?.colors?.primary || blueColor;
+  const redTeamColor = tournamentData?.redTeam?.colors?.primary || redColor;
+
+  let timerColor = currentTeam === 'blue' ? blueTeamColor : redTeamColor;
   if (tournamentData) {
     if (currentTeam === 'blue' && tournamentData.blueTeam?.colors?.secondary) {
       timerColor = tournamentData.blueTeam.colors.secondary;

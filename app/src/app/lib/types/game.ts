@@ -230,6 +230,8 @@ export interface PickbanConfig {
             roundName?: string;
             matchNumber?: number;
             bestOf: number;
+            blueTeamScore?: number;
+            redTeamScore?: number;
         };
     };
     timers: {

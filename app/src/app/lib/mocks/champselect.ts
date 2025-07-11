@@ -1,4 +1,27 @@
-import type { EnhancedChampSelectSession } from '@lib/types';
+import type { EnhancedChampSelectSession, PickbanPlayer } from '@lib/types';
+
+const TeamNamedLabubu = {
+    id: '1fd5db46-96f7-403c-aac8-0176edecc461',
+    name: 'Labubu',
+    tag: 'LABUBU',
+    logo: '/assets/default-team-logo.png',
+    colors: {
+        primary: '#7f5b48',
+        secondary: '#e7c1ac',
+        accent: '#f6deda'
+    },
+    players: [
+        { id: '2', name: 'p2', role: 'JUNGLE', profileImage: '/assets/default/player.png' },
+        { id: '1', name: 'p1', role: 'TOP', profileImage: '/assets/default/player.png' },
+        { id: '4', name: 'p4', role: 'ADC', profileImage: '/assets/default/player.png' },
+        { id: '3', name: 'p3', role: 'MID', profileImage: '/assets/default/player.png' },
+        { id: '5', name: 'p5', role: 'SUPPORT', profileImage: '/assets/default/player.png' }
+    ] as PickbanPlayer[],
+    coach: {
+        name: 'LABU',
+        profileImage: '/assets/default-coach.png'
+    }
+}
 
 export const MOCK_CHAMP_SELECT_DATA: EnhancedChampSelectSession = {
     phase: 'FINALIZATION',
@@ -42,31 +65,12 @@ export const MOCK_CHAMP_SELECT_DATA: EnhancedChampSelectSession = {
             matchInfo: {
                 roundName: 'SEMIFINALS',
                 matchNumber: 1,
-                bestOf: 3
+                bestOf: 5,
+                blueTeamScore: 2,
+                redTeamScore: 2
             }
         },
-        blueTeam: {
-            id: 'blue-team',
-            name: 'Blue Team',
-            tag: 'BLUE',
-            logo: '/assets/default-team-logo.png',
-            colors: {
-                primary: '#3b82f6',
-                secondary: '#1e40af',
-                accent: '#60a5fa'
-            },
-            players: [
-                { id: '1', name: 'BluePlayer1', role: 'TOP', profileImage: '/assets/default/player.png' },
-                { id: '2', name: 'BluePlayer2', role: 'JUNGLE', profileImage: '/assets/default/player.png' },
-                { id: '3', name: 'BluePlayer3', role: 'MID', profileImage: '/assets/default/player.png' },
-                { id: '4', name: 'BluePlayer4', role: 'ADC', profileImage: '/assets/default/player.png' },
-                { id: '5', name: 'BluePlayer5', role: 'SUPPORT', profileImage: '/assets/default/player.png' }
-            ],
-            coach: {
-                name: 'BLUECOACH & BLUECOACH2',
-                profileImage: '/assets/default-coach.png'
-            }
-        },
+        blueTeam: TeamNamedLabubu,
         redTeam: {
             id: 'red-team',
             name: 'Red Team',

@@ -10,14 +10,17 @@ interface FearlessBan {
 }
 
 interface FearlessDraftBansProps {
-  customTeamColor: string;
+  customTeamColors: {
+    blueTeam: string;
+    redTeam: string;
+  };
   bans: {
     blue: FearlessBan[];
     red: FearlessBan[];
   };
 }
 
-export const FearlessDraftBans: React.FC<FearlessDraftBansProps> = ({ customTeamColor, bans }) => {
+export const FearlessDraftBans: React.FC<FearlessDraftBansProps> = ({ customTeamColors, bans }) => {
   const ROLE_ORDER: FearlessBan['role'][] = ['TOP', 'JUNGLE', 'MID', 'ADC', 'SUPPORT'];
 
   return (
@@ -39,6 +42,7 @@ export const FearlessDraftBans: React.FC<FearlessDraftBansProps> = ({ customTeam
                 width={role === 'SUPPORT' ? 40 : 32}
                 src={ROLE_ICONS[role]}
                 alt={role}
+                className={role === 'SUPPORT' ? 'w-10 h-8' : 'w-8 h-8'}
               />
             </div>
             {/* Blue bans (top row) */}
@@ -51,7 +55,7 @@ export const FearlessDraftBans: React.FC<FearlessDraftBansProps> = ({ customTeam
                     src={getChampionSquareImage(blueBans[idx].championId) || ''}
                     alt={blueBans[idx].championId.toString()}
                     className="w-8 h-8 rounded bg-gray-800"
-                    style={{ border: `2px solid ${customTeamColor}` }}
+                    style={{ border: `2px solid ${customTeamColors.blueTeam}` }}
                   />
                 ) : null}
               </div>
@@ -63,10 +67,10 @@ export const FearlessDraftBans: React.FC<FearlessDraftBansProps> = ({ customTeam
                   <Image
                     height={32}
                     width={32}
-                    src={getChampionSquareImage(redBans[idx].championId) || ''}
+                    src={getChampionSquareImage(redBans[idx].championId) as string}
                     alt={redBans[idx].championId.toString()}
                     className="w-8 h-8 rounded bg-gray-800"
-                    style={{ border: `2px solid ${customTeamColor}` }}
+                    style={{ border: `2px solid ${customTeamColors.redTeam}` }}
                   />
                 ) : null}
               </div>
