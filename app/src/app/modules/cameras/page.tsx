@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useCallback, useEffect, useState } from 'react';
-import { useRouter } from "next/navigation";
+import React, { useCallback, useEffect, useState, Suspense } from 'react';
+import dynamic from 'next/dynamic';
 import { useNavigation } from '@lib/contexts/NavigationContext';
 import { useAuth } from '@lib/contexts/AuthContext';
 import { useCameras } from '@lib/contexts/CamerasContext';
@@ -17,8 +17,24 @@ type TeamCamera = {
   players: CameraPlayer[];
 };
 
+// Dynamic imports for camera components
+const CameraSetupPage = dynamic(
+  () => import('./setup/page'),
+  { 
+    loading: () => <LoadingSpinner text="Loading camera setup..." />,
+    ssr: false 
+  }
+);
+
+const CameraAllPage = dynamic(
+  () => import('./all/page'),
+  { 
+    loading: () => <LoadingSpinner text="Loading camera grid..." />,
+    ssr: false 
+  }
+);
+
 export default function CamerasPage() {
-  const router = useRouter();
   const { setActiveModule } = useNavigation();
   const { user, isLoading: authLoading } = useAuth();
   const { teams: cameraTeams, loading: camerasLoading, updateCameraSettings } = useCameras();
@@ -26,6 +42,7 @@ export default function CamerasPage() {
   const [teams, setTeams] = useState<TeamCamera[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAdminView, setShowAdminView] = useState(false);
+  const [activeView, setActiveView] = useState<'main' | 'setup' | 'all'>('main');
 
   const autoSetupFromTeams = useCallback(async () => {
     try {
@@ -71,6 +88,49 @@ export default function CamerasPage() {
 
   const totalPlayers = teams.reduce((sum, team) => sum + team.players.length, 0);
 
+  // Render dynamic components based on active view
+  if (activeView === 'setup') {
+    return (
+      <div className="min-h-screen p-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-center mb-6">
+            <button
+              onClick={() => setActiveView('main')}
+              className="mr-4 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+            >
+              ← Back
+            </button>
+            <h1 className="text-2xl font-bold text-white">Camera Setup</h1>
+          </div>
+          <Suspense fallback={<LoadingSpinner text="Loading camera setup..." />}>
+            <CameraSetupPage />
+          </Suspense>
+        </div>
+      </div>
+    );
+  }
+
+  if (activeView === 'all') {
+    return (
+      <div className="min-h-screen p-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-center mb-6">
+            <button
+              onClick={() => setActiveView('main')}
+              className="mr-4 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+            >
+              ← Back
+            </button>
+            <h1 className="text-2xl font-bold text-white">All Cameras</h1>
+          </div>
+          <Suspense fallback={<LoadingSpinner text="Loading camera grid..." />}>
+            <CameraAllPage />
+          </Suspense>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen p-6">
       <div className="max-w-4xl mx-auto">
@@ -109,7 +169,7 @@ export default function CamerasPage() {
               Team-based camera switching with keyboard controls
             </p>
             <button
-              onClick={() => router.push('/modules/cameras/setup')}
+              onClick={() => setActiveView('setup')}
               className="cursor-pointer w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg transition-colors"
             >
               Team Stream Configuration
@@ -123,7 +183,7 @@ export default function CamerasPage() {
               Grid layout showing all cameras simultaneously
             </p>
             <button
-              onClick={() => router.push('/modules/cameras/all')}
+              onClick={() => setActiveView('all')}
               className="cursor-pointer w-full bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-lg transition-colors"
             >
               All Cameras Grid

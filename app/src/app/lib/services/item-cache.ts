@@ -1,13 +1,21 @@
-import { DDRAGON_CDN } from '../constants';
 import { BaseCacheService } from './base-cache';
+import { DDRAGON_CDN } from '../constants';
 
-export interface Item {
-    id: number;
+interface DataDragonItem {
     name: string;
     description: string;
+    colloq: string;
     plaintext: string;
+    into: string[];
+    from: string[];
     image: {
         full: string;
+        sprite: string;
+        group: string;
+        x: number;
+        y: number;
+        w: number;
+        h: number;
     };
     gold: {
         base: number;
@@ -16,128 +24,375 @@ export interface Item {
         sell: number;
     };
     tags: string[];
+    maps: { [key: string]: boolean };
     stats: { [key: string]: number };
     depth: number;
-    specialRecipe?: number;
-    stacks?: number;
-    consumeOnFull?: boolean;
-    inStore?: boolean;
-    hideFromAll?: boolean;
-    requiredChampion?: string;
-    requiredAlly?: string;
-    imagePath: string;
+    consumed: boolean;
+    stacks: number;
+    consumeOnFull: boolean;
+    specialRecipe: number;
+    inStore: boolean;
+    hideFromAll: boolean;
+    requiredChampion: string;
+    requiredAlly: string;
 }
 
-interface DataDragonItem {
+interface DataDragonItemResponse {
+    type: string;
+    version: string;
+    basic: DataDragonItem;
+    data: { [key: string]: DataDragonItem };
+    groups: Array<{ id: string; MaxGroupOwnable: string }>;
+    tree: Array<{ header: string; tags: string[] }>;
+}
+
+interface ItemCacheData {
     id: string;
     name: string;
     description: string;
     plaintext: string;
-    image: {
-        full: string;
-    };
-    gold: {
-        base: number;
-        purchasable: boolean;
-        total: number;
-        sell: number;
-    };
+    cost: number;
+    sellValue: number;
     tags: string[];
     stats: { [key: string]: number };
-    depth: number;
-    specialRecipe?: number;
-    stacks?: number;
-    consumeOnFull?: boolean;
-    inStore?: boolean;
-    hideFromAll?: boolean;
-    requiredChampion?: string;
-    requiredAlly?: string;
+    image: string;
+    buildPath: {
+        into: string[];
+        from: string[];
+    };
 }
 
-interface DataDragonItemResponse {
-    data: { [key: string]: DataDragonItem };
-}
+class ItemCacheService extends BaseCacheService<ItemCacheData> {
+    private currentVersion: string = '15.13.1';
 
-export class ItemCacheService extends BaseCacheService {
-    async getAll(): Promise<Item[]> {
-        await this.initialize();
-        const version = await this.getLatestVersion();
-        this.version = version;
-        const response = await fetch(`${DDRAGON_CDN}/${version}/data/en_US/item.json`);
-        if (!response.ok) throw new Error(`Failed to fetch items list: ${response.status}`);
-        const data: DataDragonItemResponse = await response.json();
-        const itemKeys = Object.keys(data.data);
-        const items: Item[] = [];
-        let currentIndex = 0;
-        this.updateProgress({ current: 0, total: itemKeys.length, itemName: '', stage: 'item-data' });
-        for (const itemKey of itemKeys) {
-            currentIndex++;
-            const itemData = data.data[itemKey];
-            this.updateProgress({ current: currentIndex, total: itemKeys.length, itemName: itemData.name, stage: 'item-data' });
-            const item = await this.downloadItemData(itemKey, version, itemData);
-            items.push(item);
-        }
-        this.updateProgress({ current: itemKeys.length, total: itemKeys.length, itemName: '', stage: 'complete' });
-        return items;
+    async getAll(): Promise<ItemCacheData[]> {
+        return this.getAllItems();
     }
 
-    async getById(id: string): Promise<Item | null> {
+    async getById(key: string): Promise<ItemCacheData | null> {
+        return this.getItemById(key);
+    }
+
+    async downloadItemData(itemId: string, version: string): Promise<ItemCacheData> {
         await this.initialize();
-        const version = await this.getLatestVersion();
+
+        // Check if item is already cached using asset manifest
+        const dataKey = `item-${version}-${itemId}-data`;
+        const manifestResult = await this.loadAssetManifest();
+
+        if (manifestResult && manifestResult[dataKey]) {
+            // Load cached data
+            const cachedData = manifestResult[dataKey];
+            if (cachedData && cachedData.path) {
+                try {
+                    return JSON.parse(cachedData.path);
+                } catch {
+                    // If parsing fails, continue to download
+                }
+            }
+        }
+
+        // Download item data from DataDragon
+        const response = await fetch(`${DDRAGON_CDN}/${version}/data/en_US/item.json`);
+        if (!response.ok) {
+            throw new Error(`Failed to fetch item data for ${itemId}: ${response.status}`);
+        }
+
+        const itemData: DataDragonItemResponse = await response.json();
+        const item = itemData.data[itemId];
+
+        if (!item) {
+            throw new Error(`Item ${itemId} not found in DataDragon data`);
+        }
+
+        // Create item directory structure using the correct path format
+        const itemDir = `game/${version}/items/${itemId}`;
+
+        // Download item image
+        const imageResult = await this.downloadItemImage(itemId, version, itemDir);
+
+        // Create comprehensive item data
+        const cacheData: ItemCacheData = {
+            id: itemId,
+            name: item.name,
+            description: item.description,
+            plaintext: item.plaintext,
+            cost: item.gold.total,
+            sellValue: item.gold.sell,
+            tags: item.tags,
+            stats: item.stats,
+            image: imageResult.icon,
+            buildPath: {
+                into: item.into,
+                from: item.from
+            }
+        };
+
+        // Save item data using asset manifest system
+        const dataContent = JSON.stringify(cacheData);
+        const dataBuffer = Buffer.from(dataContent, 'utf8');
+
+        await this.saveAssetManifest({
+            [dataKey]: {
+                path: dataContent,
+                url: `${DDRAGON_CDN}/${version}/data/en_US/item.json`,
+                size: dataBuffer.length,
+                timestamp: Date.now(),
+                checksum: dataKey
+            }
+        });
+
+        return cacheData;
+    }
+
+    private async downloadItemImage(itemId: string, version: string, itemDir: string): Promise<{
+        icon: string;
+    }> {
+        const imageUrl = `${DDRAGON_CDN}/${version}/img/item/${itemId}.png`;
+        const imageAssetKey = `${itemDir}/icon.png`;
+
+        let iconPath = imageUrl; // Fallback to URL
+
         try {
-            return await this.downloadItemData(id, version);
-        } catch {
+            const imageResult = await this.downloadAsset(imageUrl, 'cache', imageAssetKey);
+            if (imageResult) {
+                iconPath = `cache/${imageAssetKey}`;
+
+                // Save image to asset manifest
+                await this.saveAssetManifest({
+                    [imageAssetKey]: {
+                        path: imageResult,
+                        url: imageUrl,
+                        size: 0, // Size will be calculated by Electron
+                        timestamp: Date.now(),
+                        checksum: imageAssetKey
+                    }
+                });
+            }
+        } catch (error) {
+            console.warn(`Failed to download item image for ${itemId}:`, error);
+        }
+
+        return {
+            icon: iconPath
+        };
+    }
+
+    async getAllItems(): Promise<ItemCacheData[]> {
+        try {
+            const version = await this.getLatestVersion();
+
+            // Get list of all items from DataDragon
+            const response = await fetch(`${DDRAGON_CDN}/${version}/data/en_US/item.json`);
+            if (!response.ok) {
+                throw new Error(`Failed to fetch items list: ${response.status}`);
+            }
+
+            const data: DataDragonItemResponse = await response.json();
+            const itemKeys = Object.keys(data.data);
+
+            const items: ItemCacheData[] = [];
+
+            // Report progress
+            this.updateProgress({
+                current: 0,
+                total: itemKeys.length,
+                stage: 'item-data',
+                itemName: 'items'
+            });
+
+            for (const itemKey of itemKeys) {
+                try {
+                    const item = await this.downloadItemData(itemKey, version);
+                    items.push(item);
+
+                    this.updateProgress({
+                        current: items.length,
+                        total: itemKeys.length,
+                        stage: 'item-data',
+                        itemName: data.data[itemKey].name
+                    });
+                } catch (error) {
+                    console.error(`Failed to download item ${itemKey}:`, error);
+                }
+            }
+
+            return items;
+        } catch (error) {
+            console.error('Error getting all items:', error);
+            throw error;
+        }
+    }
+
+    async getItemById(itemId: string): Promise<ItemCacheData | null> {
+        try {
+            const version = await this.getLatestVersion();
+            return await this.downloadItemData(itemId, version);
+        } catch (error) {
+            console.error(`Error getting item ${itemId}:`, error);
             return null;
         }
     }
 
-    private async downloadItemData(itemId: string, version: string, itemData?: DataDragonItem): Promise<Item> {
-        await this.initialize();
-        const itemPath = `${this.cacheDir}/game/${version}/item/${itemId}`;
-        const dataPath = `${itemPath}/data.json`;
-        const cachedData = await this.loadData(dataPath);
-        if (cachedData && Object.keys(cachedData).length > 0) return cachedData as Item;
-        if (!itemData) {
+    async checkCacheCompleteness(): Promise<{
+        isComplete: boolean;
+        missingItems: string[];
+        totalItems: number;
+        cachedItems: number;
+    }> {
+        try {
+            const version = await this.getLatestVersion();
+
+            // Get all items from DataDragon
             const response = await fetch(`${DDRAGON_CDN}/${version}/data/en_US/item.json`);
-            const allData: DataDragonItemResponse = await response.json();
-            itemData = allData.data[itemId];
+            if (!response.ok) {
+                throw new Error(`Failed to fetch items list: ${response.status}`);
+            }
+
+            const data: DataDragonItemResponse = await response.json();
+            const allItemKeys = Object.keys(data.data);
+
+            // Load asset manifest to check cached items
+            const manifest = await this.loadAssetManifest();
+            const missingItems: string[] = [];
+
+            for (const itemKey of allItemKeys) {
+                const dataKey = `item-${version}-${itemKey}-data`;
+                const imageKey = `game/${version}/items/${itemKey}/icon.png`;
+
+                // Check if both data and image are cached
+                const hasData = manifest && manifest[dataKey];
+                const hasImage = manifest && manifest[imageKey];
+
+                if (!hasData || !hasImage) {
+                    missingItems.push(itemKey);
+                }
+            }
+
+            return {
+                isComplete: missingItems.length === 0,
+                missingItems,
+                totalItems: allItemKeys.length,
+                cachedItems: allItemKeys.length - missingItems.length
+            };
+        } catch (error) {
+            console.error('Error checking item cache completeness:', error);
+            return {
+                isComplete: false,
+                missingItems: [],
+                totalItems: 0,
+                cachedItems: 0
+            };
         }
-        await this.createDirectory(itemPath);
-        const imageUrl = `${DDRAGON_CDN}/${version}/img/item/${itemData.image.full}`;
-        const imagePath = `${itemPath}/${itemData.image.full}`;
-        const imageDownloaded = await this.downloadImage(imageUrl, imagePath);
-        const cacheData: Item = {
-            id: parseInt(itemData.id),
-            name: itemData.name,
-            description: itemData.description,
-            plaintext: itemData.plaintext,
-            image: itemData.image,
-            gold: itemData.gold,
-            tags: itemData.tags,
-            stats: itemData.stats,
-            depth: itemData.depth,
-            specialRecipe: itemData.specialRecipe,
-            stacks: itemData.stacks,
-            consumeOnFull: itemData.consumeOnFull,
-            inStore: itemData.inStore,
-            hideFromAll: itemData.hideFromAll,
-            requiredChampion: itemData.requiredChampion,
-            requiredAlly: itemData.requiredAlly,
-            imagePath: imageDownloaded ? `${itemPath}/${itemData.image.full}` : imageUrl
-        };
-        await this.saveData(dataPath, cacheData);
-        return cacheData;
+    }
+
+    async downloadAllItemsOnStartup(): Promise<void> {
+        try {
+            // Get the current version
+            const version = await this.getLatestVersion();
+
+            // Get all items from DataDragon to know the total count
+            const response = await fetch(`${DDRAGON_CDN}/${version}/data/en_US/item.json`);
+            if (!response.ok) {
+                throw new Error(`Failed to fetch items list: ${response.status}`);
+            }
+
+            const data: DataDragonItemResponse = await response.json();
+            const allItemKeys = Object.keys(data.data);
+            const totalItems = allItemKeys.length;
+
+            // Check category progress instead of individual asset checks
+            const categoryProgress = await this.getCategoryProgress('items');
+            const completedItems = categoryProgress.completedItems;
+            const downloadedCount = completedItems.length;
+
+            console.log(`Found ${downloadedCount} items already downloaded out of ${totalItems} total`);
+
+            if (downloadedCount >= totalItems) {
+                // All items are already downloaded
+                console.log('All items are already downloaded!');
+                this.updateProgress({
+                    current: totalItems,
+                    total: totalItems,
+                    stage: 'complete',
+                    itemName: 'Items downloaded successfully'
+                });
+                return;
+            }
+
+            // Calculate remaining items to download
+            const remainingItems = allItemKeys.filter(itemKey => !completedItems.includes(itemKey));
+            console.log(`Downloading ${remainingItems.length} remaining items...`);
+
+            // Report initial progress
+            this.updateProgress({
+                current: downloadedCount,
+                total: totalItems,
+                stage: 'downloading',
+                itemName: `Starting download from item ${downloadedCount + 1}`
+            });
+
+            // Download remaining items
+            let currentDownloadedCount = downloadedCount;
+            let currentCompletedItems = [...completedItems];
+
+            for (let i = 0; i < remainingItems.length; i++) {
+                const itemKey = remainingItems[i];
+                try {
+                    await this.downloadItemData(itemKey, version);
+                    currentDownloadedCount++;
+                    currentCompletedItems.push(itemKey);
+
+                    // Update category progress
+                    await this.updateCategoryProgress(
+                        'items',
+                        version,
+                        itemKey,
+                        totalItems,
+                        currentDownloadedCount,
+                        currentCompletedItems
+                    );
+
+                    // Report progress after each item
+                    this.updateProgress({
+                        current: currentDownloadedCount,
+                        total: totalItems,
+                        stage: 'downloading',
+                        itemName: `Item ${itemKey} (${currentDownloadedCount}/${totalItems})`
+                    });
+                } catch (error) {
+                    console.error(`Failed to download item ${itemKey}:`, error);
+                    // Still increment count even if download failed
+                    currentDownloadedCount++;
+                }
+            }
+
+            // Report final completion
+            this.updateProgress({
+                current: totalItems,
+                total: totalItems,
+                stage: 'complete',
+                itemName: 'Items downloaded successfully'
+            });
+
+        } catch (error) {
+            console.error('Error downloading items on startup:', error);
+        }
     }
 
     async clearCache(): Promise<void> {
         await this.initialize();
-        if (typeof window === 'undefined' || !window.electronAPI) throw new Error('Electron API not available');
+        if (typeof window === 'undefined' || !window.electronAPI) {
+            throw new Error('Electron API not available');
+        }
         await window.electronAPI.clearAssetCache();
     }
 
     async getCacheStats(): Promise<{ totalItems: number; cacheSize: number; version: string }> {
         await this.initialize();
-        if (typeof window === 'undefined' || !window.electronAPI) throw new Error('Electron API not available');
+        if (typeof window === 'undefined' || !window.electronAPI) {
+            throw new Error('Electron API not available');
+        }
         const statsResult = await window.electronAPI.getAssetCacheStats();
         return {
             totalItems: statsResult.stats?.fileCount || 0,

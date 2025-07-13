@@ -44,7 +44,7 @@ class AssetCacheService {
 
         try {
             const userDataPath = await window.electronAPI.getUserDataPath();
-            this.cacheDir = `${userDataPath}/asset-cache`;
+            this.cacheDir = `${userDataPath}/assets`;
             this.manifestPath = `${this.cacheDir}/manifest.json`;
 
             await this.loadManifest();

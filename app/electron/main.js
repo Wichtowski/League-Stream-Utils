@@ -30,7 +30,7 @@ const tournamentsPath = path.join(userDataPath, 'tournaments');
 const championsPath = path.join(userDataPath, 'champions');
 const assetsPath = path.join(userDataPath, 'assets');
 const uploadsPath = path.join(userDataPath, 'uploads', 'cameras');
-const assetCachePath = path.join(userDataPath, 'asset-cache');
+const assetCachePath = path.join(userDataPath, 'assets');
 
 // Ensure directories exist
 [tournamentsPath, championsPath, assetsPath, uploadsPath, assetCachePath].forEach(dir => {
@@ -394,7 +394,7 @@ ipcMain.handle('load-champions-cache', async () => {
 // Enhanced champion caching system IPC handlers
 ipcMain.handle('get-champion-cache-path', async () => {
     try {
-        const championCachePath = path.join(userDataPath, 'champion-cache');
+        const championCachePath = path.join(userDataPath, 'champions');
         if (!fs.existsSync(championCachePath)) {
             fs.mkdirSync(championCachePath, { recursive: true });
         }
@@ -510,7 +510,7 @@ ipcMain.handle('get-champion-cache-stats', async (event, cacheDir) => {
                 const stat = fs.statSync(itemPath);
 
                 if (stat.isDirectory()) {
-                    if (item === 'champion') {
+                    if (item === 'champions') {
                         // Count champion directories
                         const championDirs = fs.readdirSync(itemPath);
                         totalChampions += championDirs.length;
@@ -537,7 +537,21 @@ ipcMain.handle('get-champion-cache-stats', async (event, cacheDir) => {
 ipcMain.handle('copy-asset-file', async (event, sourcePath, fileName) => {
     try {
         const destPath = path.join(assetsPath, fileName);
-        fs.copyFileSync(sourcePath, destPath);
+
+        // Create the directory structure if it doesn't exist
+        const destDir = path.dirname(destPath);
+        if (!fs.existsSync(destDir)) {
+            fs.mkdirSync(destDir, { recursive: true });
+        }
+
+        // Handle the source path - it should be relative to the app directory
+        let fullSourcePath = sourcePath;
+        if (!path.isAbsolute(sourcePath)) {
+            // If it's a relative path, resolve it relative to the app directory
+            fullSourcePath = path.join(__dirname, '..', sourcePath);
+        }
+
+        fs.copyFileSync(fullSourcePath, destPath);
         return { success: true, localPath: destPath };
     } catch (error) {
         return { success: false, error: error.message };
@@ -651,7 +665,7 @@ function createDataServer() {
     });
 }
 
-// Asset caching IPC handlers
+// Asset caching IPC handlers with enhanced performance
 ipcMain.handle('download-asset', async (event, url, category, assetKey) => {
     try {
         const https = require('https');
@@ -662,7 +676,7 @@ ipcMain.handle('download-asset', async (event, url, category, assetKey) => {
             fs.mkdirSync(categoryPath, { recursive: true });
         }
 
-        // Handle nested paths in assetKey (e.g., "game/15.13.1/champion/Aatrox/Aatrox.png")
+        // Handle nested paths in assetKey (e.g., "game/15.13.1/champions/Aatrox/Aatrox.png")
         const assetKeyParts = assetKey.split('/');
         const fileName = assetKeyParts.pop(); // Get the filename
         const subDirectories = assetKeyParts; // Get the subdirectories
@@ -686,18 +700,49 @@ ipcMain.handle('download-asset', async (event, url, category, assetKey) => {
             return { success: true, localPath };
         }
 
-        // Download the file
+        // Enhanced download with better error handling and performance
         return new Promise((resolve) => {
             const file = fs.createWriteStream(localPath);
-            https.get(url, (response) => {
+            let downloadedBytes = 0;
+            const startTime = Date.now();
+
+            const request = https.get(url, {
+                timeout: 30000, // 30 second timeout
+                headers: {
+                    'User-Agent': 'League-Stream-Utils/1.0',
+                    'Accept': '*/*',
+                    'Accept-Encoding': 'gzip, deflate, br'
+                }
+            }, (response) => {
                 if (response.statusCode === 200) {
+                    response.on('data', (chunk) => {
+                        downloadedBytes += chunk.length;
+                    });
+
                     response.pipe(file);
+
                     file.on('finish', async () => {
                         file.close();
+                        const downloadTime = (Date.now() - startTime) / 1000;
+                        const downloadSpeed = downloadedBytes / downloadTime;
 
                         // Update the asset manifest
                         try {
-                            const manifestPath = path.join(assetCachePath, 'manifest.json');
+                            // Determine category from assetKey
+                            let manifestFile = 'manifest.json'; // default
+                            if (assetKey.includes('/champions/') || assetKey.includes('champion')) {
+                                manifestFile = 'champions-manifest.json';
+                            } else if (assetKey.includes('/items/') || assetKey.includes('item')) {
+                                manifestFile = 'items-manifest.json';
+                            } else if (assetKey.includes('/runes/') || assetKey.includes('rune')) {
+                                manifestFile = 'runes-manifest.json';
+                            } else if (assetKey.includes('overlay/') || assetKey.includes('game-ui')) {
+                                manifestFile = 'game-ui-manifest.json';
+                            } else if (assetKey.includes('/spells/') || assetKey.includes('spell')) {
+                                manifestFile = 'spells-manifest.json';
+                            }
+
+                            const manifestPath = path.join(assetCachePath, manifestFile);
                             let manifest = {};
 
                             if (fs.existsSync(manifestPath)) {
@@ -707,13 +752,15 @@ ipcMain.handle('download-asset', async (event, url, category, assetKey) => {
                             // Get file stats
                             const stats = fs.statSync(localPath);
 
-                            // Add to manifest
+                            // Add to manifest with performance metrics
                             manifest[assetKey] = {
                                 path: localPath,
                                 url: url,
                                 size: stats.size,
                                 timestamp: Date.now(),
-                                checksum: assetKey
+                                checksum: assetKey,
+                                downloadSpeed: downloadSpeed,
+                                downloadTime: downloadTime
                             };
 
                             // Save updated manifest
@@ -722,21 +769,50 @@ ipcMain.handle('download-asset', async (event, url, category, assetKey) => {
                             console.error('Failed to update asset manifest:', manifestError);
                         }
 
-                        resolve({ success: true, localPath });
+                        resolve({
+                            success: true,
+                            localPath,
+                            size: downloadedBytes,
+                            downloadSpeed: downloadSpeed,
+                            downloadTime: downloadTime
+                        });
                     });
                 } else {
                     file.close();
                     if (fs.existsSync(localPath)) {
                         fs.unlinkSync(localPath);
                     }
-                    resolve({ success: false, error: `HTTP ${response.statusCode}` });
+                    resolve({
+                        success: false,
+                        error: `HTTP ${response.statusCode}`,
+                        statusCode: response.statusCode
+                    });
                 }
-            }).on('error', (err) => {
+            });
+
+            request.on('error', (err) => {
                 file.close();
                 if (fs.existsSync(localPath)) {
                     fs.unlinkSync(localPath);
                 }
-                resolve({ success: false, error: err.message });
+                resolve({
+                    success: false,
+                    error: err.message,
+                    code: err.code
+                });
+            });
+
+            request.on('timeout', () => {
+                request.destroy();
+                file.close();
+                if (fs.existsSync(localPath)) {
+                    fs.unlinkSync(localPath);
+                }
+                resolve({
+                    success: false,
+                    error: 'Request timeout',
+                    code: 'TIMEOUT'
+                });
             });
         });
     } catch (error) {
@@ -744,14 +820,243 @@ ipcMain.handle('download-asset', async (event, url, category, assetKey) => {
     }
 });
 
+// New IPC handler for parallel downloads with enhanced performance
+ipcMain.handle('download-assets-parallel', async (event, downloadTasks) => {
+    try {
+        const https = require('https');
+        const maxConcurrent = 25; // Increased from 10 to 25 concurrent downloads
+        const semaphore = new Array(maxConcurrent).fill(null);
+
+        const downloadTask = async (task) => {
+            const { url, category, assetKey } = task;
+            const categoryPath = path.join(assetCachePath, category);
+
+            // Ensure category directory exists
+            if (!fs.existsSync(categoryPath)) {
+                fs.mkdirSync(categoryPath, { recursive: true });
+            }
+
+            // Handle nested paths
+            const assetKeyParts = assetKey.split('/');
+            const fileName = assetKeyParts.pop();
+            const subDirectories = assetKeyParts;
+
+            let fullDirectoryPath = categoryPath;
+            if (subDirectories.length > 0) {
+                fullDirectoryPath = path.join(categoryPath, ...subDirectories);
+                if (!fs.existsSync(fullDirectoryPath)) {
+                    fs.mkdirSync(fullDirectoryPath, { recursive: true });
+                }
+            }
+
+            const urlExtension = url.split('.').pop();
+            const fileNameWithExtension = fileName.includes('.') ? fileName : `${fileName}.${urlExtension}`;
+            const localPath = path.join(fullDirectoryPath, fileNameWithExtension);
+
+            // Check if file already exists
+            if (fs.existsSync(localPath)) {
+                return {
+                    id: task.id,
+                    success: true,
+                    localPath,
+                    cached: true
+                };
+            }
+
+            // Download with enhanced performance and connection pooling
+            return new Promise((resolve) => {
+                const file = fs.createWriteStream(localPath);
+                let downloadedBytes = 0;
+                const startTime = Date.now();
+
+                // Enhanced request options for better performance
+                const requestOptions = {
+                    timeout: 15000, // Reduced timeout for faster failure detection
+                    headers: {
+                        'User-Agent': 'League-Stream-Utils/1.0',
+                        'Accept': '*/*',
+                        'Accept-Encoding': 'gzip, deflate, br',
+                        'Connection': 'keep-alive', // Enable connection reuse
+                        'Keep-Alive': 'timeout=5, max=1000'
+                    },
+                    agent: new https.Agent({
+                        keepAlive: true,
+                        keepAliveMsecs: 1000,
+                        maxSockets: 50,
+                        maxFreeSockets: 10
+                    })
+                };
+
+                const request = https.get(url, requestOptions, (response) => {
+                    if (response.statusCode === 200) {
+                        response.on('data', (chunk) => {
+                            downloadedBytes += chunk.length;
+                        });
+
+                        response.pipe(file);
+
+                        file.on('finish', async () => {
+                            file.close();
+                            const downloadTime = (Date.now() - startTime) / 1000;
+                            const downloadSpeed = downloadedBytes / downloadTime;
+
+                            // Update manifest
+                            try {
+                                // Determine category from assetKey
+                                let manifestFile = 'manifest.json'; // default
+                                if (assetKey.includes('/champions/') || assetKey.includes('champion')) {
+                                    manifestFile = 'champions-manifest.json';
+                                } else if (assetKey.includes('/items/') || assetKey.includes('item')) {
+                                    manifestFile = 'items-manifest.json';
+                                } else if (assetKey.includes('/runes/') || assetKey.includes('rune')) {
+                                    manifestFile = 'runes-manifest.json';
+                                } else if (assetKey.includes('overlay/') || assetKey.includes('game-ui')) {
+                                    manifestFile = 'game-ui-manifest.json';
+                                } else if (assetKey.includes('/spells/') || assetKey.includes('spell')) {
+                                    manifestFile = 'spells-manifest.json';
+                                }
+
+                                const manifestPath = path.join(assetCachePath, manifestFile);
+                                let manifest = {};
+
+                                if (fs.existsSync(manifestPath)) {
+                                    manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+                                }
+
+                                const stats = fs.statSync(localPath);
+                                manifest[assetKey] = {
+                                    path: localPath,
+                                    url: url,
+                                    size: stats.size,
+                                    timestamp: Date.now(),
+                                    checksum: assetKey,
+                                    downloadSpeed: downloadSpeed,
+                                    downloadTime: downloadTime
+                                };
+
+                                fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+                            } catch (manifestError) {
+                                console.error('Failed to update asset manifest:', manifestError);
+                            }
+
+                            resolve({
+                                id: task.id,
+                                success: true,
+                                localPath,
+                                size: downloadedBytes,
+                                downloadSpeed: downloadSpeed,
+                                downloadTime: downloadTime
+                            });
+                        });
+                    } else {
+                        file.close();
+                        if (fs.existsSync(localPath)) {
+                            fs.unlinkSync(localPath);
+                        }
+                        resolve({
+                            id: task.id,
+                            success: false,
+                            error: `HTTP ${response.statusCode}`,
+                            statusCode: response.statusCode
+                        });
+                    }
+                });
+
+                request.on('error', (err) => {
+                    file.close();
+                    if (fs.existsSync(localPath)) {
+                        fs.unlinkSync(localPath);
+                    }
+                    resolve({
+                        id: task.id,
+                        success: false,
+                        error: err.message,
+                        code: err.code
+                    });
+                });
+
+                request.on('timeout', () => {
+                    request.destroy();
+                    file.close();
+                    if (fs.existsSync(localPath)) {
+                        fs.unlinkSync(localPath);
+                    }
+                    resolve({
+                        id: task.id,
+                        success: false,
+                        error: 'Request timeout',
+                        code: 'TIMEOUT'
+                    });
+                });
+            });
+        };
+
+        // Process downloads with concurrency control
+        const processDownloads = async () => {
+            const promises = [];
+
+            for (let i = 0; i < downloadTasks.length; i++) {
+                const task = downloadTasks[i];
+
+                const promise = new Promise(async (resolve) => {
+                    // Wait for available slot
+                    while (semaphore.every(slot => slot !== null)) {
+                        await new Promise(r => setTimeout(r, 10));
+                    }
+
+                    // Find available slot
+                    const slotIndex = semaphore.findIndex(slot => slot === null);
+                    semaphore[slotIndex] = task.id;
+
+                    try {
+                        const result = await downloadTask(task);
+                        resolve(result);
+                    } finally {
+                        semaphore[slotIndex] = null;
+                    }
+                });
+
+                promises.push(promise);
+            }
+
+            return Promise.all(promises);
+        };
+
+        const results = await processDownloads();
+        return { success: true, results };
+
+    } catch (error) {
+        return { success: false, error: error.message };
+    }
+});
+
 ipcMain.handle('load-asset-manifest', async () => {
     try {
-        const manifestPath = path.join(assetCachePath, 'manifest.json');
-        if (fs.existsSync(manifestPath)) {
-            const data = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-            return { success: true, data };
+        // Load all category-specific manifests and combine them
+        const manifestFiles = [
+            'champions-manifest.json',
+            'items-manifest.json',
+            'runes-manifest.json',
+            'game-ui-manifest.json',
+            'spells-manifest.json',
+            'manifest.json' // Keep legacy manifest for backward compatibility
+        ];
+
+        let combinedManifest = {};
+
+        for (const manifestFile of manifestFiles) {
+            const manifestPath = path.join(assetCachePath, manifestFile);
+            if (fs.existsSync(manifestPath)) {
+                try {
+                    const data = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+                    combinedManifest = { ...combinedManifest, ...data };
+                } catch (parseError) {
+                    console.error(`Failed to parse ${manifestFile}:`, parseError);
+                }
+            }
         }
-        return { success: true, data: {} };
+
+        return { success: true, data: combinedManifest };
     } catch (error) {
         return { success: false, error: error.message };
     }
@@ -759,8 +1064,102 @@ ipcMain.handle('load-asset-manifest', async () => {
 
 ipcMain.handle('save-asset-manifest', async (event, manifestData) => {
     try {
-        const manifestPath = path.join(assetCachePath, 'manifest.json');
-        fs.writeFileSync(manifestPath, JSON.stringify(manifestData, null, 2));
+        // Determine which category-specific manifest files to update based on the data
+        const categoryManifests = {
+            'champions-manifest.json': {},
+            'items-manifest.json': {},
+            'runes-manifest.json': {},
+            'game-ui-manifest.json': {},
+            'spells-manifest.json': {},
+            'manifest.json': {} // Legacy manifest for uncategorized assets
+        };
+
+        // Categorize the manifest data
+        for (const [assetKey, assetData] of Object.entries(manifestData)) {
+            if (assetKey.includes('champions-manifest.json') || assetKey.includes('champion') || assetKey.includes('/champions/')) {
+                categoryManifests['champions-manifest.json'][assetKey] = assetData;
+            } else if (assetKey.includes('items-manifest.json') || assetKey.includes('item') || assetKey.includes('/items/')) {
+                categoryManifests['items-manifest.json'][assetKey] = assetData;
+            } else if (assetKey.includes('runes-manifest.json') || assetKey.includes('rune') || assetKey.includes('/runes/')) {
+                categoryManifests['runes-manifest.json'][assetKey] = assetData;
+            } else if (assetKey.includes('game-ui-manifest.json') || assetKey.includes('overlay/') || assetKey.includes('game-ui')) {
+                categoryManifests['game-ui-manifest.json'][assetKey] = assetData;
+            } else if (assetKey.includes('spells-manifest.json') || assetKey.includes('spell') || assetKey.includes('/spells/')) {
+                categoryManifests['spells-manifest.json'][assetKey] = assetData;
+            } else {
+                // Put uncategorized assets in the legacy manifest
+                categoryManifests['manifest.json'][assetKey] = assetData;
+            }
+        }
+
+        // Save each category-specific manifest that has data
+        for (const [manifestFile, data] of Object.entries(categoryManifests)) {
+            if (Object.keys(data).length > 0) {
+                const manifestPath = path.join(assetCachePath, manifestFile);
+
+                // Load existing manifest and merge with new data
+                let existingManifest = {};
+                if (fs.existsSync(manifestPath)) {
+                    try {
+                        existingManifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+                    } catch (parseError) {
+                        console.error(`Failed to parse existing ${manifestFile}:`, parseError);
+                    }
+                }
+
+                // Merge existing with new data
+                const mergedManifest = { ...existingManifest, ...data };
+
+                // Save the updated manifest
+                fs.writeFileSync(manifestPath, JSON.stringify(mergedManifest, null, 2));
+            }
+        }
+
+        return { success: true };
+    } catch (error) {
+        return { success: false, error: error.message };
+    }
+});
+
+// Add new IPC handler for loading specific category manifest
+ipcMain.handle('load-category-manifest', async (event, category) => {
+    try {
+        const manifestFile = `${category}-manifest.json`;
+        const manifestPath = path.join(assetCachePath, manifestFile);
+
+        if (fs.existsSync(manifestPath)) {
+            const data = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+            return { success: true, data };
+        }
+
+        return { success: true, data: {} };
+    } catch (error) {
+        return { success: false, error: error.message };
+    }
+});
+
+// Add new IPC handler for saving specific category manifest
+ipcMain.handle('save-category-manifest', async (event, category, manifestData) => {
+    try {
+        const manifestFile = `${category}-manifest.json`;
+        const manifestPath = path.join(assetCachePath, manifestFile);
+
+        // Load existing manifest and merge with new data
+        let existingManifest = {};
+        if (fs.existsSync(manifestPath)) {
+            try {
+                existingManifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+            } catch (parseError) {
+                console.error(`Failed to parse existing ${manifestFile}:`, parseError);
+            }
+        }
+
+        // Merge existing with new data
+        const mergedManifest = { ...existingManifest, ...manifestData };
+
+        // Save the updated manifest
+        fs.writeFileSync(manifestPath, JSON.stringify(mergedManifest, null, 2));
+
         return { success: true };
     } catch (error) {
         return { success: false, error: error.message };
@@ -834,6 +1233,97 @@ ipcMain.handle('get-asset-cache-stats', async () => {
                 totalSize,
                 fileCount,
                 formattedSize: formatBytes(totalSize)
+            }
+        };
+    } catch (error) {
+        return { success: false, error: error.message };
+    }
+});
+
+ipcMain.handle('check-asset-integrity', async () => {
+    try {
+        const manifestPath = path.join(assetCachePath, 'manifest.json');
+        let manifest = {};
+        let missingFiles = [];
+        let corruptedFiles = [];
+        let validFiles = 0;
+        let totalFiles = 0;
+
+        // Load manifest if it exists
+        if (fs.existsSync(manifestPath)) {
+            manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+        }
+
+        // Check each file in the manifest
+        for (const [assetKey, assetData] of Object.entries(manifest)) {
+            totalFiles++;
+            const filePath = assetData.path;
+
+            if (!fs.existsSync(filePath)) {
+                missingFiles.push(assetKey);
+                continue;
+            }
+
+            try {
+                const stats = fs.statSync(filePath);
+
+                // Check if file size matches expected size
+                if (stats.size !== assetData.size) {
+                    corruptedFiles.push(assetKey);
+                    continue;
+                }
+
+                // Check if file is readable (basic integrity check)
+                const fileBuffer = fs.readFileSync(filePath);
+                if (fileBuffer.length === 0) {
+                    corruptedFiles.push(assetKey);
+                    continue;
+                }
+
+                validFiles++;
+            } catch (_error) {
+                corruptedFiles.push(assetKey);
+            }
+        }
+
+        // Check for orphaned files (files in cache but not in manifest)
+        if (fs.existsSync(assetCachePath)) {
+            function scanForOrphanedFiles(dirPath, relativePath = '') {
+                const items = fs.readdirSync(dirPath);
+                for (const item of items) {
+                    const itemPath = path.join(dirPath, item);
+                    const stats = fs.statSync(itemPath);
+
+                    if (stats.isDirectory()) {
+                        scanForOrphanedFiles(itemPath, path.join(relativePath, item));
+                    } else {
+                        const assetKey = path.join(relativePath, item);
+                        if (!manifest[assetKey]) {
+                            // This is an orphaned file, but we'll count it as valid for now
+                            totalFiles++;
+                            validFiles++;
+                        }
+                    }
+                }
+            }
+
+            scanForOrphanedFiles(assetCachePath);
+        }
+
+        const isValid = missingFiles.length === 0 && corruptedFiles.length === 0;
+        const message = isValid
+            ? `All ${totalFiles} files are valid and accessible.`
+            : `Found ${missingFiles.length} missing files and ${corruptedFiles.length} corrupted files.`;
+
+        return {
+            success: true,
+            integrity: {
+                isValid,
+                missingFiles,
+                corruptedFiles,
+                totalFiles,
+                validFiles,
+                message
             }
         };
     } catch (error) {

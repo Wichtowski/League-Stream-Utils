@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Cog6ToothIcon, CloudIcon, DocumentDuplicateIcon, ShieldCheckIcon, ComputerDesktopIcon } from '@heroicons/react/24/outline';
+import { Cog6ToothIcon, CloudIcon, DocumentDuplicateIcon, ShieldCheckIcon, ComputerDesktopIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 import { useModal } from '@lib/contexts/ModalContext';
 import { riotAPI } from '@lib/services/riot-api';
 import { refreshChampionsCache, getChampions } from '@lib/champions';
@@ -22,6 +22,15 @@ interface CacheStats {
     players: { count: number; memoryUsage: string };
     matches: { count: number; memoryUsage: string };
     assets: { totalSize: string; fileCount: number; formattedSize: string };
+}
+
+interface IntegrityCheckResult {
+    isValid: boolean;
+    missingFiles: string[];
+    corruptedFiles: string[];
+    totalFiles: number;
+    validFiles: number;
+    message: string;
 }
 
 export default function ElectronSettings() {
@@ -48,6 +57,8 @@ export default function ElectronSettings() {
 
     const [templates, setTemplates] = useState<TournamentTemplate[]>([]);
     const [championsVersion, setChampionsVersion] = useState('');
+    const [integrityCheckResult, setIntegrityCheckResult] = useState<IntegrityCheckResult | null>(null);
+    const [isCheckingIntegrity, setIsCheckingIntegrity] = useState(false);
 
     const loadCacheStats = useCallback(async () => {
         try {
@@ -221,11 +232,58 @@ export default function ElectronSettings() {
         }
     };
 
+    const handleCheckDataIntegrity = async () => {
+        if (!isElectron || !window.electronAPI?.checkAssetIntegrity) {
+            await showAlert({ type: 'error', message: 'Data integrity check not available in web mode.' });
+            return;
+        }
+
+        try {
+            setIsCheckingIntegrity(true);
+            setIntegrityCheckResult(null);
+            
+            const result = await window.electronAPI.checkAssetIntegrity();
+            
+            if (result.success && result.integrity) {
+                const integrityResult: IntegrityCheckResult = {
+                    isValid: result.integrity.isValid,
+                    missingFiles: result.integrity.missingFiles || [],
+                    corruptedFiles: result.integrity.corruptedFiles || [],
+                    totalFiles: result.integrity.totalFiles || 0,
+                    validFiles: result.integrity.validFiles || 0,
+                    message: result.integrity.message || 'Integrity check completed'
+                };
+                
+                setIntegrityCheckResult(integrityResult);
+                
+                if (integrityResult.isValid) {
+                    await showAlert({ 
+                        type: 'success', 
+                        message: `Data integrity check passed! All ${integrityResult.totalFiles} files are valid.` 
+                    });
+                } else {
+                    await showAlert({ 
+                        type: 'warning', 
+                        message: `Data integrity issues found. ${integrityResult.missingFiles.length} missing files, ${integrityResult.corruptedFiles.length} corrupted files.` 
+                    });
+                }
+            } else {
+                await showAlert({ type: 'error', message: 'Failed to check data integrity.' });
+            }
+        } catch (error) {
+            console.error('Failed to check data integrity:', error);
+            await showAlert({ type: 'error', message: 'Failed to check data integrity.' });
+        } finally {
+            setIsCheckingIntegrity(false);
+        }
+    };
+
     const tabs = [
         { id: 'data-mode', name: 'Data Storage', icon: ComputerDesktopIcon },
         { id: 'riot-api', name: 'Riot API', icon: ShieldCheckIcon },
         { id: 'templates', name: 'Tournament Templates', icon: DocumentDuplicateIcon },
-        { id: 'cache', name: 'Cache Management', icon: CloudIcon }
+        { id: 'cache', name: 'Cache Management', icon: CloudIcon },
+        { id: 'integrity', name: 'Data Integrity', icon: CheckCircleIcon }
     ];
 
     const renderCacheTab = () => (
@@ -251,8 +309,8 @@ export default function ElectronSettings() {
                         <p>Size: {cacheStats.assets.formattedSize}</p>
                     </div>
                     <div className="mt-4 space-y-2">
-                        <Button onClick={handlePreloadChampionAssets} disabled={loading} className="w-full">
-                            Preload Champion Assets
+                        <Button onClick={handleCheckDataIntegrity} disabled={isCheckingIntegrity || !isElectron} className="w-full">
+                            {isCheckingIntegrity ? 'Checking...' : 'Check Data Integrity'}
                         </Button>
                         <Button onClick={handleClearAssetCache} disabled={loading} variant="secondary" className="w-full">
                             Clear Asset Cache
@@ -472,6 +530,94 @@ export default function ElectronSettings() {
 
             {/* Cache Management */}
             {activeTab === 'cache' && renderCacheTab()}
+
+            {/* Data Integrity */}
+            {activeTab === 'integrity' && (
+                <div className="space-y-6">
+                    <div className="bg-white shadow rounded-lg p-6">
+                        <h3 className="text-lg font-medium text-gray-900 mb-4">Data Integrity Check</h3>
+                        <p className="text-sm text-gray-600 mb-6">
+                            Verify the integrity of your cached assets and detect any missing or corrupted files.
+                        </p>
+
+                        <div className="mb-6">
+                            <Button 
+                                onClick={handleCheckDataIntegrity} 
+                                disabled={isCheckingIntegrity || !isElectron}
+                                className="w-full md:w-auto"
+                            >
+                                {isCheckingIntegrity ? 'Checking Integrity...' : 'Check Data Integrity'}
+                            </Button>
+                        </div>
+
+                        {integrityCheckResult && (
+                            <div className={`p-4 rounded-lg border ${
+                                integrityCheckResult.isValid 
+                                    ? 'bg-green-50 border-green-200' 
+                                    : 'bg-yellow-50 border-yellow-200'
+                            }`}>
+                                <div className="flex items-start">
+                                    <CheckCircleIcon className={`w-5 h-5 mt-0.5 mr-3 ${
+                                        integrityCheckResult.isValid ? 'text-green-600' : 'text-yellow-600'
+                                    }`} />
+                                    <div className="flex-1">
+                                        <h4 className={`font-medium ${
+                                            integrityCheckResult.isValid ? 'text-green-800' : 'text-yellow-800'
+                                        }`}>
+                                            {integrityCheckResult.isValid ? 'Integrity Check Passed' : 'Integrity Issues Found'}
+                                        </h4>
+                                        <p className={`text-sm mt-1 ${
+                                            integrityCheckResult.isValid ? 'text-green-700' : 'text-yellow-700'
+                                        }`}>
+                                            {integrityCheckResult.message}
+                                        </p>
+                                        
+                                        <div className="mt-3 space-y-2">
+                                            <div className="text-sm">
+                                                <span className="font-medium">Total Files:</span> {integrityCheckResult.totalFiles}
+                                            </div>
+                                            <div className="text-sm">
+                                                <span className="font-medium">Valid Files:</span> {integrityCheckResult.validFiles}
+                                            </div>
+                                            {integrityCheckResult.missingFiles.length > 0 && (
+                                                <div className="text-sm">
+                                                    <span className="font-medium text-red-600">Missing Files:</span> {integrityCheckResult.missingFiles.length}
+                                                </div>
+                                            )}
+                                            {integrityCheckResult.corruptedFiles.length > 0 && (
+                                                <div className="text-sm">
+                                                    <span className="font-medium text-red-600">Corrupted Files:</span> {integrityCheckResult.corruptedFiles.length}
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {(integrityCheckResult.missingFiles.length > 0 || integrityCheckResult.corruptedFiles.length > 0) && (
+                                            <div className="mt-4">
+                                                <Button 
+                                                    onClick={handlePreloadChampionAssets}
+                                                    disabled={loading}
+                                                    variant="secondary"
+                                                    className="w-full md:w-auto"
+                                                >
+                                                    Re-download Corrupted Assets
+                                                </Button>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {!isElectron && (
+                            <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                                <p className="text-sm text-gray-600">
+                                    Data integrity check is only available in the desktop application.
+                                </p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
         </div>
     );
 } 

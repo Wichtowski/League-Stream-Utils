@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
+import dynamic from 'next/dynamic';
 import { useAuth } from '@lib/contexts/AuthContext';
 import { useTournaments } from '@lib/contexts/TournamentsContext';
 import { useNavigation } from '@lib/contexts/NavigationContext';
@@ -8,8 +9,24 @@ import { useElectron } from '@lib/contexts/ElectronContext';
 import { useModal } from '@lib/contexts/ModalContext';
 import { AuthGuard } from '@lib/components/AuthGuard';
 import { LoadingSpinner, LCUStatusIndicator } from '@components/common';
-import { TournamentCreationForm, TournamentList } from './components';
 import type { TournamentStatus } from '@lib/types';
+
+// Dynamic imports for lazy loading
+const TournamentCreationForm = dynamic(
+  () => import('./components').then(mod => ({ default: mod.TournamentCreationForm })),
+  { 
+    loading: () => <LoadingSpinner text="Loading tournament form..." />,
+    ssr: false 
+  }
+);
+
+const TournamentList = dynamic(
+  () => import('./components').then(mod => ({ default: mod.TournamentList })),
+  { 
+    loading: () => <LoadingSpinner text="Loading tournaments..." />,
+    ssr: false 
+  }
+);
 
 export default function TournamentsPage() {
     const { user } = useAuth();
@@ -98,18 +115,22 @@ export default function TournamentsPage() {
                         </div>
 
                         {showCreateForm && (
-                            <TournamentCreationForm
-                                onTournamentCreated={handleTournamentCreated}
-                                onCancel={() => setShowCreateForm(false)}
-                            />
+                            <Suspense fallback={<LoadingSpinner text="Loading tournament form..." />}>
+                                <TournamentCreationForm
+                                    onTournamentCreated={handleTournamentCreated}
+                                    onCancel={() => setShowCreateForm(false)}
+                                />
+                            </Suspense>
                         )}
 
-                        <TournamentList
-                            tournaments={tournaments}
-                            onShowCreateForm={() => setShowCreateForm(true)}
-                            onStatusUpdate={updateTournamentStatus}
-                            onTournamentUpdate={handleTournamentUpdated}
-                        />
+                        <Suspense fallback={<LoadingSpinner text="Loading tournaments..." />}>
+                            <TournamentList
+                                tournaments={tournaments}
+                                onShowCreateForm={() => setShowCreateForm(true)}
+                                onStatusUpdate={updateTournamentStatus}
+                                onTournamentUpdate={handleTournamentUpdated}
+                            />
+                        </Suspense>
                     </div>
                 </div>
             )}

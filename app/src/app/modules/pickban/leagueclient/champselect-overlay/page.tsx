@@ -39,18 +39,6 @@ const ChampSelectOverlayPage: React.FC = () => {
     }
   }, [useMockData, urlMockEnabled, isConnected, isConnecting, connect]);
 
-  // useEffect(() => {
-  //   console.log('Overlay state:', {
-  //     useMockData,
-  //     urlMockEnabled,
-  //     isConnected,
-  //     isConnecting,
-  //     hasChampSelectData: !!champSelectSession,
-  //     connectionError,
-  //     champSelectData: champSelectSession
-  //   });
-  // }, [useMockData, urlMockEnabled, isConnected, isConnecting, champSelectSession, connectionError]);
-
   // Determine which data source to use
   const shouldUseUrlMock = urlMockEnabled;
   const shouldUseContextMock = useMockData && !urlMockEnabled;

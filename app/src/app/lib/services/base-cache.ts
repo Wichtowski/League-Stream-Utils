@@ -8,11 +8,22 @@ export interface DownloadProgress {
     itemName: string;
     stage: string;
     percentage: number;
-    assetType?: 'champion-data' | 'champion-images' | 'ability-images' | 'item-data' | 'item-images' | 'spell-data' | 'spell-images' | 'rune-data' | 'rune-images';
+    assetType?: 'champion' | 'champion-data' | 'champion-images' | 'ability-images' | 'item-data' | 'item-images' | 'spell-data' | 'spell-images' | 'rune-data' | 'rune-images';
     currentAsset?: string;
 }
 
 export type ProgressCallback = (progress: DownloadProgress) => void;
+
+// Category-specific manifest for tracking last downloaded item
+export interface CategoryManifest {
+    category: string;
+    version: string;
+    lastDownloadedItem: string;
+    totalItems: number;
+    downloadedCount: number;
+    lastUpdated: number;
+    completedItems: string[]; // List of completed items for progress tracking
+}
 
 export abstract class BaseCacheService<T = unknown> {
     protected cacheDir: string = '';
@@ -47,7 +58,7 @@ export abstract class BaseCacheService<T = unknown> {
         }
 
         const userDataPath = await window.electronAPI.getUserDataPath();
-        this.cacheDir = path.join(userDataPath, 'asset-cache');
+        this.cacheDir = path.join(userDataPath, 'assets');
         this.isInitialized = true;
     }
 
@@ -83,7 +94,7 @@ export abstract class BaseCacheService<T = unknown> {
 
         try {
             const userDataPath = await window.electronAPI.getUserDataPath();
-            const fullPath = path.join(userDataPath, 'asset-cache', filePath);
+            const fullPath = path.join(userDataPath, 'assets', filePath);
             const result = await window.electronAPI.checkFileExists(fullPath);
             return result.success && result.exists === true;
         } catch (error) {
@@ -92,6 +103,93 @@ export abstract class BaseCacheService<T = unknown> {
         }
     }
 
+    // Category-specific manifest methods
+    protected async saveCategoryManifest(category: string, manifest: CategoryManifest): Promise<boolean> {
+        if (typeof window === 'undefined' || !window.electronAPI) {
+            return false;
+        }
+
+        try {
+            const manifestPath = `${category}-manifest.json`;
+            const manifestContent = JSON.stringify(manifest, null, 2);
+
+            // Use the new category-specific IPC handler
+            const result = await window.electronAPI.saveCategoryManifest(category, {
+                [manifestPath]: {
+                    path: manifestContent,
+                    url: '',
+                    size: Buffer.from(manifestContent, 'utf8').length,
+                    timestamp: Date.now(),
+                    checksum: manifestPath
+                }
+            });
+
+            return result.success;
+        } catch (error) {
+            console.error(`Failed to save ${category} manifest:`, error);
+            return false;
+        }
+    }
+
+    protected async loadCategoryManifest(category: string): Promise<CategoryManifest | null> {
+        if (typeof window === 'undefined' || !window.electronAPI) {
+            return null;
+        }
+
+        try {
+            const manifestPath = `${category}-manifest.json`;
+
+            // Use the new category-specific IPC handler
+            const result = await window.electronAPI.loadCategoryManifest(category);
+
+            if (result.success && result.data && result.data[manifestPath]) {
+                const manifestData = result.data[manifestPath];
+                return JSON.parse(manifestData.path) as CategoryManifest;
+            }
+
+            return null;
+        } catch (error) {
+            console.error(`Failed to load ${category} manifest:`, error);
+            return null;
+        }
+    }
+
+    protected async updateCategoryProgress(
+        category: string,
+        version: string,
+        lastDownloadedItem: string,
+        totalItems: number,
+        downloadedCount: number,
+        completedItems: string[]
+    ): Promise<void> {
+        const manifest: CategoryManifest = {
+            category,
+            version,
+            lastDownloadedItem,
+            totalItems,
+            downloadedCount,
+            lastUpdated: Date.now(),
+            completedItems
+        };
+
+        await this.saveCategoryManifest(category, manifest);
+    }
+
+    protected async getCategoryProgress(category: string): Promise<{ downloaded: number; total: number; completedItems: string[] }> {
+        const manifest = await this.loadCategoryManifest(category);
+
+        if (!manifest) {
+            return { downloaded: 0, total: 0, completedItems: [] };
+        }
+
+        return {
+            downloaded: manifest.downloadedCount,
+            total: manifest.totalItems,
+            completedItems: manifest.completedItems
+        };
+    }
+
+    // Legacy methods for backward compatibility
     protected async saveAssetManifest(manifestData: Record<string, CachedAsset>): Promise<boolean> {
         if (typeof window === 'undefined' || !window.electronAPI) {
             return false;

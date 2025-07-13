@@ -1,3 +1,5 @@
+import { asyncStorage } from './async-storage';
+
 interface StorageData {
     data: unknown;
     timestamp: number;
@@ -73,7 +75,7 @@ class UniversalStorage {
         return `${prefix}${key}`;
     }
 
-    private setLocalStorageWithQuotaHandling(key: string, data: StorageData): void {
+    private async setLocalStorageWithQuotaHandling(key: string, data: StorageData): Promise<void> {
         const dataString = JSON.stringify(data);
 
         // 1MB
@@ -83,19 +85,19 @@ class UniversalStorage {
         }
 
         try {
-            localStorage.setItem(key, dataString);
+            await asyncStorage.set(key, data);
         } catch (error) {
             if (error instanceof DOMException && error.name === 'QuotaExceededError') {
                 console.warn('localStorage quota exceeded, attempting aggressive cleanup');
                 this.aggressiveCleanup();
 
                 try {
-                    localStorage.setItem(key, dataString);
+                    await asyncStorage.set(key, data);
                 } catch (_retryError) {
                     console.warn('Failed to store data even after aggressive cleanup, trying minimal data');
                     const minimalData = { data: data.data, timestamp: data.timestamp, version: data.version };
                     try {
-                        localStorage.setItem(key, JSON.stringify(minimalData));
+                        await asyncStorage.set(key, minimalData);
                     } catch (_finalError) {
                         console.error('Complete localStorage failure, disabling caching for this session');
                     }
@@ -193,10 +195,6 @@ class UniversalStorage {
     }
 
     async set<T>(key: string, data: T, options: StorageOptions = {}): Promise<void> {
-        if (process.env.NODE_ENV === 'development') {
-            console.debug(`Skipping cache for ${key} in development mode`);
-            return;
-        }
 
         const storageData: StorageData = {
             data,
@@ -213,48 +211,45 @@ class UniversalStorage {
                 await window.electronAPI.storage.set(storageKey, storageData);
             } catch (err) {
                 console.debug('Electron storage not available, falling back to localStorage:', err);
-                this.setLocalStorageWithQuotaHandling(storageKey, storageData);
+                await this.setLocalStorageWithQuotaHandling(storageKey, storageData);
             }
         } else {
-            // Use localStorage
-            this.setLocalStorageWithQuotaHandling(storageKey, storageData);
+            // Use async localStorage
+            await this.setLocalStorageWithQuotaHandling(storageKey, storageData);
         }
     }
 
     async get<T>(key: string, options: StorageOptions = {}): Promise<T | null> {
         const storageKey = this.getStorageKey(key);
-        let rawData: string | null = null;
+        let storageData: StorageData | null = null;
 
         if (this.isElectron && this.useLocalData && window.electronAPI?.storage?.get) {
             try {
                 // Use Electron AppData storage
                 const electronData = await window.electronAPI.storage.get(storageKey);
-                rawData = electronData ? JSON.stringify(electronData) : null;
+                storageData = electronData as StorageData;
             } catch (err) {
                 console.debug('Electron storage not available, falling back to localStorage:', err);
-                rawData = localStorage.getItem(storageKey);
+                storageData = await asyncStorage.get<StorageData>(storageKey, options);
             }
         } else {
-            // Use localStorage
-            rawData = localStorage.getItem(storageKey);
+            // Use async localStorage
+            storageData = await asyncStorage.get<StorageData>(storageKey, options);
         }
 
-        if (!rawData) return null;
+        if (!storageData) return null;
 
         try {
-            const storageData: StorageData = JSON.parse(rawData);
-
             // Check TTL if provided
             if (options.ttl && Date.now() - storageData.timestamp > options.ttl) {
                 await this.remove(key);
                 return null;
             }
 
-            // Verify checksum if enabled
+            // Check checksum if enabled
             if (options.enableChecksum && storageData.checksum) {
                 const currentChecksum = this.generateChecksum(storageData.data);
                 if (currentChecksum !== storageData.checksum) {
-                    console.warn(`Checksum mismatch for key: ${key}`);
                     await this.remove(key);
                     return null;
                 }
@@ -262,7 +257,7 @@ class UniversalStorage {
 
             return storageData.data as T;
         } catch (error) {
-            console.error(`Failed to parse storage data for key: ${key}`, error);
+            console.error('Error parsing stored data:', error);
             await this.remove(key);
             return null;
         }
@@ -276,17 +271,17 @@ class UniversalStorage {
                 await window.electronAPI.storage.remove(storageKey);
             } catch (err) {
                 console.debug('Electron storage not available, falling back to localStorage:', err);
-                localStorage.removeItem(storageKey);
+                await asyncStorage.remove(storageKey);
             }
         } else {
-            localStorage.removeItem(storageKey);
+            await asyncStorage.remove(storageKey);
         }
     }
 
     async clear(prefix?: string): Promise<void> {
         if (this.isElectron && this.useLocalData && window.electronAPI?.storage?.clear) {
             try {
-                await window.electronAPI.storage.clear(prefix ? this.getStorageKey(prefix) : undefined);
+                await window.electronAPI.storage.clear(prefix);
             } catch (err) {
                 console.debug('Electron storage not available, falling back to localStorage:', err);
                 this.clearLocalStorage(prefix);
@@ -297,44 +292,38 @@ class UniversalStorage {
     }
 
     private clearLocalStorage(prefix?: string): void {
-        if (prefix) {
-            const fullPrefix = this.getStorageKey(prefix);
-            const keysToRemove: string[] = [];
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (key?.startsWith(fullPrefix)) {
-                    keysToRemove.push(key);
-                }
+        const keysToRemove: string[] = [];
+        const storagePrefix = prefix || (this.isElectron && this.useLocalData ? 'electron-local-' : 'web-');
+
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key?.startsWith(storagePrefix)) {
+                keysToRemove.push(key);
             }
-            keysToRemove.forEach(key => localStorage.removeItem(key));
-        } else {
-            localStorage.clear();
         }
+
+        keysToRemove.forEach(key => {
+            try {
+                localStorage.removeItem(key);
+            } catch (error) {
+                console.debug('Failed to remove storage item:', key, error);
+            }
+        });
     }
 
     async getTimestamp(key: string): Promise<number | null> {
         const storageKey = this.getStorageKey(key);
-        let rawData: string | null = null;
 
         if (this.isElectron && this.useLocalData && window.electronAPI?.storage?.get) {
             try {
-                const electronData = await window.electronAPI.storage.get(storageKey);
-                rawData = electronData ? JSON.stringify(electronData) : null;
+                const electronData = await window.electronAPI.storage.get(storageKey) as StorageData | null;
+                return electronData?.timestamp || null;
             } catch (err) {
                 console.debug('Electron storage not available, falling back to localStorage:', err);
-                rawData = localStorage.getItem(storageKey);
+                return await asyncStorage.getTimestamp(storageKey);
             }
         } else {
-            rawData = localStorage.getItem(storageKey);
-        }
-
-        if (!rawData) return null;
-
-        try {
-            const storageData: StorageData = JSON.parse(rawData);
-            return storageData.timestamp;
-        } catch {
-            return null;
+            return await asyncStorage.getTimestamp(storageKey);
         }
     }
 }

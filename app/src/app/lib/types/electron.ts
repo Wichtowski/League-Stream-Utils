@@ -70,11 +70,25 @@ export interface ElectronAPI {
     downloadAsset: (url: string, category: string, assetKey: string) => Promise<{ success: boolean; localPath?: string; error?: string }>;
     loadAssetManifest: () => Promise<{ success: boolean; data?: Record<string, CachedAsset>; error?: string }>;
     saveAssetManifest: (manifestData: Record<string, CachedAsset>) => Promise<{ success: boolean; error?: string }>;
+    loadCategoryManifest: (category: string) => Promise<{ success: boolean; data?: Record<string, CachedAsset>; error?: string }>;
+    saveCategoryManifest: (category: string, manifestData: Record<string, CachedAsset>) => Promise<{ success: boolean; error?: string }>;
     scanAndUpdateManifest: () => Promise<{ success: boolean; updatedCount?: number; error?: string }>;
     getFileSize: (filePath: string) => Promise<{ success: boolean; size?: number; error?: string }>;
     removeAsset: (filePath: string) => Promise<{ success: boolean; error?: string }>;
     clearAssetCache: () => Promise<{ success: boolean; error?: string }>;
     getAssetCacheStats: () => Promise<{ success: boolean; stats?: { totalSize: number; fileCount: number; formattedSize: string }; error?: string }>;
+    checkAssetIntegrity: () => Promise<{
+        success: boolean;
+        integrity?: {
+            isValid: boolean;
+            missingFiles: string[];
+            corruptedFiles: string[];
+            totalFiles: number;
+            validFiles: number;
+            message: string;
+        };
+        error?: string
+    }>;
 
     // LCU Data communication for overlay
     getLCUData: () => Promise<LCUData>;

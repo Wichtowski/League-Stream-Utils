@@ -16,6 +16,7 @@ import { PickbanProvider } from "./lib/contexts/PickbanContext";
 import { SettingsProvider } from "./lib/contexts/SettingsContext";
 import { MockDataProvider } from "./lib/contexts/MockDataContext";
 import { DownloadProvider } from "./lib/contexts/DownloadContext";
+import { HighPerformanceDownloadProvider } from "./lib/contexts/HighPerformanceDownloadContext";
 import { NavigationGuard } from "./lib/components/NavigationGuard";
 import { ContextWrapper } from "./lib/components/ContextErrorBoundary";
 import ChampionCacheInitializer from "./components/common/ChampionCacheInitializer";
@@ -61,6 +62,7 @@ export default function RootLayout({
             { name: "Tournaments", provider: TournamentsProvider },
             { name: "Pickban", provider: PickbanProvider },
             { name: "Download", provider: DownloadProvider },
+            { name: "HighPerformanceDownload", provider: HighPerformanceDownloadProvider },
             { name: "Navigation", provider: NavigationProvider },
             { name: "Modal", provider: ModalProvider }
           ]}

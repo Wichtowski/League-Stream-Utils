@@ -3,6 +3,9 @@ const { contextBridge, ipcRenderer } = require('electron');
 // Expose protected methods that allow the renderer process to use
 // the ipcRenderer without exposing the entire object
 contextBridge.exposeInMainWorld('electronAPI', {
+    // Electron environment check
+    isElectron: true,
+
     // Tournament management
     saveTournamentFile: (tournamentData) => ipcRenderer.invoke('save-tournament-file', tournamentData),
 
@@ -27,13 +30,17 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
     // Asset caching system
     downloadAsset: (url, category, assetKey) => ipcRenderer.invoke('download-asset', url, category, assetKey),
+    downloadAssetsParallel: (downloadTasks) => ipcRenderer.invoke('download-assets-parallel', downloadTasks),
     loadAssetManifest: () => ipcRenderer.invoke('load-asset-manifest'),
     saveAssetManifest: (manifestData) => ipcRenderer.invoke('save-asset-manifest', manifestData),
+    loadCategoryManifest: (category) => ipcRenderer.invoke('load-category-manifest', category),
+    saveCategoryManifest: (category, manifestData) => ipcRenderer.invoke('save-category-manifest', category, manifestData),
     scanAndUpdateManifest: () => ipcRenderer.invoke('scan-and-update-manifest'),
     getFileSize: (filePath) => ipcRenderer.invoke('get-file-size', filePath),
     removeAsset: (filePath) => ipcRenderer.invoke('remove-asset', filePath),
     clearAssetCache: () => ipcRenderer.invoke('clear-asset-cache'),
     getAssetCacheStats: () => ipcRenderer.invoke('get-asset-cache-stats'),
+    checkAssetIntegrity: () => ipcRenderer.invoke('check-asset-integrity'),
 
     // LCU Data communication for overlay
     getLCUData: () => ipcRenderer.invoke('get-lcu-data'),

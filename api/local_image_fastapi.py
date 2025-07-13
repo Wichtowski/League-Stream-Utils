@@ -41,7 +41,7 @@ def get_asset_cache_base() -> str:
     if asset_cache_path:
         return asset_cache_path
     appdata = os.environ.get("APPDATA") or str(Path.home() / "AppData" / "Roaming")
-    return str(Path(appdata) / "League Stream Utils" / "asset-cache")
+    return str(Path(appdata) / "League Stream Utils" / "assets")
 
 ASSET_CACHE_BASE = get_asset_cache_base()
 

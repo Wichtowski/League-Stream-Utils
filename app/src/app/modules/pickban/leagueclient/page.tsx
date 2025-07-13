@@ -84,7 +84,7 @@ export default function LeagueClientPickBanPage() {
       if (userDataPathCache) {
         const base = userDataPathCache.replace(/\\/g, '/');
         const rel = champion.image.replace(/\\/g, '/');
-        return `file://${base}/asset-cache/${rel}`;
+        return `file://${base}/assets/${rel}`;
       }
       return champion.image;
     }
@@ -96,7 +96,7 @@ export default function LeagueClientPickBanPage() {
       if (userDataPathCache) {
         const base = userDataPathCache.replace(/\\/g, '/');
         const rel = `cache/game/${version}/champion/${key}/square.png`;
-        return `file://${base}/asset-cache/${rel}`;
+        return `file://${base}/assets/${rel}`;
       }
       return `cache/game/${ddragonMatch[1]}/champion/${ddragonMatch[2]}/loading.png`;
     }

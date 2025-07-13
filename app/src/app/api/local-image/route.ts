@@ -31,7 +31,7 @@ const getAssetCacheBase = (): string => {
 
     // Auto-detect from %appdata% (Windows) or equivalent
     const appDataPath = process.env.APPDATA || join(homedir(), 'AppData', 'Roaming');
-    const assetCachePath = join(appDataPath, 'League Stream Utils', 'asset-cache');
+    const assetCachePath = join(appDataPath, 'League Stream Utils', 'assets');
 
     return assetCachePath;
 };

@@ -113,7 +113,7 @@ class ChampionCacheService extends BaseCacheService<Champion> {
         const champion = championData.data[championKey];
 
         // Create champion directory structure using the correct path format
-        const championDir = `game/${version}/champion/${championKey}`;
+        const championDir = `game/${version}/champions/${championKey}`;
 
         // Download champion images
         const images = await this.downloadChampionImages(championKey, version, championDir);
@@ -175,42 +175,26 @@ class ChampionCacheService extends BaseCacheService<Champion> {
         const downloadPromises = Object.entries(imageUrls).map(async ([key, url]) => {
             // Use standardized filenames instead of champion-specific names
             let fileName: string;
-            let displayName: string;
             if (key === 'square') {
                 fileName = 'square.png';
-                displayName = 'Square Icon';
             } else if (key === 'splash') {
                 fileName = 'splash.jpg';
-                displayName = 'Splash Art';
             } else if (key === 'splashCentered') {
                 fileName = 'splashCentered.jpg';
-                displayName = 'Centered Splash';
             } else if (key === 'loading') {
                 fileName = 'loading.jpg';
-                displayName = 'Loading Screen';
             } else {
                 fileName = url.split('/').pop()!;
-                displayName = fileName;
             }
 
             // Use the correct directory structure for asset keys
             const assetKey = `${championDir}/${fileName}`;
 
-            // Report progress for this specific image
-            this.updateProgress({
-                current: 0,
-                total: 0,
-                itemName: championKey,
-                stage: 'champion-images',
-                assetType: 'champion-images',
-                currentAsset: `${championKey} ${displayName}`
-            });
-
             try {
                 if (typeof window !== 'undefined' && window.electronAPI) {
                     // Check if file already exists by checking the actual file path
                     const userDataPath = await window.electronAPI.getUserDataPath();
-                    const fullPath = path.join(userDataPath, 'asset-cache', assetKey);
+                    const fullPath = path.join(userDataPath, 'assets', assetKey);
                     const result = await window.electronAPI.checkFileExists(fullPath);
 
                     if (result.success && result.exists === true) {
@@ -281,20 +265,10 @@ class ChampionCacheService extends BaseCacheService<Champion> {
             const baseAssetKey = `${championDir}/abilities/${baseFileName}`;
 
             downloadPromises.push((async () => {
-                // Report progress for this specific ability
-                this.updateProgress({
-                    current: 0,
-                    total: 0,
-                    itemName: champion.id,
-                    stage: 'ability-images',
-                    assetType: 'ability-images',
-                    currentAsset: `${champion.id} ${abilityKey} ability`
-                });
-
                 if (typeof window !== 'undefined' && window.electronAPI) {
                     // Check if file already exists by checking the actual file path
                     const userDataPath = await window.electronAPI.getUserDataPath();
-                    const fullPath = path.join(userDataPath, 'asset-cache', baseAssetKey);
+                    const fullPath = path.join(userDataPath, 'assets', baseAssetKey);
                     const result = await window.electronAPI.checkFileExists(fullPath);
 
                     if (result.success && result.exists === true) {
@@ -336,7 +310,7 @@ class ChampionCacheService extends BaseCacheService<Champion> {
                     if (typeof window !== 'undefined' && window.electronAPI) {
                         // Check if file already exists by checking the actual file path
                         const userDataPath = await window.electronAPI.getUserDataPath();
-                        const fullPath = path.join(userDataPath, 'asset-cache', recastAssetKey);
+                        const fullPath = path.join(userDataPath, 'assets', recastAssetKey);
                         const result = await window.electronAPI.checkFileExists(fullPath);
 
                         if (result.success && result.exists === true) {
@@ -381,20 +355,10 @@ class ChampionCacheService extends BaseCacheService<Champion> {
         const passiveAssetKey = `${championDir}/abilities/${passiveFileName}`;
 
         downloadPromises.push((async () => {
-            // Report progress for passive ability
-            this.updateProgress({
-                current: 0,
-                total: 0,
-                itemName: champion.id,
-                stage: 'ability-images',
-                assetType: 'ability-images',
-                currentAsset: `${champion.id} Passive ability`
-            });
-
             if (typeof window !== 'undefined' && window.electronAPI) {
                 // Check if file already exists by checking the actual file path
                 const userDataPath = await window.electronAPI.getUserDataPath();
-                const fullPath = path.join(userDataPath, 'asset-cache', passiveAssetKey);
+                const fullPath = path.join(userDataPath, 'assets', passiveAssetKey);
                 const result = await window.electronAPI.checkFileExists(fullPath);
 
                 if (result.success && result.exists === true) {
@@ -627,18 +591,25 @@ class ChampionCacheService extends BaseCacheService<Champion> {
             const allChampionKeys = Object.keys(data.data);
             const totalExpected = allChampionKeys.length;
 
-            const missingChampions: string[] = [];
+            // Check category progress, but migrate existing files if manifest is empty
+            const categoryProgress = await this.getCategoryProgress('champions');
+            let completedChampions = categoryProgress.completedItems;
 
-            for (const championKey of allChampionKeys) {
-                const squareImagePath = `cache/game/${version}/champion/${championKey}/square.png`;
-                const fileExists = await this.checkFileExists(squareImagePath);
-
-                if (!fileExists) {
-                    missingChampions.push(championKey);
+            // If no champions in manifest but files exist, migrate them
+            if (completedChampions.length === 0) {
+                console.log('No champions found in category manifest, checking for existing files...');
+                const existingChampions = await this.migrateExistingChampions(allChampionKeys, version);
+                if (existingChampions.length > 0) {
+                    console.log(`Migrated ${existingChampions.length} existing champions to category manifest`);
+                    completedChampions = existingChampions;
                 }
             }
 
-            console.log(`Found ${allChampionKeys.length - missingChampions.length} cached champions out of ${allChampionKeys.length} total`);
+            const missingChampions = allChampionKeys.filter(key =>
+                !completedChampions.includes(key)
+            );
+
+            console.log(`Found ${completedChampions.length} cached champions out of ${allChampionKeys.length} total`);
 
             return {
                 isComplete: missingChampions.length === 0,
@@ -656,7 +627,85 @@ class ChampionCacheService extends BaseCacheService<Champion> {
         }
     }
 
+    // Migration function to scan existing champion files and add them to category manifest
+    private async migrateExistingChampions(allChampionKeys: string[], version: string): Promise<string[]> {
+        const existingChampions: string[] = [];
 
+        try {
+            console.log(`Migrating existing champions for version ${version}...`);
+
+            // First, check if champions exist in the current version directory
+            for (const championKey of allChampionKeys) {
+                const squareImagePath = `cache/game/${version}/champions/${championKey}/square.png`;
+                const fileExists = await this.checkFileExists(squareImagePath);
+
+                if (fileExists) {
+                    existingChampions.push(championKey);
+                }
+            }
+
+            // If we found champions in the current version, we're done
+            if (existingChampions.length > 0) {
+                console.log(`Found ${existingChampions.length} champions in current version ${version}`);
+            } else {
+                // If no champions found in current version, check previous versions
+                console.log(`No champions found in version ${version}, checking previous versions...`);
+
+                // Get list of previous versions (hardcoded common versions for now)
+                const versionsToCheck = [
+                    '15.12.1', '15.11.1', '15.10.1', '15.9.1', '15.8.1',
+                    '15.7.1', '15.6.1', '15.5.1', '15.4.1', '15.3.1',
+                    '14.24.1', '14.23.1', '14.22.1', '14.21.1', '14.20.1'
+                ];
+
+                for (const checkVersion of versionsToCheck) {
+                    if (checkVersion === version) continue; // Skip current version, already checked
+
+                    let foundInThisVersion = 0;
+                    for (const championKey of allChampionKeys) {
+                        const squareImagePath = `cache/game/${checkVersion}/champions/${championKey}/square.png`;
+                        const fileExists = await this.checkFileExists(squareImagePath);
+
+                        if (fileExists && !existingChampions.includes(championKey)) {
+                            existingChampions.push(championKey);
+                            foundInThisVersion++;
+                        }
+                    }
+
+                    if (foundInThisVersion > 0) {
+                        console.log(`Found ${foundInThisVersion} champions in version ${checkVersion}`);
+
+                        // If we found a significant number of champions in this version, 
+                        // it's likely the main version the user has
+                        if (foundInThisVersion > 50) {
+                            console.log(`Version ${checkVersion} appears to be the main version with ${foundInThisVersion} champions`);
+                            break; // Stop checking further versions
+                        }
+                    }
+                }
+            }
+
+            // If we found existing champions, update the category manifest
+            if (existingChampions.length > 0) {
+                await this.updateCategoryProgress(
+                    'champions',
+                    version,
+                    existingChampions[existingChampions.length - 1], // Last champion as "last downloaded"
+                    allChampionKeys.length,
+                    existingChampions.length,
+                    existingChampions
+                );
+                console.log(`Successfully migrated ${existingChampions.length} existing champions to category manifest`);
+            } else {
+                console.log('No existing champions found in any version directory');
+            }
+
+            return existingChampions;
+        } catch (error) {
+            console.error('Error during champion migration:', error);
+            return [];
+        }
+    }
 
     async downloadAllChampionsOnStartup(): Promise<{ success: boolean; totalChampions: number; errors: string[] }> {
         await this.initialize();
@@ -671,46 +720,74 @@ class ChampionCacheService extends BaseCacheService<Champion> {
 
             console.log(`Starting automatic champion download for version ${version}...`);
 
-            // Check which champions are missing instead of downloading all
+            // Check which champions are missing using category progress
             const cacheCheck = await this.checkCacheCompleteness();
             const championKeys = cacheCheck.missingChampions;
             const totalChampions = championKeys.length;
+            const totalExpected = cacheCheck.totalExpected;
             const errors: string[] = [];
+
+            // Load existing progress from category manifest
+            const categoryProgress = await this.getCategoryProgress('champions');
+            const completedChampions = categoryProgress.completedItems;
 
             if (totalChampions === 0) {
                 console.log('All champions are already cached!');
-                return { success: true, totalChampions: 0, errors: [] };
+
+                // Report completion with the total expected count
+                this.updateProgress({
+                    current: totalExpected,
+                    total: totalExpected,
+                    itemName: '',
+                    stage: 'complete',
+                    assetType: 'champion',
+                    currentAsset: 'Champions downloaded successfully'
+                });
+
+                return { success: true, totalChampions: totalExpected, errors: [] };
             }
 
             console.log(`Found ${totalChampions} missing champions to download`);
 
             // Download champions one by one for better progress tracking
             let downloadedCount = 0;
+            const startingCount = completedChampions.length;
 
             for (const championKey of championKeys) {
                 try {
-                    // Update progress for current champion
+                    // Update progress for current champion - unified stage
                     this.updateProgress({
-                        current: downloadedCount,
-                        total: totalChampions,
+                        current: downloadedCount + startingCount,
+                        total: totalExpected,
                         itemName: championKey,
-                        stage: 'champion-data',
-                        assetType: 'champion-data',
-                        currentAsset: `${championKey} champion data`
+                        stage: 'champion',
+                        assetType: 'champion',
+                        currentAsset: `${championKey}`
                     });
 
                     await this.downloadChampionData(championKey, version);
                     downloadedCount++;
 
-                    console.log(`Downloaded ${championKey} (${downloadedCount}/${totalChampions})`);
+                    // Add to completed items
+                    completedChampions.push(championKey);
+
+                    // Update category progress manifest
+                    await this.updateCategoryProgress(
+                        'champions',
+                        version,
+                        championKey,
+                        totalExpected,
+                        startingCount + downloadedCount,
+                        completedChampions
+                    );
 
                     // Update progress after successful download
                     this.updateProgress({
-                        current: downloadedCount,
-                        total: totalChampions,
+                        current: downloadedCount + startingCount,
+                        total: totalExpected,
                         itemName: championKey,
-                        stage: 'champion-data',
-                        assetType: 'champion-data',
+                        stage: 'champion',
+                        assetType: 'champion',
                         currentAsset: `${championKey} complete`
                     });
 
@@ -720,13 +797,12 @@ class ChampionCacheService extends BaseCacheService<Champion> {
                     errors.push(errorMsg);
 
                     // Still update progress even if download failed
-                    downloadedCount++;
                     this.updateProgress({
-                        current: downloadedCount,
-                        total: totalChampions,
+                        current: downloadedCount + startingCount,
+                        total: totalExpected,
                         itemName: championKey,
-                        stage: 'champion-data',
-                        assetType: 'champion-data',
+                        stage: 'champion',
+                        assetType: 'champion',
                         currentAsset: `${championKey} failed`
                     });
                 }
@@ -737,11 +813,11 @@ class ChampionCacheService extends BaseCacheService<Champion> {
 
             // Final progress update
             this.updateProgress({
-                current: totalChampions,
-                total: totalChampions,
+                current: totalExpected,
+                total: totalExpected,
                 itemName: '',
                 stage: 'complete',
-                assetType: 'champion-data',
+                assetType: 'champion',
                 currentAsset: 'All champions downloaded'
             });
 

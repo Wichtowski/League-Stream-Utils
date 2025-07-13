@@ -139,7 +139,7 @@ export function CamerasProvider({ children }: { children: ReactNode }) {
     } finally {
       if (showLoading) setLoading(false);
     }
-  }, [isLocalDataMode, user, authenticatedFetch, processPlayers]);
+  }, [isLocalDataMode, user, teams, setTeams, authenticatedFetch, processPlayers]);
 
   const loadCachedData = useCallback(async (): Promise<void> => {
     if (!user) {

@@ -1,4 +1,5 @@
 import { AlertModal } from './AlertModal';
+import { AssetDownloadProgress } from './AssetDownloadProgress';
 import { Button } from './Button';
 import { ConfirmModal } from './ConfirmModal';
 import { CopyButton } from './CopyButton';
@@ -10,6 +11,7 @@ import { LoadingSpinner, InlineSpinner, PageLoader, OverlayLoader } from './Load
 
 export {
     AlertModal,
+    AssetDownloadProgress,
     Button,
     ConfirmModal,
     CopyButton,
@@ -20,5 +22,5 @@ export {
     PageLoader,
     OverlayLoader,
     Modal,
-    Pagination
+    Pagination,
 };

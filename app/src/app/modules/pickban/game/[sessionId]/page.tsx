@@ -123,7 +123,7 @@ export default function GamePage({ params }: { params: Promise<{ sessionId: stri
         setWs(null);
       }
     };
-  }, [resolvedParams.sessionId, teamSide, connectWebSocket]);
+  }, [resolvedParams.sessionId, teamSide, connectWebSocket, ws]);
   
   const handleChampionAction = (championId: number, action: 'pick' | 'ban') => {
     if (!ws || !gameState || !teamSide) return;

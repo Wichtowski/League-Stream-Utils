@@ -13,7 +13,7 @@ const resolveCachedPath = (relativePath: string): string => {
         if (userDataPathCache) {
             const base = userDataPathCache.replace(/\\/g, '/');
             const rel = relativePath.replace(/\\/g, '/');
-            return `file://${base}/asset-cache/${rel}`;
+            return `file://${base}/assets/${rel}`;
         }
     }
     // Fallback for browser: use API route
@@ -34,7 +34,7 @@ export const getChampionLoadingImage = (championId: number): string | null => {
     const ddragonMatch = champ.image.match(/\/cdn\/([^/]+)\/img\/champion\/([^.]+)\.png$/);
     if (ddragonMatch) {
         const [, version, key] = ddragonMatch;
-        const rel = `cache/game/${version}/champion/${key}/loading.jpg`;
+        const rel = `cache/game/${version}/champions/${key}/loading.jpg`;
         return resolveCachedPath(rel);
     }
 
@@ -59,7 +59,7 @@ export const getChampionSquareImage = (championId: number): string | null => {
     const ddragonMatch = champ.image.match(/\/cdn\/([^/]+)\/img\/champion\/([^.]+)\.png$/);
     if (ddragonMatch) {
         const [, version, key] = ddragonMatch;
-        const rel = `cache/game/${version}/champion/${key}/square.png`;
+        const rel = `cache/game/${version}/champions/${key}/square.png`;
         return resolveCachedPath(rel);
     }
 
@@ -84,7 +84,7 @@ export const getChampionCenteredSplashImage = (championId: number): string | nul
     const ddragonMatch = champ.image.match(/\/cdn\/([^/]+)\/img\/champion\/([^.]+)\.png$/);
     if (ddragonMatch) {
         const [, version, key] = ddragonMatch;
-        const rel = `cache/game/${version}/champion/${key}/splashCentered.jpg`;
+        const rel = `cache/game/${version}/champions/${key}/splashCentered.jpg`;
         return resolveCachedPath(rel);
     }
 
