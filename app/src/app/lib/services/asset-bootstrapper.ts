@@ -74,6 +74,18 @@ export const downloadAllAssets = async (
         const tracker = categoryTrackers.get('item')!;
 
         itemCacheService.onProgress((p) => {
+            console.log('Item progress callback called:', p); // Debug log
+            tracker.current = p.current;
+            tracker.total = p.total;
+            tracker.stage = p.stage;
+            tracker.currentAsset = p.currentAsset || p.itemName || 'item';
+
+            onProgress?.({ ...p, category: 'item' });
+            updateOverallProgress();
+        });
+
+        // Wire up itemsBlueprintDownloader progress to UI as well
+        itemsBlueprintDownloader.onProgress((p) => {
             tracker.current = p.current;
             tracker.total = p.total;
             tracker.stage = p.stage;

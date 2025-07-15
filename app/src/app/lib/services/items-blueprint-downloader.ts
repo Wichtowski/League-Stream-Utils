@@ -1,6 +1,7 @@
 import { BaseBlueprintDownloader, BlueprintDownloaderConfig } from './base-blueprint-downloader';
 import { DDRAGON_CDN } from '../constants';
 import { CachedAsset } from '../types/electron';
+import { DownloadProgress } from './base-cache';
 
 interface DataDragonItem {
     name: string;
@@ -55,6 +56,27 @@ export class ItemsBlueprintDownloader extends BaseBlueprintDownloader<DataDragon
         basePath: 'cache/game'
     };
 
+    protected progressCallback: ((progress: DownloadProgress) => void) | null = null;
+
+    public onProgress(callback: (progress: DownloadProgress) => void): void {
+        this.progressCallback = callback;
+    }
+
+    protected updateProgress(progress: Partial<DownloadProgress>): void {
+        if (this.progressCallback) {
+            const currentProgress: DownloadProgress = {
+                current: progress.current ?? 0,
+                total: progress.total ?? 0,
+                itemName: progress.itemName ?? '',
+                stage: progress.stage ?? 'initializing',
+                percentage: progress.total && progress.total > 0 ? Math.round((progress.current ?? 0) / progress.total * 100) : 0,
+                assetType: progress.assetType,
+                currentAsset: progress.currentAsset
+            };
+            this.progressCallback(currentProgress);
+        }
+    }
+
     private async checkItemExists(iconKey: string): Promise<boolean> {
         // Use direct file existence check for reliability
         try {
@@ -67,12 +89,10 @@ export class ItemsBlueprintDownloader extends BaseBlueprintDownloader<DataDragon
     }
 
     async downloadBlueprint(version: string): Promise<void> {
-        console.log('ItemsBlueprintDownloader.downloadBlueprint called with version:', version);
-        this.version = version; // Store version for later use
+        this.version = version;
         await this.initialize();
 
         try {
-            // Update progress - fetching data
             this.updateProgress({
                 current: 0,
                 total: 1,
@@ -83,9 +103,7 @@ export class ItemsBlueprintDownloader extends BaseBlueprintDownloader<DataDragon
             });
 
             const fullEndpoint = `${DDRAGON_CDN}/${version}/data/en_US/${this.config.endpoint}`;
-            console.log('Fetching items data from:', fullEndpoint);
 
-            // Download data from DataDragon
             const response = await fetch(fullEndpoint);
             if (!response.ok) {
                 throw new Error(`Failed to fetch items blueprint: ${response.status}`);
@@ -93,27 +111,19 @@ export class ItemsBlueprintDownloader extends BaseBlueprintDownloader<DataDragon
 
             const data: DataDragonItemResponse = await response.json();
             const totalItems = Object.keys(data.data).length;
-            console.log('Items data fetched successfully, got', totalItems, 'items');
 
-            // Check category progress instead of individual file checks
             const categoryProgress = await this.getCategoryProgress('items');
             let completedItems = categoryProgress.completedItems;
 
-            // If no items in manifest but files might exist, migrate them
             if (completedItems.length === 0) {
-                console.log('No items found in category manifest, checking for existing files...');
                 const existingItems = await this.migrateExistingItems(data, version);
                 if (existingItems.length > 0) {
-                    console.log(`Migrated ${existingItems.length} existing items to category manifest`);
                     completedItems = existingItems;
                 }
             }
 
             const alreadyDownloaded = completedItems.length;
 
-            console.log(`Found ${alreadyDownloaded} items already downloaded out of ${totalItems} total`);
-
-            // Update progress - downloading icons with correct totals
             this.updateProgress({
                 current: alreadyDownloaded,
                 total: totalItems,
@@ -123,19 +133,15 @@ export class ItemsBlueprintDownloader extends BaseBlueprintDownloader<DataDragon
                 assetType: 'item-images'
             });
 
-            // Download item icons
             const downloadedCount = await this.downloadItemIcons(data, version, completedItems);
 
-            // Create the blueprint directory structure
             const basePath = this.config.basePath || 'game';
             const blueprintDir = `${basePath}/${version}`;
             const blueprintPath = `${blueprintDir}/${this.config.blueprintFileName}`;
 
-            // Save the blueprint using asset manifest system
             const dataContent = JSON.stringify(data, null, 2);
             const dataBuffer = Buffer.from(dataContent, 'utf8');
 
-            // Create manifest entry for the downloaded items
             const manifestData: Record<string, CachedAsset> = {
                 [blueprintPath]: {
                     path: dataContent,
@@ -146,7 +152,6 @@ export class ItemsBlueprintDownloader extends BaseBlueprintDownloader<DataDragon
                 }
             };
 
-            // Add all downloaded items to the manifest
             for (const [itemKey, item] of Object.entries(data.data)) {
                 if (item.image && item.image.full) {
                     const iconKey = `game/${version}/items/${itemKey}/${item.image.full}`;
@@ -155,7 +160,7 @@ export class ItemsBlueprintDownloader extends BaseBlueprintDownloader<DataDragon
                     manifestData[iconKey] = {
                         path: iconKey,
                         url: iconUrl,
-                        size: 0, // Size will be determined by electron
+                        size: 0,
                         timestamp: Date.now(),
                         checksum: iconKey
                     };
@@ -164,21 +169,17 @@ export class ItemsBlueprintDownloader extends BaseBlueprintDownloader<DataDragon
 
             await this.saveAssetManifest(manifestData);
 
-            // Update progress - complete with actual count
             this.updateProgress({
                 current: downloadedCount,
                 total: totalItems,
                 itemName: 'items',
                 stage: 'complete',
                 currentAsset: 'Items downloaded successfully',
-                assetType: 'item-data'
+                assetType: 'item-images'
             });
 
-            console.log(`${this.config.assetType} blueprint saved to ${blueprintPath}`);
         } catch (error) {
             console.error(`Error downloading ${this.config.assetType} blueprint:`, error);
-
-            // Update progress - error
             this.updateProgress({
                 current: 0,
                 total: 1,
@@ -201,11 +202,8 @@ export class ItemsBlueprintDownloader extends BaseBlueprintDownloader<DataDragon
         const items = Object.entries(data.data);
         const totalItems = items.length;
 
-        // Check which items need to be downloaded based on category progress
         const itemsToDownload: Array<{ itemKey: string; item: DataDragonItem }> = [];
         const alreadyDownloaded = completedItems.length;
-
-        console.log(`Checking ${totalItems} items for existing downloads...`);
 
         for (const [itemKey, item] of items) {
             if (item.image && item.image.full) {
@@ -215,9 +213,6 @@ export class ItemsBlueprintDownloader extends BaseBlueprintDownloader<DataDragon
             }
         }
 
-        console.log(`Found ${alreadyDownloaded} items already downloaded, ${itemsToDownload.length} items to download`);
-
-        // Update progress to show correct totals
         this.updateProgress({
             current: alreadyDownloaded,
             total: totalItems,
@@ -227,23 +222,18 @@ export class ItemsBlueprintDownloader extends BaseBlueprintDownloader<DataDragon
             assetType: 'item-images'
         });
 
-        // If all items are already downloaded, skip the download process
         if (itemsToDownload.length === 0) {
-            console.log('All item icons already downloaded');
             return totalItems;
         }
 
-        console.log(`Downloading ${itemsToDownload.length} new item icons...`);
         let downloadedCount = alreadyDownloaded;
         const currentCompletedItems = [...completedItems];
 
         for (const { itemKey, item } of itemsToDownload) {
             try {
-                // Create the item icon URL
                 const iconUrl = `${DDRAGON_CDN}/${version}/img/item/${item.image.full}`;
                 const iconKey = `${itemDir}/${itemKey}/${item.image.full}`;
 
-                // Update progress for current item
                 this.updateProgress({
                     current: downloadedCount,
                     total: totalItems,
@@ -257,7 +247,6 @@ export class ItemsBlueprintDownloader extends BaseBlueprintDownloader<DataDragon
                 downloadedCount++;
                 currentCompletedItems.push(itemKey);
 
-                // Update category progress
                 await this.updateCategoryProgress(
                     'items',
                     version,
@@ -267,7 +256,6 @@ export class ItemsBlueprintDownloader extends BaseBlueprintDownloader<DataDragon
                     currentCompletedItems
                 );
 
-                // Update progress after successful download
                 this.updateProgress({
                     current: downloadedCount,
                     total: totalItems,
@@ -276,17 +264,10 @@ export class ItemsBlueprintDownloader extends BaseBlueprintDownloader<DataDragon
                     currentAsset: `Downloaded ${item.name}`,
                     assetType: 'item-images'
                 });
-
-                if ((downloadedCount - alreadyDownloaded) % 10 === 0) {
-                    console.log(`Downloaded ${downloadedCount - alreadyDownloaded}/${itemsToDownload.length} new item icons... (${downloadedCount}/${totalItems} total)`);
-                }
-            } catch (error) {
-                console.error(`Failed to download item icon for ${item.name}:`, error);
-
-                // Update progress even on error to show which item failed
+            } catch (_error) {
                 this.updateProgress({
                     current: downloadedCount,
-                    total: totalItems,
+                    total: itemsToDownload.length,
                     itemName: 'items',
                     stage: 'downloading',
                     currentAsset: `Failed to download ${item.name}`,
@@ -295,7 +276,6 @@ export class ItemsBlueprintDownloader extends BaseBlueprintDownloader<DataDragon
             }
         }
 
-        console.log(`Successfully downloaded ${downloadedCount - alreadyDownloaded} new item icons (${downloadedCount}/${totalItems} total)`);
         return downloadedCount;
     }
 

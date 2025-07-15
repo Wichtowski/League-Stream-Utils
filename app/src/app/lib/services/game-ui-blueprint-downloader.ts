@@ -118,14 +118,11 @@ class GameUIBlueprintDownloader extends BaseCacheService {
 
             // Calculate total count
             const totalCount = Object.values(assetCategories).reduce((sum, files) => sum + files.length, 0);
-            console.log(`Found ${totalCount} game UI assets in ${Object.keys(assetCategories).length} categories`);
 
             // Check category progress to see what's already been processed
             const categoryProgress = await this.getCategoryProgress('game-ui');
             const completedAssets = categoryProgress.completedItems;
             const alreadyProcessed = completedAssets.length;
-
-            console.log(`Found ${alreadyProcessed} game UI assets already processed out of ${totalCount} total`);
 
             this.updateGameUIProgress({
                 stage: 'downloading',
@@ -142,12 +139,11 @@ class GameUIBlueprintDownloader extends BaseCacheService {
                 this.updateGameUIProgress({
                     current: processedCount,
                     total: totalCount,
-                    currentAsset: `${category} category`,
+                    currentAsset: `Downloading ${category}`,
                     message: `Processing ${category} assets...`
                 });
 
                 try {
-                    console.log(`Processing category: ${category}`);
                     const categoryResult = await this.processCategory(category, files, completedAssets);
 
                     // Update completed assets list
@@ -170,8 +166,6 @@ class GameUIBlueprintDownloader extends BaseCacheService {
                     }
 
                     totalSize += categoryResult.totalSize;
-
-                    console.log(`Processed ${categoryResult.processedCount} assets from ${category} category`);
 
                     // Add any errors from category processing
                     errors.push(...categoryResult.errors);
@@ -230,8 +224,6 @@ class GameUIBlueprintDownloader extends BaseCacheService {
         let totalSize = 0;
 
         try {
-            console.log(`Processing category: ${category}`);
-
             // Process each file in the category
             for (let i = 0; i < files.length; i++) {
                 const filename = files[i];

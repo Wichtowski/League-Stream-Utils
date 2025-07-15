@@ -760,7 +760,7 @@ class ChampionCacheService extends BaseCacheService<Champion> {
                         current: downloadedCount + startingCount,
                         total: totalExpected,
                         itemName: championKey,
-                        stage: 'champion',
+                        stage: 'downloading',
                         assetType: 'champion',
                         currentAsset: `${championKey}`
                     });
@@ -786,7 +786,7 @@ class ChampionCacheService extends BaseCacheService<Champion> {
                         current: downloadedCount + startingCount,
                         total: totalExpected,
                         itemName: championKey,
-                        stage: 'champion',
+                        stage: 'downloading',
                         assetType: 'champion',
                         currentAsset: `${championKey} complete`
                     });
@@ -801,7 +801,7 @@ class ChampionCacheService extends BaseCacheService<Champion> {
                         current: downloadedCount + startingCount,
                         total: totalExpected,
                         itemName: championKey,
-                        stage: 'champion',
+                        stage: 'downloading',
                         assetType: 'champion',
                         currentAsset: `${championKey} failed`
                     });
@@ -820,8 +820,6 @@ class ChampionCacheService extends BaseCacheService<Champion> {
                 assetType: 'champion',
                 currentAsset: 'All champions downloaded'
             });
-
-            console.log(`Champion download completed. ${downloadedCount}/${totalChampions} champions downloaded successfully.`);
 
             return {
                 success: downloadedCount > 0,

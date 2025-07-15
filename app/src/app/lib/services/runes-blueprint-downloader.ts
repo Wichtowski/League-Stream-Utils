@@ -26,7 +26,6 @@ export class RunesBlueprintDownloader extends BaseBlueprintDownloader<CommunityD
     };
 
     async downloadBlueprint(version: string): Promise<void> {
-        console.log('RunesBlueprintDownloader.downloadBlueprint called with version:', version);
         await this.initialize();
 
         try {
@@ -136,6 +135,41 @@ export class RunesBlueprintDownloader extends BaseBlueprintDownloader<CommunityD
         }
     }
 
+    private async migrateExistingRunes(validRunes: CommunityDragonRune[], version: string): Promise<string[]> {
+        const existingRunes: string[] = [];
+        try {
+            for (const rune of validRunes) {
+                // Build the expected icon path for this rune
+                let style = rune.key;
+                const iconPath = rune.iconPath.replace('/lol-game-data/assets/v1/perk-images/', '');
+                if (!style) {
+                    const pathParts = iconPath.split('/');
+                    style = pathParts.length > 0 ? pathParts[0] : 'Unknown';
+                }
+                const iconFileName = iconPath.split('/').pop() || `${rune.name}.png`;
+                const iconKey = `game/${version}/runes/${style}/${iconFileName}`;
+                const fileExists = await this.checkFileExists(iconKey);
+                if (fileExists) {
+                    existingRunes.push(rune.id.toString());
+                }
+            }
+            if (existingRunes.length > 0) {
+                await this.updateCategoryProgress(
+                    'runes',
+                    version,
+                    existingRunes[existingRunes.length - 1],
+                    validRunes.length,
+                    existingRunes.length,
+                    existingRunes
+                );
+            }
+            return existingRunes;
+        } catch (error) {
+            console.error('Error during runes migration:', error);
+            return [];
+        }
+    }
+
     private async downloadRuneIcons(validRunes: CommunityDragonRune[], version: string, completedRunes: string[]): Promise<number> {
         if (typeof window === 'undefined' || !window.electronAPI) {
             throw new Error('Electron API not available');
@@ -238,7 +272,6 @@ export class RunesBlueprintDownloader extends BaseBlueprintDownloader<CommunityD
             }
         }
 
-        console.log(`Successfully downloaded ${downloadedCount - alreadyDownloaded} new rune icons (${downloadedCount}/${totalRunes} total)`);
         return downloadedCount;
     }
 

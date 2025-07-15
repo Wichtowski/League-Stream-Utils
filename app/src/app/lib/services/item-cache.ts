@@ -288,6 +288,14 @@ class ItemCacheService extends BaseCacheService<ItemCacheData> {
 
     async downloadAllItemsOnStartup(): Promise<void> {
         try {
+            // Emit 'checking' stage at the start
+            this.updateProgress({
+                current: 0,
+                total: 0,
+                stage: 'checking',
+                itemName: 'Checking items...'
+            });
+
             // Get the current version
             const version = await this.getLatestVersion();
 
@@ -308,6 +316,15 @@ class ItemCacheService extends BaseCacheService<ItemCacheData> {
 
             console.log(`Found ${downloadedCount} items already downloaded out of ${totalItems} total`);
 
+            // Emit 'downloading' stage even if nothing to download
+            this.updateProgress({
+                current: downloadedCount,
+                total: totalItems,
+                stage: 'downloading',
+                itemName: `Starting download from item ${downloadedCount + 1}`,
+                currentAsset: allItemKeys[downloadedCount] || ''
+            });
+
             if (downloadedCount >= totalItems) {
                 // All items are already downloaded
                 console.log('All items are already downloaded!');
@@ -315,7 +332,9 @@ class ItemCacheService extends BaseCacheService<ItemCacheData> {
                     current: totalItems,
                     total: totalItems,
                     stage: 'complete',
-                    itemName: 'Items downloaded successfully'
+                    itemName: 'Items downloaded successfully',
+                    currentAsset: 'Items downloaded successfully',
+                    assetType: 'item-images'
                 });
                 return;
             }
@@ -329,12 +348,13 @@ class ItemCacheService extends BaseCacheService<ItemCacheData> {
                 current: downloadedCount,
                 total: totalItems,
                 stage: 'downloading',
-                itemName: `Starting download from item ${downloadedCount + 1}`
+                itemName: `Starting download from item ${downloadedCount + 1}`,
+                currentAsset: remainingItems[0] || ''
             });
 
             // Download remaining items
             let currentDownloadedCount = downloadedCount;
-            let currentCompletedItems = [...completedItems];
+            const currentCompletedItems = [...completedItems];
 
             for (let i = 0; i < remainingItems.length; i++) {
                 const itemKey = remainingItems[i];
@@ -358,8 +378,12 @@ class ItemCacheService extends BaseCacheService<ItemCacheData> {
                         current: currentDownloadedCount,
                         total: totalItems,
                         stage: 'downloading',
-                        itemName: `Item ${itemKey} (${currentDownloadedCount}/${totalItems})`
+                        itemName: `Item ${itemKey} (${currentDownloadedCount}/${totalItems})`,
+                        currentAsset: itemKey
                     });
+
+                    // Add a small delay to allow UI updates
+                    await new Promise(resolve => setTimeout(resolve, 10));
                 } catch (error) {
                     console.error(`Failed to download item ${itemKey}:`, error);
                     // Still increment count even if download failed
@@ -372,7 +396,9 @@ class ItemCacheService extends BaseCacheService<ItemCacheData> {
                 current: totalItems,
                 total: totalItems,
                 stage: 'complete',
-                itemName: 'Items downloaded successfully'
+                itemName: 'Items downloaded successfully',
+                currentAsset: 'Items downloaded successfully',
+                assetType: 'item-images'
             });
 
         } catch (error) {
