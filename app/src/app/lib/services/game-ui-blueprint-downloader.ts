@@ -1,5 +1,6 @@
-import { storage } from '@lib/utils/storage';
 import { BaseCacheService } from './base-cache';
+import { DataDragonClient } from '../utils/datadragon-client';
+import { AssetValidator } from '../utils/asset-validator';
 
 interface GameUIAsset {
     category: string;
@@ -73,7 +74,6 @@ class GameUIBlueprintDownloader extends BaseCacheService {
                 errors: [],
                 ...progress
             };
-            console.log('Game UI progress update:', fullProgress);
             this.gameUIProgressCallback(fullProgress);
         }
     }
@@ -188,8 +188,14 @@ class GameUIBlueprintDownloader extends BaseCacheService {
                 stage: 'complete',
                 current: processedCount,
                 total: totalCount,
-                message: `Successfully processed ${processedCount} game UI assets`
+                message: 'Game UI downloaded successfully'
             });
+
+            // Clean up manifests after successful completion
+            if (processedCount > 0 && errors.length === 0) {
+                console.log('All game UI assets processed successfully. Cleaning up manifests for fresh restart capability.');
+                await this.cleanupManifestAfterSuccess();
+            }
 
             return {
                 success: errors.length === 0,
@@ -236,73 +242,56 @@ class GameUIBlueprintDownloader extends BaseCacheService {
                 }
 
                 try {
-                    console.log(`Processing asset ${i + 1}/${files.length}: ${filename}`);
+                    const version = await DataDragonClient.getLatestVersion();
+                    const assetKey = `game/${version}/overlay/${category}/${filename}`;
 
-                    const storageKey = `overlay/${category}/${filename}`;
+                    // Check if file already exists using asset validator
+                    const cachedPath = AssetValidator.generateCachedPath(assetKey);
+                    const fileExists = await AssetValidator.checkFileExists(cachedPath);
 
-                    // In Electron, we can copy the asset from public folder to cache
-                    let assetData: Buffer;
+                    if (fileExists) {
+                        // File already exists, skip processing
+                        processedCount++;
+                        continue;
+                    }
 
                     if (typeof window !== 'undefined' && window.electronAPI?.isElectron) {
-                        // Use Electron API to copy the file from public folder to cache
-                        // The path should be relative to the app's root directory
+                        // Use downloadAsset with 'cache' category to ensure proper cache directory
                         const sourcePath = `public/assets/${category}/${filename}`;
+
                         try {
-                            const copyResult = await window.electronAPI.copyAssetFile(sourcePath, storageKey);
-                            if (!copyResult.success) {
-                                throw new Error(`Failed to copy ${sourcePath}: ${copyResult.error}`);
-                            }
+                            // Use downloadAsset with 'cache' category like champion cache to ensure proper path
+                            const downloadResult = await this.downloadAsset(sourcePath, 'cache', assetKey);
+                            if (downloadResult) {
+                                // Get file size from the downloaded result
+                                const actualPath = downloadResult.replace('cache/', '');
+                                const sizeResult = await window.electronAPI.getFileSize(actualPath);
+                                const fileSize = sizeResult.success ? sizeResult.size || 0 : 0;
 
-                            // Read the copied file to get its data
-                            const fileExistsResult = await window.electronAPI.checkFileExists(copyResult.localPath!);
-                            if (!fileExistsResult.success || !fileExistsResult.exists) {
-                                throw new Error(`Copied file not found: ${copyResult.localPath}`);
-                            }
+                                // Save to asset manifest using the same format as champion cache
+                                await this.saveAssetManifest({
+                                    [assetKey]: {
+                                        path: downloadResult, // This will be cache/game/...
+                                        url: sourcePath,
+                                        size: fileSize,
+                                        timestamp: Date.now(),
+                                        checksum: assetKey
+                                    }
+                                });
 
-                            // Get file size
-                            const sizeResult = await window.electronAPI.getFileSize(copyResult.localPath!);
-                            if (!sizeResult.success) {
-                                throw new Error(`Failed to get file size: ${sizeResult.error}`);
+                                processedCount++;
+                                totalSize += fileSize;
+                            } else {
+                                errors.push(`Failed to download ${sourcePath}`);
                             }
-
-                            // Create a placeholder buffer for the file data
-                            // The actual file is now in the cache, we just need to track it
-                            assetData = Buffer.alloc(sizeResult.size || 1024);
 
                         } catch (fileError) {
                             console.error(`Failed to copy file ${sourcePath}:`, fileError);
-                            // Fallback to fetch if file copy fails
-                            const response = await fetch(`/assets/${category}/${filename}`);
-                            if (!response.ok) {
-                                throw new Error(`Failed to fetch ${category}/${filename}: ${response.status}`);
-                            }
-                            const arrayBuffer = await response.arrayBuffer();
-                            assetData = Buffer.from(arrayBuffer);
+                            throw new Error(`Failed to process asset from public folder: ${fileError}`);
                         }
                     } else {
-                        // Fallback to fetch for non-Electron environments
-                        const response = await fetch(`/assets/${category}/${filename}`);
-                        if (!response.ok) {
-                            throw new Error(`Failed to fetch ${category}/${filename}: ${response.status}`);
-                        }
-                        const arrayBuffer = await response.arrayBuffer();
-                        assetData = Buffer.from(arrayBuffer);
+                        throw new Error('Electron API not available - game UI assets can only be processed in Electron environment');
                     }
-
-                    // Store the asset metadata
-                    await storage.set(storageKey, {
-                        data: assetData,
-                        size: assetData.length,
-                        timestamp: Date.now(),
-                        url: `/assets/${category}/${filename}`,
-                        category: category,
-                        filename: filename
-                    });
-
-                    console.log(`Successfully processed: ${storageKey} (${assetData.length} bytes)`);
-
-                    processedCount++;
-                    totalSize += assetData.length;
 
                     this.updateGameUIProgress({
                         current: processedCount,
@@ -324,44 +313,59 @@ class GameUIBlueprintDownloader extends BaseCacheService {
         return { processedCount, totalSize, errors };
     }
 
-    async getOverlayAsset(category: string, filename: string): Promise<Buffer | null> {
+    async getOverlayAsset(category: string, filename: string): Promise<string | null> {
         try {
-            const assetKey = `overlay/${category}/${filename}`;
-            const cached = await storage.get<{
-                data: Buffer | null;
-                size: number;
-                timestamp: number;
-                url?: string;
-                category?: string;
-                filename?: string;
-            }>(assetKey);
+            // Get the current version to use proper directory structure
+            const version = await DataDragonClient.getLatestVersion();
+            const assetKey = `game/${version}/overlay/${category}/${filename}`;
 
-            if (cached && cached.data) {
-                // Return the cached data
-                return cached.data;
+            // Check if asset exists using asset validator
+            const cachedPath = AssetValidator.generateCachedPath(assetKey);
+            const fileExists = await AssetValidator.checkFileExists(cachedPath);
+            if (fileExists) {
+                return cachedPath;
             }
 
-            // If not cached, fetch directly from public assets
-            const response = await fetch(`/assets/${category}/${filename}`);
-            if (response.ok) {
-                const arrayBuffer = await response.arrayBuffer();
-                const assetData = Buffer.from(arrayBuffer);
+            // Check if asset exists in manifest
+            const manifest = await this.loadAssetManifest();
+            if (manifest && manifest[assetKey]) {
+                return manifest[assetKey].path;
+            }
 
-                // Cache the asset for future use
-                await storage.set(assetKey, {
-                    data: assetData,
-                    size: assetData.length,
-                    timestamp: Date.now(),
-                    url: `/assets/${category}/${filename}`,
-                    category: category,
-                    filename: filename
-                });
+            // If not cached, try to process it
+            console.log(`Asset ${assetKey} not found in cache, processing...`);
 
-                return assetData;
+            // Process the single asset
+            if (typeof window !== 'undefined' && window.electronAPI?.isElectron) {
+                const sourcePath = `public/assets/${category}/${filename}`;
+
+                try {
+                    // Use downloadAsset with 'cache' category like champion cache to ensure proper path
+                    const downloadResult = await this.downloadAsset(sourcePath, 'cache', assetKey);
+                    if (downloadResult) {
+                        // Save to manifest using the same format as champion cache
+                        const actualPath = downloadResult.replace('cache/', '');
+                        const sizeResult = await window.electronAPI.getFileSize(actualPath);
+                        const fileSize = sizeResult.success ? sizeResult.size || 0 : 0;
+
+                        await this.saveAssetManifest({
+                            [assetKey]: {
+                                path: downloadResult, // This will be cache/game/...
+                                url: sourcePath,
+                                size: fileSize,
+                                timestamp: Date.now(),
+                                checksum: assetKey
+                            }
+                        });
+
+                        return downloadResult;
+                    }
+                } catch (error) {
+                    console.error(`Failed to process asset ${assetKey}:`, error);
+                }
             }
 
             return null;
-
         } catch (error) {
             console.error(`Failed to get overlay asset ${category}/${filename}:`, error);
             return null;
@@ -402,6 +406,63 @@ class GameUIBlueprintDownloader extends BaseCacheService {
         } catch (error) {
             console.error('Failed to check overlay assets status:', error);
             return { hasAssets: false, categories: [], totalCount: 0 };
+        }
+    }
+
+    protected async getCategoryProgress(category: string): Promise<{ downloaded: number; total: number; completedItems: string[] }> {
+        try {
+            const manifest = await this.loadAssetManifest();
+            const completedItems: string[] = [];
+
+            if (manifest) {
+                // Look for assets that match the versioned overlay pattern
+                for (const assetKey of Object.keys(manifest)) {
+                    if (assetKey.includes(`/overlay/`)) {
+                        // Extract the simple asset key (category/filename)
+                        const parts = assetKey.split('/');
+                        if (parts.length >= 2) {
+                            const filename = parts[parts.length - 1];
+                            const categoryName = parts[parts.length - 2];
+
+                            // Also verify the file actually exists using the same pattern as champion cache
+                            const manifestEntry = manifest[assetKey];
+                            if (manifestEntry && manifestEntry.path) {
+                                const fileExists = await this.checkFileExists(manifestEntry.path);
+                                if (fileExists) {
+                                    completedItems.push(`${categoryName}/${filename}`);
+                                } else {
+                                    console.log(`game ui manifest path: ${manifestEntry.path}`);
+                                    console.log(`Game UI asset ${assetKey} in manifest but file missing`);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return {
+                downloaded: completedItems.length,
+                total: completedItems.length,
+                completedItems
+            };
+        } catch (error) {
+            console.error(`Failed to get category progress for ${category}:`, error);
+            return { downloaded: 0, total: 0, completedItems: [] };
+        }
+    }
+
+    private async cleanupManifestAfterSuccess(): Promise<void> {
+        try {
+            if (typeof window === 'undefined' || !window.electronAPI) {
+                console.log('Electron API not available, skipping manifest cleanup');
+                return;
+            }
+
+            // Clear the manifest so that if users delete files, the system will start fresh
+            await window.electronAPI.saveAssetManifest({});
+            console.log('Game UI manifest cleared successfully. System will restart from scratch if files are deleted.');
+        } catch (error) {
+            console.error('Failed to cleanup manifest after successful download:', error);
         }
     }
 

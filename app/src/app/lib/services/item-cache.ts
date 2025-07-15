@@ -1,5 +1,7 @@
 import { BaseCacheService } from './base-cache';
 import { DDRAGON_CDN } from '../constants';
+import { DataDragonClient } from '../utils/datadragon-client';
+import { AssetValidator } from '../utils/asset-validator';
 
 interface DataDragonItem {
     name: string;
@@ -241,15 +243,11 @@ class ItemCacheService extends BaseCacheService<ItemCacheData> {
         cachedItems: number;
     }> {
         try {
-            const version = await this.getLatestVersion();
+            const version = await DataDragonClient.getLatestVersion();
 
-            // Get all items from DataDragon
-            const response = await fetch(`${DDRAGON_CDN}/${version}/data/en_US/item.json`);
-            if (!response.ok) {
-                throw new Error(`Failed to fetch items list: ${response.status}`);
-            }
-
-            const data: DataDragonItemResponse = await response.json();
+            // Get all items using DataDragon client
+            const itemsResponse = await DataDragonClient.getItems(version);
+            const data = itemsResponse;
             const allItemKeys = Object.keys(data.data);
 
             // Load asset manifest to check cached items
@@ -260,11 +258,25 @@ class ItemCacheService extends BaseCacheService<ItemCacheData> {
                 const dataKey = `item-${version}-${itemKey}-data`;
                 const imageKey = `game/${version}/items/${itemKey}/icon.png`;
 
-                // Check if both data and image are cached
-                const hasData = manifest && manifest[dataKey];
-                const hasImage = manifest && manifest[imageKey];
+                // Check if both data and image are cached AND files actually exist
+                const hasDataInManifest = manifest && manifest[dataKey];
+                const hasImageInManifest = manifest && manifest[imageKey];
 
-                if (!hasData || !hasImage) {
+                // Also verify files actually exist on disk
+                let dataFileExists = false;
+                let imageFileExists = false;
+
+                if (hasDataInManifest && manifest![dataKey].path) {
+                    const fileCheck = await AssetValidator.checkFileExists(manifest![dataKey].path);
+                    dataFileExists = fileCheck;
+                }
+
+                if (hasImageInManifest && manifest![imageKey].path) {
+                    const fileCheck = await AssetValidator.checkFileExists(manifest![imageKey].path);
+                    imageFileExists = fileCheck;
+                }
+
+                if (!hasDataInManifest || !hasImageInManifest || !dataFileExists || !imageFileExists) {
                     missingItems.push(itemKey);
                 }
             }
@@ -343,15 +355,6 @@ class ItemCacheService extends BaseCacheService<ItemCacheData> {
             const remainingItems = allItemKeys.filter(itemKey => !completedItems.includes(itemKey));
             console.log(`Downloading ${remainingItems.length} remaining items...`);
 
-            // Report initial progress
-            this.updateProgress({
-                current: downloadedCount,
-                total: totalItems,
-                stage: 'downloading',
-                itemName: `Starting download from item ${downloadedCount + 1}`,
-                currentAsset: remainingItems[0] || ''
-            });
-
             // Download remaining items
             let currentDownloadedCount = downloadedCount;
             const currentCompletedItems = [...completedItems];
@@ -401,8 +404,27 @@ class ItemCacheService extends BaseCacheService<ItemCacheData> {
                 assetType: 'item-images'
             });
 
+            // Clean up manifests after successful completion
+            console.log('All items downloaded successfully. Cleaning up manifests for fresh restart capability.');
+            await this.cleanupManifestAfterSuccess();
+
         } catch (error) {
             console.error('Error downloading items on startup:', error);
+        }
+    }
+
+    private async cleanupManifestAfterSuccess(): Promise<void> {
+        try {
+            if (typeof window === 'undefined' || !window.electronAPI) {
+                console.log('Electron API not available, skipping manifest cleanup');
+                return;
+            }
+
+            // Clear the manifest so that if users delete files, the system will start fresh
+            await window.electronAPI.saveAssetManifest({});
+            console.log('Item manifest cleared successfully. System will restart from scratch if files are deleted.');
+        } catch (error) {
+            console.error('Failed to cleanup manifest after successful download:', error);
         }
     }
 

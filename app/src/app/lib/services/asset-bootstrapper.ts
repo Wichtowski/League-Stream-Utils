@@ -84,17 +84,6 @@ export const downloadAllAssets = async (
             updateOverallProgress();
         });
 
-        // Wire up itemsBlueprintDownloader progress to UI as well
-        itemsBlueprintDownloader.onProgress((p) => {
-            tracker.current = p.current;
-            tracker.total = p.total;
-            tracker.stage = p.stage;
-            tracker.currentAsset = p.currentAsset || p.itemName || 'item';
-
-            onProgress?.({ ...p, category: 'item' });
-            updateOverallProgress();
-        });
-
         tracker.stage = 'checking';
         tracker.currentAsset = 'Checking items...';
         onProgress?.({ current: 0, total: 0, itemName: 'items', stage: 'checking', percentage: 0, category: 'item' });
@@ -221,13 +210,5 @@ export const downloadAllAssets = async (
         launchNext();
     });
 
-    // Final completion notification
-    onProgress?.({
-        current: 1,
-        total: 1,
-        itemName: 'all-assets',
-        stage: 'complete',
-        percentage: 100,
-        category: 'champion',
-    });
+    // No final completion notification needed - each service reports its own completion
 }; 

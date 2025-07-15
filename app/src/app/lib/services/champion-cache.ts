@@ -1,6 +1,9 @@
 import { Champion, ChampionSpell } from '../types/game';
 import { DDRAGON_CDN } from '../constants';
 import { BaseCacheService } from './base-cache';
+import { DataDragonClient } from '../utils/datadragon-client';
+import { AssetValidator } from '../utils/asset-validator';
+import { AssetMigrator } from '../utils/asset-migrator';
 import path from 'path';
 
 interface DataDragonChampion {
@@ -547,6 +550,21 @@ class ChampionCacheService extends BaseCacheService<Champion> {
         }
     }
 
+    private async cleanupManifestAfterSuccess(): Promise<void> {
+        try {
+            if (typeof window === 'undefined' || !window.electronAPI) {
+                console.log('Electron API not available, skipping manifest cleanup');
+                return;
+            }
+
+            // Clear the manifest so that if users delete files, the system will start fresh
+            await window.electronAPI.saveAssetManifest({});
+            console.log('Champion manifest cleared successfully. System will restart from scratch if files are deleted.');
+        } catch (error) {
+            console.error('Failed to cleanup manifest after successful download:', error);
+        }
+    }
+
     async clearCache(): Promise<void> {
         await this.initialize();
         if (typeof window === 'undefined' || !window.electronAPI) {
@@ -578,17 +596,12 @@ class ChampionCacheService extends BaseCacheService<Champion> {
         }
 
         try {
-            const version = await this.getLatestVersion();
+            const version = await DataDragonClient.getLatestVersion();
             this.version = version;
 
-            // Get list of all champions from DataDragon
-            const response = await fetch(`${DDRAGON_CDN}/${version}/data/en_US/champion.json`);
-            if (!response.ok) {
-                throw new Error(`Failed to fetch champions list: ${response.status}`);
-            }
-
-            const data: DataDragonResponse = await response.json();
-            const allChampionKeys = Object.keys(data.data);
+            // Get list of all champions using DataDragon client
+            const championsResponse = await DataDragonClient.getChampions(version);
+            const allChampionKeys = Object.keys(championsResponse.data);
             const totalExpected = allChampionKeys.length;
 
             // Check category progress, but migrate existing files if manifest is empty
@@ -598,18 +611,49 @@ class ChampionCacheService extends BaseCacheService<Champion> {
             // If no champions in manifest but files exist, migrate them
             if (completedChampions.length === 0) {
                 console.log('No champions found in category manifest, checking for existing files...');
-                const existingChampions = await this.migrateExistingChampions(allChampionKeys, version);
-                if (existingChampions.length > 0) {
-                    console.log(`Migrated ${existingChampions.length} existing champions to category manifest`);
-                    completedChampions = existingChampions;
+                const migrationResult = await AssetMigrator.migrateChampions(allChampionKeys, {
+                    targetVersion: version,
+                    updateCategoryManifest: true
+                });
+
+                if (migrationResult.migratedItems.length > 0) {
+                    console.log(`Migrated ${migrationResult.migratedItems.length} existing champions to category manifest`);
+                    completedChampions = migrationResult.migratedItems;
+
+                    // Update category manifest with migrated items
+                    await AssetMigrator.updateCategoryManifest(
+                        'champions',
+                        migrationResult.migratedItems,
+                        totalExpected,
+                        version,
+                        this.updateCategoryProgress.bind(this)
+                    );
                 }
             }
 
-            const missingChampions = allChampionKeys.filter(key =>
-                !completedChampions.includes(key)
-            );
+            // Use asset validator for file validation
+            const missingChampions: string[] = [];
 
-            console.log(`Found ${completedChampions.length} cached champions out of ${allChampionKeys.length} total`);
+            for (const championKey of allChampionKeys) {
+                // First check if it's in completed list (category manifest is source of truth)
+                if (!completedChampions.includes(championKey)) {
+                    missingChampions.push(championKey);
+                    continue;
+                }
+
+                // For champions in completed list, only verify the key file actually exists on disk
+                const squareImagePath = AssetValidator.generateCachedPath(
+                    AssetValidator.generateAssetKey('champion', version, championKey, 'square.png')
+                );
+                const squareExists = await AssetValidator.checkFileExists(squareImagePath);
+
+                if (!squareExists) {
+                    console.log(`Champion ${championKey} in category manifest but files missing, will re-download`);
+                    missingChampions.push(championKey);
+                }
+            }
+
+            console.log(`Found ${completedChampions.length - missingChampions.length} verified champions out of ${allChampionKeys.length} total`);
 
             return {
                 isComplete: missingChampions.length === 0,
@@ -818,8 +862,14 @@ class ChampionCacheService extends BaseCacheService<Champion> {
                 itemName: '',
                 stage: 'complete',
                 assetType: 'champion',
-                currentAsset: 'All champions downloaded'
+                currentAsset: 'Champions downloaded successfully'
             });
+
+            // Clean up manifests after successful completion
+            if (downloadedCount > 0) {
+                console.log('All champions downloaded successfully. Cleaning up manifests for fresh restart capability.');
+                await this.cleanupManifestAfterSuccess();
+            }
 
             return {
                 success: downloadedCount > 0,

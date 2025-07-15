@@ -1,5 +1,6 @@
-import { DDRAGON_BASE_URL } from '../constants';
 import { CachedAsset } from '../types/electron';
+import { DataDragonClient } from '../utils/datadragon-client';
+import { AssetValidator } from '../utils/asset-validator';
 import path from 'path';
 
 export interface DownloadProgress {
@@ -63,14 +64,7 @@ export abstract class BaseCacheService<T = unknown> {
     }
 
     protected async getLatestVersion(): Promise<string> {
-        try {
-            const response = await fetch(`${DDRAGON_BASE_URL}/api/versions.json`);
-            const versions = await response.json();
-            return versions[0];
-        } catch (error) {
-            console.error('Failed to fetch Data Dragon version:', error);
-            return '15.13.1'; // Fallback version
-        }
+        return DataDragonClient.getLatestVersion();
     }
 
     protected async downloadAsset(url: string, category: string, assetKey: string): Promise<string | null> {
@@ -88,19 +82,7 @@ export abstract class BaseCacheService<T = unknown> {
     }
 
     protected async checkFileExists(filePath: string): Promise<boolean> {
-        if (typeof window === 'undefined' || !window.electronAPI) {
-            return false;
-        }
-
-        try {
-            const userDataPath = await window.electronAPI.getUserDataPath();
-            const fullPath = path.join(userDataPath, 'assets', filePath);
-            const result = await window.electronAPI.checkFileExists(fullPath);
-            return result.success && result.exists === true;
-        } catch (error) {
-            console.error('Error checking file existence:', error);
-            return false;
-        }
+        return AssetValidator.checkFileExists(filePath);
     }
 
     // Category-specific manifest methods
