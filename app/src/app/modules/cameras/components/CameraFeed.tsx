@@ -13,14 +13,14 @@ interface CameraFeedProps {
     teamName?: string;
 }
 
-export default function CameraFeed({
+export const CameraFeed = ({
     player,
     onStreamError,
     className = "w-full h-full",
     showPlayerInfo = false,
     playerInfoSize = 'large',
     teamName,
-}: CameraFeedProps) {
+}: CameraFeedProps): React.ReactElement => {
     const [streamFailed, setStreamFailed] = useState(false);
 
     const handleStreamError = () => {
@@ -132,4 +132,4 @@ export default function CameraFeed({
             )}
         </div>
     );
-} 
+};

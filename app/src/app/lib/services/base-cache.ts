@@ -1,4 +1,3 @@
-import { CachedAsset } from '../types/electron';
 import { DataDragonClient } from '../utils/datadragon-client';
 import { AssetValidator } from '../utils/asset-validator';
 import path from 'path';
@@ -86,17 +85,19 @@ export abstract class BaseCacheService<T = unknown> {
     }
 
     // Category-specific manifest methods
-    protected async saveCategoryManifest(category: string, manifest: CategoryManifest): Promise<boolean> {
+    protected async saveCategoryManifest(category: string, manifest: CategoryManifest, version?: string): Promise<boolean> {
         if (typeof window === 'undefined' || !window.electronAPI) {
             return false;
         }
 
         try {
-            const manifestPath = `${category}-manifest.json`;
+            // Organize manifests by version alongside assets: cache/game/{version}/{category}-manifest.json
+            const manifestPath = version ? `cache/game/${version}/${category}-manifest.json` : `${category}-manifest.json`;
             const manifestContent = JSON.stringify(manifest, null, 2);
 
-            // Use the new category-specific IPC handler
-            const result = await window.electronAPI.saveCategoryManifest(category, {
+            // Use the new category-specific IPC handler, passing the complete path
+            const categoryPath = version ? `cache/game/${version}/${category}` : category;
+            const result = await window.electronAPI.saveCategoryManifest(categoryPath, {
                 [manifestPath]: {
                     path: manifestContent,
                     url: '',
@@ -113,16 +114,18 @@ export abstract class BaseCacheService<T = unknown> {
         }
     }
 
-    protected async loadCategoryManifest(category: string): Promise<CategoryManifest | null> {
+    protected async loadCategoryManifest(category: string, version?: string): Promise<CategoryManifest | null> {
         if (typeof window === 'undefined' || !window.electronAPI) {
             return null;
         }
 
         try {
-            const manifestPath = `${category}-manifest.json`;
+            // Organize manifests by version alongside assets: cache/game/{version}/{category}-manifest.json
+            const manifestPath = version ? `cache/game/${version}/${category}-manifest.json` : `${category}-manifest.json`;
 
-            // Use the new category-specific IPC handler
-            const result = await window.electronAPI.loadCategoryManifest(category);
+            // Use the new category-specific IPC handler, passing the complete path
+            const categoryPath = version ? `cache/game/${version}/${category}` : category;
+            const result = await window.electronAPI.loadCategoryManifest(categoryPath);
 
             if (result.success && result.data && result.data[manifestPath]) {
                 const manifestData = result.data[manifestPath];
@@ -154,11 +157,11 @@ export abstract class BaseCacheService<T = unknown> {
             completedItems
         };
 
-        await this.saveCategoryManifest(category, manifest);
+        await this.saveCategoryManifest(category, manifest, version);
     }
 
-    protected async getCategoryProgress(category: string): Promise<{ downloaded: number; total: number; completedItems: string[] }> {
-        const manifest = await this.loadCategoryManifest(category);
+    protected async getCategoryProgress(category: string, version?: string): Promise<{ downloaded: number; total: number; completedItems: string[] }> {
+        const manifest = await this.loadCategoryManifest(category, version);
 
         if (!manifest) {
             return { downloaded: 0, total: 0, completedItems: [] };
@@ -169,35 +172,6 @@ export abstract class BaseCacheService<T = unknown> {
             total: manifest.totalItems,
             completedItems: manifest.completedItems
         };
-    }
-
-    // Legacy methods for backward compatibility
-    protected async saveAssetManifest(manifestData: Record<string, CachedAsset>): Promise<boolean> {
-        if (typeof window === 'undefined' || !window.electronAPI) {
-            return false;
-        }
-
-        try {
-            const result = await window.electronAPI.saveAssetManifest(manifestData);
-            return result.success;
-        } catch (error) {
-            console.error('Failed to save asset manifest:', error);
-            return false;
-        }
-    }
-
-    protected async loadAssetManifest(): Promise<Record<string, CachedAsset> | null> {
-        if (typeof window === 'undefined' || !window.electronAPI) {
-            return null;
-        }
-
-        try {
-            const result = await window.electronAPI.loadAssetManifest();
-            return result.success ? result.data ?? null : null;
-        } catch (error) {
-            console.error('Failed to load asset manifest:', error);
-            return null;
-        }
     }
 
     protected async loadData<T>(_filePath: string): Promise<T | null> {

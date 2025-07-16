@@ -1,4 +1,6 @@
-export { default as CameraFeed } from './CameraFeed';
-export { default as CameraNavigation } from './CameraNavigation';
-export { default as PlayerInfoHeader } from './PlayerInfoHeader';
-export { default as CameraLayout } from './CameraLayout'; 
+import { CameraFeed } from './CameraFeed';
+import { CameraNavigation } from './CameraNavigation';
+import { PlayerInfoHeader } from './PlayerInfoHeader';
+import { CameraLayout } from './CameraLayout'; 
+
+export { CameraFeed, CameraNavigation, PlayerInfoHeader, CameraLayout };

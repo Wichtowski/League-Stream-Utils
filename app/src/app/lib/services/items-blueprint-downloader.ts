@@ -112,7 +112,7 @@ export class ItemsBlueprintDownloader extends BaseBlueprintDownloader<DataDragon
             const data: DataDragonItemResponse = await response.json();
             const totalItems = Object.keys(data.data).length;
 
-            const categoryProgress = await this.getCategoryProgress('items');
+            const categoryProgress = await this.getCategoryProgress('items', version);
             let completedItems = categoryProgress.completedItems;
 
             if (completedItems.length === 0) {
@@ -167,7 +167,8 @@ export class ItemsBlueprintDownloader extends BaseBlueprintDownloader<DataDragon
                 }
             }
 
-            await this.saveAssetManifest(manifestData);
+            // Don't save to legacy manifest - rely on category manifest system
+            // Items are tracked through updateCategoryProgress calls
 
             this.updateProgress({
                 current: downloadedCount,

@@ -1,7 +1,7 @@
 'use client';
 
 import type { Tournament } from '@lib/types';
-import TournamentCard from './TournamentCard';
+import { TournamentCard } from './TournamentCard';
 
 interface TournamentListProps {
     tournaments: Tournament[];
@@ -10,7 +10,7 @@ interface TournamentListProps {
     onTournamentUpdate?: (tournament: Tournament) => void;
 }
 
-export default function TournamentList({ tournaments, onShowCreateForm, onStatusUpdate, onTournamentUpdate }: TournamentListProps) {
+export const TournamentList = ({ tournaments, onShowCreateForm, onStatusUpdate, onTournamentUpdate }: TournamentListProps) => {
     if (tournaments.length === 0) {
         return (
             <div className="text-center py-12">
@@ -37,4 +37,4 @@ export default function TournamentList({ tournaments, onShowCreateForm, onStatus
             ))}
         </div>
     );
-} 
+};

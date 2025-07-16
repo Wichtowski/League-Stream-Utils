@@ -52,7 +52,7 @@ const ICON_URL = (champ: string) => `${DDRAGON_CDN}/${VERSION}/img/champion/${ch
 const CHAMP_DETAIL_URL = (champ: string, lang: string) => `${DDRAGON_CDN}/${VERSION}/data/${lang}/champion/${champ}.json`;
 const SPELL_ICON_URL = (img: string) => `${DDRAGON_CDN}/${VERSION}/img/spell/${img}`;
 
-export default function App() {
+export default function ChampAbilityPage() {
   const { setActiveModule } = useNavigation();
   const [_champions, setChampions] = useState<Champion[]>([]);
   const [filteredChampions, setFilteredChampions] = useState<Champion[]>([]);
@@ -91,7 +91,6 @@ export default function App() {
       setFilteredChampions(champs);
     } catch (error) {
       console.error('Failed to load champions:', error);
-    } finally {
       setLoading(false);
     }
   }, []);
@@ -121,9 +120,12 @@ export default function App() {
       setIsDownloading(true);
       setShowProgressModal(true);
 
-      // Set up progress tracking
+      // Set up progress tracking - only show champion-specific progress
       championCacheService.onProgress((progress) => {
-        setDownloadProgress(progress);
+        // Filter to only show main champion download progress, not internal sub-operations
+        if (progress.assetType === 'champion' || !progress.assetType) {
+          setDownloadProgress(progress);
+        }
       });
 
       // Start the download

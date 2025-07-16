@@ -47,34 +47,9 @@ class AssetCacheService {
             this.cacheDir = `${userDataPath}/assets`;
             this.manifestPath = `${this.cacheDir}/manifest.json`;
 
-            await this.loadManifest();
             await this.cleanupExpiredAssets();
         } catch (error) {
             console.warn('Failed to initialize asset cache:', error);
-        }
-    }
-
-    private async loadManifest(): Promise<void> {
-        try {
-            if (typeof window !== 'undefined' && window.electronAPI?.loadAssetManifest) {
-                const result = await window.electronAPI.loadAssetManifest();
-                if (result.success && result.data) {
-                    this.manifest = new Map(Object.entries(result.data));
-                }
-            }
-        } catch (error) {
-            console.warn('Failed to load asset manifest:', error);
-        }
-    }
-
-    private async saveManifest(): Promise<void> {
-        try {
-            if (typeof window !== 'undefined' && window.electronAPI?.saveAssetManifest) {
-                const manifestData = Object.fromEntries(this.manifest);
-                await window.electronAPI.saveAssetManifest(manifestData);
-            }
-        } catch (error) {
-            console.warn('Failed to save asset manifest:', error);
         }
     }
 
@@ -127,7 +102,6 @@ class AssetCacheService {
             };
 
             this.manifest.set(assetKey, assetInfo);
-            await this.saveManifest();
 
             return localPath;
         } catch (error) {
@@ -206,7 +180,6 @@ class AssetCacheService {
                 await window.electronAPI.clearAssetCache();
             }
             this.manifest.clear();
-            await this.saveManifest();
         } catch (error) {
             console.warn('Failed to clear asset cache:', error);
         }

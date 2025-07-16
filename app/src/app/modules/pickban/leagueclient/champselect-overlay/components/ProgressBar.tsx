@@ -4,7 +4,7 @@ type ProgressBarProps = {
   progress: number;
 };
 
-const ProgressBar: React.FC<ProgressBarProps> = ({ progress }) => {
+export const ProgressBar: React.FC<ProgressBarProps> = ({ progress }) => {
   return (
     <div className="w-full bg-gray-700 rounded-full h-2 mb-2">
           <div className="flex justify-between">
@@ -20,5 +20,3 @@ const ProgressBar: React.FC<ProgressBarProps> = ({ progress }) => {
     </div>    
   );
 };
-
-export default ProgressBar;

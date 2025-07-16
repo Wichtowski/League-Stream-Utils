@@ -726,23 +726,52 @@ ipcMain.handle('download-asset', async (event, url, category, assetKey) => {
                         const downloadTime = (Date.now() - startTime) / 1000;
                         const downloadSpeed = downloadedBytes / downloadTime;
 
-                        // Update the asset manifest
+                        // Update the asset manifest with version-aware paths
                         try {
-                            // Determine category from assetKey
-                            let manifestFile = 'manifest.json'; // default
-                            if (assetKey.includes('/champions/') || assetKey.includes('champion')) {
-                                manifestFile = 'champions-manifest.json';
-                            } else if (assetKey.includes('/items/') || assetKey.includes('item')) {
-                                manifestFile = 'items-manifest.json';
-                            } else if (assetKey.includes('/runes/') || assetKey.includes('rune')) {
-                                manifestFile = 'runes-manifest.json';
-                            } else if (assetKey.includes('overlay/') || assetKey.includes('game-ui')) {
-                                manifestFile = 'game-ui-manifest.json';
-                            } else if (assetKey.includes('/spells/') || assetKey.includes('spell')) {
-                                manifestFile = 'spells-manifest.json';
+                            // Extract version from assetKey (e.g., "game/15.14.1/champions/...")
+                            let version = null;
+                            let category = 'default';
+
+                            // Check for versioned assets - ALL assets must be versioned now
+                            const versionMatch = assetKey.match(/game\/([^\/]+)\//);
+                            if (versionMatch) {
+                                version = versionMatch[1]; // Extract version like "15.14.1"
+                            } else {
+                                // Skip manifest update for non-versioned assets
+                                console.log(`Skipping manifest update for non-versioned asset: ${assetKey}`);
+                                resolve({
+                                    success: true,
+                                    localPath,
+                                    size: downloadedBytes,
+                                    downloadSpeed: downloadSpeed,
+                                    downloadTime: downloadTime
+                                });
+                                return;
                             }
 
-                            const manifestPath = path.join(assetCachePath, manifestFile);
+                            // Determine category and manifest file
+                            if (assetKey.includes('/champions/') || assetKey.includes('champion')) {
+                                category = 'champions';
+                            } else if (assetKey.includes('/items/') || assetKey.includes('item')) {
+                                category = 'items';
+                            } else if (assetKey.includes('/runes/') || assetKey.includes('rune')) {
+                                category = 'runes';
+                            } else if (assetKey.includes('/overlay/') || assetKey.includes('game-ui')) {
+                                category = 'game-ui';
+                            } else if (assetKey.includes('/spells/') || assetKey.includes('spell')) {
+                                category = 'spells';
+                            }
+
+                            // Build version-aware manifest path: cache/game/{version}/{category}-manifest.json
+                            const manifestFile = `${category}-manifest.json`;
+                            const manifestDir = path.join(assetCachePath, 'cache', 'game', version);
+
+                            // Ensure manifest directory exists
+                            if (!fs.existsSync(manifestDir)) {
+                                fs.mkdirSync(manifestDir, { recursive: true });
+                            }
+
+                            const manifestPath = path.join(manifestDir, manifestFile);
                             let manifest = {};
 
                             if (fs.existsSync(manifestPath)) {
@@ -900,23 +929,53 @@ ipcMain.handle('download-assets-parallel', async (event, downloadTasks) => {
                             const downloadTime = (Date.now() - startTime) / 1000;
                             const downloadSpeed = downloadedBytes / downloadTime;
 
-                            // Update manifest
+                            // Update manifest with version-aware paths
                             try {
-                                // Determine category from assetKey
-                                let manifestFile = 'manifest.json'; // default
-                                if (assetKey.includes('/champions/') || assetKey.includes('champion')) {
-                                    manifestFile = 'champions-manifest.json';
-                                } else if (assetKey.includes('/items/') || assetKey.includes('item')) {
-                                    manifestFile = 'items-manifest.json';
-                                } else if (assetKey.includes('/runes/') || assetKey.includes('rune')) {
-                                    manifestFile = 'runes-manifest.json';
-                                } else if (assetKey.includes('overlay/') || assetKey.includes('game-ui')) {
-                                    manifestFile = 'game-ui-manifest.json';
-                                } else if (assetKey.includes('/spells/') || assetKey.includes('spell')) {
-                                    manifestFile = 'spells-manifest.json';
+                                // Extract version from assetKey (e.g., "game/15.14.1/champions/...")
+                                let version = null;
+                                let category = 'default';
+
+                                // Check for versioned assets - ALL assets must be versioned now
+                                const versionMatch = assetKey.match(/game\/([^\/]+)\//);
+                                if (versionMatch) {
+                                    version = versionMatch[1]; // Extract version like "15.14.1"
+                                } else {
+                                    // Skip manifest update for non-versioned assets
+                                    console.log(`Skipping manifest update for non-versioned asset: ${assetKey}`);
+                                    resolve({
+                                        id: task.id,
+                                        success: true,
+                                        localPath,
+                                        size: downloadedBytes,
+                                        downloadSpeed: downloadSpeed,
+                                        downloadTime: downloadTime
+                                    });
+                                    return;
                                 }
 
-                                const manifestPath = path.join(assetCachePath, manifestFile);
+                                // Determine category and manifest file
+                                if (assetKey.includes('/champions/') || assetKey.includes('champion')) {
+                                    category = 'champions';
+                                } else if (assetKey.includes('/items/') || assetKey.includes('item')) {
+                                    category = 'items';
+                                } else if (assetKey.includes('/runes/') || assetKey.includes('rune')) {
+                                    category = 'runes';
+                                } else if (assetKey.includes('/overlay/') || assetKey.includes('game-ui')) {
+                                    category = 'game-ui';
+                                } else if (assetKey.includes('/spells/') || assetKey.includes('spell')) {
+                                    category = 'spells';
+                                }
+
+                                // Build version-aware manifest path: cache/game/{version}/{category}-manifest.json
+                                const manifestFile = `${category}-manifest.json`;
+                                const manifestDir = path.join(assetCachePath, 'cache', 'game', version);
+
+                                // Ensure manifest directory exists
+                                if (!fs.existsSync(manifestDir)) {
+                                    fs.mkdirSync(manifestDir, { recursive: true });
+                                }
+
+                                const manifestPath = path.join(manifestDir, manifestFile);
                                 let manifest = {};
 
                                 if (fs.existsSync(manifestPath)) {
@@ -1030,102 +1089,18 @@ ipcMain.handle('download-assets-parallel', async (event, downloadTasks) => {
     }
 });
 
-ipcMain.handle('load-asset-manifest', async () => {
-    try {
-        // Load all category-specific manifests and combine them
-        const manifestFiles = [
-            'champions-manifest.json',
-            'items-manifest.json',
-            'runes-manifest.json',
-            'game-ui-manifest.json',
-            'spells-manifest.json',
-            'manifest.json' // Keep legacy manifest for backward compatibility
-        ];
-
-        let combinedManifest = {};
-
-        for (const manifestFile of manifestFiles) {
-            const manifestPath = path.join(assetCachePath, manifestFile);
-            if (fs.existsSync(manifestPath)) {
-                try {
-                    const data = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-                    combinedManifest = { ...combinedManifest, ...data };
-                } catch (parseError) {
-                    console.error(`Failed to parse ${manifestFile}:`, parseError);
-                }
-            }
-        }
-
-        return { success: true, data: combinedManifest };
-    } catch (error) {
-        return { success: false, error: error.message };
-    }
-});
-
-ipcMain.handle('save-asset-manifest', async (event, manifestData) => {
-    try {
-        // Determine which category-specific manifest files to update based on the data
-        const categoryManifests = {
-            'champions-manifest.json': {},
-            'items-manifest.json': {},
-            'runes-manifest.json': {},
-            'game-ui-manifest.json': {},
-            'spells-manifest.json': {},
-            'manifest.json': {} // Legacy manifest for uncategorized assets
-        };
-
-        // Categorize the manifest data
-        for (const [assetKey, assetData] of Object.entries(manifestData)) {
-            if (assetKey.includes('champions-manifest.json') || assetKey.includes('champion') || assetKey.includes('/champions/')) {
-                categoryManifests['champions-manifest.json'][assetKey] = assetData;
-            } else if (assetKey.includes('items-manifest.json') || assetKey.includes('item') || assetKey.includes('/items/')) {
-                categoryManifests['items-manifest.json'][assetKey] = assetData;
-            } else if (assetKey.includes('runes-manifest.json') || assetKey.includes('rune') || assetKey.includes('/runes/')) {
-                categoryManifests['runes-manifest.json'][assetKey] = assetData;
-            } else if (assetKey.includes('game-ui-manifest.json') || assetKey.includes('overlay/') || assetKey.includes('game-ui')) {
-                categoryManifests['game-ui-manifest.json'][assetKey] = assetData;
-            } else if (assetKey.includes('spells-manifest.json') || assetKey.includes('spell') || assetKey.includes('/spells/')) {
-                categoryManifests['spells-manifest.json'][assetKey] = assetData;
-            } else {
-                // Put uncategorized assets in the legacy manifest
-                categoryManifests['manifest.json'][assetKey] = assetData;
-            }
-        }
-
-        // Save each category-specific manifest that has data
-        for (const [manifestFile, data] of Object.entries(categoryManifests)) {
-            if (Object.keys(data).length > 0) {
-                const manifestPath = path.join(assetCachePath, manifestFile);
-
-                // Load existing manifest and merge with new data
-                let existingManifest = {};
-                if (fs.existsSync(manifestPath)) {
-                    try {
-                        existingManifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-                    } catch (parseError) {
-                        console.error(`Failed to parse existing ${manifestFile}:`, parseError);
-                    }
-                }
-
-                // Merge existing with new data
-                const mergedManifest = { ...existingManifest, ...data };
-
-                // Save the updated manifest
-                fs.writeFileSync(manifestPath, JSON.stringify(mergedManifest, null, 2));
-            }
-        }
-
-        return { success: true };
-    } catch (error) {
-        return { success: false, error: error.message };
-    }
-});
-
 // Add new IPC handler for loading specific category manifest
 ipcMain.handle('load-category-manifest', async (event, category) => {
     try {
+        // The category parameter now includes the full path (e.g., "15.14.1/champions" or just "champions")
         const manifestFile = `${category}-manifest.json`;
         const manifestPath = path.join(assetCachePath, manifestFile);
+
+        // Ensure the directory exists for versioned manifests
+        const manifestDir = path.dirname(manifestPath);
+        if (!fs.existsSync(manifestDir)) {
+            fs.mkdirSync(manifestDir, { recursive: true });
+        }
 
         if (fs.existsSync(manifestPath)) {
             const data = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
@@ -1141,24 +1116,28 @@ ipcMain.handle('load-category-manifest', async (event, category) => {
 // Add new IPC handler for saving specific category manifest
 ipcMain.handle('save-category-manifest', async (event, category, manifestData) => {
     try {
-        const manifestFile = `${category}-manifest.json`;
-        const manifestPath = path.join(assetCachePath, manifestFile);
-
-        // Load existing manifest and merge with new data
-        let existingManifest = {};
-        if (fs.existsSync(manifestPath)) {
-            try {
-                existingManifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-            } catch (parseError) {
-                console.error(`Failed to parse existing ${manifestFile}:`, parseError);
-            }
+        // The manifestData now contains the full path as the key (e.g., "15.14.1/champions-manifest.json")
+        // Extract the actual manifest file path from the keys
+        const manifestKeys = Object.keys(manifestData);
+        if (manifestKeys.length === 0) {
+            return { success: true }; // Nothing to save
         }
 
-        // Merge existing with new data
-        const mergedManifest = { ...existingManifest, ...manifestData };
+        // Use the first key as the manifest file path (there should only be one)
+        const manifestFile = manifestKeys[0];
+        const manifestPath = path.join(assetCachePath, manifestFile);
 
-        // Save the updated manifest
-        fs.writeFileSync(manifestPath, JSON.stringify(mergedManifest, null, 2));
+        // Ensure the directory exists for versioned manifests
+        const manifestDir = path.dirname(manifestPath);
+        if (!fs.existsSync(manifestDir)) {
+            fs.mkdirSync(manifestDir, { recursive: true });
+        }
+
+        // The actual data is in the manifestData[manifestFile].path
+        const newData = JSON.parse(manifestData[manifestFile].path);
+
+        // Save the updated manifest (replace entirely since it's a complete manifest)
+        fs.writeFileSync(manifestPath, JSON.stringify(newData, null, 2));
 
         return { success: true };
     } catch (error) {

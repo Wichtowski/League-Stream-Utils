@@ -15,13 +15,13 @@ interface CameraNavigationProps {
     }>;
 }
 
-export default function CameraNavigation({
+export const CameraNavigation = ({
     position = 'top-right',
     showHub = true,
     showTeamView = false,
     teamId,
     customButtons = []
-}: CameraNavigationProps) {
+}: CameraNavigationProps): React.ReactElement => {
     const router = useRouter();
 
     const positionClasses = {
@@ -67,4 +67,4 @@ export default function CameraNavigation({
             ))}
         </div>
     );
-} 
+};

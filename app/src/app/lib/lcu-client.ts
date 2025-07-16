@@ -208,6 +208,4 @@ export async function getLCUCredentials(): Promise<LCUCredentials> {
 }
 
 // Create a global LCU client instance
-export const lcuClient = new LCUClient();
-
-export default LCUClient; 
+export const lcuClient = new LCUClient(); 

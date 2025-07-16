@@ -21,7 +21,7 @@ interface BracketData {
     isComplete: boolean;
 }
 
-export default function BracketManager({ tournament, isOwner }: BracketManagerProps) {
+export const BracketManager = ({ tournament, isOwner }: BracketManagerProps): React.ReactElement => {
     const { showAlert, showConfirm } = useModal();
     const [bracketData, setBracketData] = useState<BracketData | null>(null);
     const [loading, setLoading] = useState(false);
@@ -331,7 +331,7 @@ export default function BracketManager({ tournament, isOwner }: BracketManagerPr
             )}
         </div>
     );
-}
+};
 
 // Match Card Component
 interface MatchCardProps {
@@ -484,4 +484,4 @@ function MatchResultForm({ match, onSubmit, onCancel }: MatchResultFormProps) {
             </div>
         </form>
     );
-} 
+};

@@ -74,7 +74,6 @@ export const downloadAllAssets = async (
         const tracker = categoryTrackers.get('item')!;
 
         itemCacheService.onProgress((p) => {
-            console.log('Item progress callback called:', p); // Debug log
             tracker.current = p.current;
             tracker.total = p.total;
             tracker.stage = p.stage;
@@ -161,7 +160,6 @@ export const downloadAllAssets = async (
         onProgress?.({ current: 0, total: 0, itemName: 'runes', stage: 'checking', percentage: 0, category: 'rune' });
 
         try {
-            console.log('Calling runesBlueprintDownloader.downloadBlueprintForCurrentVersion()...');
             await runesBlueprintDownloader.downloadBlueprintForCurrentVersion();
             console.log('Runes download completed successfully');
 

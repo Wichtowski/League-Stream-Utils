@@ -19,7 +19,7 @@ import { DownloadProvider } from "./lib/contexts/DownloadContext";
 import { HighPerformanceDownloadProvider } from "./lib/contexts/HighPerformanceDownloadContext";
 import { NavigationGuard } from "./lib/components/NavigationGuard";
 import { ContextWrapper } from "./lib/components/ContextErrorBoundary";
-import ChampionCacheInitializer from "./components/common/ChampionCacheInitializer";
+import { ChampionCacheInitializer } from "./components/common/ChampionCacheInitializer";
 import "./globals.css";
 
 const geistSans = Geist({

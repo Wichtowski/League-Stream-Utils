@@ -2,8 +2,6 @@ import { Champion, ChampionSpell } from '../types/game';
 import { DDRAGON_CDN } from '../constants';
 import { BaseCacheService } from './base-cache';
 import { DataDragonClient } from '../utils/datadragon-client';
-import { AssetValidator } from '../utils/asset-validator';
-import { AssetMigrator } from '../utils/asset-migrator';
 import path from 'path';
 
 interface DataDragonChampion {
@@ -70,10 +68,11 @@ interface ChampionCacheData {
 // Using DownloadProgress from base-cache.ts
 
 class ChampionCacheService extends BaseCacheService<Champion> {
+    private isMainDownloadRunning = false;
 
     // Abstract method implementations
     async getAll(): Promise<Champion[]> {
-        return this.getAllChampions();
+        return this.getAllChampions(this.isMainDownloadRunning);
     }
 
     async getById(key: string): Promise<Champion | null> {
@@ -91,12 +90,12 @@ class ChampionCacheService extends BaseCacheService<Champion> {
         const dataKey = `champion-${version}-${championKey}-data`;
 
         // Check if file exists using asset manifest
-        const manifestResult = await window.electronAPI.loadAssetManifest();
+        const manifestResult = await window.electronAPI.loadCategoryManifest('champions');
         if (manifestResult.success && manifestResult.data) {
             const manifest = manifestResult.data;
             if (manifest[dataKey]) {
                 // Load cached data
-                const loadResult = await window.electronAPI.loadAssetManifest();
+                const loadResult = await window.electronAPI.loadCategoryManifest('champions');
                 if (loadResult.success && loadResult.data) {
                     const cachedData = loadResult.data[dataKey];
                     if (cachedData) {
@@ -137,19 +136,8 @@ class ChampionCacheService extends BaseCacheService<Champion> {
             spells
         };
 
-        // Save champion data using asset system with correct path structure
-        const dataContent = JSON.stringify(cacheData);
-        const dataBuffer = Buffer.from(dataContent, 'utf8');
-
-        await window.electronAPI.saveAssetManifest({
-            [dataKey]: {
-                path: dataContent,
-                url: `${DDRAGON_CDN}/${version}/data/en_US/champion/${championKey}.json`,
-                size: dataBuffer.length,
-                timestamp: Date.now(),
-                checksum: dataKey
-            }
-        });
+        // Don't save individual champion data to manifest - rely on category manifest system
+        // Individual champion data is already tracked in the category progress
 
         return cacheData;
     }
@@ -452,7 +440,7 @@ class ChampionCacheService extends BaseCacheService<Champion> {
         return recastVariants[championId]?.[spellId] || [];
     }
 
-    async getAllChampions(): Promise<Champion[]> {
+    async getAllChampions(suppressProgress = false): Promise<Champion[]> {
         await this.initialize();
 
         const version = await this.getLatestVersion();
@@ -470,22 +458,26 @@ class ChampionCacheService extends BaseCacheService<Champion> {
         const champions: Champion[] = [];
         let currentIndex = 0;
 
-        this.updateProgress({
-            current: 0,
-            total: championKeys.length,
-            itemName: '',
-            stage: 'champion-data'
-        });
+        if (!suppressProgress) {
+            this.updateProgress({
+                current: 0,
+                total: championKeys.length,
+                itemName: '',
+                stage: 'champion-data'
+            });
+        }
 
         for (const championKey of championKeys) {
             try {
                 currentIndex++;
-                this.updateProgress({
-                    current: currentIndex,
-                    total: championKeys.length,
-                    itemName: data.data[championKey].name,
-                    stage: 'champion-data'
-                });
+                if (!suppressProgress) {
+                    this.updateProgress({
+                        current: currentIndex,
+                        total: championKeys.length,
+                        itemName: data.data[championKey].name,
+                        stage: 'champion-data'
+                    });
+                }
 
                 const cacheData = await this.downloadChampionData(championKey, version);
 
@@ -514,12 +506,14 @@ class ChampionCacheService extends BaseCacheService<Champion> {
             }
         }
 
-        this.updateProgress({
-            current: championKeys.length,
-            total: championKeys.length,
-            itemName: '',
-            stage: 'complete'
-        });
+        if (!suppressProgress) {
+            this.updateProgress({
+                current: championKeys.length,
+                total: championKeys.length,
+                itemName: '',
+                stage: 'complete'
+            });
+        }
 
         return champions;
     }
@@ -557,9 +551,8 @@ class ChampionCacheService extends BaseCacheService<Champion> {
                 return;
             }
 
-            // Clear the manifest so that if users delete files, the system will start fresh
-            await window.electronAPI.saveAssetManifest({});
-            console.log('Champion manifest cleared successfully. System will restart from scratch if files are deleted.');
+            // No need to clear legacy manifest - using category manifest system now
+            console.log('Champion download completed successfully.');
         } catch (error) {
             console.error('Failed to cleanup manifest after successful download:', error);
         }
@@ -604,56 +597,31 @@ class ChampionCacheService extends BaseCacheService<Champion> {
             const allChampionKeys = Object.keys(championsResponse.data);
             const totalExpected = allChampionKeys.length;
 
-            // Check category progress, but migrate existing files if manifest is empty
-            const categoryProgress = await this.getCategoryProgress('champions');
-            let completedChampions = categoryProgress.completedItems;
-
-            // If no champions in manifest but files exist, migrate them
-            if (completedChampions.length === 0) {
-                console.log('No champions found in category manifest, checking for existing files...');
-                const migrationResult = await AssetMigrator.migrateChampions(allChampionKeys, {
-                    targetVersion: version,
-                    updateCategoryManifest: true
-                });
-
-                if (migrationResult.migratedItems.length > 0) {
-                    console.log(`Migrated ${migrationResult.migratedItems.length} existing champions to category manifest`);
-                    completedChampions = migrationResult.migratedItems;
-
-                    // Update category manifest with migrated items
-                    await AssetMigrator.updateCategoryManifest(
-                        'champions',
-                        migrationResult.migratedItems,
-                        totalExpected,
-                        version,
-                        this.updateCategoryProgress.bind(this)
-                    );
-                }
-            }
-
-            // Use asset validator for file validation
+            // Simplified: directly check if champion files exist on disk
             const missingChampions: string[] = [];
 
+            console.log(`Checking file existence for ${allChampionKeys.length} champions...`);
+
             for (const championKey of allChampionKeys) {
-                // First check if it's in completed list (category manifest is source of truth)
-                if (!completedChampions.includes(championKey)) {
-                    missingChampions.push(championKey);
-                    continue;
+                // Check if the main champion square image exists
+                const squareImagePath = `cache/game/${version}/champions/${championKey}/square.png`;
+
+                let championExists = false;
+                if (typeof window !== 'undefined' && window.electronAPI) {
+                    const userDataPath = await window.electronAPI.getUserDataPath();
+                    const fullPath = `${userDataPath}/assets/${squareImagePath}`;
+                    const fileCheck = await window.electronAPI.checkFileExists(fullPath);
+                    championExists = fileCheck.success && (fileCheck.exists === true);
                 }
 
-                // For champions in completed list, only verify the key file actually exists on disk
-                const squareImagePath = AssetValidator.generateCachedPath(
-                    AssetValidator.generateAssetKey('champion', version, championKey, 'square.png')
-                );
-                const squareExists = await AssetValidator.checkFileExists(squareImagePath);
-
-                if (!squareExists) {
-                    console.log(`Champion ${championKey} in category manifest but files missing, will re-download`);
+                if (!championExists) {
                     missingChampions.push(championKey);
+                } else {
+                    console.log(`✓ Champion ${championKey} found`);
                 }
             }
 
-            console.log(`Found ${completedChampions.length - missingChampions.length} verified champions out of ${allChampionKeys.length} total`);
+            console.log(`Found ${allChampionKeys.length - missingChampions.length} existing champions, ${missingChampions.length} missing out of ${allChampionKeys.length} total`);
 
             return {
                 isComplete: missingChampions.length === 0,
@@ -759,6 +727,8 @@ class ChampionCacheService extends BaseCacheService<Champion> {
         }
 
         try {
+            // Set flag to suppress internal progress updates
+            this.isMainDownloadRunning = true;
             const version = await this.getLatestVersion();
             this.version = version;
 
@@ -772,7 +742,7 @@ class ChampionCacheService extends BaseCacheService<Champion> {
             const errors: string[] = [];
 
             // Load existing progress from category manifest
-            const categoryProgress = await this.getCategoryProgress('champions');
+            const categoryProgress = await this.getCategoryProgress('champions', version);
             const completedChampions = categoryProgress.completedItems;
 
             if (totalChampions === 0) {
@@ -799,16 +769,6 @@ class ChampionCacheService extends BaseCacheService<Champion> {
 
             for (const championKey of championKeys) {
                 try {
-                    // Update progress for current champion - unified stage
-                    this.updateProgress({
-                        current: downloadedCount + startingCount,
-                        total: totalExpected,
-                        itemName: championKey,
-                        stage: 'downloading',
-                        assetType: 'champion',
-                        currentAsset: `${championKey}`
-                    });
-
                     await this.downloadChampionData(championKey, version);
                     downloadedCount++;
 
@@ -825,9 +785,9 @@ class ChampionCacheService extends BaseCacheService<Champion> {
                         completedChampions
                     );
 
-                    // Update progress after successful download
+                    // Update progress after successful download - count champions, not assets
                     this.updateProgress({
-                        current: downloadedCount + startingCount,
+                        current: startingCount + downloadedCount,
                         total: totalExpected,
                         itemName: championKey,
                         stage: 'downloading',
@@ -840,7 +800,10 @@ class ChampionCacheService extends BaseCacheService<Champion> {
                     console.error(errorMsg);
                     errors.push(errorMsg);
 
-                    // Still update progress even if download failed
+                    // Increment count even if download failed to keep progress consistent
+                    downloadedCount++;
+
+                    // Update progress with failed state
                     this.updateProgress({
                         current: downloadedCount + startingCount,
                         total: totalExpected,
@@ -884,6 +847,9 @@ class ChampionCacheService extends BaseCacheService<Champion> {
                 totalChampions: 0,
                 errors: [`Failed to download champions: ${error}`]
             };
+        } finally {
+            // Reset flag to allow normal progress updates
+            this.isMainDownloadRunning = false;
         }
     }
 }

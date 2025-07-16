@@ -34,8 +34,7 @@ class AssetIntegrityChecker {
         this.isChecking = true;
 
         try {
-            // Load current manifest
-            await this.loadManifest();
+            // Legacy manifest loading disabled - using category-specific manifests now
 
             const missingAssets: string[] = [];
             const corruptedAssets: string[] = [];
@@ -84,21 +83,6 @@ class AssetIntegrityChecker {
 
         } finally {
             this.isChecking = false;
-        }
-    }
-
-    private async loadManifest(): Promise<void> {
-        if (typeof window === 'undefined' || !window.electronAPI) {
-            return;
-        }
-
-        try {
-            const result = await window.electronAPI.loadAssetManifest();
-            if (result.success && result.data) {
-                this.manifest = result.data;
-            }
-        } catch (error) {
-            console.warn('Failed to load asset manifest:', error);
         }
     }
 
@@ -301,7 +285,6 @@ class AssetIntegrityChecker {
 
                         // Update manifest
                         this.manifest[assetKey] = manifestEntry;
-                        await window.electronAPI.saveAssetManifest(this.manifest);
                         added.push(assetPath);
                     } else {
                         failed.push(assetPath);

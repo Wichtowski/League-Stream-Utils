@@ -57,8 +57,8 @@ export class RunesBlueprintDownloader extends BaseBlueprintDownloader<CommunityD
 
             console.log('Runes data fetched successfully, got', totalRunes, 'valid runes (filtered out template runes)');
 
-            // Check category progress instead of individual file checks
-            const categoryProgress = await this.getCategoryProgress('runes');
+            // Check category progress instead of individual file checks (use League version for runes too)
+            const categoryProgress = await this.getCategoryProgress('runes', version);
             let completedRunes = categoryProgress.completedItems;
 
             // If no runes in manifest but files might exist, migrate them
@@ -88,24 +88,11 @@ export class RunesBlueprintDownloader extends BaseBlueprintDownloader<CommunityD
             // Download rune icons using the filtered valid runes
             const downloadedCount = await this.downloadRuneIcons(validRunes, version, completedRunes);
 
-            // Create the blueprint directory structure
-            const basePath = this.config.basePath || 'game';
-            const blueprintDir = `${basePath}/${version}`;
-            const blueprintPath = `${blueprintDir}/${this.config.blueprintFileName}`;
+            // Create the blueprint directory structure (use version for runes)
+            const basePath = this.config.basePath || 'cache/game';
+            const blueprintPath = `${basePath}/${version}/${this.config.blueprintFileName}`;
 
-            // Save the blueprint using asset manifest system
-            const dataContent = JSON.stringify(data, null, 2);
-            const dataBuffer = Buffer.from(dataContent, 'utf8');
 
-            await this.saveAssetManifest({
-                [blueprintPath]: {
-                    path: dataContent,
-                    url: this.config.endpoint,
-                    size: dataBuffer.length,
-                    timestamp: Date.now(),
-                    checksum: blueprintPath
-                }
-            });
 
             // Update progress - complete with actual count
             this.updateProgress({

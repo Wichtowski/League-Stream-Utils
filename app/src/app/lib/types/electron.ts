@@ -68,8 +68,6 @@ export interface ElectronAPI {
 
     // Asset caching system
     downloadAsset: (url: string, category: string, assetKey: string) => Promise<{ success: boolean; localPath?: string; error?: string }>;
-    loadAssetManifest: () => Promise<{ success: boolean; data?: Record<string, CachedAsset>; error?: string }>;
-    saveAssetManifest: (manifestData: Record<string, CachedAsset>) => Promise<{ success: boolean; error?: string }>;
     loadCategoryManifest: (category: string) => Promise<{ success: boolean; data?: Record<string, CachedAsset>; error?: string }>;
     saveCategoryManifest: (category: string, manifestData: Record<string, CachedAsset>) => Promise<{ success: boolean; error?: string }>;
     scanAndUpdateManifest: () => Promise<{ success: boolean; updatedCount?: number; error?: string }>;

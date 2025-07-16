@@ -404,7 +404,7 @@ class TournamentTemplateService {
     }
 }
 
+export type { TournamentTemplate, TournamentSettings }; 
+
 // Export singleton instance
 export const tournamentTemplates = new TournamentTemplateService();
-export default tournamentTemplates;
-export type { TournamentTemplate, TournamentSettings }; 

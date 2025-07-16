@@ -2,7 +2,7 @@
 
 import { useElectron } from '@lib/contexts/ElectronContext';
 
-export default function ElectronDataModeSelector() {
+export const ElectronDataModeSelector = () => {
     const { isElectron, useLocalData, setUseLocalData } = useElectron();
 
     if (!isElectron) {
@@ -122,4 +122,4 @@ export default function ElectronDataModeSelector() {
             )}
         </div>
     );
-}
+};

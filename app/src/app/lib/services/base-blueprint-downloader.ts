@@ -50,26 +50,12 @@ export abstract class BaseBlueprintDownloader<T> extends BaseCacheService<T> {
                 throw new Error(`Failed to fetch ${this.config.assetType} blueprint: ${response.status}`);
             }
 
-            const data: T = await response.json();
-
             // Create the blueprint directory structure
             const basePath = this.config.basePath || 'game';
             const blueprintDir = `${basePath}/${version}`;
             const blueprintPath = `${blueprintDir}/${this.config.blueprintFileName}`;
 
-            // Save the blueprint using asset manifest system
-            const dataContent = JSON.stringify(data, null, 2);
-            const dataBuffer = Buffer.from(dataContent, 'utf8');
 
-            await this.saveAssetManifest({
-                [blueprintPath]: {
-                    path: dataContent,
-                    url: `${DDRAGON_CDN}/${version}/data/en_US/${this.config.endpoint}`,
-                    size: dataBuffer.length,
-                    timestamp: Date.now(),
-                    checksum: blueprintPath
-                }
-            });
 
             console.log(`${this.config.assetType} blueprint saved to ${blueprintPath}`);
         } catch (error) {

@@ -232,7 +232,7 @@ export class CacheCompletenessChecker {
     static async checkCompletenessFromManifest(
         category: string,
         expectedItems: string[],
-        loadCategoryManifestFn: (category: string) => Promise<any>
+        loadCategoryManifestFn: (category: string) => Promise<{ completedItems: string[] }>
     ): Promise<CacheCompletenessResult> {
         try {
             const manifest = await loadCategoryManifestFn(category);

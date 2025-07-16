@@ -12,14 +12,14 @@ interface PlayerInfoHeaderProps {
     index?: number;
 }
 
-export default function PlayerInfoHeader({
+export const PlayerInfoHeader = ({
     player,
     teamName,
     position = 'top-left',
     size = 'medium',
     showIndex = false,
     index
-}: PlayerInfoHeaderProps) {
+}: PlayerInfoHeaderProps): React.ReactElement => {
     const positionClasses = {
         'top-left': 'absolute top-4 left-4 z-10',
         'top-right': 'absolute top-4 right-4 z-10',
@@ -67,4 +67,4 @@ export default function PlayerInfoHeader({
             </div>
         </div>
     );
-} 
+};

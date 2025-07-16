@@ -31,8 +31,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
     // Asset caching system
     downloadAsset: (url, category, assetKey) => ipcRenderer.invoke('download-asset', url, category, assetKey),
     downloadAssetsParallel: (downloadTasks) => ipcRenderer.invoke('download-assets-parallel', downloadTasks),
-    loadAssetManifest: () => ipcRenderer.invoke('load-asset-manifest'),
-    saveAssetManifest: (manifestData) => ipcRenderer.invoke('save-asset-manifest', manifestData),
     loadCategoryManifest: (category) => ipcRenderer.invoke('load-category-manifest', category),
     saveCategoryManifest: (category, manifestData) => ipcRenderer.invoke('save-category-manifest', category, manifestData),
     scanAndUpdateManifest: () => ipcRenderer.invoke('scan-and-update-manifest'),

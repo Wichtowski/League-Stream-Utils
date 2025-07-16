@@ -11,7 +11,7 @@ interface MyTeamRegistrationProps {
     onTeamRegistered: (tournament: Tournament) => void;
 }
 
-export default function MyTeamRegistration({ tournament, onClose, onTeamRegistered }: MyTeamRegistrationProps) {
+export const MyTeamRegistration = ({ tournament, onClose, onTeamRegistered }: MyTeamRegistrationProps): React.ReactElement => {
     const { showAlert } = useModal();
     const [myTeams, setMyTeams] = useState<Team[]>([]);
     const [loading, setLoading] = useState(true);

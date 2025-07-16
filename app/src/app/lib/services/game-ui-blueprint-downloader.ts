@@ -1,5 +1,4 @@
 import { BaseCacheService } from './base-cache';
-import { DataDragonClient } from '../utils/datadragon-client';
 import { AssetValidator } from '../utils/asset-validator';
 
 interface GameUIAsset {
@@ -119,8 +118,9 @@ class GameUIBlueprintDownloader extends BaseCacheService {
             // Calculate total count
             const totalCount = Object.values(assetCategories).reduce((sum, files) => sum + files.length, 0);
 
-            // Check category progress to see what's already been processed
-            const categoryProgress = await this.getCategoryProgress('game-ui');
+            // Check category progress to see what's already been processed (use League version)
+            const version = await this.getLatestVersion();
+            const categoryProgress = await super.getCategoryProgress('game-ui', version);
             const completedAssets = categoryProgress.completedItems;
             const alreadyProcessed = completedAssets.length;
 
@@ -156,7 +156,7 @@ class GameUIBlueprintDownloader extends BaseCacheService {
                             // Update category progress after each asset
                             await this.updateCategoryProgress(
                                 'game-ui',
-                                'current', // No specific version for game UI assets
+                                version,
                                 assetKey,
                                 totalCount,
                                 processedCount,
@@ -242,9 +242,10 @@ class GameUIBlueprintDownloader extends BaseCacheService {
                 }
 
                 try {
-                    const version = await DataDragonClient.getLatestVersion();
+                    // Use versioned path for game-ui assets
+                    const version = await this.getLatestVersion();
                     const assetKey = `game/${version}/overlay/${category}/${filename}`;
-
+                    console.log(`assetKey: ${assetKey}`);
                     // Check if file already exists using asset validator
                     const cachedPath = AssetValidator.generateCachedPath(assetKey);
                     const fileExists = await AssetValidator.checkFileExists(cachedPath);
@@ -260,24 +261,17 @@ class GameUIBlueprintDownloader extends BaseCacheService {
                         const sourcePath = `public/assets/${category}/${filename}`;
 
                         try {
-                            // Use downloadAsset with 'cache' category like champion cache to ensure proper path
-                            const downloadResult = await this.downloadAsset(sourcePath, 'cache', assetKey);
-                            if (downloadResult) {
+                            // Use copy-asset-file for local assets with proper versioned cache path
+                            const targetPath = `cache/${assetKey}`;
+                            const copyResult = await window.electronAPI.copyAssetFile(sourcePath, targetPath);
+                            if (copyResult.success && copyResult.localPath) {
+                                const downloadResult = copyResult.localPath;
                                 // Get file size from the downloaded result
                                 const actualPath = downloadResult.replace('cache/', '');
                                 const sizeResult = await window.electronAPI.getFileSize(actualPath);
                                 const fileSize = sizeResult.success ? sizeResult.size || 0 : 0;
 
-                                // Save to asset manifest using the same format as champion cache
-                                await this.saveAssetManifest({
-                                    [assetKey]: {
-                                        path: downloadResult, // This will be cache/game/...
-                                        url: sourcePath,
-                                        size: fileSize,
-                                        timestamp: Date.now(),
-                                        checksum: assetKey
-                                    }
-                                });
+
 
                                 processedCount++;
                                 totalSize += fileSize;
@@ -315,8 +309,8 @@ class GameUIBlueprintDownloader extends BaseCacheService {
 
     async getOverlayAsset(category: string, filename: string): Promise<string | null> {
         try {
-            // Get the current version to use proper directory structure
-            const version = await DataDragonClient.getLatestVersion();
+            // Use versioned path for game-ui assets to match structure
+            const version = await this.getLatestVersion();
             const assetKey = `game/${version}/overlay/${category}/${filename}`;
 
             // Check if asset exists using asset validator
@@ -326,11 +320,6 @@ class GameUIBlueprintDownloader extends BaseCacheService {
                 return cachedPath;
             }
 
-            // Check if asset exists in manifest
-            const manifest = await this.loadAssetManifest();
-            if (manifest && manifest[assetKey]) {
-                return manifest[assetKey].path;
-            }
 
             // If not cached, try to process it
             console.log(`Asset ${assetKey} not found in cache, processing...`);
@@ -340,25 +329,11 @@ class GameUIBlueprintDownloader extends BaseCacheService {
                 const sourcePath = `public/assets/${category}/${filename}`;
 
                 try {
-                    // Use downloadAsset with 'cache' category like champion cache to ensure proper path
-                    const downloadResult = await this.downloadAsset(sourcePath, 'cache', assetKey);
-                    if (downloadResult) {
-                        // Save to manifest using the same format as champion cache
-                        const actualPath = downloadResult.replace('cache/', '');
-                        const sizeResult = await window.electronAPI.getFileSize(actualPath);
-                        const fileSize = sizeResult.success ? sizeResult.size || 0 : 0;
-
-                        await this.saveAssetManifest({
-                            [assetKey]: {
-                                path: downloadResult, // This will be cache/game/...
-                                url: sourcePath,
-                                size: fileSize,
-                                timestamp: Date.now(),
-                                checksum: assetKey
-                            }
-                        });
-
-                        return downloadResult;
+                    // Use copy-asset-file for local assets with proper versioned cache path
+                    const targetPath = `cache/${assetKey}`;
+                    const copyResult = await window.electronAPI.copyAssetFile(sourcePath, targetPath);
+                    if (copyResult.success && copyResult.localPath) {
+                        return copyResult.localPath;
                     }
                 } catch (error) {
                     console.error(`Failed to process asset ${assetKey}:`, error);
@@ -411,39 +386,14 @@ class GameUIBlueprintDownloader extends BaseCacheService {
 
     protected async getCategoryProgress(category: string): Promise<{ downloaded: number; total: number; completedItems: string[] }> {
         try {
-            const manifest = await this.loadAssetManifest();
-            const completedItems: string[] = [];
-
-            if (manifest) {
-                // Look for assets that match the versioned overlay pattern
-                for (const assetKey of Object.keys(manifest)) {
-                    if (assetKey.includes(`/overlay/`)) {
-                        // Extract the simple asset key (category/filename)
-                        const parts = assetKey.split('/');
-                        if (parts.length >= 2) {
-                            const filename = parts[parts.length - 1];
-                            const categoryName = parts[parts.length - 2];
-
-                            // Also verify the file actually exists using the same pattern as champion cache
-                            const manifestEntry = manifest[assetKey];
-                            if (manifestEntry && manifestEntry.path) {
-                                const fileExists = await this.checkFileExists(manifestEntry.path);
-                                if (fileExists) {
-                                    completedItems.push(`${categoryName}/${filename}`);
-                                } else {
-                                    console.log(`game ui manifest path: ${manifestEntry.path}`);
-                                    console.log(`Game UI asset ${assetKey} in manifest but file missing`);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            // Using new category manifest system instead of individual asset tracking
+            const version = await this.getLatestVersion();
+            const categoryProgress = await super.getCategoryProgress('game-ui', version);
 
             return {
-                downloaded: completedItems.length,
-                total: completedItems.length,
-                completedItems
+                downloaded: categoryProgress.completedItems.length,
+                total: categoryProgress.completedItems.length,
+                completedItems: categoryProgress.completedItems
             };
         } catch (error) {
             console.error(`Failed to get category progress for ${category}:`, error);
@@ -458,8 +408,6 @@ class GameUIBlueprintDownloader extends BaseCacheService {
                 return;
             }
 
-            // Clear the manifest so that if users delete files, the system will start fresh
-            await window.electronAPI.saveAssetManifest({});
             console.log('Game UI manifest cleared successfully. System will restart from scratch if files are deleted.');
         } catch (error) {
             console.error('Failed to cleanup manifest after successful download:', error);

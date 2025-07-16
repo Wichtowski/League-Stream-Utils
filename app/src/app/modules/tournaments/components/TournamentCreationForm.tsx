@@ -11,7 +11,7 @@ interface TournamentCreationFormProps {
     onCancel: () => void;
 }
 
-export default function TournamentCreationForm({ onTournamentCreated, onCancel }: TournamentCreationFormProps) {
+export const TournamentCreationForm = ({ onTournamentCreated, onCancel }: TournamentCreationFormProps) => {
     const { showAlert } = useModal();
     const { createTournament } = useTournaments();
     const [creating, setCreating] = useState(false);
@@ -541,4 +541,4 @@ export default function TournamentCreationForm({ onTournamentCreated, onCancel }
             </form>
         </div>
     );
-}
+};

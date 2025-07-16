@@ -5,8 +5,8 @@ import { Cog6ToothIcon, CloudIcon, DocumentDuplicateIcon, ShieldCheckIcon, Compu
 import { useModal } from '@lib/contexts/ModalContext';
 import { riotAPI } from '@lib/services/riot-api';
 import { refreshChampionsCache, getChampions } from '@lib/champions';
-import tournamentTemplates, { type TournamentTemplate } from '@lib/services/tournament-templates';
-import ElectronDataModeSelector from './dataModeSelector';
+import { tournamentTemplates, type TournamentTemplate } from '@lib/services/tournament-templates';
+import { ElectronDataModeSelector } from './dataModeSelector';
 import { Button } from '@components/common/Button';
 import Link from 'next/link';
 
@@ -33,7 +33,7 @@ interface IntegrityCheckResult {
     message: string;
 }
 
-export default function ElectronSettings() {
+export const ElectronSettings = () => {
     const { showAlert } = useModal();
     const [activeTab, setActiveTab] = useState('data-mode');
     const [isElectron, setIsElectron] = useState(false);
@@ -620,4 +620,4 @@ export default function ElectronSettings() {
             )}
         </div>
     );
-} 
+};

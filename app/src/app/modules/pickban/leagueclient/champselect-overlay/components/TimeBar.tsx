@@ -24,7 +24,7 @@ interface TimeBarProps {
   };
 }
 
-const TimeBar: React.FC<TimeBarProps> = ({ timer, tournamentData, hoverState }) => {
+export const TimeBar: React.FC<TimeBarProps> = ({ timer, tournamentData, hoverState }) => {
   if (!timer) return null;
 
   // Determine current picking/banning team
@@ -82,5 +82,3 @@ const TimeBar: React.FC<TimeBarProps> = ({ timer, tournamentData, hoverState }) 
     </div>
   );
 };
-
-export default TimeBar; 

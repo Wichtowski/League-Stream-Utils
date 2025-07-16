@@ -8,11 +8,11 @@ interface CameraLayoutProps {
     className?: string;
 }
 
-export default function CameraLayout({
+export const CameraLayout = ({
     children,
     backgroundColor = 'black',
     className = ''
-}: CameraLayoutProps) {
+}: CameraLayoutProps): React.ReactElement => {
     const bgClass = backgroundColor === 'black' ? 'bg-black' : '';
 
     return (
@@ -20,4 +20,4 @@ export default function CameraLayout({
             {children}
         </div>
     );
-} 
+};

@@ -9,7 +9,7 @@ interface AdminTournamentManagerProps {
     onClose: () => void;
 }
 
-export default function AdminTournamentManager({ onClose }: AdminTournamentManagerProps): React.ReactElement {
+export const AdminTournamentManager = ({ onClose }: AdminTournamentManagerProps): React.ReactElement => {
     const { showAlert } = useModal();
     const [tournaments, setTournaments] = useState<Tournament[]>([]);
     const [teams, setTeams] = useState<Team[]>([]);
@@ -302,4 +302,4 @@ export default function AdminTournamentManager({ onClose }: AdminTournamentManag
             </div>
         </div>
     );
-} 
+};

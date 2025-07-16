@@ -1,7 +1,7 @@
 import { BaseCacheService } from './base-cache';
 import { DDRAGON_CDN } from '../constants';
 import { DataDragonClient } from '../utils/datadragon-client';
-import { AssetValidator } from '../utils/asset-validator';
+import path from 'path';
 
 interface DataDragonItem {
     name: string;
@@ -65,7 +65,6 @@ interface ItemCacheData {
 }
 
 class ItemCacheService extends BaseCacheService<ItemCacheData> {
-    private currentVersion: string = '15.13.1';
 
     async getAll(): Promise<ItemCacheData[]> {
         return this.getAllItems();
@@ -78,21 +77,7 @@ class ItemCacheService extends BaseCacheService<ItemCacheData> {
     async downloadItemData(itemId: string, version: string): Promise<ItemCacheData> {
         await this.initialize();
 
-        // Check if item is already cached using asset manifest
-        const dataKey = `item-${version}-${itemId}-data`;
-        const manifestResult = await this.loadAssetManifest();
-
-        if (manifestResult && manifestResult[dataKey]) {
-            // Load cached data
-            const cachedData = manifestResult[dataKey];
-            if (cachedData && cachedData.path) {
-                try {
-                    return JSON.parse(cachedData.path);
-                } catch {
-                    // If parsing fails, continue to download
-                }
-            }
-        }
+        // Cache checking temporarily disabled - using direct download for now
 
         // Download item data from DataDragon
         const response = await fetch(`${DDRAGON_CDN}/${version}/data/en_US/item.json`);
@@ -130,19 +115,8 @@ class ItemCacheService extends BaseCacheService<ItemCacheData> {
             }
         };
 
-        // Save item data using asset manifest system
-        const dataContent = JSON.stringify(cacheData);
-        const dataBuffer = Buffer.from(dataContent, 'utf8');
-
-        await this.saveAssetManifest({
-            [dataKey]: {
-                path: dataContent,
-                url: `${DDRAGON_CDN}/${version}/data/en_US/item.json`,
-                size: dataBuffer.length,
-                timestamp: Date.now(),
-                checksum: dataKey
-            }
-        });
+        // Don't save individual item data to manifest - rely on category manifest system
+        // Individual item data is already tracked in the category progress
 
         return cacheData;
     }
@@ -151,8 +125,23 @@ class ItemCacheService extends BaseCacheService<ItemCacheData> {
         icon: string;
     }> {
         const imageUrl = `${DDRAGON_CDN}/${version}/img/item/${itemId}.png`;
-        const imageAssetKey = `${itemDir}/icon.png`;
+        const imageAssetKey = `${itemDir}/${itemId}.png`;
 
+        // Check if file exists on disk (avoid unnecessary downloads)
+        if (typeof window !== 'undefined' && window.electronAPI) {
+            const userDataPath = await window.electronAPI.getUserDataPath();
+            const fullPath = path.join(userDataPath, 'assets', 'cache', imageAssetKey);
+            const fileCheck = await window.electronAPI.checkFileExists(fullPath);
+
+            if (fileCheck.success && fileCheck.exists) {
+                // File exists on disk, return cached path
+                return {
+                    icon: `cache/${imageAssetKey}`
+                };
+            }
+        }
+
+        // File doesn't exist, download it (fallback for missing items)
         let iconPath = imageUrl; // Fallback to URL
 
         try {
@@ -160,16 +149,7 @@ class ItemCacheService extends BaseCacheService<ItemCacheData> {
             if (imageResult) {
                 iconPath = `cache/${imageAssetKey}`;
 
-                // Save image to asset manifest
-                await this.saveAssetManifest({
-                    [imageAssetKey]: {
-                        path: imageResult,
-                        url: imageUrl,
-                        size: 0, // Size will be calculated by Electron
-                        timestamp: Date.now(),
-                        checksum: imageAssetKey
-                    }
-                });
+                // Don't save to legacy manifest - rely on category manifest system
             }
         } catch (error) {
             console.warn(`Failed to download item image for ${itemId}:`, error);
@@ -250,35 +230,24 @@ class ItemCacheService extends BaseCacheService<ItemCacheData> {
             const data = itemsResponse;
             const allItemKeys = Object.keys(data.data);
 
-            // Load asset manifest to check cached items
-            const manifest = await this.loadAssetManifest();
             const missingItems: string[] = [];
 
-            for (const itemKey of allItemKeys) {
-                const dataKey = `item-${version}-${itemKey}-data`;
-                const imageKey = `game/${version}/items/${itemKey}/icon.png`;
+            // Check for file existence directly on disk - simple and reliable
+            if (typeof window !== 'undefined' && window.electronAPI) {
+                const userDataPath = await window.electronAPI.getUserDataPath();
 
-                // Check if both data and image are cached AND files actually exist
-                const hasDataInManifest = manifest && manifest[dataKey];
-                const hasImageInManifest = manifest && manifest[imageKey];
+                for (const itemKey of allItemKeys) {
+                    // Check if the main item image exists (this is the key asset)
+                    const itemImagePath = path.join(userDataPath, 'assets', 'cache', 'game', version, 'items', itemKey, `${itemKey}.png`);
+                    const fileCheck = await window.electronAPI.checkFileExists(itemImagePath);
 
-                // Also verify files actually exist on disk
-                let dataFileExists = false;
-                let imageFileExists = false;
-
-                if (hasDataInManifest && manifest![dataKey].path) {
-                    const fileCheck = await AssetValidator.checkFileExists(manifest![dataKey].path);
-                    dataFileExists = fileCheck;
+                    if (!fileCheck.success || !fileCheck.exists) {
+                        missingItems.push(itemKey);
+                    }
                 }
-
-                if (hasImageInManifest && manifest![imageKey].path) {
-                    const fileCheck = await AssetValidator.checkFileExists(manifest![imageKey].path);
-                    imageFileExists = fileCheck;
-                }
-
-                if (!hasDataInManifest || !hasImageInManifest || !dataFileExists || !imageFileExists) {
-                    missingItems.push(itemKey);
-                }
+            } else {
+                // Fallback if electron API not available - assume all missing
+                missingItems.push(...allItemKeys);
             }
 
             return {
@@ -300,18 +269,10 @@ class ItemCacheService extends BaseCacheService<ItemCacheData> {
 
     async downloadAllItemsOnStartup(): Promise<void> {
         try {
-            // Emit 'checking' stage at the start
-            this.updateProgress({
-                current: 0,
-                total: 0,
-                stage: 'checking',
-                itemName: 'Checking items...'
-            });
-
             // Get the current version
             const version = await this.getLatestVersion();
 
-            // Get all items from DataDragon to know the total count
+            // Get all items from DataDragon to know the total count first
             const response = await fetch(`${DDRAGON_CDN}/${version}/data/en_US/item.json`);
             if (!response.ok) {
                 throw new Error(`Failed to fetch items list: ${response.status}`);
@@ -321,23 +282,43 @@ class ItemCacheService extends BaseCacheService<ItemCacheData> {
             const allItemKeys = Object.keys(data.data);
             const totalItems = allItemKeys.length;
 
-            // Check category progress instead of individual asset checks
-            const categoryProgress = await this.getCategoryProgress('items');
-            const completedItems = categoryProgress.completedItems;
-            const downloadedCount = completedItems.length;
+            // Now emit 'checking' stage with the correct total count
+            this.updateProgress({
+                current: 0,
+                total: totalItems,
+                stage: 'checking',
+                itemName: 'Checking items...',
+                assetType: 'item-images'
+            });
+
+            // Use cache completeness check to determine what actually needs downloading
+            const cacheCheck = await this.checkCacheCompleteness();
+            const missingItems = cacheCheck.missingItems;
+            const downloadedCount = cacheCheck.cachedItems;
 
             console.log(`Found ${downloadedCount} items already downloaded out of ${totalItems} total`);
+            console.log(`Missing items: ${missingItems.length}`);
+
+            // Update progress after checking to show current count
+            this.updateProgress({
+                current: downloadedCount,
+                total: totalItems,
+                stage: 'checking',
+                itemName: `Found ${downloadedCount}/${totalItems} items`,
+                assetType: 'item-images'
+            });
 
             // Emit 'downloading' stage even if nothing to download
             this.updateProgress({
                 current: downloadedCount,
                 total: totalItems,
                 stage: 'downloading',
-                itemName: `Starting download from item ${downloadedCount + 1}`,
-                currentAsset: allItemKeys[downloadedCount] || ''
+                itemName: missingItems.length > 0 ? `Starting download...` : 'All items cached',
+                currentAsset: missingItems[0] || '',
+                assetType: 'item-images'
             });
 
-            if (downloadedCount >= totalItems) {
+            if (missingItems.length === 0) {
                 // All items are already downloaded
                 console.log('All items are already downloaded!');
                 this.updateProgress({
@@ -351,20 +332,16 @@ class ItemCacheService extends BaseCacheService<ItemCacheData> {
                 return;
             }
 
-            // Calculate remaining items to download
-            const remainingItems = allItemKeys.filter(itemKey => !completedItems.includes(itemKey));
-            console.log(`Downloading ${remainingItems.length} remaining items...`);
+            console.log(`Downloading ${missingItems.length} missing items...`);
 
-            // Download remaining items
+            // Download missing items only
             let currentDownloadedCount = downloadedCount;
-            const currentCompletedItems = [...completedItems];
 
-            for (let i = 0; i < remainingItems.length; i++) {
-                const itemKey = remainingItems[i];
+            for (let i = 0; i < missingItems.length; i++) {
+                const itemKey = missingItems[i];
                 try {
                     await this.downloadItemData(itemKey, version);
                     currentDownloadedCount++;
-                    currentCompletedItems.push(itemKey);
 
                     // Update category progress
                     await this.updateCategoryProgress(
@@ -373,7 +350,7 @@ class ItemCacheService extends BaseCacheService<ItemCacheData> {
                         itemKey,
                         totalItems,
                         currentDownloadedCount,
-                        currentCompletedItems
+                        [...allItemKeys.filter(key => !missingItems.includes(key) || missingItems.indexOf(key) <= i)]
                     );
 
                     // Report progress after each item
@@ -382,7 +359,8 @@ class ItemCacheService extends BaseCacheService<ItemCacheData> {
                         total: totalItems,
                         stage: 'downloading',
                         itemName: `Item ${itemKey} (${currentDownloadedCount}/${totalItems})`,
-                        currentAsset: itemKey
+                        currentAsset: itemKey,
+                        assetType: 'item-images'
                     });
 
                     // Add a small delay to allow UI updates
@@ -420,9 +398,8 @@ class ItemCacheService extends BaseCacheService<ItemCacheData> {
                 return;
             }
 
-            // Clear the manifest so that if users delete files, the system will start fresh
-            await window.electronAPI.saveAssetManifest({});
-            console.log('Item manifest cleared successfully. System will restart from scratch if files are deleted.');
+            // No need to clear legacy manifest - using category manifest system now
+            console.log('Item download completed successfully.');
         } catch (error) {
             console.error('Failed to cleanup manifest after successful download:', error);
         }

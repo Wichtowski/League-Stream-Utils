@@ -10,7 +10,7 @@ interface StartupProgress {
   total?: number;
 }
 
-export default function ChampionCacheInitializer() {
+export const ChampionCacheInitializer = () => {
   const [showInitializer, setShowInitializer] = useState(false);
   const [progress, setProgress] = useState<StartupProgress | null>(null);
   const [isElectron, setIsElectron] = useState(false);

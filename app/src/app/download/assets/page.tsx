@@ -21,15 +21,14 @@ interface OverallProgress {
   percentage: number;
 }
 
-const DownloadAssetsPage: React.FC = (): React.JSX.Element => {
+const categories = ['champion', 'item', 'game-ui', 'spell', 'rune'];
+
+export default function DownloadAssetsPage() {
   const router = useRouter();
   const [categoryProgress, setCategoryProgress] = useState<Map<string, CategoryProgress>>(new Map());
   const [overallProgress, setOverallProgress] = useState<OverallProgress>({ current: 0, total: 0, percentage: 0 });
   const startedRef = useRef(false);
   const { isElectron, isElectronLoading } = useElectron();
-
-  // Initialize all categories with default state
-  const categories = ['champion', 'item', 'game-ui', 'spell', 'rune'];
   
   useEffect(() => {
     const initialProgress = new Map();
@@ -109,7 +108,24 @@ const DownloadAssetsPage: React.FC = (): React.JSX.Element => {
             return catProgress && catProgress.stage === 'complete';
           });
 
-          if (allCategoriesComplete) {
+          // Additional strict completion check - ensure all categories have non-zero totals and are truly complete
+          const hasAllValidTotals = categories.every(cat => {
+            const catProgress = newMap.get(cat);
+            return catProgress && catProgress.total > 0;
+          });
+
+          // Only redirect when ALL conditions are met AND we have substantial progress
+          const shouldRedirect = allCategoriesComplete && hasAllValidTotals && (overallPct >= 100 && totalTotal > 100);
+
+          if (shouldRedirect) {
+            console.log('Downloads complete, redirecting to modules...', {
+              allCategoriesComplete,
+              hasAllValidTotals,
+              overallPct,
+              totalCurrent,
+              totalTotal,
+              categories: Array.from(newMap.entries())
+            });
             setTimeout(() => {
               router.replace('/modules');
             }, 2000);
@@ -121,7 +137,24 @@ const DownloadAssetsPage: React.FC = (): React.JSX.Element => {
     };
 
     void run();
-  }, [isElectronLoading, isElectron, router]);
+  }, [isElectronLoading, isElectron, router, categoryProgress, overallProgress]);
+
+  // Additional failsafe: periodically check for completion
+  useEffect(() => {
+    // More strict failsafe - only redirect if we have substantial progress AND it's been complete for a while
+    if (overallProgress.percentage >= 100 && overallProgress.total > 100) {
+      const timeoutId = setTimeout(() => {
+        console.log('Failsafe redirect triggered after 10 seconds of 100% completion with substantial downloads', {
+          percentage: overallProgress.percentage,
+          total: overallProgress.total,
+          current: overallProgress.current
+        });
+        router.replace('/modules');
+      }, 10000); // Increased timeout to 10 seconds
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [overallProgress.percentage, overallProgress.total, router]);
 
   const getStageColor = (stage: string): string => {
     switch (stage) {
@@ -173,7 +206,14 @@ const DownloadAssetsPage: React.FC = (): React.JSX.Element => {
           </div>
           <div className="flex justify-between text-sm text-gray-400 mt-2">
             <span>{overallProgress.current} / {overallProgress.total}</span>
-            <span>Downloading...</span>
+            <span>
+              {overallProgress.percentage >= 100 && overallProgress.total > 0 
+                ? 'Complete!' 
+                : overallProgress.percentage === 0 
+                  ? 'Initializing...' 
+                  : 'Downloading...'
+              }
+            </span>
           </div>
         </div>
 
@@ -213,6 +253,4 @@ const DownloadAssetsPage: React.FC = (): React.JSX.Element => {
       </div>
     </div>
   );
-};
-
-export default DownloadAssetsPage; 
+}; 
