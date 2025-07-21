@@ -158,7 +158,7 @@ export default function HomePage() {
                             <span className="text-white font-semibold">League Stream Utils</span>
                         </div>
                         <p className="text-gray-400 text-sm">
-                            © 2025 Oskar Wichtowski - League Stream Utils. Professional tournament management platform.
+                            {new Date().getFullYear()} Oskar Wichtowski - League Stream Utils. Professional tournament management platform.
                         </p>
                     </div>
                 </div>

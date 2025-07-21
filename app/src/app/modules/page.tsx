@@ -9,91 +9,7 @@ import { useElectron } from '@lib/contexts/ElectronContext';
 import { useHighPerformanceDownload } from '@lib/contexts/HighPerformanceDownloadContext';
 import { AssetDownloadProgress } from '@components/common';
 import { Cog6ToothIcon } from '@heroicons/react/24/outline';
-
-interface ModuleCard {
-    id: string;
-    name: string;
-    description: string;
-    icon: string;
-    path: string;
-    color: string;
-    status: 'available' | 'beta' | 'new';
-}
-
-const modules: ModuleCard[] = [
-    {
-        id: 'teams',
-        name: 'Teams',
-        description: 'Create and manage tournament teams with player rosters and information',
-        icon: '👥',
-        path: '/modules/teams',
-        color: 'from-blue-500 to-cyan-500',
-        status: 'available'
-    },
-    {
-        id: 'tournaments',
-        name: 'Tournaments',
-        description: 'Create and manage tournaments with brackets, schedules, and settings',
-        icon: '🏆',
-        path: '/modules/tournaments',
-        color: 'from-yellow-500 to-orange-500',
-        status: 'available'
-    },
-    {
-        id: 'pickban',
-        name: 'Pick & Ban',
-        description: 'Champion draft interface for tournament matches with live updates',
-        icon: '⚔️',
-        path: '/modules/pickban',
-        color: 'from-purple-500 to-pink-500',
-        status: 'available'
-    },
-    {
-        id: 'cameras',
-        name: 'Camera Setup',
-        description: 'Configure player stream cameras and fallback images for broadcasting',
-        icon: '📹',
-        path: '/modules/cameras',
-        color: 'from-green-500 to-emerald-500',
-        status: 'available'
-    },
-    {
-        id: 'leagueclient',
-        name: 'League Client',
-        description: 'Connect to the League of Legends client to get live data',
-        icon: '📱',
-        path: '/modules/pickban/leagueclient',
-        color: 'from-teal-500 to-cyan-500',
-        status: 'beta'
-    },
-    {
-        id: 'champ-ability',
-        name: 'Champions Abilities',
-        description: 'Browse League of Legends champions abilities with stats and information',
-        icon: '⚡',
-        path: '/modules/champ-ability',
-        color: 'from-indigo-500 to-purple-500',
-        status: 'available'
-    },
-    {
-        id: 'adminTournaments',
-        name: 'Admin Tournament Manager',
-        description: 'Register any team to any tournament with admin privileges and bypass restrictions',
-        icon: '🔧',
-        path: '/modules/tournaments',
-        color: 'from-purple-500 to-pink-500',
-        status: 'new'
-    },
-    {
-        id: 'predictions',
-        name: 'Comentator Predictions',
-        description: 'Comentators select a match and make their predictions',
-        icon: '🗣️',
-        path: '/modules/predictions',
-        color: 'from-pink-500 to-yellow-500',
-        status: 'new'
-    }
-];
+import { getVisibleModules, ModuleCard } from '@lib/utils/moduleNavigation';
 
 export default function ModulesPage() {
     const router = useRouter();
@@ -121,6 +37,15 @@ export default function ModulesPage() {
     const handleModuleClick = (module: ModuleCard) => {
         router.push(module.path);
     };
+
+    const isAuthenticated = !!user;
+    const isAdmin = Boolean(user?.isAdmin);
+    const visibleModules = getVisibleModules({
+        isElectron,
+        useLocalData,
+        isAuthenticated,
+        isAdmin,
+    });
 
     return (
         <AuthGuard loadingMessage="Loading modules...">
@@ -161,7 +86,7 @@ export default function ModulesPage() {
 
                     {/* Module Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {modules.map((module) => (
+                        {visibleModules.map((module) => (
                             <div
                                 key={module.id}
                                 onClick={() => handleModuleClick(module)}
