@@ -5,6 +5,7 @@ import { useAuthenticatedFetch } from '@lib/hooks/useAuthenticatedFetch';
 import { useAuth } from './AuthContext';
 import { storage } from '@lib/utils/storage';
 import type { PickbanSession, PickbanConfig, PickbanAction, LCUStatus } from '@lib/types';
+import { useElectron } from './ElectronContext';
 
 interface PickbanContextType {
   // Active session data
@@ -58,6 +59,7 @@ const LCU_CHECK_INTERVAL = 10000; // 10 seconds
 export function PickbanProvider({ children }: { children: ReactNode }) {
   const { user, isLoading: authLoading } = useAuth();
   const { authenticatedFetch } = useAuthenticatedFetch();
+  const { isElectron } = useElectron();
   
   // Session state
   const [currentSession, setCurrentSession] = useState<PickbanSession | null>(null);
@@ -110,9 +112,7 @@ export function PickbanProvider({ children }: { children: ReactNode }) {
   }, [user, authenticatedFetch]);
 
   const checkLCUStatus = useCallback(async (): Promise<void> => {
-    // Don't check LCU status if user is not authenticated
-    if (!user) return;
-
+    if (!user || !isElectron) return;
     try {
       const response = await authenticatedFetch('/api/v1/pickban/leagueclient/lcu-test');
 
@@ -148,7 +148,7 @@ export function PickbanProvider({ children }: { children: ReactNode }) {
       console.debug('LCU status check failed:', err);
       setLcuStatus(null);
     }
-  }, [authenticatedFetch, user]);
+  }, [authenticatedFetch, user, isElectron]);
 
   const handleWebSocketMessage = useCallback((message: unknown): void => {
     // Handle different message types from WebSocket

@@ -265,7 +265,7 @@ export default function TeamCameraSetupPage() {
           <div className="flex gap-4">
             <button
               onClick={() => router.push(`/modules/cameras/stream/${teamId}`)}
-              disabled={team.players.filter(p => p.url && p.url.trim() !== '').length === 0}
+              // disabled={team.players.filter(p => p.url && p.url.trim() !== '').length === 0}
               className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors"
             >
               Test Team Stream

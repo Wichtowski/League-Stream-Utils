@@ -69,6 +69,9 @@ export interface Tournament {
     // Tournament state
     status: TournamentStatus;
 
+    // Matches
+    matches?: string[];
+
     // Advanced settings
     allowSubstitutes: boolean;
     maxSubstitutes: number;

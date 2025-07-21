@@ -1,14 +1,13 @@
 'use client';
 
-import React, { useEffect, useState, Suspense } from 'react';
+import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import dynamic from 'next/dynamic';
 import { useNavigation } from '@lib/contexts/NavigationContext';
 import { AuthGuard } from '@lib/components/AuthGuard';
 import { useUser } from '@lib/contexts/AuthContext';
 import { useElectron } from '@lib/contexts/ElectronContext';
 import { useHighPerformanceDownload } from '@lib/contexts/HighPerformanceDownloadContext';
-import { LoadingSpinner, AssetDownloadProgress } from '@components/common';
+import { AssetDownloadProgress } from '@components/common';
 import { Cog6ToothIcon } from '@heroicons/react/24/outline';
 
 interface ModuleCard {
@@ -84,49 +83,17 @@ const modules: ModuleCard[] = [
         path: '/modules/tournaments',
         color: 'from-purple-500 to-pink-500',
         status: 'new'
+    },
+    {
+        id: 'predictions',
+        name: 'Comentator Predictions',
+        description: 'Comentators select a match and make their predictions',
+        icon: '🗣️',
+        path: '/modules/predictions',
+        color: 'from-pink-500 to-yellow-500',
+        status: 'new'
     }
 ];
-
-// Dynamic imports for module components
-const TeamsPage = dynamic(
-  () => import('./teams/page'),
-  { 
-    loading: () => <LoadingSpinner text="Loading teams..." />,
-    ssr: false 
-  }
-);
-
-const TournamentsPage = dynamic(
-  () => import('./tournaments/page'),
-  { 
-    loading: () => <LoadingSpinner text="Loading tournaments..." />,
-    ssr: false 
-  }
-);
-
-const PickbanPage = dynamic(
-  () => import('./pickban/page'),
-  { 
-    loading: () => <LoadingSpinner text="Loading pick & ban..." />,
-    ssr: false 
-  }
-);
-
-const CamerasPage = dynamic(
-  () => import('./cameras/page'),
-  { 
-    loading: () => <LoadingSpinner text="Loading cameras..." />,
-    ssr: false 
-  }
-);
-
-const ChampAbilityPage = dynamic(
-  () => import('./champ-ability/page'),
-  { 
-    loading: () => <LoadingSpinner text="Loading champion abilities..." />,
-    ssr: false 
-  }
-);
 
 export default function ModulesPage() {
     const router = useRouter();
@@ -134,7 +101,6 @@ export default function ModulesPage() {
     const user = useUser();
     const { isElectron, useLocalData } = useElectron();
     const { downloadState: highPerfDownloadState, cancelDownload } = useHighPerformanceDownload();
-    const [activeModule, setActiveModuleState] = useState<string | null>(null);
 
     useEffect(() => {
         setActiveModule('modules');
@@ -153,114 +119,8 @@ export default function ModulesPage() {
     }
 
     const handleModuleClick = (module: ModuleCard) => {
-        setActiveModuleState(module.id);
+        router.push(module.path);
     };
-
-    // Render dynamic components based on active module
-    if (activeModule === 'teams') {
-        return (
-            <div className="min-h-screen p-6">
-                <div className="max-w-7xl mx-auto">
-                    <div className="flex items-center mb-6">
-                        <button
-                            onClick={() => setActiveModuleState(null)}
-                            className="mr-4 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
-                        >
-                            ← Back to Modules
-                        </button>
-                        <h1 className="text-2xl font-bold text-white">Teams</h1>
-                    </div>
-                    <Suspense fallback={<LoadingSpinner text="Loading teams..." />}>
-                        <TeamsPage />
-                    </Suspense>
-                </div>
-            </div>
-        );
-    }
-
-    if (activeModule === 'tournaments') {
-        return (
-            <div className="min-h-screen p-6">
-                <div className="max-w-7xl mx-auto">
-                    <div className="flex items-center mb-6">
-                        <button
-                            onClick={() => setActiveModuleState(null)}
-                            className="mr-4 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
-                        >
-                            ← Back to Modules
-                        </button>
-                        <h1 className="text-2xl font-bold text-white">Tournaments</h1>
-                    </div>
-                    <Suspense fallback={<LoadingSpinner text="Loading tournaments..." />}>
-                        <TournamentsPage />
-                    </Suspense>
-                </div>
-            </div>
-        );
-    }
-
-    if (activeModule === 'pickban') {
-        return (
-            <div className="min-h-screen p-6">
-                <div className="max-w-7xl mx-auto">
-                    <div className="flex items-center mb-6">
-                        <button
-                            onClick={() => setActiveModuleState(null)}
-                            className="mr-4 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
-                        >
-                            ← Back to Modules
-                        </button>
-                        <h1 className="text-2xl font-bold text-white">Pick & Ban</h1>
-                    </div>
-                    <Suspense fallback={<LoadingSpinner text="Loading pick & ban..." />}>
-                        <PickbanPage />
-                    </Suspense>
-                </div>
-            </div>
-        );
-    }
-
-    if (activeModule === 'cameras') {
-        return (
-            <div className="min-h-screen p-6">
-                <div className="max-w-7xl mx-auto">
-                    <div className="flex items-center mb-6">
-                        <button
-                            onClick={() => setActiveModuleState(null)}
-                            className="mr-4 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
-                        >
-                            ← Back to Modules
-                        </button>
-                        <h1 className="text-2xl font-bold text-white">Cameras</h1>
-                    </div>
-                    <Suspense fallback={<LoadingSpinner text="Loading cameras..." />}>
-                        <CamerasPage />
-                    </Suspense>
-                </div>
-            </div>
-        );
-    }
-
-    if (activeModule === 'champ-ability') {
-        return (
-            <div className="min-h-screen p-6">
-                <div className="max-w-7xl mx-auto">
-                    <div className="flex items-center mb-6">
-                        <button
-                            onClick={() => setActiveModuleState(null)}
-                            className="mr-4 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
-                        >
-                            ← Back to Modules
-                        </button>
-                        <h1 className="text-2xl font-bold text-white">Champion Abilities</h1>
-                    </div>
-                    <Suspense fallback={<LoadingSpinner text="Loading champion abilities..." />}>
-                        <ChampAbilityPage />
-                    </Suspense>
-                </div>
-            </div>
-        );
-    }
 
     return (
         <AuthGuard loadingMessage="Loading modules...">
@@ -268,16 +128,18 @@ export default function ModulesPage() {
                 <div className="max-w-7xl mx-auto">
                     {/* Header */}
                     <div className="text-center mb-12">
-                        <div className="flex justify-between items-center mb-6">
+                        <div className={`flex ${isElectron ? 'justify-between' : 'justify-center'} items-center mb-6`}>
+                        {isElectron && (
                             <div></div>
+                        )}
                             <div>
                                 <h1 className="text-4xl font-bold text-white mb-2">Modules</h1>
                                 <p className="text-gray-400">
                                     Welcome back, {user?.username || 'User'}! Choose a module to get started.
                                 </p>
                             </div>
-                            <div className="flex items-center space-x-2">
-                                {isElectron && (
+                            {isElectron && (
+                                <div className="flex items-center space-x-2">
                                     <div className="text-right">
                                         <div className="text-sm text-gray-400">
                                             Mode: <span className={useLocalData ? 'text-green-400' : 'text-blue-400'}>
@@ -285,15 +147,15 @@ export default function ModulesPage() {
                                             </span>
                                         </div>
                                     </div>
-                                )}
-                                <button
+                                    <button
                                     onClick={() => router.push('/settings')}
-                                    className="p-2 bg-gray-800/50 hover:bg-gray-700/50 rounded-lg border border-gray-600/50 hover:border-gray-500/50 transition-colors"
-                                    title="Settings"
-                                >
-                                    <Cog6ToothIcon className="w-5 h-5 text-gray-400 hover:text-gray-300" />
-                                </button>
-                            </div>
+                                        className="p-2 bg-gray-800/50 hover:bg-gray-700/50 rounded-lg border border-gray-600/50 hover:border-gray-500/50 transition-colors"
+                                        title="Settings"
+                                    >
+                                        <Cog6ToothIcon className="w-5 h-5 text-gray-400 hover:text-gray-300" />
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     </div>
 

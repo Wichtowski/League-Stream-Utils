@@ -17,7 +17,8 @@ export default function AllCamerasPage() {
     useEffect(() => {
         setActiveModule('cameras');
         refreshCameras();
-    }, [setActiveModule, refreshCameras]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const handleStreamError = (playerName: string) => {
         setStreamErrors(prev => new Set([...prev, playerName]));
