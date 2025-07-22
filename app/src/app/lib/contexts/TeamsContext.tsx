@@ -16,10 +16,10 @@ interface TeamsContextType {
   // Actions
   refreshTeams: () => Promise<void>;
   createTeam: (teamData: CreateTeamRequest) => Promise<{ success: boolean; team?: Team; error?: string }>;
-  updateTeam: (teamId: string, updates: Partial<Team>) => Promise<{ success: boolean; team?: Team; error?: string }>;
+  updateTeam: (teamId: string, updates: Partial<CreateTeamRequest>) => Promise<{ success: boolean; team?: Team; error?: string }>;
   deleteTeam: (teamId: string) => Promise<{ success: boolean; error?: string }>;
   verifyTeam: (teamId: string) => Promise<{ success: boolean; error?: string }>;
-  verifyPlayer: (teamId: string, playerId: string) => Promise<{ success: boolean; error?: string }>;
+  verifyPlayer: (teamId: string, playerId: string, gameName: string, tagLine: string) => Promise<{ success: boolean; error?: string }>;
   verifyAllPlayers: (teamId: string) => Promise<{ success: boolean; error?: string }>;
   
   // Cache management
@@ -87,10 +87,14 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
     
     return teams1.every((team, index) => {
       const otherTeam = teams2[index];
+      if (!team || !otherTeam) return false;
       return team.id === otherTeam.id && 
              team.name === otherTeam.name &&
              team.verified === otherTeam.verified &&
+             team.players && otherTeam.players &&
+             team.players.main && otherTeam.players.main &&
              team.players.main.length === otherTeam.players.main.length &&
+             team.players.substitutes && otherTeam.players.substitutes &&
              team.players.substitutes.length === otherTeam.players.substitutes.length;
     });
   }, []);
@@ -321,13 +325,45 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
     }
   }, [teams, authenticatedFetch, isLocalDataMode, user]);
 
-  const updateTeam = useCallback(async (teamId: string, updates: Partial<Team>): Promise<{ success: boolean; team?: Team; error?: string }> => {
+  const updateTeam = useCallback(async (teamId: string, updates: Partial<CreateTeamRequest>): Promise<{ success: boolean; team?: Team; error?: string }> => {
     try {
       if (isLocalDataMode) {
         // Update team locally
-        const updatedTeams = teams.map(team => 
-          team.id === teamId ? { ...team, ...updates, updatedAt: new Date() } : team
-        );
+        const updatedTeams = teams.map(team => {
+          if (team.id === teamId) {
+            let updated: Team;
+            if (updates.players) {
+              updated = {
+                ...team,
+                // do not spread updates.staff
+                ...updates,
+                staff: team.staff,
+                players: {
+                  main: updates.players.main.map((p, i) => ({
+                    ...p,
+                    id: team.players.main[i]?.id || `local-${Date.now()}-${Math.random()}`,
+                    verified: false,
+                    createdAt: new Date(),
+                    updatedAt: new Date()
+                  })),
+                  substitutes: updates.players.substitutes.map((p, i) => ({
+                    ...p,
+                    id: team.players.substitutes[i]?.id || `local-${Date.now()}-${Math.random()}`,
+                    verified: false,
+                    createdAt: new Date(),
+                    updatedAt: new Date()
+                  }))
+                },
+                updatedAt: new Date()
+              };
+            } else {
+              const { players: _players, staff: _staff, ...restUpdates } = updates;
+              updated = { ...team, ...restUpdates, updatedAt: new Date() };
+            }
+            return updated;
+          }
+          return team;
+        });
         setTeams(updatedTeams);
         await electronStorage.set(CACHE_KEY, updatedTeams);
         const updatedTeam = updatedTeams.find(t => t.id === teamId);
@@ -336,7 +372,7 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
 
       // Online mode - use API
       const response = await authenticatedFetch(`/api/v1/teams/${teamId}`, {
-        method: 'PATCH',
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updates)
       });
@@ -425,7 +461,7 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
     }
   }, [teams, authenticatedFetch, isLocalDataMode]);
 
-  const verifyPlayer = useCallback(async (teamId: string, playerId: string): Promise<{ success: boolean; error?: string }> => {
+  const verifyPlayer = useCallback(async (teamId: string, playerId: string, gameName: string, tagLine: string): Promise<{ success: boolean; error?: string }> => {
     try {
       if (isLocalDataMode) {
         // Verify player locally
@@ -455,7 +491,9 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
 
       // Online mode - use API
       const response = await authenticatedFetch(`/api/v1/teams/${teamId}/players/${playerId}/verify`, {
-        method: 'POST'
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ gameName, tagLine })
       });
 
       if (response.ok) {

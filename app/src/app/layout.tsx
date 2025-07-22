@@ -1,22 +1,26 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Footer } from "@components/common";
-import { NavigationProvider } from "./lib/contexts/NavigationContext";
-import { ModalProvider } from "./lib/contexts/ModalContext";
-import { AuthProvider } from "./lib/contexts/AuthContext";
-import { ElectronProvider } from "./lib/contexts/ElectronContext";
-import { LCUProvider } from "./lib/contexts/LCUContext";
-import { CamerasProvider } from "./lib/contexts/CamerasContext";
-import { TeamsProvider } from "./lib/contexts/TeamsContext";
-import { TournamentsProvider } from "./lib/contexts/TournamentsContext";
-import { TournamentDataProvider } from "./lib/contexts/TournamentDataContext";
-import { TournamentBracketProvider } from "./lib/contexts/TournamentBracketContext";
-import { TournamentStatsProvider } from "./lib/contexts/TournamentStatsContext";
-import { PickbanProvider } from "./lib/contexts/PickbanContext";
-import { SettingsProvider } from "./lib/contexts/SettingsContext";
-import { MockDataProvider } from "./lib/contexts/MockDataContext";
-import { DownloadProvider } from "./lib/contexts/DownloadContext";
-import { HighPerformanceDownloadProvider } from "./lib/contexts/HighPerformanceDownloadContext";
+import { 
+  NavigationProvider,
+  ModalProvider,
+  AuthProvider,
+  ElectronProvider,
+  LCUProvider,
+  CamerasProvider,
+  TeamsProvider,
+  TournamentsProvider,
+  TournamentDataProvider,
+  TournamentBracketProvider,
+  TournamentStatsProvider,
+  PickbanProvider,
+  SettingsProvider,
+  MockDataProvider,
+  DownloadProvider,
+  HighPerformanceDownloadProvider,
+  PredictionsProvider
+}
+from "@lib/contexts";
 import { NavigationGuard } from "./lib/components/NavigationGuard";
 import { ContextWrapper } from "./lib/components/ContextErrorBoundary";
 import { ChampionCacheInitializer } from "./components/common/ChampionCacheInitializer";
@@ -51,6 +55,7 @@ export default function RootLayout({
           contexts={[
             { name: "Electron", provider: ElectronProvider },
             { name: "Auth", provider: AuthProvider },
+            { name: "Predictions", provider: PredictionsProvider },
             { name: "MockData", provider: MockDataProvider },
             { name: "LCU", provider: LCUProvider },
             { name: "Cameras", provider: CamerasProvider },

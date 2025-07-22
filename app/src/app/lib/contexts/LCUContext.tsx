@@ -62,6 +62,7 @@ export function LCUProvider({ children }: { children: ReactNode }) {
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
   const [champSelectSession, setChampSelectSession] = useState<ChampSelectSession | null>(null);
+  const [lcuNotFound, setLcuNotFound] = useState(false);
   
   // Settings
   const [autoReconnect, setAutoReconnectState] = useState(true);
@@ -242,7 +243,23 @@ export function LCUProvider({ children }: { children: ReactNode }) {
   const connect = useCallback(async () => {
     try {
       setConnectionError(null);
-      await lcuConnector.connect();
+      try {
+        await lcuConnector.connect();
+      } catch (error: unknown) {
+        if (
+          error &&
+          typeof error === 'object' &&
+          'message' in error &&
+          typeof (error as { message?: string }).message === 'string' &&
+          ((error as { message: string }).message.toLowerCase().includes('not found') ||
+            (error as { message: string }).message.toLowerCase().includes('404'))
+        ) {
+          setLcuNotFound(true);
+          return;
+        } else {
+          throw error;
+        }
+      }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to connect to League Client';
       setConnectionError(errorMessage);
@@ -306,7 +323,14 @@ export function LCUProvider({ children }: { children: ReactNode }) {
 
   return (
     <LCUContext.Provider value={value}>
-      {children}
+      {lcuNotFound ? (
+        <div style={{ padding: 32, textAlign: 'center', color: '#f87171' }}>
+          <h2>League Client Not Found</h2>
+          <p>The League Client is not running or could not be found. Please start the League Client and try again.</p>
+        </div>
+      ) : (
+        children
+      )}
     </LCUContext.Provider>
   );
 }

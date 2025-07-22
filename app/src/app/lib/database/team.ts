@@ -99,28 +99,56 @@ export async function updateTeam(teamId: string, userId: string, updates: Partia
     if (updates.tier) team.tier = updates.tier;
     if (updates.socialMedia) team.socialMedia = updates.socialMedia;
 
+    // Helper to compare player lists
+    const playersEqual = (a: any[], b: any[]): boolean => {
+        if (a.length !== b.length) return false;
+        for (let i = 0; i < a.length; i++) {
+            if (
+                a[i].inGameName !== b[i].inGameName ||
+                a[i].tag !== b[i].tag ||
+                a[i].role !== b[i].role
+            ) {
+                return false;
+            }
+        }
+        return true;
+    };
+
     // Update players if provided
     if (updates.players) {
-        const mainPlayers: Player[] = updates.players.main.map(player => ({
-            ...player,
-            id: uuidv4(),
-            verified: false,
-            createdAt: new Date(),
-            updatedAt: new Date()
-        }));
+        const oldMain = team.players.main || [];
+        const oldSubs = team.players.substitutes || [];
+        const newMain = updates.players.main || [];
+        const newSubs = updates.players.substitutes || [];
 
-        const substitutePlayers: Player[] = updates.players.substitutes.map(player => ({
-            ...player,
-            id: uuidv4(),
-            verified: false,
-            createdAt: new Date(),
-            updatedAt: new Date()
-        }));
+        const mainChanged = !playersEqual(oldMain, newMain);
+        const subsChanged = !playersEqual(oldSubs, newSubs);
 
-        team.players = {
-            main: mainPlayers,
-            substitutes: substitutePlayers
-        };
+        // If roster changed, reset verification
+        if (mainChanged || subsChanged) {
+            team.verified = false;
+            team.players = {
+                main: newMain.map(player => ({
+                    ...player,
+                    id: uuidv4(),
+                    verified: false,
+                    verifiedAt: undefined,
+                    createdAt: new Date(),
+                    updatedAt: new Date()
+                })),
+                substitutes: newSubs.map(player => ({
+                    ...player,
+                    id: uuidv4(),
+                    verified: false,
+                    verifiedAt: undefined,
+                    createdAt: new Date(),
+                    updatedAt: new Date()
+                }))
+            };
+        } else {
+            // If roster unchanged, keep existing players
+            // (no-op, or you could update other fields if needed)
+        }
     }
 
     // Update staff if provided
@@ -198,6 +226,15 @@ export async function verifyTeamPlayers(teamId: string, playerUpdates: { playerI
             }
         }
     });
+
+    // Auto-verify team if all players are verified
+    const allMainVerified = team.players.main.length > 0 && team.players.main.every((p: Player) => p.verified);
+    const allSubsVerified = team.players.substitutes.length === 0 || team.players.substitutes.every((p: Player) => p.verified);
+    if (allMainVerified && allSubsVerified) {
+        team.verified = true;
+    } else {
+        team.verified = false;
+    }
 
     team.updatedAt = new Date();
     await team.save();

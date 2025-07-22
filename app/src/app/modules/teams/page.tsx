@@ -18,7 +18,8 @@ export default function TeamsPage() {
         createTeam, 
         verifyPlayer, 
         verifyAllPlayers,
-        refreshTeams 
+        refreshTeams,
+        updateTeam
     } = useTeams();
     const { showAlert, showConfirm } = useModal();
     const [showCreateForm, setShowCreateForm] = useState(false);
@@ -26,6 +27,9 @@ export default function TeamsPage() {
     const [logoPreview, setLogoPreview] = useState<string>('');
     const [verifyingPlayers, setVerifyingPlayers] = useState<Set<string>>(new Set());
     const { setActiveModule } = useNavigation();
+    const [editTeamId, setEditTeamId] = useState<string | null>(null);
+    const [editFormData, setEditFormData] = useState<Partial<CreateTeamRequest> | null>(null);
+    const [editing, setEditing] = useState(false);
 
     const [formData, setFormData] = useState<Partial<CreateTeamRequest>>({
         name: '',
@@ -58,7 +62,8 @@ export default function TeamsPage() {
     useEffect(() => {
         setActiveModule('teams');
         refreshTeams();
-    }, [refreshTeams, setActiveModule]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const handleCreateTeam = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -200,11 +205,9 @@ export default function TeamsPage() {
 
     const handleVerifyPlayer = async (teamId: string, playerId: string, playerName: string, playerTag: string) => {
         setVerifyingPlayers(prev => new Set(prev).add(playerId));
-
         try {
-            const result = await verifyPlayer(teamId, playerId);
-
-            if (result.success) {
+            const verifyResult = await verifyPlayer(teamId, playerId, playerName, playerTag);
+            if (verifyResult.success) {
                 await showAlert({
                     type: 'success',
                     message: `Player ${playerName}${playerTag} verified successfully!`
@@ -212,7 +215,7 @@ export default function TeamsPage() {
             } else {
                 await showAlert({
                     type: 'error',
-                    message: result.error || 'Failed to verify player'
+                    message: verifyResult.error || 'Failed to verify player'
                 });
             }
         } catch (error) {
@@ -258,6 +261,85 @@ export default function TeamsPage() {
                 });
             }
         }
+    };
+
+    const handleEditTeam = (team: Team) => {
+        setEditTeamId(team.id);
+        setEditFormData({
+            name: team.name,
+            tag: team.tag,
+            colors: team.colors,
+            players: {
+                main: team.players.main.map(p => ({ role: p.role, inGameName: p.inGameName, tag: p.tag })),
+                substitutes: team.players.substitutes.map(p => ({ role: p.role, inGameName: p.inGameName, tag: p.tag }))
+            },
+            region: team.region,
+            tier: team.tier,
+            logo: team.logo,
+            socialMedia: team.socialMedia,
+            staff: team.staff
+        });
+        setLogoPreview(team.logo?.type === 'url' ? team.logo.data : '');
+    };
+
+    const updateEditPlayer = (index: number, field: 'inGameName' | 'tag', value: string) => {
+        if (!editFormData) return;
+        const newPlayers = [...(editFormData.players?.main || [])];
+        newPlayers[index] = { ...newPlayers[index], [field]: value };
+        setEditFormData({
+            ...editFormData,
+            players: { ...editFormData.players!, main: newPlayers }
+        });
+    };
+    const updateEditSubstitute = (index: number, field: 'role' | 'inGameName' | 'tag', value: string) => {
+        if (!editFormData) return;
+        const newSubs = [...(editFormData.players?.substitutes || [])];
+        newSubs[index] = { ...newSubs[index], [field]: value };
+        setEditFormData({
+            ...editFormData,
+            players: { ...editFormData.players!, substitutes: newSubs }
+        });
+    };
+    const addEditSubstitute = () => {
+        if (!editFormData) return;
+        const newSubs = [...(editFormData.players?.substitutes || [])];
+        newSubs.push({ role: 'TOP', inGameName: '', tag: '' });
+        setEditFormData({
+            ...editFormData,
+            players: { ...editFormData.players!, substitutes: newSubs }
+        });
+    };
+    const removeEditSubstitute = (index: number) => {
+        if (!editFormData) return;
+        const newSubs = [...(editFormData.players?.substitutes || [])];
+        newSubs.splice(index, 1);
+        setEditFormData({
+            ...editFormData,
+            players: { ...editFormData.players!, substitutes: newSubs }
+        });
+    };
+    const handleEditSave = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editTeamId || !editFormData) return;
+        setEditing(true);
+        try {
+            const result = await updateTeam(editTeamId, editFormData as Partial<CreateTeamRequest>);
+            if (result.success) {
+                setEditTeamId(null);
+                setEditFormData(null);
+                await refreshTeams();
+            } else {
+                await showAlert({ type: 'error', message: result.error || 'Failed to update team' });
+            }
+        } catch (_error) {
+            await showAlert({ type: 'error', message: 'Failed to update team' });
+        } finally {
+            setEditing(false);
+        }
+    };
+    const handleEditCancel = () => {
+        setEditTeamId(null);
+        setEditFormData(null);
     };
 
     return (
@@ -530,9 +612,11 @@ export default function TeamsPage() {
                             </button>
                         </div>
                     ) : (
-                        teams.map((team) => (
+                        teams
+                          .filter(team => team && team.name && team.tag && team.players && team.players.main)
+                          .map((team) => (
                             <div key={team.id} className="bg-gray-800 rounded-lg p-6">
-                                <div className="flex justify-between items-start mb-4">
+                                <div className="flex justify-between items-center">
                                     <div>
                                         <h3 className="text-xl font-bold">{team.name}</h3>
                                         <p className="text-gray-400">{team.tag} • {team.region} • {team.tier}</p>
@@ -542,12 +626,87 @@ export default function TeamsPage() {
                                             className="w-6 h-6 rounded"
                                             style={{ backgroundColor: team.colors.primary }}
                                         ></div>
-                                        <span className={`px-3 py-1 rounded text-sm ${team.verified ? 'bg-green-600' : 'bg-yellow-600'
-                                            }`}>
-                                            {team.verified ? 'Verified' : 'Pending Verification'}
-                                        </span>
+                                        <span className={`px-3 py-1 rounded text-sm ${team.verified ? 'bg-green-600' : 'bg-yellow-600'}`}>{team.verified ? 'Verified' : 'Pending Verification'}</span>
+                                        {(user?.id === team.userId || user?.isAdmin) && (
+                                            <button
+                                                className="ml-2 text-xs px-3 py-1 bg-gray-600 hover:bg-gray-700 rounded transition-colors"
+                                                onClick={() => handleEditTeam(team)}
+                                            >
+                                                Edit
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
+                                {editTeamId === team.id && editFormData && (
+                                    <form onSubmit={handleEditSave} className="mt-6 space-y-6 bg-gray-900 rounded-lg p-4">
+                                        <h4 className="text-lg font-bold mb-2">Edit Team Roster</h4>
+                                        <div className="space-y-3">
+                                            {editFormData.players?.main.map((player, index) => (
+                                                <div key={player.role} className="grid grid-cols-3 gap-4 items-center">
+                                                    <div className="bg-gray-700 px-3 py-2 rounded text-center font-medium">{player.role}</div>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="In-game name"
+                                                        value={player.inGameName}
+                                                        onChange={e => updateEditPlayer(index, 'inGameName', e.target.value)}
+                                                        className="bg-gray-700 rounded px-3 py-2"
+                                                        required
+                                                    />
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Riot tag (e.g., #EUW)"
+                                                        value={player.tag}
+                                                        onChange={e => updateEditPlayer(index, 'tag', e.target.value)}
+                                                        className="bg-gray-700 rounded px-3 py-2"
+                                                        required
+                                                    />
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <div>
+                                            <div className="flex justify-between items-center mb-3">
+                                                <h5 className="font-medium">Substitutes</h5>
+                                                <button type="button" onClick={addEditSubstitute} className="bg-green-600 hover:bg-green-700 px-3 py-1 rounded text-sm">Add Substitute</button>
+                                            </div>
+                                            <div className="space-y-3">
+                                                {editFormData.players?.substitutes.map((player, index) => (
+                                                    <div key={index} className="grid grid-cols-4 gap-4 items-center">
+                                                        <select
+                                                            value={player.role}
+                                                            onChange={e => updateEditSubstitute(index, 'role', e.target.value)}
+                                                            className="bg-gray-700 rounded px-3 py-2"
+                                                        >
+                                                            <option value="TOP">TOP</option>
+                                                            <option value="JUNGLE">JUNGLE</option>
+                                                            <option value="MID">MID</option>
+                                                            <option value="ADC">ADC</option>
+                                                            <option value="SUPPORT">SUPPORT</option>
+                                                        </select>
+                                                        <input
+                                                            type="text"
+                                                            placeholder="In-game name"
+                                                            value={player.inGameName}
+                                                            onChange={e => updateEditSubstitute(index, 'inGameName', e.target.value)}
+                                                            className="bg-gray-700 rounded px-3 py-2"
+                                                        />
+                                                        <input
+                                                            type="text"
+                                                            placeholder="Riot tag"
+                                                            value={player.tag}
+                                                            onChange={e => updateEditSubstitute(index, 'tag', e.target.value)}
+                                                            className="bg-gray-700 rounded px-3 py-2"
+                                                        />
+                                                        <button type="button" onClick={() => removeEditSubstitute(index)} className="bg-red-600 hover:bg-red-700 px-3 py-2 rounded text-sm">Remove</button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                        <div className="flex space-x-4 mt-4">
+                                            <button type="submit" disabled={editing} className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 px-6 py-2 rounded-lg">{editing ? 'Saving...' : 'Save'}</button>
+                                            <button type="button" onClick={handleEditCancel} className="bg-gray-600 hover:bg-gray-700 px-6 py-2 rounded-lg">Cancel</button>
+                                        </div>
+                                    </form>
+                                )}
 
                                 <div className="mb-4">
                                     <div className="flex justify-between items-center mb-2">
@@ -675,4 +834,4 @@ export default function TeamsPage() {
             )}
         </AuthGuard>
     );
-} 
+}

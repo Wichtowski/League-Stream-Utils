@@ -54,21 +54,9 @@ export const POST = withAuth(async (req: NextRequest, user: JWTPayload) => {
         }
 
         // Update player verification status
-        const soloQueueData = verificationResult.rankedData?.find(rank => rank.queueType === 'RANKED_SOLO_5x5');
-        const riotData = {
-            puuid: verificationResult.player?.puuid || '',
-            summonerLevel: verificationResult.summoner?.summonerLevel || 0,
-            rank: riotAPI.getRankString(verificationResult.rankedData),
-            tier: soloQueueData?.tier || 'UNRANKED',
-            leaguePoints: soloQueueData?.leaguePoints || 0,
-            wins: soloQueueData?.wins || 0,
-            losses: soloQueueData?.losses || 0
-        };
-
         await verifyTeamPlayers(teamId, [{
             playerId,
-            verified: true,
-            riotData
+            verified: true
         }]);
 
         return NextResponse.json({
@@ -77,8 +65,7 @@ export const POST = withAuth(async (req: NextRequest, user: JWTPayload) => {
             player: {
                 id: playerId,
                 inGameName: player.inGameName,
-                verified: true,
-                riotData
+                verified: true
             }
         });
     } catch (error) {
