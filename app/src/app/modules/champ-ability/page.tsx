@@ -10,6 +10,7 @@ import { ChampionDownloadProgress } from '@lib/types/progress';
 import { assetCache } from '@lib/services/asset-cache';
 import { championCacheService } from '@lib/services/champion-cache';
 import { DownloadProgressModal } from '../../components/common/DownloadProgressModal';
+import { BackButton } from '@components/common';
 
 type Spell = {
   id: string;
@@ -200,6 +201,9 @@ export default function ChampAbilityPage() {
   return (
     <div className="min-h-screen text-white p-4 flex flex-col items-center justify-center">
       <div className="w-full max-w-7xl p-4 flex flex-col items-center">
+        <div className="mb-4">
+            <BackButton to="/modules">Back to Modules</BackButton>
+        </div>
         <h1 className="text-3xl font-bold mb-6 text-center">League of Legends Champion Spell Showcaser</h1>
 
         <div className="flex justify-center mb-6 w-full gap-4">

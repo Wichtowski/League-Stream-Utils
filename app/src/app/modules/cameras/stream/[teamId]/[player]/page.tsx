@@ -5,8 +5,9 @@ import { useRouter, useParams } from "next/navigation";
 import { useNavigation } from '@lib/contexts/NavigationContext';
 import { AuthGuard } from '@lib/components/AuthGuard';
 import { useAuthenticatedFetch } from '@lib/hooks/useAuthenticatedFetch';
-import { CameraFeed, CameraNavigation, PlayerInfoHeader, CameraLayout } from '@/app/modules/cameras/components';
+import { CameraFeed, CameraNavigation, PlayerInfoHeader, CameraLayout } from '../../../components';
 import type { CameraPlayer, CameraTeam } from '@lib/types';
+import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 
 export default function PlayerCameraStreamPage() {
     const router = useRouter();
@@ -87,6 +88,15 @@ export default function PlayerCameraStreamPage() {
 
     return (
         <AuthGuard loadingMessage="Loading player camera...">
+            <div className="mb-4">
+                <button
+                    onClick={() => router.push('/modules/cameras')}
+                    className="flex items-center bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg mb-4"
+                >
+                    <ArrowLeftIcon className="w-5 h-5 mr-2" />
+                    Back to Cameras
+                </button>
+            </div>
             {accessDenied ? (
                 <CameraLayout>
                     <div className="flex items-center justify-center p-8 h-screen">

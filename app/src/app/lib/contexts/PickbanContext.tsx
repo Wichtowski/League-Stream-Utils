@@ -3,7 +3,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode, useRef } from 'react';
 import { useAuthenticatedFetch } from '@lib/hooks/useAuthenticatedFetch';
 import { useAuth } from './AuthContext';
-import { storage } from '@lib/utils/storage';
+import { storage } from '@lib/utils/storage/storage';
 import type { PickbanSession, PickbanConfig, PickbanAction, LCUStatus } from '@lib/types';
 import { useElectron } from './ElectronContext';
 

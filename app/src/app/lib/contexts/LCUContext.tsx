@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { LCUConnector } from '@lib/services/lcu-connector';
-import { storage } from '@lib/utils/storage';
+import { storage } from '@lib/utils/storage/storage';
 
 import type { ChampSelectSession } from '@lib/types';
 

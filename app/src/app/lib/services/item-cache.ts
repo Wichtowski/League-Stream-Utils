@@ -1,6 +1,6 @@
 import { BaseCacheService } from './base-cache';
 import { DDRAGON_CDN } from '../constants';
-import { DataDragonClient } from '../utils/datadragon-client';
+import { DataDragonClient } from '../utils/dataDragon/client';
 import path from 'path';
 
 interface DataDragonItem {

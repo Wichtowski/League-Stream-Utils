@@ -3,11 +3,12 @@
 import React, { useEffect, useState } from 'react';
 import type { EnhancedChampSelectSession } from '@lib/types';
 import { getChampions } from '@lib/champions';
-import { useNavigation } from '@/app/lib/contexts/NavigationContext';
-import { useMockDataContext } from '@/app/lib/contexts/MockDataContext';
-import { useLCU } from '@/app/lib/contexts/LCUContext';
+import { useNavigation } from '@lib/contexts/NavigationContext';
+import { useMockDataContext } from '@lib/contexts/MockDataContext';
+import { useLCU } from '@lib/contexts/LCUContext';
 import { getDynamicMockData } from '@lib/mocks/dynamic-champselect';
 import { ChampSelectDisplay } from './components/ChampSelectDisplay';
+import { BackButton } from '@components/common';
 
 const ChampSelectOverlayPage: React.FC = () => {
   const { useMockData } = useMockDataContext();
@@ -64,10 +65,15 @@ const ChampSelectOverlayPage: React.FC = () => {
     }
 
     return (
-      <ChampSelectDisplay 
-        data={data}
-        isOverlay={true}
-      />
+      <>
+        <div className="mb-4">
+          <BackButton to="/modules">Back to Modules</BackButton>
+        </div>
+        <ChampSelectDisplay 
+          data={data}
+          isOverlay={true}
+          />
+      </>
     );
   }
 
@@ -86,10 +92,15 @@ const ChampSelectOverlayPage: React.FC = () => {
   }
 
   return (
-    <ChampSelectDisplay 
-      data={data}
-      isOverlay={true}
-    />
+    <>
+      <div className="mb-4">
+        <BackButton to="/modules">Back to Modules</BackButton>
+      </div>
+      <ChampSelectDisplay 
+        data={data}
+        isOverlay={true}
+        />
+    </>
   );
 };
 

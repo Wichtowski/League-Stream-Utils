@@ -7,6 +7,7 @@ import { AuthGuard } from '@lib/components/AuthGuard';
 import { useAuthenticatedFetch } from '@lib/hooks/useAuthenticatedFetch';
 import { CameraPlayer, CameraTeam } from '@lib/types';
 import Image from 'next/image';
+import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 
 export default function TeamCameraStreamPage() {
     const router = useRouter();
@@ -182,7 +183,16 @@ export default function TeamCameraStreamPage() {
     }
 
     return (
-        <AuthGuard loadingMessage="Loading team cameras...">
+        <AuthGuard loadingMessage="Loading team camera...">
+            <div className="mb-4">
+                <button
+                    onClick={() => router.push('/modules/cameras')}
+                    className="flex items-center bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg mb-4"
+                >
+                    <ArrowLeftIcon className="w-5 h-5 mr-2" />
+                    Back to Cameras
+                </button>
+            </div>
             {players.length === 0 ? (
                 <div className="min-h-screen bg-black flex items-center justify-center p-8">
                     <div className="text-center">

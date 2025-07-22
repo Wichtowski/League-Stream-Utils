@@ -1,11 +1,11 @@
 'use client';
 
 import Link from "next/link";
-import { getVisibleModules } from '@lib/utils/moduleNavigation';
+import { getVisibleModules } from '@lib/navigation';
 import { useNavigation } from "@lib/contexts/NavigationContext";
 import { usePathname } from "next/navigation";
-import { useElectron } from "@/app/lib/contexts/ElectronContext";
-import { useAuth } from "@/app/lib/contexts/AuthContext";
+import { useElectron } from "@lib/contexts/ElectronContext";
+import { useAuth } from "@lib/contexts/AuthContext";
 
 export function Footer() {
   const { activeModule } = useNavigation();

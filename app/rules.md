@@ -181,3 +181,7 @@ interface AuthContextType {
 
 const AuthContext = React.createContext<AuthContextType | undefined>(undefined)
 ```
+
+### Q&A
+
+If there are any not covered areas, information missing, or you have any questions related to given task, ask them before proceeding with the code changes.

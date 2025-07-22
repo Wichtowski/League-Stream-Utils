@@ -8,7 +8,7 @@ import {
   getClientIP,
   sanitizeInput,
   verifyPassword
-} from '@lib/utils/security';
+} from '@lib/utils/security/security';
 import {
   recordLoginAttempt,
   isAccountLocked,

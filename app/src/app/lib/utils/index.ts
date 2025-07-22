@@ -1,23 +1,23 @@
 // Local imports for utility functions
-import { AssetValidator } from './asset-validator';
-import { CacheCompletenessChecker } from './cache-completeness-checker';
-import type { CacheCompletenessResult } from './cache-completeness-checker';
+import { AssetValidator } from './assetManagement/validator';
+import { CacheCompletenessChecker } from './assetManagement/cacheCompletenessChecker';
+import type { CacheCompletenessResult } from './assetManagement/cacheCompletenessChecker';
 
 // DataDragon API Client
-export { DataDragonClient } from './datadragon-client';
-export type { DataDragonVersions, DataDragonResponse } from './datadragon-client';
+export { DataDragonClient } from './dataDragon/client';
+export type { DataDragonVersions, DataDragonResponse } from './dataDragon/client';
 
 // Asset Validation Utilities
-export { AssetValidator } from './asset-validator';
-export type { AssetValidationResult, AssetValidationOptions } from './asset-validator';
+export { AssetValidator } from './assetManagement/validator';
+export type { AssetValidationResult, AssetValidationOptions } from './assetManagement/validator';
 
 // Cache Completeness Checking
-export { CacheCompletenessChecker } from './cache-completeness-checker';
-export type { CacheCompletenessResult, CacheValidationOptions } from './cache-completeness-checker';
+export { CacheCompletenessChecker } from './assetManagement/cacheCompletenessChecker';
+export type { CacheCompletenessResult, CacheValidationOptions } from './assetManagement/cacheCompletenessChecker';
 
 // Asset Migration Utilities
-export { AssetMigrator } from './asset-migrator';
-export type { MigrationResult, MigrationOptions } from './asset-migrator';
+export { AssetMigrator } from './assetManagement/migrator';
+export type { MigrationResult, MigrationOptions } from './assetManagement/migrator';
 
 /**
  * Commonly used utility combinations for convenience

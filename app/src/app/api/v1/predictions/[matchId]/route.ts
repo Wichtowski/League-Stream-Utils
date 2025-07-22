@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@lib/auth';
-import { storage } from '@lib/utils/storage';
+import { storage } from '@lib/utils/storage/storage';
 
 // Prediction type
 interface Prediction {

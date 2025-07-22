@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@lib/auth';
 import { createTeam, getUserTeams, checkTeamAvailability } from '@lib/database/team';
 import type { CreateTeamRequest, PlayerRole } from '@lib/types';
-import { getTeamLogoUrl } from '@lib/utils/image';
+import { getTeamLogoUrl } from '@lib/utils/media/image';
 
 // GET /api/v1/teams - Get user's teams
 export const GET = withAuth(async (req: NextRequest, user) => {

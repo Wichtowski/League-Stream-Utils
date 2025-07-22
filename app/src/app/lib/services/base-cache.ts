@@ -1,5 +1,5 @@
-import { DataDragonClient } from '../utils/datadragon-client';
-import { AssetValidator } from '../utils/asset-validator';
+import { DataDragonClient } from '../utils/dataDragon/client';
+import { AssetValidator } from '../utils/assetManagement/validator';
 import path from 'path';
 
 export interface DownloadProgress {

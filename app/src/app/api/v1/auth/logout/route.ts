@@ -1,23 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken, invalidateSession, setSecurityHeaders } from '@lib/auth';
-import { getClientIP } from '@lib/utils/security';
+import { getClientIP } from '@lib/utils/security/security';
 import { logSecurityEvent } from '@lib/database/security';
 
 export async function POST(request: NextRequest) {
   const ip = getClientIP(request);
   const userAgent = request.headers.get('user-agent') || 'unknown';
-  
+
   try {
     // Get access token from cookie
     const accessToken = request.cookies.get('access_token')?.value;
-    
+
     let userId = 'unknown';
-    
+
     if (accessToken) {
       const decoded = verifyToken(accessToken, 'access');
       if (decoded) {
         userId = decoded.userId;
-        
+
         // Invalidate session if present
         if (decoded.sessionId) {
           invalidateSession(decoded.sessionId);
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Logout error:', error);
-    
+
     await logSecurityEvent({
       timestamp: new Date(),
       event: 'logout_error',

@@ -1,4 +1,4 @@
-import { DDRAGON_BASE_URL, DDRAGON_CDN } from '../constants';
+import { DDRAGON_BASE_URL, DDRAGON_CDN } from '../../constants';
 
 export interface DataDragonVersions {
     latest: string;

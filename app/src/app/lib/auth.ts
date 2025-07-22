@@ -3,7 +3,8 @@ import jwt, { SignOptions } from 'jsonwebtoken';
 import { canUserCreateSession, updateUserSessionCount } from './database';
 import { JWTPayload, SessionData } from './types/auth';
 import { config } from '@lib/config';
-import { checkRateLimit, getClientIP, SECURITY_HEADERS } from './utils/security';
+import { checkRateLimit, getClientIP } from './utils/security/security';
+import { SECURITY_HEADERS } from './utils/security/constants';
 import { logSecurityEvent } from './database/security';
 
 const activeSessions = new Map<string, SessionData>();
@@ -83,7 +84,7 @@ export function withAuth(handler: (request: NextRequest, user: JWTPayload) => Pr
 
     try {
       if (accessTokenCookie) {
-         const decoded = verifyToken(accessTokenCookie, 'access');
+        const decoded = verifyToken(accessTokenCookie, 'access');
 
         if (!decoded) {
           await logSecurityEvent({

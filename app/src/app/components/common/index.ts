@@ -8,6 +8,7 @@ import { LCUStatusIndicator } from './LCUStatusIndicator';
 import { Modal } from './Modal';
 import { Pagination } from './Pagination';
 import { LoadingSpinner, InlineSpinner, PageLoader, OverlayLoader } from './LoadingSpinner';
+import { BackButton } from './BackButton';
 
 export {
     AlertModal,
@@ -23,4 +24,5 @@ export {
     OverlayLoader,
     Modal,
     Pagination,
+    BackButton,
 };

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { findLCUCredentials, testLCUConnection } from '@lib/utils/lcu-helpers';
+import { findLCUCredentials, testLCUConnection } from '@lib/utils/LCU/lcu-helpers';
 
 export async function GET(): Promise<NextResponse> {
     try {

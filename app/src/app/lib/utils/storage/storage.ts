@@ -1,4 +1,4 @@
-import { asyncStorage } from './async-storage';
+import { asyncStorage } from './asyncStorage';
 
 interface StorageData {
     data: unknown;

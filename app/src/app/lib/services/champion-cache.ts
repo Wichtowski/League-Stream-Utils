@@ -1,7 +1,7 @@
 import { Champion, ChampionSpell } from '../types/game';
 import { DDRAGON_CDN } from '../constants';
 import { BaseCacheService } from './base-cache';
-import { DataDragonClient } from '../utils/datadragon-client';
+import { DataDragonClient } from '../utils/dataDragon/client';
 import path from 'path';
 
 interface DataDragonChampion {

@@ -9,7 +9,7 @@ import { useElectron } from '@lib/contexts/ElectronContext';
 import { useHighPerformanceDownload } from '@lib/contexts/HighPerformanceDownloadContext';
 import { AssetDownloadProgress } from '@components/common';
 import { Cog6ToothIcon } from '@heroicons/react/24/outline';
-import { getVisibleModules, ModuleCard } from '@lib/utils/moduleNavigation';
+import { getVisibleModules, ModuleCard } from '@lib/navigation';
 
 export default function ModulesPage() {
     const router = useRouter();

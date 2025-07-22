@@ -3,7 +3,7 @@
 import React from 'react';
 import type { EnhancedChampSelectPlayer } from '@lib/types';
 import { PlayerSlot } from './PlayerSlot';
-import { TeamColors } from '@/app/lib/types/tournament';
+import { TeamColors } from '@lib/types/tournament';
 
 interface TeamSectionProps {
   team: EnhancedChampSelectPlayer[];

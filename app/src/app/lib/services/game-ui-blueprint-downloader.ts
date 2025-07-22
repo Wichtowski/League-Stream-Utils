@@ -1,5 +1,5 @@
 import { BaseCacheService } from './base-cache';
-import { AssetValidator } from '../utils/asset-validator';
+import { AssetValidator } from '../utils/assetManagement/validator';
 
 interface GameUIAsset {
     category: string;

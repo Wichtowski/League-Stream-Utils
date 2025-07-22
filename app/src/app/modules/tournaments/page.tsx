@@ -8,7 +8,7 @@ import { useNavigation } from '@lib/contexts/NavigationContext';
 import { useElectron } from '@lib/contexts/ElectronContext';
 import { useModal } from '@lib/contexts/ModalContext';
 import { AuthGuard } from '@lib/components/AuthGuard';
-import { LoadingSpinner, LCUStatusIndicator } from '@components/common';
+import { LoadingSpinner, LCUStatusIndicator, BackButton } from '@components/common';
 import type { TournamentStatus } from '@lib/types';
 
 // Dynamic imports for lazy loading
@@ -84,6 +84,9 @@ export default function TournamentsPage() {
 
     return (
         <AuthGuard loadingMessage="Loading tournaments...">
+            <div className="mb-4">
+                <BackButton to="/modules">Back to Modules</BackButton>
+            </div>
             {tournamentsLoading && tournaments.length === 0 ? (
                 <LoadingSpinner fullscreen text="Loading tournaments..." />
             ) : (

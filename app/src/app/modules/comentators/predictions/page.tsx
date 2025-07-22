@@ -6,6 +6,7 @@ import { AuthGuard } from "@lib/components/AuthGuard";
 import { useTournaments } from "@lib/contexts/TournamentsContext";
 import type { Tournament } from "@lib/types";
 import type { BracketStructure, BracketNode } from "@lib/types/tournament";
+import { BackButton } from '@components/common';
 
 interface Match {
   id: string;
@@ -68,6 +69,9 @@ export default function ComentatorPredictionsPage(): React.ReactElement {
   if (!mode) {
     return (
       <AuthGuard loadingMessage="Loading predictions...">
+        <div className="mb-4">
+          <BackButton to="/modules">Back to Modules</BackButton>
+        </div>
         <div className="min-h-screen p-6 max-w-xl mx-auto">
           <h1 className="text-3xl font-bold text-white mb-6">Comentator Predictions</h1>
           <div className="space-y-4">

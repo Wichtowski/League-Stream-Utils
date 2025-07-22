@@ -1,16 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken, generateTokens, setSecurityHeaders } from '@lib/auth';
-import { getClientIP } from '@lib/utils/security';
+import { getClientIP } from '@lib/utils/security/security';
 import { logSecurityEvent } from '@lib/database/security';
 
 export async function POST(request: NextRequest) {
   const ip = getClientIP(request);
   const userAgent = request.headers.get('user-agent') || 'unknown';
-  
+
   try {
     // Get refresh token from cookie
     const refreshToken = request.cookies.get('refresh_token')?.value;
-    
+
     if (!refreshToken) {
       return setSecurityHeaders(NextResponse.json(
         { error: 'Refresh token required' },
@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Token refresh error:', error);
-    
+
     await logSecurityEvent({
       timestamp: new Date(),
       event: 'token_refresh_error',

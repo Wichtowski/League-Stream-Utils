@@ -1,17 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUserByUsername } from '@lib/database/user';
 import { verifyToken, setSecurityHeaders } from '@lib/auth';
-import { getClientIP } from '@lib/utils/security';
+import { getClientIP } from '@lib/utils/security/security';
 import { logSecurityEvent } from '@lib/database/security';
 
 export async function GET(request: NextRequest) {
   const ip = getClientIP(request);
   const userAgent = request.headers.get('user-agent') || 'unknown';
-  
+
   try {
     // Get access token from cookie
     const accessToken = request.cookies.get('access_token')?.value;
-    
+
     if (!accessToken) {
       return setSecurityHeaders(NextResponse.json(
         { error: 'Not authenticated' },
@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('Get user info error:', error);
-    
+
     return setSecurityHeaders(NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

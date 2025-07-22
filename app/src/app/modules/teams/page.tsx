@@ -7,8 +7,9 @@ import { useTeams } from '@lib/contexts/TeamsContext';
 import { AuthGuard } from '@lib/components/AuthGuard';
 import type { Team, CreateTeamRequest, TeamTier } from '@lib/types';
 import { useModal } from '@lib/contexts/ModalContext';
-import { useNavigation } from '@/app/lib/contexts/NavigationContext';
+import { useNavigation } from '@lib/contexts/NavigationContext';
 import { LoadingSpinner } from '@components/common';
+import { BackButton } from '@components/common';
 
 export default function TeamsPage() {
     const user = useUser();
@@ -344,6 +345,9 @@ export default function TeamsPage() {
 
     return (
         <AuthGuard loadingMessage="Loading teams...">
+            <div className="mb-4">
+                <BackButton to="/modules">Back to Modules</BackButton>
+            </div>
             {loading ? (
                 <LoadingSpinner fullscreen text="Loading teams..." variant="white" />
             ) : (

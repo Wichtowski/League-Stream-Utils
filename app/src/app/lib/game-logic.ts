@@ -12,7 +12,7 @@ import {
 } from './database';
 
 import type { Team } from '@lib/types';
-import { getTeamLogoUrl } from '@lib/utils/image';
+import { getTeamLogoUrl } from '@lib/utils/media/image';
 
 // Pick and ban phase configuration - 22 turns total
 const PICK_BAN_ORDER = [

@@ -3,9 +3,9 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@lib/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
-import { ElectronSettings } from '@/app/components/common/electron/settings';
+import { ElectronSettings } from '@components/common/electron/settings';
 import { LoadingSpinner } from '@components/common';
-import { useNavigation } from '@/app/lib/contexts/NavigationContext';
+import { useNavigation } from '@lib/contexts/NavigationContext';
 
 export default function SettingsPage() {
     const { user, isLoading: authLoading } = useAuth();

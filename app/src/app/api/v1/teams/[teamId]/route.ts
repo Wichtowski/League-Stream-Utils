@@ -3,7 +3,7 @@ import { withAuth } from '@lib/auth';
 import { getTeamById, updateTeam, deleteTeam, checkTeamAvailability } from '@lib/database/team';
 import type { CreateTeamRequest, PlayerRole } from '@lib/types';
 import type { JWTPayload } from '@lib/types/auth';
-import { getTeamLogoUrl } from '@lib/utils/image';
+import { getTeamLogoUrl } from '@lib/utils/media/image';
 
 // GET /api/v1/teams/[teamId] - Get specific team
 export const GET = withAuth(async (req: NextRequest, user: JWTPayload) => {

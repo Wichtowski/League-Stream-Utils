@@ -4,7 +4,7 @@ import { createContext, useContext, useState, useEffect, useCallback, ReactNode,
 import { useAuthenticatedFetch } from '@lib/hooks/useAuthenticatedFetch';
 import { useAuth } from './AuthContext';
 import { useElectron } from './ElectronContext';
-import { storage } from '@lib/utils/storage';
+import { storage } from '@lib/utils/storage/storage';
 import type { Tournament, CreateTournamentRequest } from '@lib/types';
 
 interface TournamentDataContextType {

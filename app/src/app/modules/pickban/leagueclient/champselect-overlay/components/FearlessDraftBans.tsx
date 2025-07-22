@@ -2,7 +2,7 @@ import React from 'react';
 import Image from 'next/image';
 import { getChampionSquareImage } from './common';
 import { ROLE_ICONS } from '@lib/constants';
-import { PlayerRole } from '@/app/lib/types/common';
+import { PlayerRole } from '@lib/types/common';
 
 interface FearlessBan {
   championId: number;

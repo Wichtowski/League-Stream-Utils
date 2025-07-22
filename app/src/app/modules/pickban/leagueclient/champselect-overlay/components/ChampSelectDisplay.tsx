@@ -7,7 +7,7 @@ import TimeBar from './TimeBar';
 import { MockControlPanel} from './MockControlPanel';
 import { ChampSelectLayout } from './ChampSelectLayout';
 import { FearlessDraftBans } from './FearlessDraftBans';
-import { blueColor, redColor } from '@/app/lib/constants';
+import { blueColor, redColor } from '@lib/constants';
 
 interface ChampSelectDisplayProps {
   data: EnhancedChampSelectSession;
