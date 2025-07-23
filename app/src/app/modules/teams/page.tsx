@@ -2,14 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { useUser } from '@lib/contexts/AuthContext';
-import { useTeams } from '@lib/contexts/TeamsContext';
 import { AuthGuard } from '@lib/components/AuthGuard';
 import type { Team, CreateTeamRequest, TeamTier } from '@lib/types';
-import { useModal } from '@lib/contexts/ModalContext';
-import { useNavigation } from '@lib/contexts/NavigationContext';
-import { LoadingSpinner } from '@components/common';
-import { BackButton } from '@components/common';
+import { useNavigation, useUser, useTeams, useModal } from '@lib/contexts';
+import { LoadingSpinner, BackButton, InlineSpinner } from '@components/common';
 
 export default function TeamsPage() {
     const user = useUser();
@@ -27,6 +23,7 @@ export default function TeamsPage() {
     const [creating, setCreating] = useState(false);
     const [logoPreview, setLogoPreview] = useState<string>('');
     const [verifyingPlayers, setVerifyingPlayers] = useState<Set<string>>(new Set());
+    const [verifyingAllTeams, setVerifyingAllTeams] = useState<Set<string>>(new Set());
     const { setActiveModule } = useNavigation();
     const [editTeamId, setEditTeamId] = useState<string | null>(null);
     const [editFormData, setEditFormData] = useState<Partial<CreateTeamRequest> | null>(null);
@@ -54,8 +51,7 @@ export default function TeamsPage() {
         tier: 'amateur',
         logo: {
             type: 'url',
-            data: '',
-            size: 0,
+            url: '',
             format: 'png'
         }
     });
@@ -92,9 +88,8 @@ export default function TeamsPage() {
             ...formData,
             logo: {
                 type: 'url',
-                data: url,
-                size: 0,
-                format: 'png'
+                url,
+                format: 'png',
             }
         });
         setLogoPreview(url);
@@ -160,8 +155,7 @@ export default function TeamsPage() {
             tier: 'amateur',
             logo: {
                 type: 'url',
-                data: '',
-                size: 0,
+                url: '',
                 format: 'png'
             }
         });
@@ -235,6 +229,7 @@ export default function TeamsPage() {
     };
 
     const handleVerifyAllPlayers = async (team: Team) => {
+        setVerifyingAllTeams(prev => new Set(prev).add(team.id));
         const confirmed = await showConfirm({
             title: 'Verify All Players',
             message: `Are you sure you want to verify all players in team "${team.name}"? This will verify all main roster and substitute players.`,
@@ -262,6 +257,11 @@ export default function TeamsPage() {
                 });
             }
         }
+        setVerifyingAllTeams(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(team.id);
+            return newSet;
+        });
     };
 
     const handleEditTeam = (team: Team) => {
@@ -280,7 +280,7 @@ export default function TeamsPage() {
             socialMedia: team.socialMedia,
             staff: team.staff
         });
-        setLogoPreview(team.logo?.type === 'url' ? team.logo.data : '');
+        setLogoPreview(team.logo?.type === 'url' ? team.logo.url : '');
     };
 
     const updateEditPlayer = (index: number, field: 'inGameName' | 'tag', value: string) => {
@@ -345,25 +345,20 @@ export default function TeamsPage() {
 
     return (
         <AuthGuard loadingMessage="Loading teams...">
-            <div className="mb-4">
-                <BackButton to="/modules">Back to Modules</BackButton>
-            </div>
             {loading ? (
                 <LoadingSpinner fullscreen text="Loading teams..." variant="white" />
             ) : (
                 <div className="min-h-screen text-white">
             <div className="container mx-auto px-6 py-8">
-                <div className="flex justify-between items-center mb-8">
+                <div className="flex justify-between items-center mb-8 content-center">
+                    <BackButton to="/modules">Back to Modules</BackButton>
                     <h1 className="text-3xl font-bold">My Teams</h1>
-                    <p>You are logged in as {user?.username}</p>
-                    { teams.length > 0 && (
-                        <button
-                            onClick={() => setShowCreateForm(true)}
-                            className="cursor-pointer bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-lg"
-                        >
-                            Create Team
-                        </button>
-                    )}
+                    <button
+                        onClick={() => setShowCreateForm(true)}
+                        className="cursor-pointer bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-lg"
+                    >
+                        Create Team
+                    </button>
                 </div>
 
                 {showCreateForm && (
@@ -429,6 +424,7 @@ export default function TeamsPage() {
                                             accept="image/*"
                                             onChange={(e) => e.target.files?.[0] && handleLogoFileChange(e.target.files[0])}
                                             className="w-full bg-gray-700 rounded px-3 py-2 text-sm"
+                                            disabled={formData.logo?.type === 'url' && !!formData.logo.url}
                                         />
                                         <p className="text-xs text-gray-400 mt-1">Max 5MB • PNG, JPG, WEBP</p>
                                     </div>
@@ -436,10 +432,11 @@ export default function TeamsPage() {
                                         <label className="block text-xs text-gray-400 mb-1">Or paste URL</label>
                                         <input
                                             type="url"
-                                            value={formData.logo?.type === 'url' ? formData.logo.data : ''}
+                                            value={formData.logo?.type === 'url' ? formData.logo.url : ''}
                                             onChange={(e) => handleLogoUrlChange(e.target.value)}
                                             className="w-full bg-gray-700 rounded px-3 py-2"
                                             placeholder="https://example.com/logo.png"
+                                            disabled={formData.logo?.type === 'upload' && !!formData.logo.data}
                                         />
                                     </div>
                                 </div>
@@ -719,8 +716,9 @@ export default function TeamsPage() {
                                             <button
                                                 onClick={() => handleVerifyAllPlayers(team)}
                                                 className="text-xs px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded transition-colors"
+                                                disabled={verifyingAllTeams.has(team.id)}
                                             >
-                                                Verify All
+                                                {verifyingAllTeams.has(team.id) ? <InlineSpinner size="sm" variant="white" /> : 'Verify All'}
                                             </button>
                                             {user?.isAdmin && (
                                                 <button
@@ -778,7 +776,7 @@ export default function TeamsPage() {
                                                         disabled={verifyingPlayers.has(player.id)}
                                                         className="text-xs px-2 py-1 bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-600 rounded transition-colors w-full"
                                                     >
-                                                        {verifyingPlayers.has(player.id) ? 'Verifying...' : 'Verify'}
+                                                        {verifyingPlayers.has(player.id) ? <InlineSpinner size="sm" variant="white" /> : 'Verify'}
                                                     </button>
                                                 )}
                                             </div>
@@ -805,7 +803,7 @@ export default function TeamsPage() {
                                                             disabled={verifyingPlayers.has(player.id)}
                                                             className="text-xs px-2 py-1 bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-600 rounded transition-colors w-full"
                                                         >
-                                                            {verifyingPlayers.has(player.id) ? 'Verifying...' : 'Verify'}
+                                                            {verifyingPlayers.has(player.id) ? <InlineSpinner size="sm" variant="white" /> : 'Verify'}
                                                         </button>
                                                     )}
                                                 </div>

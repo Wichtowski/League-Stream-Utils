@@ -85,13 +85,14 @@ export default function ChampAbilityPage() {
   const [isDownloading, setIsDownloading] = useState(false);
 
   const loadChampions = useCallback(async () => {
+    setLoading(true);
     try {
-      setLoading(true);
       const champs = await getChampions();
       setChampions(champs);
       setFilteredChampions(champs);
     } catch (error) {
       console.error('Failed to load champions:', error);
+    } finally {
       setLoading(false);
     }
   }, []);
@@ -353,12 +354,23 @@ export default function ChampAbilityPage() {
             </div>
           </div>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4"
+          onWheel={e => {
+            if (draggedChamp) {
+              // Scroll the grid container during drag
+              e.currentTarget.scrollTop += e.deltaY;
+            }
+          }}
+          style={{ maxHeight: '60vh', overflowY: 'auto' }}
+        >
           {filteredChampions.map((champion) => (
             <div
               key={champion.key}
               className="bg-gray-800 rounded-lg p-4 cursor-pointer hover:bg-gray-700 transition-colors"
               onClick={() => setSelected(champion)}
+              draggable
+              onDragStart={() => setDraggedChamp(champion)}
+              onDragEnd={() => setDraggedChamp(null)}
             >
               <div className="relative">
                 <Image

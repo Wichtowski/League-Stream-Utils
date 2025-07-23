@@ -22,8 +22,6 @@ export function ElectronProvider({ children }: { children: ReactNode }) {
         // Check if running in Electron environment
         const checkElectron = () => {
             console.log('Checking Electron environment...');
-            console.log('window.electronAPI:', window.electronAPI);
-            console.log('window.electronAPI?.isElectron:', window.electronAPI?.isElectron);
             
             if (typeof window !== 'undefined' && window.electronAPI?.isElectron) {
                 console.log('Electron detected! Setting up Electron context...');

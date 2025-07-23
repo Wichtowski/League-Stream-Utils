@@ -15,7 +15,7 @@ export const BackButton = ({ to, children = 'Back', className = '' }: BackButton
   return (
     <button
       onClick={() => router.push(to)}
-      className={`flex items-center bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg mb-4 ${className}`}
+      className={`cursor-pointer flex items-center bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg ${className}`}
     >
       <ArrowLeftIcon className="w-5 h-5 mr-2" />
       {children}

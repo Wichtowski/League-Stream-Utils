@@ -9,14 +9,14 @@ export async function GET(): Promise<NextResponse> {
             return NextResponse.json({
                 success: false,
                 error: 'League Client not found',
-                message: 'Could not find League of Legends client. Make sure it is running and you are logged in.',
+                message: 'Could not find League of Legends client',
                 suggestions: [
                     'Start League of Legends client',
                     'Log into your account (not on login screen)',
                     'Wait for client to fully load',
                     'Try restarting the League client'
                 ]
-            }, { status: 404 });
+            }, { status: 200 });
         }
 
         // Test the connection
@@ -39,20 +39,20 @@ export async function GET(): Promise<NextResponse> {
                 }
             });
         } else {
+            console.warn('LCU connection test failed:', testResult.error || 'Unable to connect to League Client');
             return NextResponse.json({
                 success: false,
                 error: 'LCU connection test failed',
                 message: testResult.error || 'Unable to connect to League Client'
-            }, { status: 500 });
+            }, { status: 200 });
         }
 
     } catch (error) {
-        console.error('LCU test error:', error);
-
+        console.warn('LCU test error:', error);
         return NextResponse.json({
             success: false,
             error: 'LCU test failed',
             message: error instanceof Error ? error.message : 'Unknown error occurred'
-        }, { status: 500 });
+        }, { status: 200 });
     }
 } 

@@ -71,23 +71,29 @@ class LCUConnector {
     this.onStatusChange?.(status);
   }
 
-  private async findLCUCredentials(): Promise<LCUCredentials> {
+  private async findLCUCredentials(): Promise<LCUCredentials | null> {
     try {
       const response = await fetch('/api/v1/pickban/leagueclient/lcu-credentials');
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to get LCU credentials');
+        console.warn(errorData.message || 'Failed to get LCU credentials');
+        return null;
       }
 
       const data = await response.json();
+      if (!data.credentials) {
+        console.warn(data.message || 'No credentials found in response');
+        return null;
+      }
       return {
         port: data.credentials.port,
         password: data.credentials.password,
         protocol: data.credentials.protocol
       };
     } catch (err) {
-      throw new Error(err instanceof Error ? err.message : 'Could not find League Client process. Make sure League of Legends is running.');
+      console.warn(err instanceof Error ? err.message : 'Could not find League Client process. Make sure League of Legends is running.');
+      return null;
     }
   }
 
@@ -183,11 +189,20 @@ class LCUConnector {
       const testResult = await testResponse.json();
 
       if (!testResult.success) {
-        throw new Error(testResult.message || testResult.error || 'LCU test failed');
+        console.warn(testResult.message || testResult.error || 'LCU test failed');
       }
 
       // Get credentials from the working endpoint
       const credentials = await this.findLCUCredentials();
+
+      if (!credentials) {
+        this.setConnectionStatus('error');
+        this.onError?.('Could not find League Client process. Make sure League of Legends is running.');
+        if (this.autoReconnect && this.reconnectAttempts < this.maxReconnectAttempts) {
+          this.scheduleReconnect();
+        }
+        return;
+      }
 
       // Connection successful
       this.credentials = credentials;
@@ -197,6 +212,7 @@ class LCUConnector {
       this.startPolling();
 
     } catch (error) {
+      console.warn(error instanceof Error ? error.message : 'Failed to connect to League Client');
       this.setConnectionStatus('error');
       const errorMessage = error instanceof Error ? error.message : 'Failed to connect to League Client';
       this.onError?.(errorMessage);

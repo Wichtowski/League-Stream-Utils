@@ -7,8 +7,10 @@ import { useModal } from '@lib/contexts/ModalContext';
 import { useAuth } from '@lib/contexts/AuthContext';
 import { useElectron } from '@lib/contexts/ElectronContext';
 import { useAuthenticatedFetch } from '@lib/hooks/useAuthenticatedFetch';
-import type { CameraTeam } from '@lib/types';
+import { useTeams } from '@lib/contexts/TeamsContext';
+import type { CameraPlayer, CameraTeam } from '@lib/types';
 import Image from 'next/image';
+import { BackButton } from '@/app/components/common/BackButton';
 
 export default function TeamCameraSetupPage() {
   const router = useRouter();
@@ -19,15 +21,18 @@ export default function TeamCameraSetupPage() {
   const { user, isLoading: authLoading } = useAuth();
   const { isElectron, useLocalData } = useElectron();
   const { authenticatedFetch } = useAuthenticatedFetch();
+  const { teams: userTeams } = useTeams();
   const [team, setTeam] = useState<CameraTeam | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+
+  // Find the full team info from userTeams
+  const fullTeam = userTeams.find(t => t.id === teamId);
 
   useEffect(() => {
     setActiveModule('cameras');
 
     if (!authLoading) {
-      // Only redirect to auth if not authenticated and not using Electron local data
       if (!user && !(isElectron && useLocalData)) {
         router.push('/auth');
         return;
@@ -42,11 +47,32 @@ export default function TeamCameraSetupPage() {
             const data = await response.json();
             const teams = data.teams || [];
             const foundTeam = teams.find((t: CameraTeam) => t.teamId === teamId);
-            
-            if (foundTeam) {
-              setTeam(foundTeam);
+
+            // Merge logic: show all players from fullTeam, merge camera URLs from foundTeam
+            if (fullTeam) {
+              const allPlayers = [
+                ...fullTeam.players.main,
+                ...fullTeam.players.substitutes
+              ].map(player => {
+                const cameraPlayer = foundTeam?.players.find((cp: CameraPlayer) =>
+                  (cp.playerId && cp.playerId === player.id) || (cp.inGameName && cp.inGameName === player.inGameName)
+                );
+                return {
+                  ...player,
+                  playerId: player.id,
+                  playerName: player.inGameName,
+                  url: cameraPlayer?.url || '',
+                  imagePath: cameraPlayer?.imagePath || '',
+                };
+              });
+              setTeam({
+                teamId: fullTeam.id,
+                teamName: fullTeam.name,
+                teamLogo: fullTeam.logo?.data,
+                players: allPlayers,
+                teamStreamUrl: foundTeam?.teamStreamUrl || ''
+              });
             } else {
-              // Team not found, redirect back
               router.push('/modules/cameras/setup');
             }
           } else {
@@ -62,7 +88,7 @@ export default function TeamCameraSetupPage() {
 
       loadTeamSettings();
     }
-  }, [router, setActiveModule, teamId, user, authLoading, isElectron, useLocalData, authenticatedFetch]);
+  }, [router, setActiveModule, teamId, user, authLoading, isElectron, useLocalData, authenticatedFetch, fullTeam]);
 
 
 
@@ -174,12 +200,7 @@ export default function TeamCameraSetupPage() {
             </div>
           </div>
           <div className="flex gap-3">
-            <button
-              onClick={() => router.push('/modules/cameras/setup')}
-              className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors"
-            >
-              Back to Teams
-            </button>
+            <BackButton to="/modules/cameras/setup">Back to Camera Hub</BackButton>
             <button
               onClick={saveSettings}
               disabled={saving}

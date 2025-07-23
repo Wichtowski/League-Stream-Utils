@@ -7,32 +7,47 @@ import { useNavigation } from '@lib/contexts/NavigationContext';
 import { useCameras } from '@lib/contexts/CamerasContext';
 import { AuthGuard } from '@lib/components/AuthGuard';
 import { LoadingSpinner } from '@components/common';
+import type { CameraTeam } from '@lib/types/camera';
+import { Accordion, AccordionItem } from '@components/common/Accordion';
 
 export default function AllCamerasPage() {
     const router = useRouter();
     const { setActiveModule } = useNavigation();
-    const { teams, allPlayers, loading, error: _error, refreshCameras } = useCameras();
+    const { teams, loading: teamsLoading } = useCameras();
+    const [openTeamId, setOpenTeamId] = useState<string | null>(null);
+    const [teamData, setTeamData] = useState<Record<string, CameraTeam | null>>({});
+    const [loadingTeams, setLoadingTeams] = useState<Set<string>>(new Set());
     const [streamErrors, setStreamErrors] = useState<Set<string>>(new Set());
 
     useEffect(() => {
         setActiveModule('cameras');
-        refreshCameras();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [setActiveModule]);
+
+    const handleAccordionToggle = async (teamId: string) => {
+        if (openTeamId === teamId) {
+            setOpenTeamId(null);
+            return;
+        }
+        setOpenTeamId(teamId);
+        if (!teamData[teamId]) {
+            setLoadingTeams(prev => new Set(prev).add(teamId));
+            try {
+                const res = await fetch(`/api/v1/cameras/settings?teamId=${teamId}`);
+                const data = await res.json();
+                setTeamData(prev => ({ ...prev, [teamId]: data.teams?.[0] || null }));
+            } catch {
+                setTeamData(prev => ({ ...prev, [teamId]: null }));
+            } finally {
+                setLoadingTeams(prev => { const s = new Set(prev); s.delete(teamId); return s; });
+            }
+        }
+    };
 
     const handleStreamError = (playerName: string) => {
         setStreamErrors(prev => new Set([...prev, playerName]));
     };
 
-    const getGridCols = (count: number) => {
-        if (count <= 1) return 'grid-cols-1';
-        if (count <= 4) return 'grid-cols-2';
-        if (count <= 9) return 'grid-cols-3';
-        if (count <= 16) return 'grid-cols-4';
-        return 'grid-cols-5';
-    };
-
-    if (loading) {
+    if (teamsLoading) {
         return (
             <AuthGuard loadingMessage="Loading cameras...">
                 <LoadingSpinner fullscreen text="Loading cameras..." />
@@ -40,11 +55,11 @@ export default function AllCamerasPage() {
         );
     }
 
-    if (allPlayers.length === 0) {
+    if (!teams.length) {
         return (
-            <div className="min-h-screen  flex items-center justify-center p-8">
+            <div className="min-h-screen flex items-center justify-center p-8">
                 <div className="text-center">
-                    <h2 className="text-2xl font-bold text-white mb-4">No Cameras Configured</h2>
+                    <h2 className="text-2xl font-bold text-white mb-4">No Teams Configured</h2>
                     <p className="text-gray-400 mb-6">Set up your camera configurations first.</p>
                     <button
                         onClick={() => router.push('/modules/cameras')}
@@ -57,48 +72,37 @@ export default function AllCamerasPage() {
         );
     }
 
-    return (
-        <AuthGuard loadingMessage="Loading cameras...">
-            <div className="min-h-screen  p-4">
-                {/* Header */}
-                <div className="mb-6">
-                    <div className="flex justify-between items-center">
-                        <div>
-                            <h1 className="text-3xl font-bold text-white mb-2">All Cameras</h1>
-                            <p className="text-gray-400">
-                                {allPlayers.length} camera{allPlayers.length !== 1 ? 's' : ''} from {teams.length} team{teams.length !== 1 ? 's' : ''}
-                            </p>
-                        </div>
-                        <div className="flex gap-3">
-                            <button
-                                onClick={() => router.push('/modules/cameras')}
-                                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors"
-                            >
-                                Setup
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Camera Grid */}
-                <div className={`grid ${getGridCols(allPlayers.length)} gap-4 auto-rows-fr`}>
-                    {allPlayers.map((player, index) => (
+    const accordionItems: AccordionItem[] = teams.map(team => ({
+        id: team.id,
+        header: (
+            <div className="flex items-center gap-4">
+                {(team.logo.type === 'url' && team.logo.url) ? (
+                    <Image src={team.logo.url} alt={team.name} width={40} height={40} className="rounded-full object-cover" />
+                ) : (team.logo.type === 'upload' && team.logo.data) ? (
+                    <Image src={team.logo.data} alt={team.name} width={40} height={40} className="rounded-full object-cover" />
+                ) : null}
+                <span className="text-xl font-bold text-white">{team.name}</span>
+            </div>
+        ),
+        renderContent: () => (
+            loadingTeams.has(team.id) ? (
+                <div className="flex justify-center py-8"><LoadingSpinner size="md" variant="white" /></div>
+            ) : teamData[team.id] && teamData[team.id]?.players?.length ? (
+                <div className={`grid grid-cols-1 md:grid-cols-3 gap-4 auto-rows-fr`}>
+                    {teamData[team.id]!.players.map((player, index) => (
                         <div
-                            key={`${player.teamName || 'team'}-${player.inGameName || player.playerName || 'player'}-${index}`}
+                            key={player.playerId || player.inGameName || player.playerName || index}
                             className="bg-gray-800 rounded-lg overflow-hidden border border-gray-700 hover:border-gray-600 transition-colors"
                         >
-                            {/* Player Info Header */}
                             <div className="bg-gray-700 px-3 py-2 border-b border-gray-600">
                                 <div className="flex justify-between items-center">
                                     <div>
                                         <h3 className="font-semibold text-white text-sm">{player.inGameName || player.playerName}</h3>
-                                        <p className="text-xs text-gray-400">{player.teamName} • {player.role}</p>
+                                        <p className="text-xs text-gray-400">{team.name} • {player.role}</p>
                                     </div>
-                                    <div className="text-xs text-gray-500">#{index + 1}</div>
+                                    <div className="text-xs text-gray-500">#{player.playerId || player.inGameName || player.playerName || index}</div>
                                 </div>
                             </div>
-
-                            {/* Camera Feed */}
                             <div className="relative aspect-video bg-gray-800">
                                 {player.imagePath && !streamErrors.has(player.inGameName || player.playerName || '') ? (
                                     <iframe
@@ -123,8 +127,6 @@ export default function AllCamerasPage() {
                                         </div>
                                     </div>
                                 )}
-
-                                {/* Stream Error Overlay */}
                                 {streamErrors.has(player.inGameName || player.playerName || '') && (
                                     <div className="absolute inset-0 bg-red-900/50 flex items-center justify-center">
                                         <div className="text-center text-white">
@@ -137,10 +139,41 @@ export default function AllCamerasPage() {
                         </div>
                     ))}
                 </div>
+            ) : (
+                <div className="text-center text-gray-400 py-8">No camera players configured for this team.</div>
+            )
+        )
+    }));
+
+    return (
+        <AuthGuard loadingMessage="Loading cameras...">
+            <div className="min-h-screen p-4">
+                {/* Header */}
+                <div className="mb-6">
+                    <div className="flex justify-between items-center">
+                        <div>
+                            <h1 className="text-3xl font-bold text-white mb-2">All Cameras</h1>
+                            <p className="text-gray-400">
+                                {teams.length} team{teams.length !== 1 ? 's' : ''}
+                            </p>
+                        </div>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => router.push('/modules/cameras')}
+                                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors"
+                            >
+                                Setup
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Team Accordions */}
+                <Accordion items={accordionItems} openId={openTeamId} onToggle={handleAccordionToggle} />
 
                 {/* Footer Info */}
                 <div className="mt-6 text-center text-gray-400 text-sm">
-                    <p>Use number keys (1-9) in single view to switch between cameras</p>
+                    <p>Open a team to view its cameras. Use number keys (1-9) in single view to switch between cameras</p>
                 </div>
             </div>
         </AuthGuard>

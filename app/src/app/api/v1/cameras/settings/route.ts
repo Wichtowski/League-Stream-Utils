@@ -18,17 +18,17 @@ export const GET = withAuth(async (req: NextRequest, user: JWTPayload) => {
 
         let settings;
 
+        const url = new URL(req.url);
+        const teamId = url.searchParams.get('teamId');
+        const userId = url.searchParams.get('userId');
+
         if (user.isAdmin) {
             // Admins can see all camera settings
-            const url = new URL(req.url);
-            const userId = url.searchParams.get('userId');
-
             if (userId) {
                 settings = await CameraSettingsModel.findOne({ userId });
             } else {
                 // Get all camera settings and merge them for admin view
                 const allSettings = await CameraSettingsModel.find({});
-                
                 // Merge all teams from all users into one response
                 const allTeams = allSettings.flatMap(s => s.teams || []);
                 settings = {
@@ -54,6 +54,12 @@ export const GET = withAuth(async (req: NextRequest, user: JWTPayload) => {
                 const hasAccess = userTeamIds.includes(team.teamId);
                 return hasAccess;
             });
+        }
+
+        // If teamId is provided, filter to only that team
+        if (teamId && Array.isArray(settings.teams)) {
+            const filteredTeam = settings.teams.find((team: CameraTeam) => team.teamId === teamId);
+            return NextResponse.json({ teams: filteredTeam ? [filteredTeam] : [] });
         }
 
         return NextResponse.json(settings);

@@ -70,7 +70,7 @@ const electronStorage = {
 };
 
 export function TeamsProvider({ children }: { children: ReactNode }) {
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const { isElectron, useLocalData } = useElectron();
   const { authenticatedFetch } = useAuthenticatedFetch();
   
@@ -128,12 +128,12 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
       // Check if data has changed
       const dataChanged = !areTeamsEqual(teams, fetchedTeams);
       
-      if (dataChanged || teams.length === 0) {
+      // Only update cache and state if data has changed
+      if (dataChanged) {
         setTeams(fetchedTeams);
         await storage.set(CACHE_KEY, fetchedTeams, { enableChecksum: true });
+        setLastFetch(Date.now());
       }
-      
-      setLastFetch(Date.now());
       return fetchedTeams;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch teams';
@@ -169,25 +169,34 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
           enableChecksum: true 
         });
         
-        if (cachedTeams) {
-          setTeams(cachedTeams);
+        if (cachedTeams !== undefined) {
+          setTeams(cachedTeams || []);
           setLoading(false);
           const timestamp = await storage.getTimestamp(CACHE_KEY);
           if (timestamp) {
             setLastFetch(timestamp);
           }
-          
-          // Still fetch fresh data in background for potential updates
-          fetchTeamsFromAPI(false);
+          // Only fetch fresh data in background if cache is expired and teams is not empty
+          const now = Date.now();
+          if ((!timestamp || now - timestamp > CACHE_TTL) && (cachedTeams && cachedTeams.length > 0)) {
+            fetchTeamsFromAPI(false);
+          }
         } else {
           // No cache, fetch fresh data
-          await fetchTeamsFromAPI(true);
+          const fetched = await fetchTeamsFromAPI(true);
+          // If still empty after fetch, do not schedule further fetches
+          if (!fetched || fetched.length === 0) {
+            return;
+          }
         }
       }
     } catch (err) {
       console.error('Failed to load cached teams:', err);
       if (!isLocalDataMode) {
-        await fetchTeamsFromAPI(true);
+        const fetched = await fetchTeamsFromAPI(true);
+        if (!fetched || fetched.length === 0) {
+          return;
+        }
       } else {
         setLoading(false);
       }
@@ -197,6 +206,8 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
   const checkDataSync = useCallback(async (): Promise<void> => {
     // Skip sync checks in local data mode
     if (isLocalDataMode) return;
+    // Do not sync if teams is empty
+    if (!teams || teams.length === 0) return;
 
     try {
       // Quick HEAD request to check if data has changed
@@ -216,23 +227,25 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
     } catch (err) {
       console.debug('Background sync check failed:', err);
     }
-  }, [isLocalDataMode, fetchTeamsFromAPI, authenticatedFetch]);
+  }, [isLocalDataMode, teams, fetchTeamsFromAPI, authenticatedFetch]);
 
   useEffect(() => {
-    setTimeout(() => {
-      loadCachedData();
-    }, 0);
-  }, [user, loadCachedData]);
+    if (!authLoading) {
+      setTimeout(() => {
+        loadCachedData();
+      }, 0);
+    }
+  }, [user, authLoading, loadCachedData]);
 
   useEffect(() => {
-    if (!user || isLocalDataMode) return;
+    if (!user || isLocalDataMode || authLoading || !teams || teams.length === 0) return;
 
     const interval = setInterval(() => {
       checkDataSync();
     }, SYNC_CHECK_INTERVAL);
 
     return () => clearInterval(interval);
-  }, [user, lastFetch, isLocalDataMode, checkDataSync, authenticatedFetch, fetchTeamsFromAPI]);
+  }, [user, lastFetch, isLocalDataMode, authLoading, teams, checkDataSync, authenticatedFetch, fetchTeamsFromAPI]);
 
   const refreshTeams = useCallback(async (): Promise<void> => {
     if (isLocalDataMode) {

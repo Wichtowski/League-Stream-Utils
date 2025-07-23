@@ -76,6 +76,16 @@ const electronStorage = {
   }
 };
 
+// Utility to strip base64 logo data from tournaments before caching
+function stripLogos<T extends { logo?: { type?: string; data?: string; url?: string } }>(tournaments: T[]): T[] {
+  return tournaments.map(t => {
+    if (t.logo && t.logo.type === 'upload') {
+      return { ...t, logo: { ...t.logo, data: undefined } };
+    }
+    return t;
+  });
+}
+
 export function TournamentDataProvider({ children }: { children: ReactNode }) {
   const { user, isLoading: authLoading } = useAuth();
   const { isElectron, useLocalData } = useElectron();
@@ -142,7 +152,7 @@ export function TournamentDataProvider({ children }: { children: ReactNode }) {
       
       if (dataChanged || tournaments.length === 0) {
         setTournaments(fetchedTournaments);
-        await storage.set(CACHE_KEY, fetchedTournaments, { enableChecksum: true });
+        await storage.set(CACHE_KEY, stripLogos(fetchedTournaments), { enableChecksum: true });
       }
       
       return fetchedTournaments;
@@ -204,11 +214,16 @@ export function TournamentDataProvider({ children }: { children: ReactNode }) {
           ttl: CACHE_TTL,
           enableChecksum: true 
         });
-        
+        const timestamp = await storage.getTimestamp(CACHE_KEY);
+        const now = Date.now();
+        const isExpired = !timestamp || now - timestamp > CACHE_TTL;
         if (cachedTournaments) {
           setTournaments(cachedTournaments);
-          // Fetch fresh data in background
-          fetchTournamentsFromAPI(false);
+          setLoading(false);
+          // Only fetch fresh data in background if cache is expired
+          if (isExpired) {
+            fetchTournamentsFromAPI(false);
+          }
         } else {
           // No cache, fetch fresh data
           await fetchTournamentsFromAPI(true);
@@ -290,7 +305,7 @@ export function TournamentDataProvider({ children }: { children: ReactNode }) {
         
         const updatedTournaments = [newTournament, ...tournaments];
         setTournaments(updatedTournaments);
-        await electronStorage.set(CACHE_KEY, updatedTournaments);
+        await electronStorage.set(CACHE_KEY, stripLogos(updatedTournaments));
         return { success: true, tournament: newTournament };
       }
 
@@ -308,7 +323,7 @@ export function TournamentDataProvider({ children }: { children: ReactNode }) {
         // Update local state
         const updatedTournaments = [newTournament, ...tournaments];
         setTournaments(updatedTournaments);
-        await storage.set(CACHE_KEY, updatedTournaments, { enableChecksum: true });
+        await storage.set(CACHE_KEY, stripLogos(updatedTournaments), { enableChecksum: true });
         
         return { success: true, tournament: newTournament };
       } else {
@@ -329,7 +344,7 @@ export function TournamentDataProvider({ children }: { children: ReactNode }) {
           t.id === tournamentId ? { ...t, ...updates, updatedAt: new Date() } : t
         );
         setTournaments(updatedTournaments);
-        await electronStorage.set(CACHE_KEY, updatedTournaments);
+        await electronStorage.set(CACHE_KEY, stripLogos(updatedTournaments));
         
         const updatedTournament = updatedTournaments.find(t => t.id === tournamentId);
         return { success: true, tournament: updatedTournament };
@@ -351,7 +366,7 @@ export function TournamentDataProvider({ children }: { children: ReactNode }) {
           t.id === tournamentId ? updatedTournament : t
         );
         setTournaments(updatedTournaments);
-        await storage.set(CACHE_KEY, updatedTournaments, { enableChecksum: true });
+        await storage.set(CACHE_KEY, stripLogos(updatedTournaments), { enableChecksum: true });
         
         return { success: true, tournament: updatedTournament };
       } else {
@@ -370,7 +385,7 @@ export function TournamentDataProvider({ children }: { children: ReactNode }) {
         // Delete tournament locally
         const updatedTournaments = tournaments.filter(t => t.id !== tournamentId);
         setTournaments(updatedTournaments);
-        await electronStorage.set(CACHE_KEY, updatedTournaments);
+        await electronStorage.set(CACHE_KEY, stripLogos(updatedTournaments));
         return { success: true };
       }
 
@@ -383,7 +398,7 @@ export function TournamentDataProvider({ children }: { children: ReactNode }) {
         // Update local state
         const updatedTournaments = tournaments.filter(t => t.id !== tournamentId);
         setTournaments(updatedTournaments);
-        await storage.set(CACHE_KEY, updatedTournaments, { enableChecksum: true });
+        await storage.set(CACHE_KEY, stripLogos(updatedTournaments), { enableChecksum: true });
         
         return { success: true };
       } else {
@@ -410,7 +425,7 @@ export function TournamentDataProvider({ children }: { children: ReactNode }) {
           return t;
         });
         setTournaments(updatedTournaments);
-        await electronStorage.set(CACHE_KEY, updatedTournaments);
+        await electronStorage.set(CACHE_KEY, stripLogos(updatedTournaments));
         return { success: true };
       }
 
@@ -447,7 +462,7 @@ export function TournamentDataProvider({ children }: { children: ReactNode }) {
           return t;
         });
         setTournaments(updatedTournaments);
-        await electronStorage.set(CACHE_KEY, updatedTournaments);
+        await electronStorage.set(CACHE_KEY, stripLogos(updatedTournaments));
         return { success: true };
       }
 

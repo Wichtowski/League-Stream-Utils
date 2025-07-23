@@ -78,8 +78,8 @@ class UniversalStorage {
     private async setLocalStorageWithQuotaHandling(key: string, data: StorageData): Promise<void> {
         const dataString = JSON.stringify(data);
 
-        // 1MB
-        if (dataString.length > 1024 * 1024 * 1) {
+        // 2MB
+        if (dataString.length > 1024 * 1024 * 2) {
             console.warn(`Data too large for localStorage (${(dataString.length / 1024 / 1024).toFixed(2)}MB), skipping storage for key: ${key}`);
             return;
         }

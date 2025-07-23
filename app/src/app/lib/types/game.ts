@@ -73,7 +73,6 @@ export interface Team {
     picks?: Champion[];
     isReady?: boolean;
     usedChampions?: Champion[];
-    logoUrl?: string;
     coach?: Coach;
 }
 
@@ -401,6 +400,5 @@ export interface SessionTeam {
     isReady: boolean;
     usedChampions: Champion[];
     prefix?: string;
-    logoUrl?: string;
     coach?: Coach;
 }

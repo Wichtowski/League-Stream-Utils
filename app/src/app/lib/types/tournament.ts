@@ -16,12 +16,21 @@ export interface PhaseMatchFormats {
 export type TournamentStatus = 'draft' | 'registration' | 'ongoing' | 'completed' | 'cancelled';
 export type TeamTier = 'amateur' | 'semi-pro' | 'professional';
 
-export interface ImageStorage {
-    type: 'upload' | 'url';
-    data: string;
-    size: number;
-    format: 'png' | 'jpg' | 'webp';
-}
+export type ImageStorage =
+  | {
+      type: 'upload';
+      data: string; // base64 string
+      size: number;
+      format: 'png' | 'jpg' | 'webp';
+      url?: never;
+    }
+  | {
+      type: 'url';
+      url: string; // external or CDN url
+      size?: number;
+      format?: 'png' | 'jpg' | 'webp';
+      data?: never;
+    };
 
 export interface TournamentTemplate {
     id: string;

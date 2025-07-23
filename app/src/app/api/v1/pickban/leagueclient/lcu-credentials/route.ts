@@ -6,14 +6,16 @@ export async function GET(): Promise<NextResponse> {
         const credentials = await findLCUCredentials();
 
         if (!credentials) {
+            console.warn('League of Legends client not found or not running');
             return NextResponse.json({
+                success: false,
                 error: 'League of Legends client not found or not running',
                 message: 'Make sure the League client is open and try again',
                 methods: [
                     'Searched for LeagueClientUx process',
                     'Checked lockfile in common installation paths'
                 ]
-            }, { status: 404 });
+            }, { status: 200 });
         }
 
         // Optional: Test the connection to verify credentials work
@@ -33,9 +35,10 @@ export async function GET(): Promise<NextResponse> {
         });
 
     } catch (error) {
-        console.error('Error finding LCU credentials:', error);
+        console.warn('Error finding LCU credentials:', error);
 
         return NextResponse.json({
+            success: false,
             error: 'Failed to find LCU credentials',
             message: error instanceof Error ? error.message : 'Unknown error occurred',
             suggestions: [
@@ -43,7 +46,7 @@ export async function GET(): Promise<NextResponse> {
                 'Ensure you are logged into your account',
                 'Try restarting the League client'
             ]
-        }, { status: 500 });
+        }, { status: 200 });
     }
 }
 
@@ -61,11 +64,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         return GET();
 
     } catch (error) {
-        console.error('Error processing LCU credentials request:', error);
+        console.warn('Error processing LCU credentials request:', error);
 
         return NextResponse.json({
+            success: false,
             error: 'Failed to process request',
             message: error instanceof Error ? error.message : 'Invalid request body'
-        }, { status: 400 });
+        }, { status: 200 });
     }
 } 

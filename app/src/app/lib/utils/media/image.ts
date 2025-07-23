@@ -11,7 +11,7 @@ import type { Team } from '@lib/types/game';
 export const getImageUrl = (image: ImageStorage): string => {
     // External URL
     if (image.type === 'url') {
-        return image.data;
+        return image.data!;
     }
 
     // Uploaded file reference → already stored in /uploads
