@@ -1,3 +1,4 @@
+/* eslint-disable-next-line @typescript-eslint/no-require-imports */
 const { contextBridge, ipcRenderer } = require('electron');
 
 // Expose protected methods that allow the renderer process to use
@@ -66,19 +67,3 @@ contextBridge.exposeInMainWorld('electronAPI', {
     platform: process.platform,
     isElectron: true
 });
-
-// console.log('League Stream Utils Electron preload script loaded');
-
-// // Log the exposed API methods
-// const exposedMethods = [
-//     'saveTournamentFile', 'saveChampionsCache', 'loadChampionsCache',
-//     'getChampionCachePath', 'checkFileExists', 'loadChampionData', 'saveChampionData',
-//     'createChampionDirectory', 'downloadChampionImage', 'clearChampionCache', 'getChampionCacheStats',
-//     'copyAssetFile', 'saveCameraUpload', 'getUserDataPath',
-//     'downloadAsset', 'loadAssetManifest', 'saveAssetManifest', 'scanAndUpdateManifest', 'getFileSize', 'removeAsset', 'clearAssetCache', 'getAssetCacheStats',
-//     'getLCUData', 'updateLCUData', 'setMockData', 'onLCUDataUpdate', 'onLCUConnectionChange', 'onMockDataToggle',
-//     'onCreateTournament', 'onLoadTournament', 'onSaveTournament', 'onImportLogos', 'onExportTournament',
-//     'onUpdateChampions', 'onChampionsCacheCleared', 'onOpenOBSControl', 'onOpenSettings',
-//     'removeAllListeners', 'platform', 'isElectron'
-// ];
-// console.log('Exposed electronAPI methods:', exposedMethods); 

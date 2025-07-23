@@ -154,7 +154,7 @@ export default function DownloadAssetsPage() {
 
       return () => clearTimeout(timeoutId);
     }
-  }, [overallProgress.percentage, overallProgress.total, router]);
+  }, [overallProgress.percentage, overallProgress.total, router, categoryProgress, overallProgress]);
 
   const getStageColor = (stage: string): string => {
     switch (stage) {
@@ -186,6 +186,12 @@ export default function DownloadAssetsPage() {
       default: return category.charAt(0).toUpperCase() + category.slice(1);
     }
   };
+
+  // Compute if all categories are complete
+  const allCategoriesComplete = categories.every(cat => {
+    const catProgress = categoryProgress.get(cat);
+    return catProgress && catProgress.stage === 'complete';
+  });
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center text-white space-y-8 p-6">
@@ -251,6 +257,15 @@ export default function DownloadAssetsPage() {
           })}
         </div>
       </div>
+      {/* Show Go to Modules button if 100% and substantial downloads and all categories complete */}
+      {overallProgress.percentage >= 100 && overallProgress.total > 100 && isElectron && allCategoriesComplete && (
+        <button
+          className="mt-8 px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg text-lg font-semibold shadow transition"
+          onClick={() => router.replace('/modules')}
+        >
+          Go to Modules
+        </button>
+      )}
     </div>
   );
 }; 
