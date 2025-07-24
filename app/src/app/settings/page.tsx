@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@lib/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
-import { ElectronSettings } from '@components/common/electron/settings';
-import { LoadingSpinner } from '@components/common';
+import { ElectronSettings } from '@lib/components/electron/settings';
+import { LoadingSpinner } from '@lib/components/common';
 import { useNavigation } from '@lib/contexts/NavigationContext';
 
 export default function SettingsPage() {

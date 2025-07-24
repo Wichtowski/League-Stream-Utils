@@ -1,7 +1,7 @@
 'use client';
 
 import { TeamColors } from '@lib/types/tournament';
-import { redColor, blueColor } from '@lib/constants';
+import { redColor, blueColor } from '@lib/utils/constants';
 import React from 'react';
 
 interface TimeBarProps {

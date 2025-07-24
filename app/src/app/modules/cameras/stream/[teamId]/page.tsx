@@ -3,7 +3,7 @@
 import React, { useEffect, useState, Suspense, useCallback } from 'react';
 import { useRouter, useParams } from "next/navigation";
 import { useNavigation } from '@lib/contexts/NavigationContext';
-import { AuthGuard } from '@lib/components/AuthGuard';
+import { AuthGuard } from '@lib/components/auth';
 import { useAuthenticatedFetch } from '@lib/hooks/useAuthenticatedFetch';
 import { CameraPlayer, CameraTeam } from '@lib/types';
 import Image from 'next/image';

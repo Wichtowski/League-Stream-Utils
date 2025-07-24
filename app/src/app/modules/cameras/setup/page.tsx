@@ -8,7 +8,7 @@ import { useCameras } from '@lib/contexts/CamerasContext';
 import { useTeams } from '@lib/contexts/TeamsContext';
 import Image from 'next/image';
 import type { CameraPlayer, CameraTeam } from '@lib/types';
-import { BackButton } from '@/app/components/common/BackButton';
+import { BackButton } from '@lib/components/buttons';
 
 export default function CameraSetupListPage() {
   const router = useRouter();

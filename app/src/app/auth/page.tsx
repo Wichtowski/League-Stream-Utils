@@ -2,15 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { AuthTabs } from '@auth/components/AuthTabs';
-import { MessageDisplay } from '@auth/components/MessageDisplay';
-import { LoginForm } from '@auth/components/LoginForm';
-import { RegisterForm } from '@auth/components/RegisterForm';
-import { ContactInfo } from '@auth/components/ContactInfo';
-import { useNavigation } from '@lib/contexts/NavigationContext';
+import { AuthTabs, MessageDisplay, LoginForm, RegisterForm, ContactInfo } from '@lib/components/auth';
 import { useAuth } from '@lib/contexts/AuthContext';
 import { useElectron } from '@lib/contexts/ElectronContext';
-import { LoadingSpinner } from '@components/common';
+import { useNavigation } from '@lib/contexts/NavigationContext';
+import { LoadingSpinner } from '@lib/components/common';
 import { Cog6ToothIcon } from '@heroicons/react/24/outline';
 
 export default function AuthPage() {

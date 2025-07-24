@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useElectron } from '@lib/contexts/ElectronContext';
 import { useNavigation } from '@lib/contexts/NavigationContext';
 import { useAuth } from '@lib/contexts/AuthContext';
-import { PageLoader, LCUStatusIndicator } from '@components/common';
+import { PageLoader, LCUStatusIndicator } from '@lib/components/common';
 
 export default function PickBanPage(): React.ReactElement {
   const router = useRouter();

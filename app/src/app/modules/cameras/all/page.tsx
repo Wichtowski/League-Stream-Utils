@@ -5,10 +5,10 @@ import { useRouter } from "next/navigation";
 import Image from 'next/image';
 import { useNavigation } from '@lib/contexts/NavigationContext';
 import { useCameras } from '@lib/contexts/CamerasContext';
-import { AuthGuard } from '@lib/components/AuthGuard';
-import { LoadingSpinner } from '@components/common';
+import { AuthGuard } from '@lib/components/auth/AuthGuard';
+import { LoadingSpinner } from '@lib/components/common';
 import type { CameraTeam } from '@lib/types/camera';
-import { Accordion, AccordionItem } from '@components/common/Accordion';
+import { Accordion, AccordionItem } from '@lib/components/common/Accordion';
 
 export default function AllCamerasPage() {
     const router = useRouter();

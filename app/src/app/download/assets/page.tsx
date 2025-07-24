@@ -2,8 +2,9 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { downloadAllAssets, BootstrapProgress } from '@lib/services/asset-bootstrapper';
+import { downloadAllAssets, BootstrapProgress } from '@lib/services/cache/asset-bootstrapper';
 import { useElectron } from '@lib/contexts/ElectronContext';
+import { useDownload } from '@lib/contexts/DownloadContext';
 
 interface CategoryProgress {
   category: string;
@@ -29,6 +30,7 @@ export default function DownloadAssetsPage() {
   const [overallProgress, setOverallProgress] = useState<OverallProgress>({ current: 0, total: 0, percentage: 0 });
   const startedRef = useRef(false);
   const { isElectron, isElectronLoading } = useElectron();
+  const { resetDownloadState } = useDownload();
   
   useEffect(() => {
     const initialProgress = new Map();
@@ -261,7 +263,10 @@ export default function DownloadAssetsPage() {
       {overallProgress.percentage >= 100 && overallProgress.total > 100 && isElectron && allCategoriesComplete && (
         <button
           className="mt-8 px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg text-lg font-semibold shadow transition"
-          onClick={() => router.replace('/modules')}
+          onClick={() => {
+            resetDownloadState();
+            router.replace('/modules');
+          }}
         >
           Go to Modules
         </button>

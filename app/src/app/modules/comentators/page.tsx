@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useTournaments } from "@lib/contexts/TournamentsContext";
-import { AuthGuard } from "@lib/components/AuthGuard";
+import { AuthGuard } from "@lib/components/auth/AuthGuard";
 import { useRouter } from "next/navigation";
 
 interface Comentator {

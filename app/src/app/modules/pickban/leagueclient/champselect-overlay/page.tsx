@@ -8,7 +8,7 @@ import { useMockDataContext } from '@lib/contexts/MockDataContext';
 import { useLCU } from '@lib/contexts/LCUContext';
 import { getDynamicMockData } from '@lib/mocks/dynamic-champselect';
 import { ChampSelectDisplay } from './components/ChampSelectDisplay';
-import { BackButton } from '@components/common';
+import { BackButton } from '@lib/components/common';
 
 const ChampSelectOverlayPage: React.FC = () => {
   const { useMockData } = useMockDataContext();

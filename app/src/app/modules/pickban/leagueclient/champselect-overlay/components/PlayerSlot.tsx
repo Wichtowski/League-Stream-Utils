@@ -4,7 +4,7 @@ import React from 'react';
 import Image from 'next/image';
 import type { EnhancedChampSelectPlayer } from '@lib/types';
 import { getChampionName, getChampionCenteredSplashImage } from './common';
-import { PLAYER_CARD_ROLE_ICONS } from '@lib/constants';
+import { PLAYER_CARD_ROLE_ICONS } from '@lib/utils/constants';
 
 
 // Pick and ban phase configuration - 20 turns total

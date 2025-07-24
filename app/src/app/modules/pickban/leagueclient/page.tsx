@@ -5,7 +5,7 @@ import { useNavigation } from '@lib/contexts/NavigationContext';
 import { useAuth } from '@lib/contexts/AuthContext';
 import { useLCU } from '@lib/contexts/LCUContext';
 import { useMockDataContext } from '@lib/contexts/MockDataContext';
-import { AuthGuard } from '@lib/components/AuthGuard';
+import { AuthGuard } from '@lib/components/auth/AuthGuard';
 import { getChampionById } from '@lib/champions';
 import { useElectron } from '@lib/contexts/ElectronContext';
 import Image from 'next/image';

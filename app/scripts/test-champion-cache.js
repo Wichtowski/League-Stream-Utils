@@ -1,4 +1,5 @@
-const { championCacheService } = require('../src/app/lib/services/champion-cache');
+/* eslint-disable-next-line @typescript-eslint/no-require-imports */
+const { championCacheService } = require('../src/lib/services/cache/champion');
 
 async function testChampionCache() {
     console.log('Testing Champion Cache System...\n');

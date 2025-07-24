@@ -3,9 +3,9 @@
 import React, { useEffect, useState, Suspense } from 'react';
 import { useRouter, useParams } from "next/navigation";
 import { useNavigation } from '@lib/contexts/NavigationContext';
-import { AuthGuard } from '@lib/components/AuthGuard';
+import { AuthGuard } from '@lib/components/auth';
 import { useAuthenticatedFetch } from '@lib/hooks/useAuthenticatedFetch';
-import { CameraFeed, CameraNavigation, PlayerInfoHeader, CameraLayout } from '../../../components';
+import { CameraFeed, CameraNavigation, PlayerInfoHeader, CameraLayout } from '@lib/components/pages/cameras';
 import type { CameraPlayer, CameraTeam } from '@lib/types';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 

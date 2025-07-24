@@ -20,10 +20,10 @@
     ],
     "paths": {
       "@/*": ["./src/*"],
-      "@components/*": ["./src/app/components/*"],
-      "@lib/*": ["./src/app/lib/*"],
-      "@schemas/*": ["./src/app/lib/database/schemas/*"],
-      "@auth/*": ["./src/app/auth/*"]
+      "@components/*": ["./src/lib/components/*"],
+      "@lib/*": ["./src/lib/*"],
+      "@schemas/*": ["./src/lib/database/schemas/*"],
+      "@auth/*": ["./src/auth/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/app/pages/404/page.js", "src/app/modules/pickban/leagueclient/champselect-overlay/components/ChampSelectLayout.tsx", "src/app/lib/services/base-blueprint-downloader.ts"],

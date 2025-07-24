@@ -6,9 +6,9 @@ import { useNavigation } from '@lib/contexts/NavigationContext';
 import { useModal } from '@lib/contexts/ModalContext';
 import { useAuth } from '@lib/contexts/AuthContext';
 import { useAuthenticatedFetch } from '@lib/hooks/useAuthenticatedFetch';
-import { API_BASE_URL } from '@lib/constants';
-import { AuthenticatedHome } from '@components/home';
-import { AuthGuard } from '@lib/components/AuthGuard';
+import { API_BASE_URL } from '@lib/utils/constants';
+import { AuthenticatedHome } from '@lib/components/pages/home';
+import { AuthGuard } from '@lib/components/auth/AuthGuard';
 
 export default function StaticPickBanPage() {
   const { setActiveModule } = useNavigation();

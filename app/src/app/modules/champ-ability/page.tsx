@@ -4,13 +4,13 @@ import React, { useState, useEffect, useCallback, memo } from "react";
 import { useNavigation } from '@lib/contexts/NavigationContext';
 import type { Champion } from '@lib/types/game';
 import Image from 'next/image';
-import { DDRAGON_CDN } from '@lib/constants';
+import { DDRAGON_CDN } from '@lib/utils/constants';
 import { getChampions, getChampionCacheStats } from '@lib/champions';
 import { ChampionDownloadProgress } from '@lib/types/progress';
-import { assetCache } from '@lib/services/asset-cache';
-import { championCacheService } from '@lib/services/champion-cache';
-import { DownloadProgressModal } from '../../components/common/DownloadProgressModal';
-import { BackButton } from '@components/common';
+import { assetCache } from '@lib/services/cache/asset';
+import { championCacheService } from '@lib/services/cache/champion';
+import { DownloadProgressModal } from '@lib/components/modal';
+import { BackButton } from '@lib/components/buttons';
 
 type Spell = {
   id: string;

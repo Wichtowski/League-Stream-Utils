@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@lib/auth';
 import { getTeamById, verifyTeamPlayers } from '@lib/database/team';
-import { riotAPI } from '@lib/services/riot-api';
+import { riotAPI } from '@lib/services/riot/riot-api';
 import type { JWTPayload } from '@lib/types/auth';
 
 export const POST = withAuth(async (req: NextRequest, user: JWTPayload) => {

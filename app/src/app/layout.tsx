@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { Footer } from "@components/common";
+import { Footer } from "@lib/components/common";
 import { 
   NavigationProvider,
   ModalProvider,
@@ -17,13 +17,12 @@ import {
   SettingsProvider,
   MockDataProvider,
   DownloadProvider,
-  HighPerformanceDownloadProvider,
   PredictionsProvider
 }
 from "@lib/contexts";
-import { NavigationGuard } from "./lib/components/NavigationGuard";
-import { ContextWrapper } from "./lib/components/ContextErrorBoundary";
-import { ChampionCacheInitializer } from "./components/common/ChampionCacheInitializer";
+import { NavigationGuard } from "@lib/components/navigation/NavigationGuard";
+import { ContextWrapper } from "@lib/components/navigation/ContextErrorBoundary";
+import { ChampionCacheInitializer } from "@lib/components/LCU/ChampionCacheInitializer";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -67,7 +66,6 @@ export default function RootLayout({
             { name: "Tournaments", provider: TournamentsProvider },
             { name: "Pickban", provider: PickbanProvider },
             { name: "Download", provider: DownloadProvider },
-            { name: "HighPerformanceDownload", provider: HighPerformanceDownloadProvider },
             { name: "Navigation", provider: NavigationProvider },
             { name: "Modal", provider: ModalProvider }
           ]}

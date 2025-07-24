@@ -1,7 +1,7 @@
 import React from 'react';
 import Image from 'next/image';
 import { getChampionSquareImage } from './common';
-import { ROLE_ICONS } from '@lib/constants';
+import { ROLE_ICONS } from '@lib/utils/constants';
 import { PlayerRole } from '@lib/types/common';
 
 interface FearlessBan {

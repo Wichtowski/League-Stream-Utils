@@ -2,11 +2,11 @@
 
 import React, { useState, useEffect } from "react";
 import { useUser } from "@lib/contexts/AuthContext";
-import { AuthGuard } from "@lib/components/AuthGuard";
+import { AuthGuard } from "@lib/components/auth/AuthGuard";
 import { useTournaments } from "@lib/contexts/TournamentsContext";
 import type { Tournament } from "@lib/types";
 import type { BracketStructure, BracketNode } from "@lib/types/tournament";
-import { BackButton } from '@components/common';
+import { BackButton } from '@lib/components/common';
 
 interface Match {
   id: string;

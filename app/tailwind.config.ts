@@ -1,5 +1,5 @@
 import type { Config } from 'tailwindcss';
-import { colors } from './src/app/lib/theme/colors';
+import { colors } from '@lib/theme/colors';
 
 const config: Config = {
   content: [

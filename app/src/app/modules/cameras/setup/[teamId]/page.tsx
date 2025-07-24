@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter, useParams } from "next/navigation";
+import Image from 'next/image';
 import { useNavigation } from '@lib/contexts/NavigationContext';
 import { useModal } from '@lib/contexts/ModalContext';
 import { useAuth } from '@lib/contexts/AuthContext';
@@ -9,8 +10,7 @@ import { useElectron } from '@lib/contexts/ElectronContext';
 import { useAuthenticatedFetch } from '@lib/hooks/useAuthenticatedFetch';
 import { useTeams } from '@lib/contexts/TeamsContext';
 import type { CameraPlayer, CameraTeam } from '@lib/types';
-import Image from 'next/image';
-import { BackButton } from '@/app/components/common/BackButton';
+import { BackButton } from '@lib/components/buttons';
 
 export default function TeamCameraSetupPage() {
   const router = useRouter();

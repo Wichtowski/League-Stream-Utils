@@ -3,11 +3,11 @@
 import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useNavigation } from '@lib/contexts/NavigationContext';
-import { AuthGuard } from '@lib/components/AuthGuard';
+import { AuthGuard } from '@lib/components/auth/AuthGuard';
 import { useUser } from '@lib/contexts/AuthContext';
 import { useElectron } from '@lib/contexts/ElectronContext';
-import { useHighPerformanceDownload } from '@lib/contexts/HighPerformanceDownloadContext';
-import { AssetDownloadProgress } from '@components/common';
+import { useDownload } from '@lib/contexts/DownloadContext';
+import { AssetDownloadProgress } from '@lib/components/LCU';
 import { Cog6ToothIcon } from '@heroicons/react/24/outline';
 import { getVisibleModules, ModuleCard } from '@lib/navigation';
 
@@ -16,18 +16,26 @@ export default function ModulesPage() {
     const { setActiveModule } = useNavigation();
     const user = useUser();
     const { isElectron, useLocalData } = useElectron();
-    const { downloadState: highPerfDownloadState, cancelDownload } = useHighPerformanceDownload();
+    const { downloadState: downloadState, cancelDownload } = useDownload();
 
     useEffect(() => {
         setActiveModule('modules');
     }, [setActiveModule]);
 
     // Block access if downloads are in progress in Electron
-    if (isElectron && highPerfDownloadState.isDownloading && highPerfDownloadState.progress) {
+    if (
+      isElectron &&
+      downloadState.progress &&
+      (
+        downloadState.isDownloading &&
+        downloadState.progress.stage !== 'complete' &&
+        downloadState.progress.stage !== 'error'
+      )
+    ) {
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <AssetDownloadProgress
-                    progress={highPerfDownloadState.progress}
+                    progress={downloadState.progress}
                     onCancel={cancelDownload}
                 />
             </div>

@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { resolve } from 'path';
 import { promises as fs } from 'fs';
-import { itemsBlueprintDownloader } from '@lib/services/items-blueprint-downloader';
-import { itemCacheService } from '@lib/services/item-cache';
+import { itemsBlueprintDownloader } from '@lib/services/blueprints/items-blueprint-downloader';
+import { itemCacheService } from '@lib/services/cache/item';
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
     try {

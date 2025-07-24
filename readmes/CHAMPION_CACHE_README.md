@@ -13,7 +13,7 @@ The champion caching system downloads champion data from Riot's DataDragon API a
 
 ## Directory Structure
 
-The cache is stored in the user's app data directory under `champion-cache/`:
+The cache is stored in the user's app data directory under `cache/champion`:
 
 ```
 champion-cache/
@@ -92,6 +92,7 @@ const aatrox = await getChampionByKeyEnhanced('Aatrox');
 ```
 
 ### Cache Management
+
 ```typescript
 import { getChampionCacheStats, refreshChampionsCache } from '@lib/champions';
 
@@ -103,8 +104,9 @@ await refreshChampionsCache();
 ```
 
 ### Direct Service Usage
+
 ```typescript
-import { championCacheService } from '@lib/services/champion-cache';
+import { championCacheService } from '@lib/services/cache/champion';
 
 // Initialize the service
 await championCacheService.initialize();

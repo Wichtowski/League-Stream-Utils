@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@lib/auth';
 import { getTournamentById } from '@lib/database/tournament';
-import { BracketGenerator } from '@lib/services/bracket-generator';
+import { BracketGenerator } from '@lib/services/brackets/bracket-generator';
 import { connectToDatabase } from '@lib/database/connection';
 import { BracketModel } from '@lib/database/models';
 import type { JWTPayload } from '@lib/types/auth';

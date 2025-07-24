@@ -1,4 +1,5 @@
-const { championsBlueprintDownloader } = require('../src/app/lib/services/champions-blueprint-downloader');
+/* eslint-disable-next-line @typescript-eslint/no-require-imports */
+const { championsBlueprintDownloader } = require('../src/lib/services/champions-blueprint-downloader');
 
 async function testChampionsBlueprint() {
     console.log('Testing Champions Blueprint Downloader...\n');

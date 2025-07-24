@@ -6,14 +6,16 @@ import { useAuth } from '@lib/contexts/AuthContext';
 import { useTournaments } from '@lib/contexts/TournamentsContext';
 import { useNavigation } from '@lib/contexts/NavigationContext';
 import { useElectron } from '@lib/contexts/ElectronContext';
-import { useModal } from '@lib/contexts/ModalContext';
-import { AuthGuard } from '@lib/components/AuthGuard';
-import { LoadingSpinner, LCUStatusIndicator, BackButton } from '@components/common';
+import { useModal } from '@lib/components/modal';
+import { AuthGuard } from '@lib/components/auth/AuthGuard';
+import { LoadingSpinner } from '@lib/components/common';
+import { BackButton } from '@lib/components/buttons';
+import { LCUStatusIndicator } from '@lib/components/LCU';
 import type { TournamentStatus } from '@lib/types';
 
 // Dynamic imports for lazy loading
 const TournamentCreationForm = dynamic(
-  () => import('./components').then(mod => ({ default: mod.TournamentCreationForm })),
+  () => import('../../../lib/components/pages/tournaments').then(mod => ({ default: mod.TournamentCreationForm })),
   { 
     loading: () => <LoadingSpinner text="Loading tournament form..." />,
     ssr: false 
@@ -21,7 +23,7 @@ const TournamentCreationForm = dynamic(
 );
 
 const TournamentList = dynamic(
-  () => import('./components').then(mod => ({ default: mod.TournamentList })),
+  () => import('../../../lib/components/pages/tournaments').then(mod => ({ default: mod.TournamentList })),
   { 
     loading: () => <LoadingSpinner text="Loading tournaments..." />,
     ssr: false 

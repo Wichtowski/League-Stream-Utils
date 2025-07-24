@@ -1,4 +1,5 @@
-const { itemsBlueprintDownloader } = require('../src/app/lib/services/items-blueprint-downloader');
+/* eslint-disable-next-line @typescript-eslint/no-require-imports */
+const { itemsBlueprintDownloader } = require('../src/lib/services/items-blueprint-downloader');
 
 async function testItemsBlueprint() {
     console.log('Testing Items Blueprint Downloader...\n');

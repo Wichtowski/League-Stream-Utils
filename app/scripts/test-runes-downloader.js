@@ -1,4 +1,5 @@
-const { runesBlueprintDownloader } = require('../src/app/lib/services/runes-blueprint-downloader.ts');
+/* eslint-disable-next-line @typescript-eslint/no-require-imports */
+const { runesBlueprintDownloader } = require('../src/lib/services/runes-blueprint-downloader.ts');
 
 async function testRunesDownloader() {
     console.log('Testing Runes Blueprint Downloader...');
