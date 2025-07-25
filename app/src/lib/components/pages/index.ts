@@ -5,7 +5,7 @@ import {
     CameraLayout
 } from './cameras'
 import {
-    AuthenticatedHome,
+    PickBanHub,
     UnauthenticatedLanding,
     SessionCreator,
     SessionList,
@@ -25,7 +25,7 @@ export {
     PlayerInfoHeader,
     CameraLayout,
     // Home
-    AuthenticatedHome,
+    PickBanHub,
     UnauthenticatedLanding,
     SessionCreator,
     SessionList,

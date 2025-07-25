@@ -7,7 +7,7 @@ import { useModal } from '@lib/contexts/ModalContext';
 import { useAuth } from '@lib/contexts/AuthContext';
 import { useAuthenticatedFetch } from '@lib/hooks/useAuthenticatedFetch';
 import { API_BASE_URL } from '@lib/utils/constants';
-import { AuthenticatedHome } from '@lib/components/pages/home';
+import { PickBanHub } from '@lib/components/pages/home';
 import { AuthGuard } from '@lib/components/auth/AuthGuard';
 
 export default function StaticPickBanPage() {
@@ -129,11 +129,10 @@ export default function StaticPickBanPage() {
           </div>
 
           {authUser && (
-            <AuthenticatedHome
+            <PickBanHub
               user={authUser}
               sessions={sessions.filter(session => session.type === 'web' || !session.type)} // Show static or legacy sessions
               sessionsLoading={sessionsLoading}
-              onLogout={() => window.location.href = '/auth'}
               onCreateSession={createSession}
               onDeleteSession={deleteSession}
               loading={loading}

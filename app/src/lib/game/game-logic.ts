@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import type { GameSession, Champion, GameConfig, WSMessage, GameState, PlayerRole, ImageStorage } from '@lib/types';
-import { getChampionById } from '@lib/champions';
+import { getChampionById, getChampions } from '@lib/champions';
 
 import {
   getGameSession as getGameSessionFromDB,
@@ -9,7 +9,7 @@ import {
   getUsedChampionsInSeries,
   addUsedChampion,
   recordGameResult
-} from './database';
+} from '@lib/database';
 
 import type { Team } from '@lib/types';
 import { getTeamLogoUrl } from '@lib/utils/media/image';
@@ -534,7 +534,6 @@ function resetSessionForNextGame(session: GameSession): void {
 }
 
 export async function getAvailableChampions(session: GameSession): Promise<Champion[]> {
-  const { getChampions } = await import('./champions');
   const allChampions = await getChampions();
 
   if (!session.config.isFearlessDraft) {

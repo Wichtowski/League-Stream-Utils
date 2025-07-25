@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createGameSession, getAllSessions } from '@lib/game-logic';
+import { createGameSession, getAllSessions } from '@lib/game/game-logic';
 import { cleanupOldSessions } from '@lib/database';
 
 export async function GET(): Promise<NextResponse> {
