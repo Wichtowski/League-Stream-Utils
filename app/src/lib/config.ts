@@ -62,7 +62,6 @@ export const config = {
   },
   app: {
     name: 'League Stream Utils',
-    baseUrl: process.env.NEXTAUTH_URL,
   },
   security: {
     maxLoginAttempts: 5,

@@ -244,8 +244,7 @@ class GameUIBlueprintDownloader extends BaseCacheService {
                 try {
                     // Use versioned path for game-ui assets
                     const version = await this.getLatestVersion();
-                    const assetKey = `game/${version}/overlay/${category}/${filename}`;
-                    console.log(`assetKey: ${assetKey}`);
+                    const assetKey = `/cache/game/${version}/overlay/${category}/${filename}`;
                     // Check if file already exists using asset validator
                     const cachedPath = AssetValidator.generateCachedPath(assetKey);
                     const fileExists = await AssetValidator.checkFileExists(cachedPath);
@@ -257,31 +256,52 @@ class GameUIBlueprintDownloader extends BaseCacheService {
                     }
 
                     if (typeof window !== 'undefined' && window.electronAPI?.isElectron) {
-                        // Use downloadAsset with 'cache' category to ensure proper cache directory
-                        const sourcePath = `public/assets/${category}/${filename}`;
+                        // Download from local development server
+                        const assetUrl = `http://localhost:2137/assets/${category}/${filename}`;
+                        console.log(`Attempting to download: ${assetUrl} -> ${assetKey}`);
 
                         try {
-                            // Use copy-asset-file for local assets with proper versioned cache path
-                            const targetPath = `cache/${assetKey}`;
-                            const copyResult = await window.electronAPI.copyAssetFile(sourcePath, targetPath);
-                            if (copyResult.success && copyResult.localPath) {
-                                const downloadResult = copyResult.localPath;
+                            const downloadResult = await window.electronAPI.downloadAsset(assetUrl, 'overlay', assetKey);
+                            console.log(`Download result for ${assetUrl}:`, downloadResult);
+                            
+                            if (downloadResult.success && downloadResult.localPath) {
                                 // Get file size from the downloaded result
-                                const actualPath = downloadResult.replace('cache/', '');
-                                const sizeResult = await window.electronAPI.getFileSize(actualPath);
+                                const sizeResult = await window.electronAPI.getFileSize(downloadResult.localPath);
                                 const fileSize = sizeResult.success ? sizeResult.size || 0 : 0;
-
-
 
                                 processedCount++;
                                 totalSize += fileSize;
+                                console.log(`Successfully processed ${filename}: ${fileSize} bytes`);
                             } else {
-                                errors.push(`Failed to download ${sourcePath}`);
+                                const errorMsg = `Failed to download ${assetUrl}: ${downloadResult.error}`;
+                                console.error(errorMsg);
+                                errors.push(errorMsg);
                             }
 
                         } catch (fileError) {
-                            console.error(`Failed to copy file ${sourcePath}:`, fileError);
-                            throw new Error(`Failed to process asset from public folder: ${fileError}`);
+                            console.error(`Failed to download file ${assetUrl}:`, fileError);
+                            
+                            // Fallback: try to copy directly from public folder
+                            console.log(`Trying fallback: copy from public folder`);
+                            try {
+                                const sourcePath = `public/assets/${category}/${filename}`;
+                                const targetPath = `cache/${assetKey}`;
+                                const copyResult = await window.electronAPI.copyAssetFile(sourcePath, targetPath);
+                                
+                                if (copyResult.success && copyResult.localPath) {
+                                    const sizeResult = await window.electronAPI.getFileSize(copyResult.localPath);
+                                    const fileSize = sizeResult.success ? sizeResult.size || 0 : 0;
+                                    
+                                    processedCount++;
+                                    totalSize += fileSize;
+                                    console.log(`Successfully copied ${filename} from public folder: ${fileSize} bytes`);
+                                } else {
+                                    throw new Error(`Fallback copy failed: ${copyResult.error}`);
+                                }
+                            } catch (fallbackError) {
+                                console.error(`Fallback copy also failed:`, fallbackError);
+                                throw new Error(`Failed to download asset from local server: ${fileError}`);
+                            }
                         }
                     } else {
                         throw new Error('Electron API not available - game UI assets can only be processed in Electron environment');
@@ -326,14 +346,12 @@ class GameUIBlueprintDownloader extends BaseCacheService {
 
             // Process the single asset
             if (typeof window !== 'undefined' && window.electronAPI?.isElectron) {
-                const sourcePath = `public/assets/${category}/${filename}`;
+                const assetUrl = `http://localhost:2137/assets/${category}/${filename}`;
 
                 try {
-                    // Use copy-asset-file for local assets with proper versioned cache path
-                    const targetPath = `cache/${assetKey}`;
-                    const copyResult = await window.electronAPI.copyAssetFile(sourcePath, targetPath);
-                    if (copyResult.success && copyResult.localPath) {
-                        return copyResult.localPath;
+                    const downloadResult = await window.electronAPI.downloadAsset(assetUrl, 'overlay', assetKey);
+                    if (downloadResult.success && downloadResult.localPath) {
+                        return downloadResult.localPath;
                     }
                 } catch (error) {
                     console.error(`Failed to process asset ${assetKey}:`, error);
@@ -404,7 +422,6 @@ class GameUIBlueprintDownloader extends BaseCacheService {
     private async cleanupManifestAfterSuccess(): Promise<void> {
         try {
             if (typeof window === 'undefined' || !window.electronAPI) {
-                console.log('Electron API not available, skipping manifest cleanup');
                 return;
             }
 

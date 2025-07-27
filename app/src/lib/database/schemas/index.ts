@@ -5,3 +5,4 @@ export * from './game';
 export * from './camera';
 export * from './user'; 
 export * from './security';
+export * from './match';

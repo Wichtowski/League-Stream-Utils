@@ -61,7 +61,7 @@ export interface ElectronAPI {
     saveTournamentFile: (data: TournamentData) => Promise<{ success: boolean; filePath?: string; error?: string }>;
     saveChampionsCache: (data: ChampionsData) => Promise<{ success: boolean; filePath?: string; error?: string }>;
     loadChampionsCache: () => Promise<{ success: boolean; data?: ChampionsData; error?: string }>;
-    copyAssetFile: (sourcePath: string, fileName: string) => Promise<{ success: boolean; localPath?: string; error?: string }>;
+    copyAssetFile: (sourcePath: string, targetPath: string) => Promise<{ success: boolean; localPath?: string; error?: string }>;
     saveCameraUpload: (fileBuffer: Buffer, fileName: string) => Promise<{ success: boolean; localPath?: string; publicPath?: string; error?: string }>;
     getUserDataPath: () => Promise<string>;
     checkFileExists: (filePath: string) => Promise<{ success: boolean; exists?: boolean; error?: string }>;
@@ -87,6 +87,10 @@ export interface ElectronAPI {
         };
         error?: string
     }>;
+                pauseBackgroundProcesses: () => Promise<{ success: boolean; error?: string }>;
+            resumeBackgroundProcesses: () => Promise<{ success: boolean; error?: string }>;
+            setModeSwitching: (enabled: boolean) => Promise<{ success: boolean; error?: string }>;
+            getModeSwitchingState: () => Promise<{ success: boolean; isModeSwitching?: boolean; error?: string }>;
 
     // LCU Data communication for overlay
     getLCUData: () => Promise<LCUData>;
@@ -121,6 +125,24 @@ export interface ElectronAPI {
     onChampionsCacheCleared: (callback: () => void) => void;
     onOpenOBSControl: (callback: () => void) => void;
     onOpenSettings: (callback: () => void) => void;
+
+    // OBS Control
+    obsConnect: (config: { host?: string; port?: number; password?: string }) => Promise<{ success: boolean; message?: string; error?: string }>;
+    obsDisconnect: () => Promise<{ success: boolean; message?: string; error?: string }>;
+    obsGetConnectionStatus: () => Promise<{ isConnected: boolean }>;
+    obsGetSceneList: () => Promise<{ success: boolean; scenes?: Array<{ sceneIndex: number; sceneName: string; sceneEnabled: boolean }>; error?: string }>;
+    obsSetCurrentScene: (sceneName: string) => Promise<{ success: boolean; error?: string }>;
+    obsGetCurrentScene: () => Promise<{ success: boolean; sceneName?: string; error?: string }>;
+    obsCreateScene: (sceneName: string) => Promise<{ success: boolean; error?: string }>;
+    obsRemoveScene: (sceneName: string) => Promise<{ success: boolean; error?: string }>;
+    obsStartStreaming: () => Promise<{ success: boolean; error?: string }>;
+    obsStopStreaming: () => Promise<{ success: boolean; error?: string }>;
+    obsGetStreamingStatus: () => Promise<{ success: boolean; isStreaming?: boolean; isRecording?: boolean; error?: string }>;
+    obsStartRecording: () => Promise<{ success: boolean; error?: string }>;
+    obsStopRecording: () => Promise<{ success: boolean; error?: string }>;
+    obsGetSourceList: () => Promise<{ success: boolean; sources?: Array<{ sourceName: string; sourceType: string }>; error?: string }>;
+    obsSetSourceEnabled: (sourceName: string, enabled: boolean) => Promise<{ success: boolean; error?: string }>;
+    obsGetSourceEnabled: (sourceName: string) => Promise<{ success: boolean; enabled?: boolean; error?: string }>;
 
     // Cleanup
     removeAllListeners: (channel: string) => void;

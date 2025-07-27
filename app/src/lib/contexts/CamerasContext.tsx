@@ -65,7 +65,7 @@ const electronStorage = {
 };
 
 export function CamerasProvider({ children }: { children: ReactNode }) {
-  const { user } = useAuth();
+  const { user, authLoading } = useAuth();
   const { isElectron, useLocalData } = useElectron();
   const { authenticatedFetch } = useAuthenticatedFetch();
   
@@ -188,23 +188,66 @@ export function CamerasProvider({ children }: { children: ReactNode }) {
     }
   }, [user, isLocalDataMode, fetchCamerasFromAPI, setTeams, processPlayers, setAllPlayers, setLoading]);
 
+  const checkDataSync = useCallback(async (): Promise<void> => {
+    // Skip sync checks in local data mode
+    if (isLocalDataMode) return;
+    // Do not sync if teams is empty
+    if (!teams || teams.length === 0) return;
+
+    try {
+      // Quick HEAD request to check if data has changed
+      const response = await authenticatedFetch('/api/v1/cameras/settings', { method: 'HEAD' });
+      const lastModified = response.headers.get('Last-Modified');
+      const etag = response.headers.get('ETag');
+
+      if (lastModified || etag) {
+        const cachedTimestamp = await storage.getTimestamp(CACHE_KEY);
+        const serverTimestamp = lastModified ? new Date(lastModified).getTime() : 0;
+
+        if (!cachedTimestamp || serverTimestamp > cachedTimestamp) {
+          console.log('Camera settings outdated, refreshing...');
+          await fetchCamerasFromAPI(false);
+        }
+      }
+    } catch (err) {
+      console.debug('Background sync check failed:', err);
+    }
+  }, [isLocalDataMode, teams, fetchCamerasFromAPI, authenticatedFetch]);
+
   // Load cached data on mount
   useEffect(() => {
     if (user) {
-      loadCachedData();
+      // Use requestIdleCallback for better performance if available
+      if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+        (window as unknown as Window).requestIdleCallback(() => {
+          loadCachedData();
+        }, { timeout: 1000 });
+      } else {
+        // Fallback to setTimeout for immediate execution
+        setTimeout(() => {
+          loadCachedData();
+        }, 0);
+      }
     } else {
       setLoading(false);
     }
   }, [user, loadCachedData]);
 
-  // Periodic sync check (only in online mode)
+  // Background sync interval - only when actively using cameras
   useEffect(() => {
-    if (!user || isLocalDataMode) return;
+    if (!user || authLoading || isLocalDataMode) return;
+
+    // Check if we're on a camera-related page
+    const isCameraPage = window.location.pathname.includes('/modules/cameras');
+    
+    if (!isCameraPage) return;
+
     const interval = setInterval(() => {
-      // checkDataSync(); // This function was removed
+      checkDataSync();
     }, SYNC_CHECK_INTERVAL);
+
     return () => clearInterval(interval);
-  }, [user, isLocalDataMode]); // Removed lastFetch
+  }, [user, authLoading, checkDataSync, isLocalDataMode]);
 
   const updateCameraSettings = useCallback(async (settings: { teams: Team[] }): Promise<{ success: boolean; error?: string }> => {
     try {

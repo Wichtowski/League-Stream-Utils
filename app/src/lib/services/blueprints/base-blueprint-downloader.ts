@@ -55,8 +55,6 @@ export abstract class BaseBlueprintDownloader<T> extends BaseCacheService<T> {
             const blueprintDir = `${basePath}/${version}`;
             const blueprintPath = `${blueprintDir}/${this.config.blueprintFileName}`;
 
-
-
             console.log(`${this.config.assetType} blueprint saved to ${blueprintPath}`);
         } catch (error) {
             console.error(`Error downloading ${this.config.assetType} blueprint:`, error);

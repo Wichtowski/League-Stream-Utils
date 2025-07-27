@@ -93,15 +93,6 @@ export class ItemsBlueprintDownloader extends BaseBlueprintDownloader<DataDragon
         await this.initialize();
 
         try {
-            this.updateProgress({
-                current: 0,
-                total: 1,
-                itemName: 'items',
-                stage: 'downloading',
-                currentAsset: 'Fetching items data...',
-                assetType: 'item-data'
-            });
-
             const fullEndpoint = `${DDRAGON_CDN}/${version}/data/en_US/${this.config.endpoint}`;
 
             const response = await fetch(fullEndpoint);
@@ -122,17 +113,7 @@ export class ItemsBlueprintDownloader extends BaseBlueprintDownloader<DataDragon
                 }
             }
 
-            const alreadyDownloaded = completedItems.length;
-
-            this.updateProgress({
-                current: alreadyDownloaded,
-                total: totalItems,
-                itemName: 'items',
-                stage: 'downloading',
-                currentAsset: alreadyDownloaded > 0 ? `Found ${alreadyDownloaded} items already downloaded` : 'Starting item download...',
-                assetType: 'item-images'
-            });
-
+            // Don't report progress here - let downloadItemIcons report accurate counts after checking files
             const downloadedCount = await this.downloadItemIcons(data, version, completedItems);
 
             const basePath = this.config.basePath || 'game';
@@ -152,9 +133,9 @@ export class ItemsBlueprintDownloader extends BaseBlueprintDownloader<DataDragon
                 }
             };
 
-            for (const [itemKey, item] of Object.entries(data.data)) {
+            for (const [_itemKey, item] of Object.entries(data.data)) {
                 if (item.image && item.image.full) {
-                    const iconKey = `game/${version}/items/${itemKey}/${item.image.full}`;
+                    const iconKey = `game/${version}/items/${item.image.full}`;
                     const iconUrl = `${DDRAGON_CDN}/${version}/img/item/${item.image.full}`;
 
                     manifestData[iconKey] = {
@@ -164,6 +145,14 @@ export class ItemsBlueprintDownloader extends BaseBlueprintDownloader<DataDragon
                         timestamp: Date.now(),
                         checksum: iconKey
                     };
+                    this.updateProgress({
+                        current: downloadedCount,
+                        total: totalItems,
+                        itemName: 'items',
+                        stage: 'waiting',
+                        currentAsset: `Found ${downloadedCount} items already downloaded`,
+                        assetType: 'item-images'
+                    });
                 }
             }
 
@@ -203,78 +192,122 @@ export class ItemsBlueprintDownloader extends BaseBlueprintDownloader<DataDragon
         const items = Object.entries(data.data);
         const totalItems = items.length;
 
-        const itemsToDownload: Array<{ itemKey: string; item: DataDragonItem }> = [];
-        const alreadyDownloaded = completedItems.length;
+        // Initial progress report - checking files
+        this.updateProgress({
+            current: 0,
+            total: totalItems,
+            itemName: 'items',
+            stage: 'checking',
+            currentAsset: 'Checking existing items...',
+            assetType: 'item-images'
+        });
 
+        const itemsToDownload: Array<{ itemKey: string; item: DataDragonItem }> = [];
+
+        // Check which items actually need downloading
         for (const [itemKey, item] of items) {
             if (item.image && item.image.full) {
                 if (!completedItems.includes(itemKey)) {
-                    itemsToDownload.push({ itemKey, item });
+                    // Check if file actually exists on disk before adding to download list
+                    const iconKey = `${itemDir}/${item.image.full}`;
+                    const exists = await this.checkItemExists(iconKey);
+                    
+                    if (!exists) {
+                        itemsToDownload.push({ itemKey, item });
+                    } else {
+                        // File exists but not in manifest, add to completed items
+                        completedItems.push(itemKey);
+                    }
                 }
             }
         }
 
-        this.updateProgress({
-            current: alreadyDownloaded,
-            total: totalItems,
-            itemName: 'items',
-            stage: 'downloading',
-            currentAsset: `Found ${alreadyDownloaded} items already downloaded`,
-            assetType: 'item-images'
-        });
+        // Update the already downloaded count after checking
+        const finalAlreadyDownloaded = completedItems.length;
 
         if (itemsToDownload.length === 0) {
+            // All items are already downloaded - report completion
+            this.updateProgress({
+                current: finalAlreadyDownloaded,
+                total: totalItems,
+                itemName: 'items',
+                stage: 'complete',
+                currentAsset: `All ${finalAlreadyDownloaded} items already downloaded`,
+                assetType: 'item-images'
+            });
             return totalItems;
         }
 
-        let downloadedCount = alreadyDownloaded;
+        // Some items need downloading - report progress
+        this.updateProgress({
+            current: finalAlreadyDownloaded,
+            total: totalItems,
+            itemName: 'items',
+            stage: 'downloading',
+            currentAsset: `Found ${finalAlreadyDownloaded} items already downloaded`,
+            assetType: 'item-images'
+        });
+
+        // Use parallel downloads with concurrency limit
+        const concurrencyLimit = 20; // Limit concurrent downloads to avoid overwhelming the server
+        let downloadedCount = finalAlreadyDownloaded;
         const currentCompletedItems = [...completedItems];
 
-        for (const { itemKey, item } of itemsToDownload) {
-            try {
-                const iconUrl = `${DDRAGON_CDN}/${version}/img/item/${item.image.full}`;
-                const iconKey = `${itemDir}/${itemKey}/${item.image.full}`;
+        // Process items in batches to limit concurrency
+        for (let i = 0; i < itemsToDownload.length; i += concurrencyLimit) {
+            const batch = itemsToDownload.slice(i, i + concurrencyLimit);
+            const batchPromises = batch.map(async ({ itemKey, item }) => {
+                try {
+                    const iconUrl = `${DDRAGON_CDN}/${version}/img/item/${item.image.full}`;
+                    const iconKey = `${itemDir}/${item.image.full}`;
 
-                this.updateProgress({
-                    current: downloadedCount,
-                    total: totalItems,
-                    itemName: 'items',
-                    stage: 'downloading',
-                    currentAsset: `Downloading ${item.name}...`,
-                    assetType: 'item-images'
-                });
+                    // Update progress for this specific item
+                    this.updateProgress({
+                        current: downloadedCount,
+                        total: totalItems,
+                        itemName: 'items',
+                        stage: 'downloading',
+                        currentAsset: `Downloading ${item.name}...`,
+                        assetType: 'item-images'
+                    });
 
-                await this.downloadItemIcon(iconUrl, iconKey);
-                downloadedCount++;
-                currentCompletedItems.push(itemKey);
+                    await this.downloadItemIcon(iconUrl, iconKey);
+                    
+                    // Update counters atomically
+                    downloadedCount++;
+                    currentCompletedItems.push(itemKey);
 
-                await this.updateCategoryProgress(
-                    'items',
-                    version,
-                    itemKey,
-                    totalItems,
-                    downloadedCount,
-                    currentCompletedItems
-                );
+                    await this.updateCategoryProgress(
+                        'items',
+                        version,
+                        itemKey,
+                        totalItems,
+                        downloadedCount,
+                        currentCompletedItems
+                    );
 
-                this.updateProgress({
-                    current: downloadedCount,
-                    total: totalItems,
-                    itemName: 'items',
-                    stage: 'downloading',
-                    currentAsset: `Downloaded ${item.name}`,
-                    assetType: 'item-images'
-                });
-            } catch (_error) {
-                this.updateProgress({
-                    current: downloadedCount,
-                    total: itemsToDownload.length,
-                    itemName: 'items',
-                    stage: 'downloading',
-                    currentAsset: `Failed to download ${item.name}`,
-                    assetType: 'item-images'
-                });
-            }
+                    this.updateProgress({
+                        current: downloadedCount,
+                        total: totalItems,
+                        itemName: 'items',
+                        stage: 'downloading',
+                        currentAsset: `Downloaded ${item.name}`,
+                        assetType: 'item-images'
+                    });
+                } catch (_error) {
+                    this.updateProgress({
+                        current: downloadedCount,
+                        total: totalItems,
+                        itemName: 'items',
+                        stage: 'downloading',
+                        currentAsset: `Failed to download ${item.name}`,
+                        assetType: 'item-images'
+                    });
+                }
+            });
+
+            // Wait for current batch to complete before starting next batch
+            await Promise.all(batchPromises);
         }
 
         return downloadedCount;
@@ -302,7 +335,7 @@ export class ItemsBlueprintDownloader extends BaseBlueprintDownloader<DataDragon
             for (const [itemKey, item] of allItemEntries) {
                 if (item.image && item.image.full) {
                     // Check if the item icon exists
-                    const iconKey = `game/${version}/items/${itemKey}/${item.image.full}`;
+                    const iconKey = `game/${version}/items/${item.image.full}`;
                     const fileExists = await this.checkItemExists(iconKey);
 
                     if (fileExists) {
@@ -342,9 +375,9 @@ export class ItemsBlueprintDownloader extends BaseBlueprintDownloader<DataDragon
             const totalItems = Object.keys(data.data).length;
             let downloadedCount = 0;
 
-            for (const [itemKey, item] of Object.entries(data.data)) {
+            for (const [_itemKey, item] of Object.entries(data.data)) {
                 if (item.image && item.image.full) {
-                    const imageKey = `game/${version}/items/${itemKey}/${item.image.full}`;
+                    const imageKey = `game/${version}/items/${item.image.full}`;
                     if (await this.checkItemExists(imageKey)) {
                         downloadedCount++;
                     }

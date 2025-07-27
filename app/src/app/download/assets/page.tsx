@@ -22,7 +22,9 @@ interface OverallProgress {
   percentage: number;
 }
 
-const categories = ['champion', 'item', 'game-ui', 'spell', 'rune'];
+const categories = ['champion', 'item', 'game-ui', 
+  // 'spell', 
+  'rune'];
 
 export default function DownloadAssetsPage() {
   const router = useRouter();
@@ -58,7 +60,7 @@ export default function DownloadAssetsPage() {
     const run = async (): Promise<void> => {
       // Only useful in Electron
       if (!isElectron) {
-        router.replace('/modules');
+        router.push('/modules');
         return;
       }
 
@@ -120,16 +122,8 @@ export default function DownloadAssetsPage() {
           const shouldRedirect = allCategoriesComplete && hasAllValidTotals && (overallPct >= 100 && totalTotal > 100);
 
           if (shouldRedirect) {
-            console.log('Downloads complete, redirecting to modules...', {
-              allCategoriesComplete,
-              hasAllValidTotals,
-              overallPct,
-              totalCurrent,
-              totalTotal,
-              categories: Array.from(newMap.entries())
-            });
             setTimeout(() => {
-              router.replace('/modules');
+              router.push('/modules');
             }, 2000);
           }
           
@@ -139,24 +133,19 @@ export default function DownloadAssetsPage() {
     };
 
     void run();
-  }, [isElectronLoading, isElectron, router, categoryProgress, overallProgress]);
+  }, [isElectronLoading, isElectron, categoryProgress, overallProgress, router]);
 
   // Additional failsafe: periodically check for completion
   useEffect(() => {
     // More strict failsafe - only redirect if we have substantial progress AND it's been complete for a while
     if (overallProgress.percentage >= 100 && overallProgress.total > 100) {
       const timeoutId = setTimeout(() => {
-        console.log('Failsafe redirect triggered after 10 seconds of 100% completion with substantial downloads', {
-          percentage: overallProgress.percentage,
-          total: overallProgress.total,
-          current: overallProgress.current
-        });
-        router.replace('/modules');
-      }, 10000); // Increased timeout to 10 seconds
+        router.push('/modules');
+      }, 10000);
 
       return () => clearTimeout(timeoutId);
     }
-  }, [overallProgress.percentage, overallProgress.total, router, categoryProgress, overallProgress]);
+  }, [overallProgress.percentage, overallProgress.total, categoryProgress, overallProgress, router]);
 
   const getStageColor = (stage: string): string => {
     switch (stage) {
@@ -183,10 +172,29 @@ export default function DownloadAssetsPage() {
       case 'game-ui': return 'Game UI Assets';
       case 'champion': return 'Champions';
       case 'item': return 'Items';
-      case 'spell': return 'Spells';
+      // case 'spell': return 'Spells';
       case 'rune': return 'Runes';
       default: return category.charAt(0).toUpperCase() + category.slice(1);
     }
+  };
+
+  const getProgressMessage = (progress: CategoryProgress): string => {
+    if (progress.stage === 'checking') {
+      if (progress.current === 0 && progress.total === 0) {
+        return 'Checking...';
+      } else if (progress.current === 0 && progress.total > 0) {
+        return `Checking ${progress.total} items...`;
+      } else {
+        return `Found ${progress.current}/${progress.total}`;
+      }
+    } else if (progress.stage === 'downloading') {
+      return `Downloading ${progress.current}/${progress.total}`;
+    } else if (progress.stage === 'complete') {
+      return 'Complete!';
+    } else if (progress.stage === 'error') {
+      return 'Error';
+    }
+    return progress.currentAsset;
   };
 
   // Compute if all categories are complete
@@ -198,7 +206,6 @@ export default function DownloadAssetsPage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center text-white space-y-8 p-6">
       <h1 className="text-3xl font-bold">Downloading Game Assets</h1>
-      
       {/* Overall Progress */}
       <div className="w-full max-w-2xl space-y-4">
         <div className="bg-gray-800 rounded-lg p-6">
@@ -219,7 +226,9 @@ export default function DownloadAssetsPage() {
                 ? 'Complete!' 
                 : overallProgress.percentage === 0 
                   ? 'Initializing...' 
-                  : 'Downloading...'
+                  : overallProgress.percentage > 0 && overallProgress.total === 0
+                    ? 'Checking...'
+                    : 'Downloading...'
               }
             </span>
           </div>
@@ -243,16 +252,18 @@ export default function DownloadAssetsPage() {
                 <div className="w-full bg-gray-700 rounded-full h-2 overflow-hidden mb-2">
                   <div
                     className={`h-2 transition-all duration-300 ${getProgressColor(progress.stage)}`}
-                    style={{ width: `${progress.percentage}%` }}
+                    style={{ 
+                      width: progress.total > 0 ? `${progress.percentage}%` : '50%'
+                    }}
                   />
                 </div>
                 
                 <div className="text-xs text-gray-400 mb-2">
-                  {progress.current} / {progress.total}
+                  {progress.total > 0 ? `${progress.current} / ${progress.total}` : 'Initializing...'}
                 </div>
                 
                 <div className="text-xs text-gray-300 truncate" title={progress.currentAsset}>
-                  {progress.currentAsset}
+                  {progress.total > 0 ? getProgressMessage(progress) : 'Initializing...'}
                 </div>
               </div>
             );
@@ -265,7 +276,7 @@ export default function DownloadAssetsPage() {
           className="mt-8 px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg text-lg font-semibold shadow transition"
           onClick={() => {
             resetDownloadState();
-            router.replace('/modules');
+            router.push('/modules');
           }}
         >
           Go to Modules

@@ -1,6 +1,7 @@
 'use client';
 
 import { useElectron } from '@lib/contexts/ElectronContext';
+import { assetDownloaderManager } from '@lib/services/cache/asset-downloader-manager';
 
 export const ElectronDataModeSelector = () => {
     const { isElectron, useLocalData, setUseLocalData } = useElectron();
@@ -9,12 +10,24 @@ export const ElectronDataModeSelector = () => {
         return null;
     }
 
-    const handleModeChange = (localMode: boolean) => {
-        // If switching modes, clear authentication state first
+    const handleModeChange = async (localMode: boolean) => {
+        // If switching modes, pause background processes first
         if (localMode !== useLocalData) {
-            // Clear auth data without redirecting
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
+            try {
+                // Enable mode switching state to prevent cache clearing
+                if (window.electronAPI?.setModeSwitching) {
+                    await window.electronAPI.setModeSwitching(true);
+                }
+                
+                // Pause all background processes to prevent file access conflicts
+                await assetDownloaderManager.pauseAllProcesses();
+                
+                // Clear auth data without redirecting
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+            } catch (error) {
+                console.warn('Failed to pause background processes:', error);
+            }
         }
         
         setUseLocalData(localMode);

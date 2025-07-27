@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from 'react';
 import { User } from '@lib/types/auth';
 import { useElectron } from './ElectronContext';
 
@@ -15,13 +15,66 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Cache for auth state to prevent unnecessary API calls
+const AUTH_CACHE_KEY = 'auth-cache';
+const AUTH_CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+interface AuthCache {
+    user: User;
+    timestamp: number;
+}
+
+const getAuthCache = (): AuthCache | null => {
+    if (typeof window === 'undefined') return null;
+    try {
+        const cached = localStorage.getItem(AUTH_CACHE_KEY);
+        if (!cached) return null;
+        
+        const parsed: AuthCache = JSON.parse(cached);
+        const now = Date.now();
+        
+        if (now - parsed.timestamp > AUTH_CACHE_DURATION) {
+            localStorage.removeItem(AUTH_CACHE_KEY);
+            return null;
+        }
+        
+        return parsed;
+    } catch {
+        return null;
+    }
+};
+
+const setAuthCache = (user: User): void => {
+    if (typeof window === 'undefined') return;
+    try {
+        const cache: AuthCache = {
+            user,
+            timestamp: Date.now()
+        };
+        localStorage.setItem(AUTH_CACHE_KEY, JSON.stringify(cache));
+    } catch {
+        // Ignore cache errors
+    }
+};
+
+const clearAuthCache = (): void => {
+    if (typeof window === 'undefined') return;
+    try {
+        localStorage.removeItem(AUTH_CACHE_KEY);
+    } catch {
+        // Ignore cache errors
+    }
+};
+
 export function AuthProvider({ children }: { children: ReactNode }): React.ReactElement {
     const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const { isElectron, isElectronLoading, useLocalData } = useElectron();
+    const authCheckInProgress = useRef(false);
 
     const clearAuthData = useCallback(() => {
         setUser(null);
+        clearAuthCache();
     }, []);
 
     const refreshToken = useCallback(async (): Promise<boolean> => {
@@ -44,8 +97,6 @@ export function AuthProvider({ children }: { children: ReactNode }): React.React
         }
     }, [clearAuthData]);
 
-
-
     const login = async (username: string, password: string): Promise<{ success: boolean; message?: string }> => {
         try {
             const response = await fetch('/api/v1/auth/login', {
@@ -61,6 +112,7 @@ export function AuthProvider({ children }: { children: ReactNode }): React.React
 
             if (response.ok) {
                 setUser(data.user);
+                setAuthCache(data.user);
                 return { success: true };
             } else {
                 return { success: false, message: data.error || 'Login failed' };
@@ -88,6 +140,11 @@ export function AuthProvider({ children }: { children: ReactNode }): React.React
     };
 
     const checkAuthCallback = useCallback(async () => {
+        // Prevent multiple simultaneous auth checks
+        if (authCheckInProgress.current) {
+            return;
+        }
+
         // Wait for Electron detection to complete
         if (isElectronLoading) {
             return;
@@ -95,7 +152,7 @@ export function AuthProvider({ children }: { children: ReactNode }): React.React
 
         // If running in Electron with local data mode, automatically login as admin
         if (isElectron && useLocalData) {
-            setUser({
+            const localAdmin: User = {
                 id: 'electron-admin',
                 username: 'Local Admin',
                 isAdmin: true,
@@ -105,12 +162,23 @@ export function AuthProvider({ children }: { children: ReactNode }): React.React
                 lastSessionDate: new Date(),
                 createdAt: new Date(),
                 passwordHistory: []
-            });
+            };
+            setUser(localAdmin);
+            setAuthCache(localAdmin);
             setIsLoading(false);
             return;
         }
 
-        // Try to validate existing session with a protected endpoint
+        // Check cache first
+        const cached = getAuthCache();
+        if (cached) {
+            setUser(cached.user);
+            setIsLoading(false);
+            return;
+        }
+
+        authCheckInProgress.current = true;
+
         try {
             const response = await fetch('/api/v1/auth/me', {
                 method: 'GET',
@@ -120,8 +188,9 @@ export function AuthProvider({ children }: { children: ReactNode }): React.React
             if (response.ok) {
                 const data = await response.json();
                 setUser(data.user);
+                setAuthCache(data.user);
             } else if (response.status === 401) {
-                // Try to refresh token
+                // Try to refresh token only once
                 const refreshed = await refreshToken();
                 if (refreshed) {
                     // Retry getting user info
@@ -133,6 +202,7 @@ export function AuthProvider({ children }: { children: ReactNode }): React.React
                     if (retryResponse.ok) {
                         const data = await retryResponse.json();
                         setUser(data.user);
+                        setAuthCache(data.user);
                     }
                 }
             }
@@ -141,6 +211,7 @@ export function AuthProvider({ children }: { children: ReactNode }): React.React
             clearAuthData();
         } finally {
             setIsLoading(false);
+            authCheckInProgress.current = false;
         }
     }, [isElectronLoading, isElectron, useLocalData, refreshToken, clearAuthData]);
 

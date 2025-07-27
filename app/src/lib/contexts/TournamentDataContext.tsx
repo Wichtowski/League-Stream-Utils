@@ -241,16 +241,29 @@ export function TournamentDataProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!authLoading) {
-      // Use setTimeout to avoid blocking the UI thread
-      setTimeout(() => {
-        loadCachedData();
-      }, 0);
+      // Use requestIdleCallback for better performance if available
+      if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+        (window as unknown as Window).requestIdleCallback(() => {
+          loadCachedData();
+        }, { timeout: 1000 });
+      } else {
+        // Fallback to setTimeout for immediate execution
+        setTimeout(() => {
+          loadCachedData();
+        }, 0);
+      }
     }
   }, [user, authLoading, loadCachedData]);
 
   useEffect(() => {
     // Skip sync checks in local data mode
     if (!user || authLoading || isLocalDataMode) return;
+
+    // Check if we're on a tournament-related page
+    const isTournamentPage = window.location.pathname.includes('/modules/tournaments') || 
+                            window.location.pathname.includes('/modules/pickban');
+    
+    if (!isTournamentPage) return;
 
     const interval = setInterval(() => {
       checkDataSync();

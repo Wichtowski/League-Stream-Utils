@@ -8,7 +8,8 @@ import {
   BracketSchema,
   CameraSettingsSchema,
   LoginAttemptSchema,
-  SecurityEventSchema
+  SecurityEventSchema,
+  MatchSchema
 } from './schemas';
 
 export const GameSessionModel = models.GameSession ||
@@ -44,4 +45,7 @@ export const LoginAttemptModel = models.LoginAttempt ||
   model('LoginAttempt', LoginAttemptSchema);
 
 export const SecurityEventModel = models.SecurityEvent ||
-  model('SecurityEvent', SecurityEventSchema); 
+  model('SecurityEvent', SecurityEventSchema);
+
+export const MatchModel = models.Match ||
+  model('Match', MatchSchema); 

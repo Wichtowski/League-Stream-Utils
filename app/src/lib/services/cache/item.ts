@@ -93,7 +93,7 @@ class ItemCacheService extends BaseCacheService<ItemCacheData> {
         }
 
         // Create item directory structure using the correct path format
-        const itemDir = `game/${version}/items/${itemId}`;
+        const itemDir = `game/${version}/items`;
 
         // Download item image
         const imageResult = await this.downloadItemImage(itemId, version, itemDir);
@@ -238,7 +238,7 @@ class ItemCacheService extends BaseCacheService<ItemCacheData> {
 
                 for (const itemKey of allItemKeys) {
                     // Check if the main item image exists (this is the key asset)
-                    const itemImagePath = path.join(userDataPath, 'assets', 'cache', 'game', version, 'items', itemKey, `${itemKey}.png`);
+                    const itemImagePath = path.join(userDataPath, 'assets', 'cache', 'game', version, 'items', `${itemKey}.png`);
                     const fileCheck = await window.electronAPI.checkFileExists(itemImagePath);
 
                     if (!fileCheck.success || !fileCheck.exists) {

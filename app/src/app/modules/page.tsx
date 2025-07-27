@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useNavigation } from '@lib/contexts/NavigationContext';
 import { AuthGuard } from '@lib/components/auth/AuthGuard';
@@ -21,6 +21,22 @@ export default function ModulesPage() {
     useEffect(() => {
         setActiveModule('modules');
     }, [setActiveModule]);
+
+    // Memoize the visible modules to prevent unnecessary recalculations
+    const visibleModules = useMemo(() => {
+        console.log('Calculating visible modules...');
+        const isAuthenticated = !!user;
+        const isAdmin = Boolean(user?.isAdmin);
+        
+        const modules = getVisibleModules({
+            isElectron,
+            useLocalData,
+            isAuthenticated,
+            isAdmin,
+        });
+        console.log('Visible modules calculated:', modules.length);
+        return modules;
+    }, [user, isElectron, useLocalData]);
 
     // Block access if downloads are in progress in Electron
     if (
@@ -43,17 +59,13 @@ export default function ModulesPage() {
     }
 
     const handleModuleClick = (module: ModuleCard) => {
-        router.push(module.path);
+        console.log('Module clicked:', module.name, 'path:', module.path);
+        try {
+            router.push(module.path);
+        } catch (error) {
+            console.error('Navigation error:', error);
+        }
     };
-
-    const isAuthenticated = !!user;
-    const isAdmin = Boolean(user?.isAdmin);
-    const visibleModules = getVisibleModules({
-        isElectron,
-        useLocalData,
-        isAuthenticated,
-        isAdmin,
-    });
 
     return (
         <AuthGuard loadingMessage="Loading modules...">

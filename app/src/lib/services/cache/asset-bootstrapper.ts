@@ -73,7 +73,8 @@ export const downloadAllAssets = async (
     const itemTask = async (): Promise<void> => {
         const tracker = categoryTrackers.get('item')!;
 
-        itemCacheService.onProgress((p) => {
+        // Set up progress callback for items blueprint downloader
+        itemsBlueprintDownloader.onProgress((p) => {
             tracker.current = p.current;
             tracker.total = p.total;
             tracker.stage = p.stage;
@@ -83,12 +84,19 @@ export const downloadAllAssets = async (
             updateOverallProgress();
         });
 
-        tracker.stage = 'checking';
-        tracker.currentAsset = 'Checking items...';
-        onProgress?.({ current: 0, total: 0, itemName: 'items', stage: 'checking', percentage: 0, category: 'item' });
-
         // First download the items blueprint
         await itemsBlueprintDownloader.downloadBlueprintForCurrentVersion();
+
+        // Set up progress callback for items service
+        itemCacheService.onProgress((p) => {
+            tracker.current = p.current;
+            tracker.total = p.total;
+            tracker.stage = p.stage;
+            tracker.currentAsset = p.currentAsset || p.itemName || 'item';
+
+            onProgress?.({ ...p, category: 'item' });
+            updateOverallProgress();
+        });
 
         // Then download all individual items
         await itemCacheService.downloadAllItemsOnStartup();

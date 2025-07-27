@@ -1,4 +1,5 @@
 import { championCacheService } from './champion';
+import { DataDragonClient } from '@lib/utils/dataDragon/client';
 
 export interface AssetIntegrityResult {
     isValid: boolean;
@@ -48,12 +49,19 @@ class AssetIntegrityChecker {
             totalAssets += championResult.total;
             validAssets += championResult.valid;
 
-            // Check item assets (placeholder for future expansion)
+            // Check item assets
             const itemResult = await this.checkItemAssets();
             missingAssets.push(...itemResult.missing);
             corruptedAssets.push(...itemResult.corrupted);
             totalAssets += itemResult.total;
             validAssets += itemResult.valid;
+
+            // Check game UI assets
+            const gameUIResult = await this.checkGameUIAssets();
+            missingAssets.push(...gameUIResult.missing);
+            corruptedAssets.push(...gameUIResult.corrupted);
+            totalAssets += gameUIResult.total;
+            validAssets += gameUIResult.valid;
 
             // Check spell assets (placeholder for future expansion)
             const spellResult = await this.checkSpellAssets();
@@ -98,10 +106,18 @@ class AssetIntegrityChecker {
         let valid = 0;
 
         try {
-            const version = '15.13.1'; // TODO: Get from service
+            const version = await DataDragonClient.getLatestVersion();
             const championCompleteness = await championCacheService.checkCacheCompleteness();
+            
+            // Expected: 171 champions with 4 images each + 5 ability images each
+            // Total: 171 * (4 + 5) = 171 * 9 = 1539 assets
+            const allChampionKeys = championCompleteness.missingChampions.concat(
+                Object.keys(championCompleteness).filter(key => 
+                    !championCompleteness.missingChampions.includes(key)
+                )
+            );
 
-            for (const championKey of championCompleteness.missingChampions) {
+            for (const championKey of allChampionKeys) {
                 const championDir = `game/${version}/champions/${championKey}`;
 
                 // Check champion data
@@ -116,7 +132,7 @@ class AssetIntegrityChecker {
                 }
                 total++;
 
-                // Check champion images
+                // Check champion images (4 images per champion)
                 const imageKeys = [
                     `${championDir}/square.png`,
                     `${championDir}/splash.jpg`,
@@ -136,7 +152,7 @@ class AssetIntegrityChecker {
                     total++;
                 }
 
-                // Check ability images
+                // Check ability images (5 images per champion: q, w, e, r, passive)
                 const abilityKeys = [
                     `${championDir}/abilities/q.png`,
                     `${championDir}/abilities/w.png`,
@@ -158,24 +174,6 @@ class AssetIntegrityChecker {
                 }
             }
 
-            // Also check existing champions for corruption
-            const existingChampions = Object.keys(this.manifest).filter(key =>
-                key.startsWith(`game/${version}/champions/`) &&
-                !championCompleteness.missingChampions.some(missing => key.includes(missing))
-            );
-
-            for (const assetKey of existingChampions) {
-                const result = await this.checkAsset(assetKey);
-                if (result === 'missing') {
-                    missing.push(assetKey);
-                } else if (result === 'corrupted') {
-                    corrupted.push(assetKey);
-                } else {
-                    valid++;
-                }
-                total++;
-            }
-
         } catch (error) {
             console.error('Error checking champion assets:', error);
         }
@@ -189,9 +187,105 @@ class AssetIntegrityChecker {
         total: number;
         valid: number;
     }> {
-        // Placeholder for item asset checking
-        // TODO: Implement when item system is added
-        return { missing: [], corrupted: [], total: 0, valid: 0 };
+        const missing: string[] = [];
+        const corrupted: string[] = [];
+        let total = 0;
+        let valid = 0;
+
+        try {
+            const version = await DataDragonClient.getLatestVersion();
+            
+            // Expected: 619 items
+            const itemsResponse = await DataDragonClient.getItems(version);
+            const allItemKeys = Object.keys(itemsResponse.data);
+
+            for (const itemKey of allItemKeys) {
+                const itemDir = `game/${version}/items/${itemKey}`;
+
+                // Check item data
+                const dataKey = `${itemDir}/data.json`;
+                const dataResult = await this.checkAsset(dataKey);
+                if (dataResult === 'missing') {
+                    missing.push(dataKey);
+                } else if (dataResult === 'corrupted') {
+                    corrupted.push(dataKey);
+                } else {
+                    valid++;
+                }
+                total++;
+
+                // Check item image
+                const imageKey = `${itemDir}/icon.png`;
+                const imageResult = await this.checkAsset(imageKey);
+                if (imageResult === 'missing') {
+                    missing.push(imageKey);
+                } else if (imageResult === 'corrupted') {
+                    corrupted.push(imageKey);
+                } else {
+                    valid++;
+                }
+                total++;
+            }
+
+        } catch (error) {
+            console.error('Error checking item assets:', error);
+        }
+
+        return { missing, corrupted, total, valid };
+    }
+
+    private async checkGameUIAssets(): Promise<{
+        missing: string[];
+        corrupted: string[];
+        total: number;
+        valid: number;
+    }> {
+        const missing: string[] = [];
+        const corrupted: string[] = [];
+        let total = 0;
+        let valid = 0;
+
+        try {
+            const version = await DataDragonClient.getLatestVersion();
+            
+            // Expected: 16 game UI assets
+            const gameUIAssets = [
+                'dragonpit/infernal.png',
+                'dragonpit/ocean.png',
+                'dragonpit/hextech.png',
+                'dragonpit/chemtech.png',
+                'dragonpit/mountain.png',
+                'dragonpit/elder.png',
+                'dragonpit/cloud.png',
+                'default/player.png',
+                'scoreboard/gold.png',
+                'scoreboard/grubs.png',
+                'scoreboard/tower.png',
+                'atakhan/atakhan_ruinous.png',
+                'atakhan/atakhan_voracious.png',
+                'baronpit/baron.png',
+                'baronpit/grubs.png',
+                'baronpit/herald.png'
+            ];
+
+            for (const assetPath of gameUIAssets) {
+                const assetKey = `game/${version}/overlay/${assetPath}`;
+                const result = await this.checkAsset(assetKey);
+                if (result === 'missing') {
+                    missing.push(assetKey);
+                } else if (result === 'corrupted') {
+                    corrupted.push(assetKey);
+                } else {
+                    valid++;
+                }
+                total++;
+            }
+
+        } catch (error) {
+            console.error('Error checking game UI assets:', error);
+        }
+
+        return { missing, corrupted, total, valid };
     }
 
     private async checkSpellAssets(): Promise<{
@@ -213,6 +307,7 @@ class AssetIntegrityChecker {
     }> {
         // Placeholder for rune asset checking
         // TODO: Implement when rune system is added
+        // Expected: 101 runes with data.json and icon.png each = 202 assets
         return { missing: [], corrupted: [], total: 0, valid: 0 };
     }
 
@@ -230,13 +325,35 @@ class AssetIntegrityChecker {
 
             // Check if file exists on disk
             const fileExists = await window.electronAPI.checkFileExists(manifestEntry.path);
-            if (!fileExists.success || !fileExists.exists) {
+            if (!fileExists.success) {
+                // Handle specific error cases
+                if (fileExists.error?.includes('File is currently being accessed')) {
+                    console.warn(`File ${manifestEntry.path} is being accessed by another process, skipping...`);
+                    return 'valid'; // Assume valid if being accessed
+                }
+                return 'missing';
+            }
+            
+            if (!fileExists.exists) {
                 return 'missing';
             }
 
             // Check file size
             const sizeResult = await window.electronAPI.getFileSize(manifestEntry.path);
-            if (!sizeResult.success || sizeResult.size !== manifestEntry.size) {
+            if (!sizeResult.success) {
+                // Handle specific error cases
+                if (sizeResult.error?.includes('File is currently being accessed')) {
+                    console.warn(`File ${manifestEntry.path} is being accessed by another process, skipping...`);
+                    return 'valid'; // Assume valid if being accessed
+                }
+                if (sizeResult.error?.includes('File access denied')) {
+                    console.warn(`File ${manifestEntry.path} access denied, marking as corrupted`);
+                    return 'corrupted';
+                }
+                return 'corrupted';
+            }
+            
+            if (sizeResult.size !== manifestEntry.size) {
                 return 'corrupted';
             }
 

@@ -1,12 +1,13 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Cog6ToothIcon, CloudIcon, DocumentDuplicateIcon, ShieldCheckIcon, ComputerDesktopIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
+import { Cog6ToothIcon, CloudIcon, DocumentDuplicateIcon, ShieldCheckIcon, ComputerDesktopIcon, CheckCircleIcon, VideoCameraIcon } from '@heroicons/react/24/outline';
 import { useModal } from '@lib/contexts/ModalContext';
 import { riotAPI } from '@lib/services/riot/riot-api';
 import { refreshChampionsCache, getChampions } from '@lib/champions';
-import { tournamentTemplates, type TournamentTemplate } from '@lib/services/tournament-templates';
+import { tournamentTemplates, type TournamentTemplate } from '@lib/services/brackets/tournament-templates';
 import { ElectronDataModeSelector } from './dataModeSelector';
+import { OBSControl } from './obs-control';
 import { Button } from '@lib/components/buttons/Button';
 import Link from 'next/link';
 
@@ -113,7 +114,6 @@ export const ElectronSettings = () => {
         try {
             await refreshChampionsCache();
             await loadCacheStats();
-            await showAlert({ type: 'success', message: 'Champions database updated successfully!' });
         } catch (error) {
             console.error('Failed to update champions:', error);
             await showAlert({ type: 'error', message: 'Failed to update champions database. Please check your API key and internet connection.' });
@@ -141,7 +141,6 @@ export const ElectronSettings = () => {
 
         // Load initial data
         loadCacheStats();
-        handleUpdateChampions();
         loadTemplates();
 
         return () => {
@@ -262,10 +261,19 @@ export const ElectronSettings = () => {
                         message: `Data integrity check passed! All ${integrityResult.totalFiles} files are valid.` 
                     });
                 } else {
+                    // If there are missing or corrupted files, redirect to download page
+                    const missingCount = integrityResult.missingFiles.length;
+                    const corruptedCount = integrityResult.corruptedFiles.length;
+                    
                     await showAlert({ 
                         type: 'warning', 
-                        message: `Data integrity issues found. ${integrityResult.missingFiles.length} missing files, ${integrityResult.corruptedFiles.length} corrupted files.` 
+                        message: `Found ${missingCount} missing and ${corruptedCount} corrupted files. Redirecting to download page to fix these issues.` 
                     });
+                    
+                    // Redirect to download page after a short delay
+                    setTimeout(() => {
+                        window.location.href = '/download/assets';
+                    }, 2000);
                 }
             } else {
                 await showAlert({ type: 'error', message: 'Failed to check data integrity.' });
@@ -283,7 +291,8 @@ export const ElectronSettings = () => {
         { id: 'riot-api', name: 'Riot API', icon: ShieldCheckIcon },
         { id: 'templates', name: 'Tournament Templates', icon: DocumentDuplicateIcon },
         { id: 'cache', name: 'Cache Management', icon: CloudIcon },
-        { id: 'integrity', name: 'Data Integrity', icon: CheckCircleIcon }
+        { id: 'integrity', name: 'Data Integrity', icon: CheckCircleIcon },
+        { id: 'obs-control', name: 'OBS Control', icon: VideoCameraIcon }
     ];
 
     const renderCacheTab = () => (
@@ -388,12 +397,12 @@ export const ElectronSettings = () => {
             {/* Riot API Settings */}
             {activeTab === 'riot-api' && (
                 <div className="space-y-6">
-                    <div className="bg-white shadow rounded-lg p-6">
-                        <h3 className="text-lg font-medium text-gray-900 mb-4">Riot API Configuration</h3>
+                    <div className="bg-gray-800 shadow rounded-lg p-6">
+                        <h3 className="text-lg font-medium text-gray-100 mb-4">Riot API Configuration</h3>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <label className="block text-sm font-medium text-gray-300 mb-2">
                                     API Key
                                 </label>
                                 <input
@@ -413,7 +422,7 @@ export const ElectronSettings = () => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <label className="block text-sm font-medium text-gray-300 mb-2">
                                     Default Region
                                 </label>
                                 <select
@@ -438,7 +447,7 @@ export const ElectronSettings = () => {
                                     onChange={(e) => setRiotSettings(prev => ({ ...prev, cacheEnabled: e.target.checked }))}
                                     className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                                 />
-                                <label className="ml-2 block text-sm text-gray-900">
+                                <label className="ml-2 block text-sm text-gray-100">
                                     Enable caching (recommended for better performance)
                                 </label>
                             </div>
@@ -450,7 +459,7 @@ export const ElectronSettings = () => {
                                     onChange={(e) => setRiotSettings(prev => ({ ...prev, rateLimitEnabled: e.target.checked }))}
                                     className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                                 />
-                                <label className="ml-2 block text-sm text-gray-900">
+                                <label className="ml-2 block text-sm text-gray-100">
                                     Enable automatic rate limiting
                                 </label>
                             </div>
@@ -487,9 +496,9 @@ export const ElectronSettings = () => {
             {/* Tournament Templates */}
             {activeTab === 'templates' && (
                 <div className="space-y-6">
-                    <div className="bg-white shadow rounded-lg p-6">
+                    <div className="bg-gray-800 shadow rounded-lg p-6">
                         <div className="flex items-center justify-between mb-6">
-                            <h3 className="text-lg font-medium text-gray-900">Tournament Templates</h3>
+                            <h3 className="text-lg font-medium text-gray-100">Tournament Templates</h3>
                             <button
                                 onClick={loadTemplates}
                                 className="text-blue-600 hover:text-blue-800 text-sm font-medium"
@@ -500,11 +509,11 @@ export const ElectronSettings = () => {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {templates.map((template) => (
-                                <div key={template.id} className="border border-gray-200 rounded-lg p-4">
-                                    <h4 className="text-lg font-medium text-gray-900 mb-2">{template.name}</h4>
-                                    <p className="text-sm text-gray-600 mb-3">{template.description}</p>
+                                <div key={template.id} className="border border-gray-600 rounded-lg p-4 bg-gray-700">
+                                    <h4 className="text-lg font-medium text-gray-100 mb-2">{template.name}</h4>
+                                    <p className="text-sm text-gray-300 mb-3">{template.description}</p>
 
-                                    <div className="space-y-2 text-xs text-gray-500">
+                                    <div className="space-y-2 text-xs text-gray-400">
                                         <div>Format: {template.format}</div>
                                         <div>Max Teams: {template.maxTeams}</div>
                                         <div>Fearless Draft: {template.fearlessDraft ? 'Yes' : 'No'}</div>
@@ -534,9 +543,9 @@ export const ElectronSettings = () => {
             {/* Data Integrity */}
             {activeTab === 'integrity' && (
                 <div className="space-y-6">
-                    <div className="bg-white shadow rounded-lg p-6">
-                        <h3 className="text-lg font-medium text-gray-900 mb-4">Data Integrity Check</h3>
-                        <p className="text-sm text-gray-600 mb-6">
+                    <div className="bg-gray-800 shadow rounded-lg p-6">
+                        <h3 className="text-lg font-medium text-gray-100 mb-4">Data Integrity Check</h3>
+                        <p className="text-sm text-gray-300 mb-6">
                             Verify the integrity of your cached assets and detect any missing or corrupted files.
                         </p>
 
@@ -553,8 +562,8 @@ export const ElectronSettings = () => {
                         {integrityCheckResult && (
                             <div className={`p-4 rounded-lg border ${
                                 integrityCheckResult.isValid 
-                                    ? 'bg-green-50 border-green-200' 
-                                    : 'bg-yellow-50 border-yellow-200'
+                                    ? 'bg-green-900 border-green-600' 
+                                    : 'bg-yellow-900 border-yellow-600'
                             }`}>
                                 <div className="flex items-start">
                                     <CheckCircleIcon className={`w-5 h-5 mt-0.5 mr-3 ${
@@ -562,12 +571,12 @@ export const ElectronSettings = () => {
                                     }`} />
                                     <div className="flex-1">
                                         <h4 className={`font-medium ${
-                                            integrityCheckResult.isValid ? 'text-green-800' : 'text-yellow-800'
+                                            integrityCheckResult.isValid ? 'text-green-200' : 'text-yellow-200'
                                         }`}>
                                             {integrityCheckResult.isValid ? 'Integrity Check Passed' : 'Integrity Issues Found'}
                                         </h4>
                                         <p className={`text-sm mt-1 ${
-                                            integrityCheckResult.isValid ? 'text-green-700' : 'text-yellow-700'
+                                            integrityCheckResult.isValid ? 'text-green-300' : 'text-yellow-300'
                                         }`}>
                                             {integrityCheckResult.message}
                                         </p>
@@ -581,12 +590,12 @@ export const ElectronSettings = () => {
                                             </div>
                                             {integrityCheckResult.missingFiles.length > 0 && (
                                                 <div className="text-sm">
-                                                    <span className="font-medium text-red-600">Missing Files:</span> {integrityCheckResult.missingFiles.length}
+                                                    <span className="font-medium text-red-400">Missing Files:</span> {integrityCheckResult.missingFiles.length}
                                                 </div>
                                             )}
                                             {integrityCheckResult.corruptedFiles.length > 0 && (
                                                 <div className="text-sm">
-                                                    <span className="font-medium text-red-600">Corrupted Files:</span> {integrityCheckResult.corruptedFiles.length}
+                                                    <span className="font-medium text-red-400">Corrupted Files:</span> {integrityCheckResult.corruptedFiles.length}
                                                 </div>
                                             )}
                                         </div>
@@ -609,14 +618,19 @@ export const ElectronSettings = () => {
                         )}
 
                         {!isElectron && (
-                            <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                                <p className="text-sm text-gray-600">
+                            <div className="mt-4 p-4 bg-gray-700 rounded-lg">
+                                <p className="text-sm text-gray-300">
                                     Data integrity check is only available in the desktop application.
                                 </p>
                             </div>
                         )}
                     </div>
                 </div>
+            )}
+
+            {/* OBS Control */}
+            {activeTab === 'obs-control' && (
+                <OBSControl />
             )}
         </div>
     );

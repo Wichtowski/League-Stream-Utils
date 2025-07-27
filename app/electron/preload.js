@@ -40,6 +40,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
     clearAssetCache: () => ipcRenderer.invoke('clear-asset-cache'),
     getAssetCacheStats: () => ipcRenderer.invoke('get-asset-cache-stats'),
     checkAssetIntegrity: () => ipcRenderer.invoke('check-asset-integrity'),
+                pauseBackgroundProcesses: () => ipcRenderer.invoke('pause-background-processes'),
+            resumeBackgroundProcesses: () => ipcRenderer.invoke('resume-background-processes'),
+            setModeSwitching: (enabled) => ipcRenderer.invoke('set-mode-switching', enabled),
+            getModeSwitchingState: () => ipcRenderer.invoke('get-mode-switching-state'),
 
     // LCU Data communication for overlay
     getLCUData: () => ipcRenderer.invoke('get-lcu-data'),
@@ -62,6 +66,24 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
     // Clean up listeners
     removeAllListeners: (channel) => ipcRenderer.removeAllListeners(channel),
+
+    // OBS Control
+    obsConnect: (config) => ipcRenderer.invoke('obs-connect', config),
+    obsDisconnect: () => ipcRenderer.invoke('obs-disconnect'),
+    obsGetConnectionStatus: () => ipcRenderer.invoke('obs-get-connection-status'),
+    obsGetSceneList: () => ipcRenderer.invoke('obs-get-scene-list'),
+    obsSetCurrentScene: (sceneName) => ipcRenderer.invoke('obs-set-current-scene', sceneName),
+    obsGetCurrentScene: () => ipcRenderer.invoke('obs-get-current-scene'),
+    obsCreateScene: (sceneName) => ipcRenderer.invoke('obs-create-scene', sceneName),
+    obsRemoveScene: (sceneName) => ipcRenderer.invoke('obs-remove-scene', sceneName),
+    obsStartStreaming: () => ipcRenderer.invoke('obs-start-streaming'),
+    obsStopStreaming: () => ipcRenderer.invoke('obs-stop-streaming'),
+    obsGetStreamingStatus: () => ipcRenderer.invoke('obs-get-streaming-status'),
+    obsStartRecording: () => ipcRenderer.invoke('obs-start-recording'),
+    obsStopRecording: () => ipcRenderer.invoke('obs-stop-recording'),
+    obsGetSourceList: () => ipcRenderer.invoke('obs-get-source-list'),
+    obsSetSourceEnabled: (sourceName, enabled) => ipcRenderer.invoke('obs-set-source-enabled', { sourceName, enabled }),
+    obsGetSourceEnabled: (sourceName) => ipcRenderer.invoke('obs-get-source-enabled', sourceName),
 
     // Platform info
     platform: process.platform,

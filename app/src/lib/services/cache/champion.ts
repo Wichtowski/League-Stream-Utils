@@ -616,9 +616,9 @@ class ChampionCacheService extends BaseCacheService<Champion> {
 
                 if (!championExists) {
                     missingChampions.push(championKey);
-                } else {
+                } /* else {
                     console.log(`✓ Champion ${championKey} found`);
-                }
+                }*/
             }
 
             console.log(`Found ${allChampionKeys.length - missingChampions.length} existing champions, ${missingChampions.length} missing out of ${allChampionKeys.length} total`);

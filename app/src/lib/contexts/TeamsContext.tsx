@@ -231,14 +231,30 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!authLoading) {
-      setTimeout(() => {
-        loadCachedData();
-      }, 0);
+      // Use requestIdleCallback for better performance if available
+      if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+        (window as unknown as Window).requestIdleCallback(() => {
+          loadCachedData();
+        }, { timeout: 1000 });
+      } else {
+        // Fallback to setTimeout for immediate execution
+        setTimeout(() => {
+          loadCachedData();
+        }, 0);
+      }
     }
   }, [user, authLoading, loadCachedData]);
 
   useEffect(() => {
+    // Only run sync interval if user is authenticated, not in local mode, and has teams
+    // Also check if we're on a teams-related page to avoid unnecessary background sync
     if (!user || isLocalDataMode || authLoading || !teams || teams.length === 0) return;
+
+    // Check if we're on a teams-related page
+    const isTeamsPage = window.location.pathname.includes('/modules/teams') || 
+                       window.location.pathname.includes('/modules/tournaments');
+    
+    if (!isTeamsPage) return;
 
     const interval = setInterval(() => {
       checkDataSync();

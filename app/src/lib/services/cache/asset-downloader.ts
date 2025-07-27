@@ -1,5 +1,6 @@
 import { championCacheService } from './champion';
 import { assetIntegrityChecker, AssetIntegrityResult } from './asset-integrity-checker';
+import { assetDownloaderManager } from './asset-downloader-manager';
 
 export interface DownloadTask {
     id: string;
@@ -49,6 +50,7 @@ interface DownloadResult {
 
 class AssetDownloader {
     private isDownloading = false;
+    private isPaused = false;
     private downloadQueue: DownloadTask[] = [];
     private activeDownloads = new Set<string>();
     private maxConcurrentDownloads = 50; // Ultra-aggressive concurrency
@@ -486,6 +488,12 @@ class AssetDownloader {
         let attempt = 0;
 
         while (attempt < maxRetries) {
+            // Check if downloader is paused
+            if (this.isPaused) {
+                console.log('Download paused, skipping task:', task.id);
+                break;
+            }
+
             try {
                 this.activeDownloads.add(task.id);
                 this.updateConnectionStats();
@@ -594,6 +602,23 @@ class AssetDownloader {
         this.downloadQueue = [];
         this.cleanupConnections();
     }
+
+    pauseDownload(): void {
+        this.isPaused = true;
+        console.log('Asset downloader paused');
+    }
+
+    resumeDownload(): void {
+        this.isPaused = false;
+        console.log('Asset downloader resumed');
+    }
+
+    isPaused(): boolean {
+        return this.isPaused;
+    }
 }
 
-export const assetDownloader = new AssetDownloader(); 
+export const assetDownloader = new AssetDownloader();
+
+// Register the downloader with the manager
+assetDownloaderManager.setDownloader(assetDownloader); 

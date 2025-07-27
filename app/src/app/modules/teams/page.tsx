@@ -1,12 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { AuthGuard } from '@lib/components/auth/AuthGuard';
+import { useRouter } from 'next/navigation';
 import type { Team, CreateTeamRequest } from '@lib/types';
 import { useNavigation, useUser, useTeams, useModal } from '@lib/contexts';
-import { LoadingSpinner, BackButton } from '@lib/components/common';
-import { useRouter } from 'next/navigation';
-import { TeamCreationForm, TeamCard } from '../../../lib/components/pages/teams';
+import { AuthGuard } from '@lib/components/auth/AuthGuard';
+import { BackButton } from '@lib/components/buttons';
+import { LoadingSpinner } from '@lib/components/common';
+import { TeamCreationForm, TeamCard } from '@lib/components/pages/teams';
 
 export default function TeamsPage() {
     const user = useUser();

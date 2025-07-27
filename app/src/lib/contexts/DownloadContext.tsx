@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { assetDownloader, DownloadProgress } from '@lib/services/cache/asset-downloader';
 
 interface DownloadState {
@@ -112,7 +112,7 @@ export const DownloadProvider: React.FC<DownloadProviderProps> = ({ children }) 
     });
   };
 
-  const checkDownloadStatus = async (): Promise<void> => {
+  const checkDownloadStatus = useCallback(async (): Promise<void> => {
     if (typeof window === 'undefined' || !window.electronAPI) {
       return;
     }
@@ -148,7 +148,7 @@ export const DownloadProvider: React.FC<DownloadProviderProps> = ({ children }) 
     } catch (error) {
       console.error('Failed to check download status:', error);
     }
-  };
+  }, [downloadState.isDownloading]);
 
   const resetDownloadState = (): void => {
     setDownloadState({
@@ -166,10 +166,16 @@ export const DownloadProvider: React.FC<DownloadProviderProps> = ({ children }) 
   };
 
   useEffect(() => {
-    checkDownloadStatus();
-    const interval = setInterval(checkDownloadStatus, 1000);
-    return () => clearInterval(interval);
-  }, []);
+    // Only start the interval if we're currently downloading or if we need to check status
+    if (downloadState.isDownloading) {
+      checkDownloadStatus();
+      const interval = setInterval(checkDownloadStatus, 5000);
+      return () => clearInterval(interval);
+    } else {
+      // Do a single check when not downloading to catch any state changes
+      checkDownloadStatus();
+    }
+  }, [downloadState.isDownloading, checkDownloadStatus]);
 
   const value: DownloadContextType = {
     downloadState,

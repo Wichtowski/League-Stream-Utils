@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useCallback, useState, ReactNode } from "react";
 import { useElectron } from "./ElectronContext";
 import { useAuthenticatedFetch } from "@lib/hooks/useAuthenticatedFetch";
+import { useAuth } from "./AuthContext";
 
 export interface Prediction {
   commentator: string;
@@ -21,6 +22,7 @@ const PredictionsContext = createContext<PredictionsContextType | undefined>(und
 export function PredictionsProvider({ children }: { children: ReactNode }): React.ReactElement {
   const { isElectron, useLocalData } = useElectron();
   const { authenticatedFetch } = useAuthenticatedFetch();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
 
   const isLocalDataMode = isElectron && useLocalData;
@@ -49,8 +51,8 @@ export function PredictionsProvider({ children }: { children: ReactNode }): Reac
     setLoading(true);
     try {
       if (isLocalDataMode && typeof window !== "undefined" && window.electronAPI?.storage?.set) {
-        // Get current user from Electron context if available
-        const commentator = window.electronAPI?.getCurrentUser?.() || "ElectronUser";
+        // Get current user from auth context
+        const commentator = user?.username || "ElectronUser";
         const newPrediction: Prediction = {
           commentator,
           prediction,
@@ -72,11 +74,11 @@ export function PredictionsProvider({ children }: { children: ReactNode }): Reac
         setLoading(false);
         return data;
       }
-    } catch (error) {
+    } catch (_error) {
       setLoading(false);
       return { success: false, error: "Failed to submit prediction" };
     }
-  }, [isLocalDataMode, authenticatedFetch]);
+  }, [isLocalDataMode, authenticatedFetch, user?.username]);
 
   return (
     <PredictionsContext.Provider value={{ getPredictions, submitPrediction, loading }}>

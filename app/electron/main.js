@@ -9,6 +9,7 @@ const { registerChampionHandlers } = require('./ipc-handlers/champions');
 const { registerAssetHandlers } = require('./ipc-handlers/assets');
 const { registerLCUHandlers } = require('./ipc-handlers/lcu');
 const { registerUtilHandlers } = require('./ipc-handlers/util');
+const { registerOBSHandlers } = require('./ipc-handlers/obs');
 const { broadcastLCUDataUpdate, broadcastMockDataToggle } = require('./utils/broadcast');
 /* eslint-enable @typescript-eslint/no-require-imports */
 
@@ -57,6 +58,7 @@ registerLCUHandlers(
   () => broadcastMockDataToggle(mainWindow, useMockData)
 );
 registerUtilHandlers();
+registerOBSHandlers();
 
 // App event handlers
 const mainWindowRef = { value: null };

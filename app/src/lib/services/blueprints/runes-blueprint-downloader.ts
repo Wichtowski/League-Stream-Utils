@@ -38,8 +38,6 @@ export class RunesBlueprintDownloader extends BaseBlueprintDownloader<CommunityD
                 currentAsset: 'Fetching runes data...',
                 assetType: 'rune-data'
             });
-
-            console.log('Fetching runes data from:', this.config.endpoint);
             // Download data from CommunityDragon
             const response = await fetch(this.config.endpoint);
             if (!response.ok) {
@@ -63,17 +61,13 @@ export class RunesBlueprintDownloader extends BaseBlueprintDownloader<CommunityD
 
             // If no runes in manifest but files might exist, migrate them
             if (completedRunes.length === 0) {
-                console.log('No runes found in category manifest, checking for existing files...');
                 const existingRunes = await this.migrateExistingRunes(validRunes, version);
                 if (existingRunes.length > 0) {
-                    console.log(`Migrated ${existingRunes.length} existing runes to category manifest`);
                     completedRunes = existingRunes;
                 }
             }
 
             const alreadyDownloaded = completedRunes.length;
-
-            console.log(`Found ${alreadyDownloaded} runes already downloaded out of ${totalRunes} total`);
 
             // Update progress - downloading icons
             this.updateProgress({
@@ -182,8 +176,6 @@ export class RunesBlueprintDownloader extends BaseBlueprintDownloader<CommunityD
             return totalRunes;
         }
 
-        console.log(`Downloading ${runesToDownload.length} new rune icons...`);
-
         for (const rune of runesToDownload) {
             try {
                 // Convert icon path to DataDragon CDN URL
@@ -240,10 +232,6 @@ export class RunesBlueprintDownloader extends BaseBlueprintDownloader<CommunityD
                     currentAsset: `Downloaded ${rune.name}`,
                     assetType: 'rune-images'
                 });
-
-                if ((downloadedCount - alreadyDownloaded) % 10 === 0) {
-                    console.log(`Downloaded ${downloadedCount - alreadyDownloaded}/${runesToDownload.length} new rune icons... (${downloadedCount}/${totalRunes} total)`);
-                }
             } catch (error) {
                 console.error(`Failed to download rune icon for ${rune.name}:`, error);
 

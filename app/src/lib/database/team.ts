@@ -100,7 +100,7 @@ export async function updateTeam(teamId: string, userId: string, updates: Partia
     if (updates.socialMedia) team.socialMedia = updates.socialMedia;
 
     // Helper to compare player lists
-    const playersEqual = (a: any[], b: any[]): boolean => {
+    const playersEqual = (a: Player[], b: Player[]): boolean => {
         if (a.length !== b.length) return false;
         for (let i = 0; i < a.length; i++) {
             if (
@@ -121,8 +121,8 @@ export async function updateTeam(teamId: string, userId: string, updates: Partia
         const newMain = updates.players.main || [];
         const newSubs = updates.players.substitutes || [];
 
-        const mainChanged = !playersEqual(oldMain, newMain);
-        const subsChanged = !playersEqual(oldSubs, newSubs);
+        const mainChanged = !playersEqual(oldMain as Player[], newMain as Player[]);
+        const subsChanged = !playersEqual(oldSubs as Player[], newSubs as Player[]);
 
         // If roster changed, reset verification
         if (mainChanged || subsChanged) {
