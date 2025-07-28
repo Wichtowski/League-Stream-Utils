@@ -24,7 +24,6 @@ export default function ModulesPage() {
 
     // Memoize the visible modules to prevent unnecessary recalculations
     const visibleModules = useMemo(() => {
-        console.log('Calculating visible modules...');
         const isAuthenticated = !!user;
         const isAdmin = Boolean(user?.isAdmin);
         
@@ -34,7 +33,7 @@ export default function ModulesPage() {
             isAuthenticated,
             isAdmin,
         });
-        console.log('Visible modules calculated:', modules.length);
+
         return modules;
     }, [user, isElectron, useLocalData]);
 
