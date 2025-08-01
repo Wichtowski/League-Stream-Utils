@@ -1,11 +1,14 @@
+'use client';
+
 import React from 'react';
-import { useRouter } from 'next/router';
+import { useRouter, useParams } from 'next/navigation';
 import { useTeams } from '@lib/contexts/TeamsContext';
-import { TeamEditForm } from '../../../../lib/components/pages/teams/TeamEditForm';
+import { TeamEditForm } from '@lib/components/pages/teams/TeamEditForm';
 
 const TeamEditPage: React.FC = () => {
   const router = useRouter();
-  const { teamid } = router.query;
+  const params = useParams();
+  const teamid = params.teamid as string;
   const { teams, updateTeam } = useTeams();
 
   const team = teams.find(t => t.id === teamid);

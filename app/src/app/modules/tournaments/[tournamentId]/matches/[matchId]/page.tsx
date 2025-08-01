@@ -3,15 +3,15 @@
 import React, { useState, useEffect } from "react";
 import { useUser } from "@lib/contexts/AuthContext";
 import { AuthGuard } from "@lib/components/auth/AuthGuard";
-import { BackButton } from '@lib/components/common';
+import { BackButton } from '@lib/components/buttons';
 import type { Match } from "@lib/types/match";
 import type { Tournament } from "@lib/types/tournament";
 
 interface TournamentMatchPageProps {
-  params: {
+  params: Promise<{
     tournamentId: string;
     matchId: string;
-  };
+  }>;
 }
 
 export default function TournamentMatchPage({ params }: TournamentMatchPageProps): React.ReactElement {
@@ -20,14 +20,27 @@ export default function TournamentMatchPage({ params }: TournamentMatchPageProps
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [tournamentId, setTournamentId] = useState<string>('');
+  const [matchId, setMatchId] = useState<string>('');
 
   useEffect(() => {
+    const resolveParams = async () => {
+      const resolvedParams = await params;
+      setTournamentId(resolvedParams.tournamentId);
+      setMatchId(resolvedParams.matchId);
+    };
+    resolveParams();
+  }, [params]);
+
+  useEffect(() => {
+    if (!tournamentId || !matchId) return;
+    
     const fetchData = async () => {
       try {
         setLoading(true);
         
         // Fetch tournament data
-        const tournamentResponse = await fetch(`/api/v1/tournaments/${params.tournamentId}`);
+        const tournamentResponse = await fetch(`/api/v1/tournaments/${tournamentId}`);
         if (!tournamentResponse.ok) {
           throw new Error('Failed to fetch tournament');
         }
@@ -35,7 +48,7 @@ export default function TournamentMatchPage({ params }: TournamentMatchPageProps
         setTournament(tournamentData.tournament);
 
         // Fetch match data
-        const matchResponse = await fetch(`/api/v1/matches/${params.matchId}`);
+        const matchResponse = await fetch(`/api/v1/matches/${matchId}`);
         if (!matchResponse.ok) {
           throw new Error('Failed to fetch match');
         }
@@ -49,7 +62,7 @@ export default function TournamentMatchPage({ params }: TournamentMatchPageProps
     };
 
     fetchData();
-  }, [params.tournamentId, params.matchId]);
+  }, [tournamentId, matchId]);
 
   if (!user) {
     return <AuthGuard>{null}</AuthGuard>;
@@ -71,7 +84,7 @@ export default function TournamentMatchPage({ params }: TournamentMatchPageProps
     return (
       <AuthGuard>
         <div className="min-h-screen p-6 max-w-6xl mx-auto">
-          <BackButton />
+          <BackButton to="/modules/tournaments" />
           <div className="text-center py-12">
             <div className="text-red-400 text-lg mb-4">Error loading match</div>
             <p className="text-gray-500">{error || 'Match or tournament not found'}</p>
@@ -91,7 +104,7 @@ export default function TournamentMatchPage({ params }: TournamentMatchPageProps
               {tournament.name} • {match.roundName || 'Match'}
             </p>
           </div>
-          <BackButton />
+          <BackButton to="/modules/tournaments" />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

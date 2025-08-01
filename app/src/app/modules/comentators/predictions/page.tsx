@@ -6,7 +6,7 @@ import { AuthGuard } from "@lib/components/auth/AuthGuard";
 import { useTournaments } from "@lib/contexts/TournamentsContext";
 import type { Tournament } from "@lib/types";
 import type { BracketStructure, BracketNode } from "@lib/types/tournament";
-import { BackButton } from '@lib/components/common';
+import { BackButton } from '@lib/components/buttons';
 
 interface Match {
   id: string;
@@ -169,7 +169,7 @@ export default function ComentatorPredictionsPage(): React.ReactElement {
   // Redirect to the match predictions page
   if (selectedMatch) {
     if (typeof window !== "undefined") {
-      window.location.href = `/modules/comentator-predictions/${selectedMatch.id}`;
+      window.location.href = `/modules/comentators/predictions/${selectedMatch.id}`;
     }
     return <AuthGuard>{null}</AuthGuard>;
   }

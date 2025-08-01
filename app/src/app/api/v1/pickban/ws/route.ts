@@ -7,7 +7,7 @@ import {
   canTeamAct,
   setTeamReady,
   updateGameSession
-} from '@lib/game-logic';
+} from '@lib/game/game-logic';
 import type { WSMessage, TeamSide } from '@lib/types';
 
 interface ExtendedWebSocket extends WebSocket {

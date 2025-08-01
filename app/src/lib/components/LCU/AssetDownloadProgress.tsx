@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { DownloadProgress } from '@lib/services/high-performance-asset-downloader';
+import { DownloadProgress } from '@lib/services/cache/base';
 
 interface AssetDownloadProgressProps {
   progress: DownloadProgress;
@@ -9,21 +9,7 @@ interface AssetDownloadProgressProps {
   className?: string;
 }
 
-const formatBytes = (bytes: number): string => {
-  if (bytes === 0) return '0 B';
-  const k = 1024;
-  const sizes = ['B', 'KB', 'MB', 'GB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
-};
 
-const formatTime = (seconds: number): string => {
-  if (seconds < 60) return `${Math.round(seconds)}s`;
-  if (seconds < 3600) return `${Math.round(seconds / 60)}m ${Math.round(seconds % 60)}s`;
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.round((seconds % 3600) / 60);
-  return `${hours}h ${minutes}m`;
-};
 
 const getAssetIcon = (assetType?: string): string => {
   switch (assetType) {
@@ -86,7 +72,7 @@ export const AssetDownloadProgress: React.FC<AssetDownloadProgressProps> = ({
           {isComplete ? 'Download Complete' : isError ? 'Download Error' : 'Downloading Assets'}
         </h2>
         <p className="text-gray-400">
-          {progress.message}
+          {progress.itemName || 'Processing assets...'}
         </p>
       </div>
       
@@ -131,16 +117,6 @@ export const AssetDownloadProgress: React.FC<AssetDownloadProgressProps> = ({
             </div>
           )}
 
-          {/* Download Speed and ETA */}
-          {progress.downloadSpeed && progress.downloadSpeed > 0 && (
-            <div className="flex justify-between text-xs text-gray-400">
-              <span>Speed: {formatBytes(progress.downloadSpeed)}/s</span>
-              {progress.estimatedTimeRemaining && progress.estimatedTimeRemaining > 0 && (
-                <span>ETA: {formatTime(progress.estimatedTimeRemaining)}</span>
-              )}
-            </div>
-          )}
-
           {/* Stage Indicator */}
           <div className="flex justify-center">
             <div className="inline-flex items-center space-x-2 bg-gray-700/50 rounded-full px-3 py-1">
@@ -155,18 +131,6 @@ export const AssetDownloadProgress: React.FC<AssetDownloadProgressProps> = ({
               </span>
             </div>
           </div>
-
-          {/* Errors */}
-          {progress.errors.length > 0 && (
-            <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-3">
-              <div className="text-xs text-red-400 mb-1">Errors</div>
-              <div className="text-xs text-red-300">
-                {progress.errors.map((error, index) => (
-                  <div key={index}>{error}</div>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       )}
 
@@ -197,4 +161,4 @@ export const AssetDownloadProgress: React.FC<AssetDownloadProgressProps> = ({
       )}
     </div>
   );
-}; 
+};
