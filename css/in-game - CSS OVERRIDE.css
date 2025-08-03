@@ -1,5 +1,4 @@
 * {
-  font-family: 'Yolk';
 }
 
 /* BOTTOM STATS & ITEMS */
@@ -162,7 +161,10 @@ img[src*="mainIcon.png"] {
   width: 20px;
   height: 20px;
 }
-
+#app > div > div.absolute.top-0.left-0.flex.flex-row > div:nth-child(1) > div.flex.flex-row.justify-center.items-center > img {
+  width: 40px !important;
+  height: 40px !important;
+}
 /* FEATS */
 /* left */
 .center-container>div>div.flex.items-center.gap-3.flex-row-reverse.bg-bot.pl-2.pr-2 {
@@ -199,7 +201,7 @@ img[src*="mainIcon.png"] {
 #top-row>div.team-container.blue-team>div.relative.overflow-hidden,
 #top-row>div.team-container.red-team>div.relative.overflow-hidden {
   background: black !important;
-  /* width: 120px !important; */
+
 }
 
 #top-row>div.team-container.red-team>div.relative.overflow-hidden>div>img {
@@ -282,10 +284,10 @@ div.champion.relative>div>div>p {
 
 
 /* BARON  & DRAKES */
-#app>div>div.absolute.top-0.left-0.flex.flex-row>div div,
+/* #app>div>div.absolute.top-0.left-0.flex.flex-row>div div,
 #app>div>div.flex.gap-0.flex-row-reverse.absolute.top-0.right-0>div {
   background: rgba(0, 0, 0, .95) !important;
-}
+} */
 
 #app>div>div.absolute.top-0.left-0.flex.flex-row>div img,
 #app>div>div.flex.gap-0.flex-row-reverse.absolute.top-0.right-0>div img {
