@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useUser } from "@lib/contexts/AuthContext";
 import { AuthGuard } from "@lib/components/auth/AuthGuard";
-import { BackButton } from '@lib/components/common';
+import { BackButton } from '@lib/components/buttons';
 import type { Match } from "@lib/types/match";
 
 export default function MatchesPage(): React.ReactElement {
@@ -44,7 +44,7 @@ export default function MatchesPage(): React.ReactElement {
             <h1 className="text-3xl font-bold text-white">Standalone Matches</h1>
             <p className="text-gray-400 mt-2">Manage and view standalone matches</p>
           </div>
-          <BackButton />
+          <BackButton to="/modules" />
         </div>
 
         {error && (

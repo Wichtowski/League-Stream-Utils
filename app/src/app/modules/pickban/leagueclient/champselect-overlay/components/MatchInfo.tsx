@@ -1,7 +1,7 @@
 import React from 'react';
 import Image from 'next/image';
 import type { PickbanTournamentTeam } from '@lib/types';
-import ProgressBar from './ProgressBar';
+import { ProgressBar } from './ProgressBar';
 
 type MatchInfoProps = {
   blueTeam: PickbanTournamentTeam;

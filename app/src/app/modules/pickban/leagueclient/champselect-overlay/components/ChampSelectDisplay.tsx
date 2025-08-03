@@ -3,7 +3,7 @@
 import React from 'react';
 import type { EnhancedChampSelectSession } from '@lib/types';
 import { TournamentHeader, TeamSection, MatchInfo, TeamBans } from './';
-import TimeBar from './TimeBar';
+import { TimeBar } from './TimeBar';
 import { MockControlPanel} from './MockControlPanel';
 import { ChampSelectLayout } from './ChampSelectLayout';
 import { FearlessDraftBans } from './FearlessDraftBans';

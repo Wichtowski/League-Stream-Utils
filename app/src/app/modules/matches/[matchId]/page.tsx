@@ -3,13 +3,13 @@
 import React, { useState, useEffect } from "react";
 import { useUser } from "@lib/contexts/AuthContext";
 import { AuthGuard } from "@lib/components/auth/AuthGuard";
-import { BackButton } from '@lib/components/common';
+import { BackButton } from '@lib/components/buttons';
 import type { Match } from "@lib/types/match";
 
 interface MatchPageProps {
-  params: {
+  params: Promise<{
     matchId: string;
-  };
+  }>;
 }
 
 export default function MatchPage({ params }: MatchPageProps): React.ReactElement {
@@ -17,12 +17,23 @@ export default function MatchPage({ params }: MatchPageProps): React.ReactElemen
   const [match, setMatch] = useState<Match | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [matchId, setMatchId] = useState<string>('');
 
   useEffect(() => {
+    const resolveParams = async () => {
+      const resolvedParams = await params;
+      setMatchId(resolvedParams.matchId);
+    };
+    resolveParams();
+  }, [params]);
+
+  useEffect(() => {
+    if (!matchId) return;
+    
     const fetchMatch = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`/api/v1/matches/${params.matchId}`);
+        const response = await fetch(`/api/v1/matches/${matchId}`);
         if (!response.ok) {
           throw new Error('Failed to fetch match');
         }
@@ -36,7 +47,7 @@ export default function MatchPage({ params }: MatchPageProps): React.ReactElemen
     };
 
     fetchMatch();
-  }, [params.matchId]);
+  }, [matchId]);
 
   if (!user) {
     return <AuthGuard>{null}</AuthGuard>;
@@ -58,7 +69,7 @@ export default function MatchPage({ params }: MatchPageProps): React.ReactElemen
     return (
       <AuthGuard>
         <div className="min-h-screen p-6 max-w-6xl mx-auto">
-          <BackButton />
+          <BackButton to="/modules/matches" />
           <div className="text-center py-12">
             <div className="text-red-400 text-lg mb-4">Error loading match</div>
             <p className="text-gray-500">{error || 'Match not found'}</p>
@@ -78,7 +89,7 @@ export default function MatchPage({ params }: MatchPageProps): React.ReactElemen
               {match.type === 'tournament' ? `Tournament: ${match.tournamentName}` : 'Standalone Match'}
             </p>
           </div>
-          <BackButton />
+          <BackButton to="/modules/matches" />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
