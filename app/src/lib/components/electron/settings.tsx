@@ -8,7 +8,7 @@ import { refreshChampionsCache, getChampions } from '@lib/champions';
 import { tournamentTemplates, type TournamentTemplate } from '@lib/services/brackets/tournament-templates';
 import { ElectronDataModeSelector } from './dataModeSelector';
 import { OBSControl } from './obs-control';
-import { Button } from '@lib/components/buttons/Button';
+import { Button } from '@/lib/components/common/buttons/Button';
 import Link from 'next/link';
 
 interface RiotAPISettings {

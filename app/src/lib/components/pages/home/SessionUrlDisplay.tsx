@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { CopyButton } from '@lib/components/buttons';
+import { CopyButton } from '@/lib/components/common/buttons';
 import type { SessionUrls } from '@lib/types';
 
 interface SessionUrlDisplayProps {

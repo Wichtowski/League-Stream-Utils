@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { VideoCameraIcon, PlayIcon, StopIcon, WifiIcon } from '@heroicons/react/24/outline';
-import { Button } from '@lib/components/buttons/Button';
+import { Button } from '@/lib/components/common/buttons/Button';
 import { useModal } from '@lib/contexts/ModalContext';
 
 interface OBSScene {

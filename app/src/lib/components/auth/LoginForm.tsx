@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@lib/contexts/AuthContext';
-import { Button } from '@lib/components/buttons/Button';
+import { Button } from '@/lib/components/common/buttons/Button';
 import { AuthCredentials } from '@lib/types/auth';
 
 export function LoginForm() {

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import type { Tournament } from '@lib/types';
-import { MyTeamRegistration } from './index';
+import { MyTeamRegistration, StandaloneTeamManager } from './index';
 
 interface TournamentCardProps {
     tournament: Tournament;
@@ -12,11 +12,14 @@ interface TournamentCardProps {
 
 export const TournamentCard = ({ tournament, onStatusUpdate, onTournamentUpdate }: TournamentCardProps): React.ReactElement => {
     const [showMyTeamRegistration, setShowMyTeamRegistration] = useState(false);
+    const [showStandaloneTeamManager, setShowStandaloneTeamManager] = useState(false);
 
     const handleTournamentUpdated = (updatedTournament: Tournament) => {
         onTournamentUpdate?.(updatedTournament);
         setShowMyTeamRegistration(false);
+        setShowStandaloneTeamManager(false);
     };
+
     return (
         <div className="bg-gray-800 rounded-lg p-6">
             <div className="flex justify-between items-start mb-4">
@@ -78,6 +81,12 @@ export const TournamentCard = ({ tournament, onStatusUpdate, onTournamentUpdate 
                             Add My Teams
                         </button>
                         <button
+                            onClick={() => setShowStandaloneTeamManager(true)}
+                            className="bg-orange-600 hover:bg-orange-700 px-4 py-2 rounded text-sm"
+                        >
+                            Add Standalone Teams
+                        </button>
+                        <button
                             onClick={() => onStatusUpdate(tournament.id, 'draft')}
                             className="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded text-sm"
                         >
@@ -100,6 +109,14 @@ export const TournamentCard = ({ tournament, onStatusUpdate, onTournamentUpdate 
                     tournament={tournament}
                     onClose={() => setShowMyTeamRegistration(false)}
                     onTeamRegistered={handleTournamentUpdated}
+                />
+            )}
+
+            {showStandaloneTeamManager && (
+                <StandaloneTeamManager
+                    tournament={tournament}
+                    onClose={() => setShowStandaloneTeamManager(false)}
+                    onTeamAdded={handleTournamentUpdated}
                 />
             )}
         </div>
