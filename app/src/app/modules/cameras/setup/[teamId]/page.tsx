@@ -10,7 +10,7 @@ import { useElectron } from '@lib/contexts/ElectronContext';
 import { useAuthenticatedFetch } from '@lib/hooks/useAuthenticatedFetch';
 import { useTeams } from '@lib/contexts/TeamsContext';
 import type { CameraPlayer, CameraTeam } from '@lib/types';
-import { BackButton } from '@lib/components/buttons';
+import { BackButton } from '@/lib/components/common/buttons';
 
 export default function TeamCameraSetupPage() {
   const router = useRouter();

@@ -7,7 +7,7 @@ import { useCameras } from '@lib/contexts/CamerasContext';
 import { useTeams } from '@lib/contexts/TeamsContext';
 import { CameraPlayer, CameraTeam } from '@lib/types';
 import { LoadingSpinner } from '@lib/components/common';
-import { BackButton } from '@lib/components/buttons';
+import { BackButton } from '@/lib/components/common/buttons';
 import { useRouter } from 'next/navigation';
 
 export default function CamerasPage() {

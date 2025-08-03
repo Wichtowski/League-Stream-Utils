@@ -9,7 +9,7 @@ import { useElectron } from '@lib/contexts/ElectronContext';
 import { useModal } from '@lib/components/modal';
 import { AuthGuard } from '@lib/components/auth/AuthGuard';
 import { LoadingSpinner } from '@lib/components/common';
-import { BackButton } from '@lib/components/buttons';
+import { BackButton } from '@/lib/components/common/buttons';
 import { LCUStatusIndicator } from '@lib/components/LCU';
 import type { TournamentStatus } from '@lib/types';
 

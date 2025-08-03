@@ -10,7 +10,7 @@ import { ChampionDownloadProgress } from '@lib/types/progress';
 import { assetCache } from '@lib/services/cache/asset';
 import { championCacheService } from '@lib/services/cache/champion';
 import { DownloadProgressModal } from '@lib/components/modal';
-import { BackButton } from '@lib/components/buttons';
+import { BackButton } from '@/lib/components/common/buttons';
 
 type Spell = {
   id: string;
