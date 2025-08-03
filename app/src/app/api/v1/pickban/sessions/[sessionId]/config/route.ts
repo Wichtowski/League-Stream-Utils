@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { updateGameConfig, getGameSession } from '@lib/game-logic';
+import { updateGameConfig, getGameSession } from '@lib/game/game-logic';
 import { GameConfig } from '@lib/types';
 
 export async function GET(
