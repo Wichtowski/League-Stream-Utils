@@ -1,6 +1,16 @@
 import { Schema } from 'mongoose';
 import { ImageStorageSchema, PlayerSchema, StaffSchema } from './common';
-import { Player } from '../../types/game';
+import { Player } from '@lib/types/game';
+
+// Sponsor schema
+export const SponsorSchema = new Schema({
+    id: { type: String, required: true },
+    name: { type: String, required: true },
+    logo: { type: ImageStorageSchema, required: true },
+    website: { type: String },
+    tier: { type: String, enum: ['title', 'presenting', 'official', 'partner'], required: true },
+    displayPriority: { type: Number, default: 0 }
+}, { _id: false });
 
 export const TeamSchema = new Schema({
     id: { type: String, required: true, unique: true },
@@ -93,6 +103,9 @@ export const TournamentSchema = new Schema({
 
     streamUrl: { type: String },
     broadcastLanguage: { type: String },
+
+    // Sponsors
+    sponsors: { type: [SponsorSchema], default: [] },
 
     userId: { type: String, required: true },
     createdAt: { type: Date, default: Date.now },

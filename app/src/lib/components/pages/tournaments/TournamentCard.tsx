@@ -58,6 +58,12 @@ export const TournamentCard = ({ tournament, onStatusUpdate, onTournamentUpdate 
             </div>
 
             <div className="flex flex-wrap gap-2">
+                <a
+                    href={`/modules/tournaments/${tournament.id}/sponsors`}
+                    className="bg-indigo-600 hover:bg-indigo-700 px-4 py-2 rounded text-sm"
+                >
+                    Sponsors
+                </a>
                 {tournament.status === 'draft' && (
                     <button
                         onClick={() => onStatusUpdate(tournament.id, 'registration')}

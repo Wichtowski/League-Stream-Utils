@@ -4,6 +4,7 @@ import { TournamentList } from './TournamentList';
 import { AdminTournamentManager } from './AdminTournamentManager';
 import { MyTeamRegistration } from './MyTeamRegistration'; 
 import { StandaloneTeamManager } from './StandaloneTeamManager';
+import SponsorManager from './SponsorManager';
 
 export { 
     MyTeamRegistration,
@@ -11,5 +12,6 @@ export {
     TournamentCard,
     TournamentList,
     AdminTournamentManager,
-    StandaloneTeamManager
+    StandaloneTeamManager,
+    SponsorManager
 };

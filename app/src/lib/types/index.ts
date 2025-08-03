@@ -46,7 +46,8 @@ export type {
     TournamentChampionStats,
     GameResult,
     TournamentStats,
-    Bracket
+    Bracket,
+    Sponsorship
 } from './tournament';
 export { createDefaultTeamRequest } from './tournament';
 export type { CameraPlayer, CameraTeam } from './camera';

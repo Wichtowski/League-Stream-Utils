@@ -94,6 +94,9 @@ export interface Tournament {
     streamUrl?: string;
     broadcastLanguage?: string;
 
+    // Sponsors
+    sponsors?: Sponsorship[];
+
     // Ownership & timestamps
     userId: string; // Tournament organizer
     createdAt: Date;
@@ -121,6 +124,7 @@ export interface CreateTournamentRequest {
     defaultMatchTime: string;
     streamUrl?: string;
     broadcastLanguage?: string;
+    sponsors?: Sponsorship[];
 }
 
 export interface TeamColors {

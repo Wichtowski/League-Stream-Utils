@@ -33,6 +33,7 @@ export async function createTournament(userId: string, tournamentData: CreateTou
         defaultMatchTime: tournamentData.defaultMatchTime,
         streamUrl: tournamentData.streamUrl,
         broadcastLanguage: tournamentData.broadcastLanguage,
+        sponsors: tournamentData.sponsors || [],
         userId,
         createdAt: new Date(),
         updatedAt: new Date()
@@ -232,4 +233,31 @@ export async function checkTournamentAvailability(name: string, abbreviation: st
         nameAvailable: !nameExists,
         abbreviationAvailable: !abbreviationExists
     };
+}
+
+export async function getTournament(tournamentId: string): Promise<TournamentType | null> {
+    await connectToDatabase();
+    const tournament = await TournamentModel.findOne({ id: tournamentId });
+    return tournament ? tournament.toObject() : null;
+}
+
+export async function updateTournamentFields(tournamentId: string, updates: Partial<TournamentType>): Promise<{ success: boolean; error?: string }> {
+    try {
+        await connectToDatabase();
+        
+        const tournament = await TournamentModel.findOne({ id: tournamentId });
+        if (!tournament) {
+            return { success: false, error: 'Tournament not found' };
+        }
+
+        // Update all provided fields
+        Object.assign(tournament, updates);
+        tournament.updatedAt = new Date();
+        
+        await tournament.save();
+        return { success: true };
+    } catch (error) {
+        console.error('Error updating tournament:', error);
+        return { success: false, error: 'Failed to update tournament' };
+    }
 }
