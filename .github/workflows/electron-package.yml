@@ -1,0 +1,72 @@
+name: Build Electron Package
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: app/package-lock.json
+
+    - name: Setup Bun
+      uses: oven-sh/setup-bun@v2
+      with:
+        bun-version: latest
+
+    - name: Install dependencies
+      working-directory: app
+      run: npm ci
+
+    - name: Build Next.js app
+      working-directory: app
+      run: bun run build
+
+    - name: Export Next.js app
+      working-directory: app
+      run: bun run next export
+
+    - name: Build Electron package
+      working-directory: app
+      run: npm run dist
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: electron-package-${{ matrix.os }}
+        path: app/dist/
+        retention-days: 30
+
+    - name: Create Release
+      if: matrix.os == 'windows-latest'
+      uses: softprops/action-gh-release@v2
+      with:
+        files: app/dist/*.exe
+        tag_name: v${{ github.run_number }}
+        name: Release v${{ github.run_number }}
+        body: |
+          Electron package built from commit ${{ github.sha }}
+          
+          Changes in this release:
+          ${{ github.event.head_commit.message }}
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
