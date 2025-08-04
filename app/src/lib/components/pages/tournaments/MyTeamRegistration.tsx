@@ -128,7 +128,7 @@ export const MyTeamRegistration = ({ tournament, onClose, onTeamRegistered }: My
                 <div className="p-6 border-b border-gray-700">
                     <div className="flex justify-between items-center">
                         <div>
-                            <h2 className="text-2xl font-bold text-white">Add My Teams</h2>
+                            <h2 className="text-2xl font-bold text-white">Add Teams</h2>
                             <p className="text-gray-400 mt-1">Register your teams to {tournament.name}</p>
                         </div>
                         <button

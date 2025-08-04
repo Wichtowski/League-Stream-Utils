@@ -84,7 +84,7 @@ export const TournamentCard = ({ tournament, onStatusUpdate, onTournamentUpdate 
                             onClick={() => setShowMyTeamRegistration(true)}
                             className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded text-sm"
                         >
-                            Add My Teams
+                            Add Teams
                         </button>
                         <button
                             onClick={() => setShowStandaloneTeamManager(true)}
