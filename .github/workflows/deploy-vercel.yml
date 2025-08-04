@@ -30,7 +30,13 @@ jobs:
       working-directory: app
       run: npm ci
 
+    - name: Type check
+      continue-on-error: false
+      working-directory: app
+      run: npx tsc --noEmit
+
     - name: Build Next.js app
+      continue-on-error: false
       working-directory: app
       run: bun run build
 

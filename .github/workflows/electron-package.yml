@@ -1,17 +1,25 @@
 name: Build Electron Package
 
 on:
-  push:
-    branches: [ main ]
+  # push:
+  #   branches: [ main ]
   workflow_dispatch:
 
+env:
+  APP_PATH: app
+  
 jobs:
   build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [
+          windows-latest,
+          # macos-latest,
+          # ubuntu-latest
+        ]
     runs-on: ${{ matrix.os }}
 
-    strategy:
-      matrix:
-        os: [windows-latest, macos-latest, ubuntu-latest]
 
     steps:
     - name: Checkout code
@@ -22,7 +30,7 @@ jobs:
       with:
         node-version: '20'
         cache: 'npm'
-        cache-dependency-path: app/package-lock.json
+        cache-dependency-path: ${{ env.APP_PATH }}/package-lock.json
 
     - name: Setup Bun
       uses: oven-sh/setup-bun@v2
@@ -30,20 +38,27 @@ jobs:
         bun-version: latest
 
     - name: Install dependencies
-      working-directory: app
+      working-directory: ${{ env.APP_PATH }}
       run: npm ci
 
+    - name: Type check
+      continue-on-error: false
+      working-directory: ${{ env.APP_PATH }}
+      run: npx tsc --noEmit
+
     - name: Build Next.js app
-      working-directory: app
+      continue-on-error: false
+      working-directory: ${{ env.APP_PATH }}
       run: bun run build
 
     - name: Export Next.js app
-      working-directory: app
+      continue-on-error: false
+      working-directory: ${{ env.APP_PATH }}
       run: bun run next export
 
     - name: Build Electron package
-      working-directory: app
-      run: npm run dist
+      working-directory: ${{ env.APP_PATH }}
+      run: bun run dist
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -55,7 +70,7 @@ jobs:
         retention-days: 30
 
     - name: Create Release
-      if: matrix.os == 'windows-latest'
+      if: ${{ matrix.os == 'windows-latest' }}
       uses: softprops/action-gh-release@v2
       with:
         files: app/dist/*.exe
@@ -69,4 +84,4 @@ jobs:
         draft: false
         prerelease: false
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
