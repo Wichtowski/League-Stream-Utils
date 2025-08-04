@@ -262,7 +262,6 @@ class GameUIBlueprintDownloader extends BaseCacheService {
 
                         try {
                             const downloadResult = await window.electronAPI.downloadAsset(assetUrl, 'overlay', assetKey);
-                            console.log(`Download result for ${assetUrl}:`, downloadResult);
                             
                             if (downloadResult.success && downloadResult.localPath) {
                                 // Get file size from the downloaded result
