@@ -1,10 +1,7 @@
-ignore-folder/
-assets/Danny McCarthy - Silver Scrapes Extended.mp3
-assets/*.mp4
 .env
 node_modules/
-tmp assets/
-assets/New folder
-assets/Used
+assets
+league-director-cuts
+league-broadcast-css
 
 scripts/lol-player-scrapper/v*
