@@ -35,8 +35,7 @@ export const TournamentCreationForm = ({ onTournamentCreated, onCancel }: Tourna
         defaultMatchTime: '19:00',
         logo: {
             type: 'url',
-            data: '',
-            size: 0,
+            url: '',
             format: 'png'
         }
     });
@@ -96,8 +95,7 @@ export const TournamentCreationForm = ({ onTournamentCreated, onCancel }: Tourna
                     defaultMatchTime: '19:00',
                     logo: {
                         type: 'url',
-                        data: '',
-                        size: 0,
+                        url: '',
                         format: 'png'
                     }
                 });
@@ -403,8 +401,7 @@ export const TournamentCreationForm = ({ onTournamentCreated, onCancel }: Tourna
                                     ...formData, 
                                     logo: {
                                         type: 'url',
-                                        data: '',
-                                        size: 0,
+                                        url: '',
                                         format: 'png'
                                     }
                                 })}
@@ -437,13 +434,12 @@ export const TournamentCreationForm = ({ onTournamentCreated, onCancel }: Tourna
                         <div>
                             <input
                                 type="url"
-                                value={formData.logo?.data || ''}
+                                value={formData.logo?.url || ''}
                                 onChange={(e) => setFormData({ 
                                     ...formData, 
                                     logo: {
                                         type: 'url',
-                                        data: e.target.value,
-                                        size: 0,
+                                        url: e.target.value,
                                         format: 'png'
                                     }
                                 })}
@@ -489,13 +485,13 @@ export const TournamentCreationForm = ({ onTournamentCreated, onCancel }: Tourna
                     )}
 
                     {/* Logo Preview */}
-                    {formData.logo?.data && (
+                    {(formData.logo?.data || formData.logo?.url) && (
                         <div className="mt-2">
                             <p className="text-sm text-gray-400 mb-2">Logo Preview:</p>
                             <Image 
                                 width={128}
                                 height={128}
-                                src={formData.logo.data} 
+                                src={formData.logo.data || formData.logo.url || ''} 
                                 alt="Tournament logo preview" 
                                 className="w-16 h-16 object-cover rounded border border-gray-600"
                                 onError={(e) => {

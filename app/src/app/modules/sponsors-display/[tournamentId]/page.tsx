@@ -15,17 +15,34 @@ interface SponsorsDisplayData {
   sponsors: Sponsorship[];
 }
 
-export default function SponsorsDisplayPage({ params }: { params: { tournamentId: string } }) {
+interface SponsorsDisplayPageProps {
+  params: Promise<{
+    tournamentId: string;
+  }>;
+}
+
+export default function SponsorsDisplayPage({ params }: SponsorsDisplayPageProps) {
   const [data, setData] = useState<SponsorsDisplayData | null>(null);
   const [currentSponsorIndex, setCurrentSponsorIndex] = useState(0);
   const [isVisible, setIsVisible] = useState(true);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [tournamentId, setTournamentId] = useState<string>('');
 
   useEffect(() => {
+    const resolveParams = async () => {
+      const resolvedParams = await params;
+      setTournamentId(resolvedParams.tournamentId);
+    };
+    resolveParams();
+  }, [params]);
+
+  useEffect(() => {
+    if (!tournamentId) return;
+
     const fetchSponsors = async (): Promise<void> => {
       try {
-        const response = await fetch(`/api/v1/tournaments/${params.tournamentId}/sponsors/display`);
+        const response = await fetch(`/api/v1/tournaments/${tournamentId}/sponsors/display`);
         if (!response.ok) {
           throw new Error('Failed to fetch sponsors');
         }
@@ -39,7 +56,7 @@ export default function SponsorsDisplayPage({ params }: { params: { tournamentId
     };
 
     fetchSponsors();
-  }, [params.tournamentId]);
+  }, [tournamentId]);
 
   useEffect(() => {
     if (!data || data.sponsors.length === 0) return;

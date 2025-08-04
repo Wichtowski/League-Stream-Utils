@@ -65,7 +65,7 @@ const electronStorage = {
 };
 
 export function CamerasProvider({ children }: { children: ReactNode }) {
-  const { user, authLoading } = useAuth();
+  const { user, isLoading } = useAuth();
   const { isElectron, useLocalData } = useElectron();
   const { authenticatedFetch } = useAuthenticatedFetch();
   
@@ -235,7 +235,7 @@ export function CamerasProvider({ children }: { children: ReactNode }) {
 
   // Background sync interval - only when actively using cameras
   useEffect(() => {
-    if (!user || authLoading || isLocalDataMode) return;
+    if (!user || isLoading || isLocalDataMode) return;
 
     // Check if we're on a camera-related page
     const isCameraPage = window.location.pathname.includes('/modules/cameras');
@@ -247,7 +247,7 @@ export function CamerasProvider({ children }: { children: ReactNode }) {
     }, SYNC_CHECK_INTERVAL);
 
     return () => clearInterval(interval);
-  }, [user, authLoading, checkDataSync, isLocalDataMode]);
+  }, [user, isLoading, checkDataSync, isLocalDataMode]);
 
   const updateCameraSettings = useCallback(async (settings: { teams: Team[] }): Promise<{ success: boolean; error?: string }> => {
     try {

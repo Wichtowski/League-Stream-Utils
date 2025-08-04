@@ -1,8 +1,8 @@
-import { AssetDownloader } from './asset-downloader';
+import type { assetDownloader } from '@lib/services/cache/asset-downloader';
 
 class AssetDownloaderManager {
     private static instance: AssetDownloaderManager;
-    private downloader: AssetDownloader | null = null;
+    private downloader: typeof assetDownloader | null = null;
 
     private constructor() {}
 
@@ -13,7 +13,7 @@ class AssetDownloaderManager {
         return AssetDownloaderManager.instance;
     }
 
-    setDownloader(downloader: AssetDownloader): void {
+    setDownloader(downloader: typeof assetDownloader): void {
         this.downloader = downloader;
     }
 

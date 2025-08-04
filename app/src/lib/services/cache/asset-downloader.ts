@@ -48,9 +48,9 @@ interface DownloadResult {
     downloadTime?: number;
 }
 
-class AssetDownloader {
+export class AssetDownloader {
     private isDownloading = false;
-    private isPaused = false;
+    private paused = false;
     private downloadQueue: DownloadTask[] = [];
     private activeDownloads = new Set<string>();
     private maxConcurrentDownloads = 50; // Ultra-aggressive concurrency
@@ -489,7 +489,7 @@ class AssetDownloader {
 
         while (attempt < maxRetries) {
             // Check if downloader is paused
-            if (this.isPaused) {
+            if (this.paused) {
                 console.log('Download paused, skipping task:', task.id);
                 break;
             }
@@ -604,17 +604,17 @@ class AssetDownloader {
     }
 
     pauseDownload(): void {
-        this.isPaused = true;
+        this.paused = true;
         console.log('Asset downloader paused');
     }
 
     resumeDownload(): void {
-        this.isPaused = false;
+        this.paused = false;
         console.log('Asset downloader resumed');
     }
 
     isPaused(): boolean {
-        return this.isPaused;
+        return this.paused;
     }
 }
 

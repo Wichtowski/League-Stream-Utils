@@ -5,7 +5,7 @@ import { getTeamLogoUrl } from '@lib/utils/media/image';
 import { JWTPayload } from '@lib/types/auth';
 
 // GET /api/v1/teams/all - Get all teams (for tournament organizers)
-export const GET = withAuth(async (req: NextRequest, user: JWTPayload) => {
+export const GET = withAuth(async (_req: NextRequest, _user: JWTPayload) => {
     try {
         // This endpoint is intended for tournament organizers to see all available teams
         // We could add additional permission checks here if needed in the future

@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getTournament } from '@lib/database/tournament';
 
 // GET /api/v1/tournaments/[tournamentId]/sponsors/display - Get tournament sponsors for OBS display
-export const GET = async (req: NextRequest, { params }: { params: { tournamentId: string } }) => {
+export const GET = async (req: NextRequest, { params }: { params: Promise<{ tournamentId: string }> }) => {
   try {
-    const { tournamentId } = params;
+    const { tournamentId } = await params;
 
     if (!tournamentId) {
       return NextResponse.json({ error: 'Tournament ID is required' }, { status: 400 });

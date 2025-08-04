@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { DownloadProgress } from '@lib/services/cache/base';
+import { DownloadProgress } from '@lib/services/cache/asset-downloader';
 
 interface AssetDownloadProgressProps {
   progress: DownloadProgress;
@@ -72,7 +72,7 @@ export const AssetDownloadProgress: React.FC<AssetDownloadProgressProps> = ({
           {isComplete ? 'Download Complete' : isError ? 'Download Error' : 'Downloading Assets'}
         </h2>
         <p className="text-gray-400">
-          {progress.itemName || 'Processing assets...'}
+          {progress.message || 'Processing assets...'}
         </p>
       </div>
       
@@ -146,17 +146,17 @@ export const AssetDownloadProgress: React.FC<AssetDownloadProgressProps> = ({
         </div>
       )}
 
-      {/* Completion Message */}
-      {isComplete && (
-        <div className="mt-4 text-green-400 text-sm">
-          All assets have been successfully downloaded!
-        </div>
-      )}
-
-      {/* Error Message */}
-      {isError && (
-        <div className="mt-4 text-red-400 text-sm">
-          Some assets failed to download. Please try again.
+      {/* Complete/Error Button */}
+      {(isComplete || isError) && onCancel && (
+        <div className="mt-6">
+          <button
+            onClick={onCancel}
+            className={`px-4 py-2 text-white rounded-lg transition-colors text-sm ${
+              isComplete ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'
+            }`}
+          >
+            {isComplete ? 'Close' : 'Dismiss'}
+          </button>
         </div>
       )}
     </div>

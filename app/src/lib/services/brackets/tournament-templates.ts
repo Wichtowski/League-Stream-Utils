@@ -1,5 +1,5 @@
 import { MatchFormat, Tournament } from "@lib/types/tournament";
-import { TournamentData } from "../types/electron";
+import { TournamentData } from "@lib/types/electron";
 
 interface TournamentTemplate {
     id: string;

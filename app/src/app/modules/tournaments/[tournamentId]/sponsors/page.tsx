@@ -19,26 +19,41 @@ const SponsorManager = dynamic(
   }
 );
 
-export default function TournamentSponsorsPage({ params }: { params: { tournamentId: string } }) {
+interface TournamentSponsorsPageProps {
+  params: Promise<{
+    tournamentId: string;
+  }>;
+}
+
+export default function TournamentSponsorsPage({ params }: TournamentSponsorsPageProps) {
   const { tournaments, loading: tournamentsLoading, error, refreshTournaments } = useTournaments();
   const { setActiveModule } = useNavigation();
   const { showAlert } = useModal();
   const [tournament, setTournament] = useState<Tournament>();
   const [loading, setLoading] = useState(true);
+  const [tournamentId, setTournamentId] = useState<string>('');
 
   useEffect(() => {
     setActiveModule('tournaments');
   }, [setActiveModule]);
 
   useEffect(() => {
-    if (!tournamentsLoading && tournaments.length > 0) {
-      const foundTournament = tournaments.find(t => t.id === params.tournamentId);
+    const resolveParams = async () => {
+      const resolvedParams = await params;
+      setTournamentId(resolvedParams.tournamentId);
+    };
+    resolveParams();
+  }, [params]);
+
+  useEffect(() => {
+    if (!tournamentsLoading && tournaments.length > 0 && tournamentId) {
+      const foundTournament = tournaments.find(t => t.id === tournamentId);
       if (foundTournament) {
         setTournament(foundTournament);
       }
       setLoading(false);
     }
-  }, [tournaments, tournamentsLoading, params.tournamentId]);
+  }, [tournaments, tournamentsLoading, tournamentId]);
 
   useEffect(() => {
     if (error) {
@@ -87,7 +102,7 @@ export default function TournamentSponsorsPage({ params }: { params: { tournamen
 
           <Suspense fallback={<LoadingSpinner text="Loading sponsor manager..." />}>
             <SponsorManager 
-              tournamentId={params.tournamentId}
+              tournamentId={tournamentId}
               tournament={tournament}
               onSponsorsUpdated={() => refreshTournaments()}
             />
