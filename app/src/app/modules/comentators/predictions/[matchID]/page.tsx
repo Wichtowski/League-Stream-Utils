@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useUser } from '@lib/contexts/AuthContext';
 import { AuthGuard } from '@lib/components/auth/AuthGuard';
-import { BackButton } from '@lib/components/buttons';
+import { BackButton } from '@lib/components/common/buttons';
 
 interface Match {
   id: string;
