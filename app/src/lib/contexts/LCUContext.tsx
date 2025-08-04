@@ -8,6 +8,7 @@ import type { ChampSelectSession } from '@lib/types';
 
 import { LCUData, LCUChampSelectSession } from '../types/electron';
 import { MOCK_CHAMP_SELECT_DATA } from '@lib/mocks/champselect';
+import { useDownload } from './DownloadContext';
 
 interface LCUContextType {
   // Connection state
@@ -47,6 +48,9 @@ export function LCUProvider({ children }: { children: ReactNode }) {
   // Check if we're in Electron environment without depending on the context
   const isElectron = typeof window !== 'undefined' && window.electronAPI?.isElectron;
   
+  // Get download state
+  const { downloadState } = useDownload();
+  
   // Get mock data state directly from localStorage to avoid circular dependency
   const [useMockData] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
@@ -73,7 +77,8 @@ export function LCUProvider({ children }: { children: ReactNode }) {
   const [lcuConnector] = useState(() => new LCUConnector({
     autoReconnect: false, // We'll handle auto-reconnect at this level
     maxReconnectAttempts: 5,
-    pollInterval: 1000
+    pollInterval: 1000,
+    isDownloading: () => downloadState.isDownloading
   }));
 
   // Function to update Electron with LCU data
@@ -289,6 +294,13 @@ export function LCUProvider({ children }: { children: ReactNode }) {
       return () => clearTimeout(timeoutId);
     }
   }, [isConnected, isConnecting, autoReconnect, connectionAttempts, connect]);
+
+  // Start polling when downloads are complete
+  useEffect(() => {
+    if (isConnected && !downloadState.isDownloading) {
+      lcuConnector.startPollingIfReady();
+    }
+  }, [isConnected, downloadState.isDownloading, lcuConnector]);
 
   const disconnect = useCallback(() => {
     lcuConnector.disconnect();

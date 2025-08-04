@@ -167,6 +167,10 @@ class StartupService {
         return this.isInitialized;
     }
 
+    isDownloadInProgress(): boolean {
+        return this.downloadInProgress;
+    }
+
     reset(): void {
         this.isInitialized = false;
         this.downloadInProgress = false;

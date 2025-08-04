@@ -2,6 +2,8 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { assetDownloader, DownloadProgress } from '@lib/services/cache/asset-downloader';
+import { championCacheService } from '@lib/services/cache/champion';
+import { startupService } from '@lib/services/initialization/startup-service';
 
 interface DownloadState {
   isDownloading: boolean;
@@ -41,7 +43,7 @@ export const DownloadProvider: React.FC<DownloadProviderProps> = ({ children }) 
       console.log('Not in Electron environment, skipping download');
       return;
     }
-    if (assetDownloader.isCurrentlyDownloading()) {
+    if (assetDownloader.isCurrentlyDownloading() || championCacheService.isCurrentlyDownloading() || startupService.isDownloadInProgress()) {
       console.log('Download already in progress');
       return;
     }
@@ -98,6 +100,7 @@ export const DownloadProvider: React.FC<DownloadProviderProps> = ({ children }) 
 
   const cancelDownload = (): void => {
     assetDownloader.cancelDownload();
+    // Note: championCacheService doesn't have a cancel method, but we can set the flag
     setDownloadState({
       isDownloading: false,
       progress: {
@@ -117,7 +120,11 @@ export const DownloadProvider: React.FC<DownloadProviderProps> = ({ children }) 
       return;
     }
     try {
-      const isDownloading = assetDownloader.isCurrentlyDownloading();
+      const assetDownloading = assetDownloader.isCurrentlyDownloading();
+      const championDownloading = championCacheService.isCurrentlyDownloading();
+      const startupDownloading = startupService.isDownloadInProgress();
+      const isDownloading = assetDownloading || championDownloading || startupDownloading;
+      
       if (isDownloading && !downloadState.isDownloading) {
         setDownloadState({
           isDownloading: true,

@@ -13,6 +13,7 @@ interface LCUConnectorOptions {
   maxReconnectAttempts?: number;
   pollInterval?: number;
   useMockData?: boolean;
+  isDownloading?: () => boolean;
 }
 
 class LCUConnector {
@@ -26,6 +27,7 @@ class LCUConnector {
   private readonly maxReconnectAttempts: number;
   private readonly pollInterval: number;
   private readonly useMockData: boolean;
+  private readonly isDownloading: (() => boolean) | undefined;
 
   // Event handlers
   private onStatusChange?: (status: ConnectionStatus) => void;
@@ -37,6 +39,7 @@ class LCUConnector {
     this.maxReconnectAttempts = options.maxReconnectAttempts ?? 5;
     this.pollInterval = options.pollInterval ?? 1000;
     this.useMockData = options.useMockData ?? false;
+    this.isDownloading = options.isDownloading;
   }
 
   // Event handler setters
@@ -155,6 +158,12 @@ class LCUConnector {
       return;
     }
 
+    // Don't start polling if downloads are in progress
+    if (this.isDownloading && this.isDownloading()) {
+      console.log('Downloads in progress, delaying champion select polling');
+      return;
+    }
+
     if (this.pollingInterval) {
       clearInterval(this.pollingInterval);
     }
@@ -208,8 +217,8 @@ class LCUConnector {
       this.credentials = credentials;
       this.setConnectionStatus('connected');
 
-      // Start polling for champion select data (only if not already polling for mock data)
-      this.startPolling();
+      // Start polling for champion select data if ready (downloads complete)
+      this.startPollingIfReady();
 
     } catch (error) {
       console.warn(error instanceof Error ? error.message : 'Failed to connect to League Client');
@@ -305,6 +314,13 @@ class LCUConnector {
         success: false,
         message: `❌ Status check error: ${err instanceof Error ? err.message : 'Unknown error'}`
       };
+    }
+  }
+
+  public startPollingIfReady(): void {
+    // Only start polling if we're connected and downloads are not in progress
+    if (this.connectionStatus === 'connected' && (!this.isDownloading || !this.isDownloading())) {
+      this.startPolling();
     }
   }
 

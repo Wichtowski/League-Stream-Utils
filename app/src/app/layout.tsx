@@ -56,6 +56,7 @@ export default function RootLayout({
             { name: "Auth", provider: AuthProvider },
             { name: "Predictions", provider: PredictionsProvider },
             { name: "MockData", provider: MockDataProvider },
+            { name: "Download", provider: DownloadProvider },
             { name: "LCU", provider: LCUProvider },
             { name: "Cameras", provider: CamerasProvider },
             { name: "Settings", provider: SettingsProvider },
@@ -65,7 +66,6 @@ export default function RootLayout({
             { name: "TournamentStats", provider: TournamentStatsProvider },
             { name: "Tournaments", provider: TournamentsProvider },
             { name: "Pickban", provider: PickbanProvider },
-            { name: "Download", provider: DownloadProvider },
             { name: "Navigation", provider: NavigationProvider },
             { name: "Modal", provider: ModalProvider }
           ]}

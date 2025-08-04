@@ -566,6 +566,10 @@ class ChampionCacheService extends BaseCacheService<Champion> {
         await window.electronAPI.clearAssetCache();
     }
 
+    isCurrentlyDownloading(): boolean {
+        return this.isMainDownloadRunning;
+    }
+
     async getCacheStats(): Promise<{ totalItems: number; totalChampions: number; cacheSize: number; version: string }> {
         await this.initialize();
         if (typeof window === 'undefined' || !window.electronAPI) {
