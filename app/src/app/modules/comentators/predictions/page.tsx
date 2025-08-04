@@ -6,7 +6,7 @@ import { AuthGuard } from "@lib/components/auth/AuthGuard";
 import { useTournaments } from "@lib/contexts/TournamentsContext";
 import type { Tournament } from "@lib/types";
 import type { BracketStructure, BracketNode } from "@lib/types/tournament";
-import { BackButton } from '@lib/components/buttons';
+import { BackButton } from '@lib/components/common/buttons';
 
 interface Match {
   id: string;
