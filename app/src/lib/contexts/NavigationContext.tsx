@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
-type NavigationModule = 'home' | 'auth' | 'champ-ability' | 'pickban/static' | 'cameras' | 'modules' | 'tournaments' | 'teams' | 'settings' | 'leagueclient' | null;
+type NavigationModule = 'home' | 'auth' | 'champ-ability' | 'pickban/static' | 'cameras' | 'modules' | 'tournaments' | 'teams' | 'settings' | 'leagueclient' | 'sponsors' | 'matches' | 'commentators' | null;
 
 interface NavigationContextType {
     activeModule: NavigationModule;

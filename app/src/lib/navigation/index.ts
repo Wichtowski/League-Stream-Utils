@@ -9,7 +9,7 @@ export interface ModuleCard {
     icon: ReactNode | string;
     path: string;
     color: string;
-    status: 'available' | 'beta' | 'new';
+    status: 'available' | 'beta' | 'new' | 'revamped' | 'coming-soon';
     category: ModuleCategory;
     adminOnly?: boolean;
 }
@@ -88,13 +88,33 @@ export const MODULES: ModuleCard[] = [
     },
     {
         id: 'comentators',
-        name: 'Comentators',
-        description: 'Manage commentators and their predictions',
+        name: 'Commentators',
+        description: 'Manage commentators and their predictions for the selected tournament',
         icon: '🗣️',
-        path: '/modules/comentators',
+        path: '', // PATH IS DYNAMIC SET IN handleModuleClick
         color: 'from-pink-500 to-yellow-500',
         status: 'new',
-        category: 'prediction',
+        category: 'tournament',
+    },
+    {
+        id: 'sponsors',
+        name: 'Sponsors',
+        description: 'Manage tournament sponsors and their display settings',
+        icon: '💼',
+        path: '', // PATH IS DYNAMIC SET IN handleModuleClick
+        color: 'from-emerald-500 to-teal-500',
+        status: 'new',
+        category: 'tournament',
+    },
+    {
+        id: 'matches',
+        name: 'Matches',
+        description: 'View and manage tournament matches',
+        icon: '🎮',
+        path: '', // PATH IS DYNAMIC SET IN handleModuleClick
+        color: 'from-red-500 to-pink-500',
+        status: 'new',
+        category: 'tournament',
     },
 ];
 
@@ -103,9 +123,10 @@ export interface ModuleVisibilityParams {
     useLocalData: boolean;
     isAuthenticated: boolean;
     isAdmin: boolean;
+    hasLastSelectedTournament?: boolean;
 }
 
-export function getVisibleModules({ isElectron, useLocalData, isAuthenticated, isAdmin }: ModuleVisibilityParams): ModuleCard[] {
+export function getVisibleModules({ isElectron, useLocalData, isAuthenticated, isAdmin, hasLastSelectedTournament = false }: ModuleVisibilityParams): ModuleCard[] {
     const isElectronLocal = isElectron && useLocalData;
     const showLeagueClient = isElectron && (isElectronLocal || isAuthenticated);
     const showFullNav = isAuthenticated || isElectronLocal;
@@ -122,6 +143,9 @@ export function getVisibleModules({ isElectron, useLocalData, isAuthenticated, i
         }
         if (module.id === 'adminTournaments') {
             return showFullNav && isAdmin;
+        }
+        if (module.id === 'sponsors' || module.id === 'matches' || module.id === 'comentators') {
+            return showFullNav && hasLastSelectedTournament;
         }
         // All other modules require full nav
         return showFullNav;

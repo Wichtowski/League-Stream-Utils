@@ -9,7 +9,10 @@ export const SponsorSchema = new Schema({
     logo: { type: ImageStorageSchema, required: true },
     website: { type: String },
     tier: { type: String, enum: ['title', 'presenting', 'official', 'partner'], required: true },
-    displayPriority: { type: Number, default: 0 }
+    displayPriority: { type: Number, default: 0 },
+    showName: { type: Boolean, default: true },
+    namePosition: { type: String, enum: ['left', 'right'], default: 'right' },
+    fillContainer: { type: Boolean, default: false }
 }, { _id: false });
 
 export const TeamSchema = new Schema({

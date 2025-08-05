@@ -365,6 +365,9 @@ export interface Sponsorship {
     website?: string;
     tier: 'title' | 'presenting' | 'official' | 'partner';
     displayPriority: number;
+    showName?: boolean;
+    namePosition?: 'left' | 'right';
+    fillContainer?: boolean;
 }
 
 export interface BrandingConfig {

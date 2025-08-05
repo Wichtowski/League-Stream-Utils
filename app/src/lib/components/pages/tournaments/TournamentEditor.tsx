@@ -1,19 +1,9 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import type { Tournament, TournamentStatus } from '@lib/types';
 import { MyTeamRegistration, StandaloneTeamManager } from './index';
-import dynamic from 'next/dynamic';
-import { LoadingSpinner } from '@lib/components/common';
-
-// Dynamic import for SponsorManager
-const SponsorManager = dynamic(
-  () => import('@lib/components/pages/tournaments').then(mod => ({ default: mod.SponsorManager })),
-  { 
-    loading: () => <LoadingSpinner text="Loading sponsor manager..." />,
-    ssr: false 
-  }
-);
 
 interface TournamentEditorProps {
     tournament: Tournament;
@@ -22,9 +12,9 @@ interface TournamentEditorProps {
 }
 
 export const TournamentEditor = ({ tournament, onStatusUpdate, onTournamentUpdate }: TournamentEditorProps): React.ReactElement => {
+    const router = useRouter();
     const [showMyTeamRegistration, setShowMyTeamRegistration] = useState(false);
     const [showStandaloneTeamManager, setShowStandaloneTeamManager] = useState(false);
-    const [showSponsorManager, setShowSponsorManager] = useState(false);
 
     const handleTournamentUpdated = () => {
         onTournamentUpdate();
@@ -78,10 +68,10 @@ export const TournamentEditor = ({ tournament, onStatusUpdate, onTournamentUpdat
                 <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
                 <div className="flex flex-wrap gap-3">
                     <button
-                        onClick={() => setShowSponsorManager(!showSponsorManager)}
+                        onClick={() => router.push(`/modules/tournaments/${tournament.id}/sponsors`)}
                         className="bg-indigo-600 hover:bg-indigo-700 px-4 py-2 rounded text-sm"
                     >
-                        {showSponsorManager ? 'Hide Sponsors' : 'Manage Sponsors'}
+                        Manage Sponsors
                     </button>
                     
                     {tournament.status === 'draft' && (
@@ -132,18 +122,6 @@ export const TournamentEditor = ({ tournament, onStatusUpdate, onTournamentUpdat
                     )}
                 </div>
             </div>
-
-            {/* Sponsor Management */}
-            {showSponsorManager && (
-                <div className="bg-gray-800 rounded-lg p-6">
-                    <h3 className="text-lg font-semibold mb-4">Sponsor Management</h3>
-                    <SponsorManager
-                        tournamentId={tournament.id}
-                        tournament={tournament}
-                        onSponsorsUpdated={handleTournamentUpdated}
-                    />
-                </div>
-            )}
 
             {/* Team Management */}
             {tournament.status === 'registration' && (

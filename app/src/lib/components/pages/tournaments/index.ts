@@ -5,7 +5,12 @@ import { TournamentEditor } from './TournamentEditor';
 import { AdminTournamentManager } from './AdminTournamentManager';
 import { MyTeamRegistration } from './MyTeamRegistration'; 
 import { StandaloneTeamManager } from './StandaloneTeamManager';
-import SponsorManager from './SponsorManager';
+import { SponsorManager } from './sponsors/SponsorManager';
+import { SponsorsGuidebook } from './sponsors/SponsorsGuidebook';
+import { OBSDisplayInfo } from './sponsors/OBSDisplayInfo';
+import { SponsorWindow } from './sponsors/SponsorWindow';
+import { SponsorForm } from './sponsors/SponsorForm';
+import { SponsorsList } from './sponsors/SponsorsList';
 
 export { 
     MyTeamRegistration,
@@ -15,5 +20,10 @@ export {
     TournamentEditor,
     AdminTournamentManager,
     StandaloneTeamManager,
-    SponsorManager
+    SponsorManager,
+    SponsorsGuidebook,
+    OBSDisplayInfo,
+    SponsorWindow,
+    SponsorForm,
+    SponsorsList
 };
