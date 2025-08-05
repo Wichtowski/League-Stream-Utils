@@ -345,75 +345,81 @@ export default function TournamentSponsorsPage({ params }: TournamentSponsorsPag
           </div>
 
           <div className="space-y-6">
-             {/* Cycling Preview Section */}
-             <div className="bg-gray-800 rounded-lg p-6">
-                <h3 className="text-lg font-semibold mb-4">Sponsor Cycling Preview</h3>
-                <div className="space-y-4 center">
-                 {/* All Sponsors Preview */}
-                 {sponsors.length > 0 && (
-                   <div>
-                     <h4 className="text-sm font-medium mb-2">All Sponsors Preview (Cycling):</h4>
-                     <div className="mt-2 text-center">
-                       <p className="text-xs text-gray-400">
-                         Currently showing: {sponsors[currentSponsorIndex]?.name} ({currentSponsorIndex + 1} of {sponsors.length})
-                       </p>
-                     </div>
-                     <div className="relative">
-                       <SponsorWindow 
-                         currentSponsor={sponsors[currentSponsorIndex] || sponsors[0]} 
-                         isVisible={isVisible}
-                         fixed={false}
-                       />
-                     </div>
-                   </div>
-                 )}
-              </div>
-            </div>
-
-            {/* Add Sponsor Button */}
-            {!showAddForm && !editingSponsor && (
-              <div className="bg-gray-800 rounded-lg p-6">
-                <div className="flex justify-between items-center">
-                  <h3 className="text-lg font-semibold">Add New Sponsor</h3>
-                  <button
-                    onClick={() => setShowAddForm(true)}
-                    className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg"
-                  >
-                    Add New Sponsor
-                  </button>
+            <div className="flex gap-6">
+              <div className="flex-1 bg-gray-800 rounded-lg p-6 h-[360px] flex flex-col">
+                <div className="flex-1 flex flex-col justify-center items-center">
+                <h2 className="text-2xl font-semibold text-center mb-3">Sponsor Cycling Preview</h2>
+                  {sponsors.length > 0 ? (
+                    <div className="text-center">
+                      <h4 className="text-sm font-medium mb-1">All Sponsors Preview (Cycling):</h4>
+                      <div className="mt-2 mb-3">
+                        <p className="text-xs text-gray-400">
+                          Currently showing: {sponsors[currentSponsorIndex]?.name} ({currentSponsorIndex + 1} of {sponsors.length})
+                        </p>
+                      </div>
+                      <div className="relative">
+                        <SponsorWindow 
+                          currentSponsor={sponsors[currentSponsorIndex] || sponsors[0]} 
+                          isVisible={isVisible}
+                          fixed={false}
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center text-gray-400">
+                      <p>No sponsors added yet</p>
+                      <p className="text-sm">Add sponsors to see the cycling preview</p>
+                    </div>
+                  )}
                 </div>
               </div>
-            )}
+              
+               <div className="flex-1 space-y-6">
+                 <SponsorsGuidebook expanded={false} />
+                 <OBSDisplayInfo tournamentId={tournamentId} />
+               </div>
+             </div>
 
-            {/* Add Sponsor Form */}
-            {(showAddForm || editingSponsor) && (
-              <SponsorForm
-                formData={formData}
-                setFormData={setFormData}
-                editingSponsor={editingSponsor}
-                onAddSponsor={handleAddSponsor}
-                onUpdateSponsor={handleUpdateSponsor}
-                onCancelEdit={handleCancelEdit}
-                onCloseForm={() => {
-                  setShowAddForm(false);
-                  setEditingSponsor(null);
-                  setFormData(createDefaultSponsorForm());
-                }}
-                handleLogoUpload={handleLogoUpload}
-                handleLogoUrlChange={handleLogoUrlChange}
-              />
-            )}
+             {/* Add Sponsor Button */}
+             {!showAddForm && !editingSponsor && (
+               <div className="bg-gray-800 rounded-lg p-6">
+                 <div className="flex justify-between items-center">
+                   <h3 className="text-lg font-semibold">Add New Sponsor</h3>
+                   <button
+                     onClick={() => setShowAddForm(true)}
+                     className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg"
+                   >
+                     Add New Sponsor
+                   </button>
+                 </div>
+               </div>
+             )}
 
-            <SponsorsList
-              sponsors={sponsors}
-              loading={sponsorsLoading}
-              onEditSponsor={handleEditSponsor}
-              onDeleteSponsor={handleDeleteSponsor}
-            />
+             {/* Add Sponsor Form */}
+             {(showAddForm || editingSponsor) && (
+               <SponsorForm
+                 formData={formData}
+                 setFormData={setFormData}
+                 editingSponsor={editingSponsor}
+                 onAddSponsor={handleAddSponsor}
+                 onUpdateSponsor={handleUpdateSponsor}
+                 onCancelEdit={handleCancelEdit}
+                 onCloseForm={() => {
+                   setShowAddForm(false);
+                   setEditingSponsor(null);
+                   setFormData(createDefaultSponsorForm());
+                 }}
+                 handleLogoUpload={handleLogoUpload}
+                 handleLogoUrlChange={handleLogoUrlChange}
+               />
+             )}
 
-            <SponsorsGuidebook />
-            
-            <OBSDisplayInfo tournamentId={tournamentId} />
+             <SponsorsList
+               sponsors={sponsors}
+               loading={sponsorsLoading}
+               onEditSponsor={handleEditSponsor}
+               onDeleteSponsor={handleDeleteSponsor}
+             />
           </div>
         </div>
       </div>

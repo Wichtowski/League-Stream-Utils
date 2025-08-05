@@ -195,7 +195,7 @@ export default function LeagueClientPickBanPage() {
             </div>
             <div className="flex gap-3">
               <Link 
-                href={useMockData ? `/modules/pickban/leagueclient/champselect-overlay?backend=http://localhost:2137/api/cs&mock=true` : `/modules/pickban/leagueclient/champselect-overlay?backend=http://localhost:2137/api/cs`}
+                href={useMockData ? `/modules/pickban/leagueclient/champselect?backend=http://localhost:2137/api/cs&mock=true` : `/modules/pickban/leagueclient/champselect?backend=http://localhost:2137/api/cs`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors inline-flex items-center gap-2"
@@ -205,7 +205,7 @@ export default function LeagueClientPickBanPage() {
               </Link>
               <button
                 onClick={() => {
-                  const overlayUrl = window.location.origin + (useMockData ? `/modules/pickban/leagueclient/champselect-overlay?backend=http://localhost:2137/api/cs&mock=true` : `/modules/pickban/leagueclient/champselect-overlay?backend=http://localhost:2137/api/cs`);
+                  const overlayUrl = window.location.origin + (useMockData ? `/modules/pickban/leagueclient/champselect?backend=http://localhost:2137/api/cs&mock=true` : `/modules/pickban/leagueclient/champselect?backend=http://localhost:2137/api/cs`);
                   navigator.clipboard.writeText(overlayUrl);
                   setSuccessMessage('Overlay URL copied to clipboard!');
                   setTimeout(() => setSuccessMessage(null), 3000);

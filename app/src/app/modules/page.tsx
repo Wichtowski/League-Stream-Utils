@@ -96,10 +96,15 @@ export default function ModulesPage() {
                 if (!lastSelectedTournament) {
                     return;
                 } else {
+                    console.log('Pushing to tournament module:', module.name);
+                    console.log('Tournament ID:', lastSelectedTournament.tournamentId);
+                    console.log('Module ID:', module.id);
                     router.push(`/modules/tournaments/${lastSelectedTournament.tournamentId}/${module.id}`);
+                    return;
                 }
+            } else {
+                router.push(module.path);
             }
-            router.push(module.path);
         } catch (error) {
             console.error('Navigation error:', error);
         }

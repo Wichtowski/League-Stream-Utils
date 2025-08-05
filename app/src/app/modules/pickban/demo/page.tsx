@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { getDynamicMockData } from '@lib/mocks/dynamic-champselect';
 import { getChampions } from '@lib/champions';
-import { ChampSelectDisplay } from '../leagueclient/champselect-overlay/components/ChampSelectDisplay';
+import { ChampSelectDisplay } from '@lib/components/pages/leagueclient/champselect/ChampSelectDisplay';
 import { BackButton } from '@lib/components/common/buttons';
 
 const DemoPage: React.FC = () => {

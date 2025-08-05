@@ -69,7 +69,10 @@ export const POST = withAuth(async (req: NextRequest, user) => {
       logo: sponsorData.logo,
       website: sponsorData.website,
       tier: sponsorData.tier,
-      displayPriority: sponsorData.displayPriority || 0
+      displayPriority: sponsorData.displayPriority || 0,
+      showName: sponsorData.showName ?? true,
+      namePosition: sponsorData.namePosition ?? 'right',
+      fillContainer: sponsorData.fillContainer ?? false
     };
 
     // Add sponsor to tournament

@@ -28,9 +28,16 @@ export async function GET(): Promise<NextResponse> {
             console.warn('LCU connection test failed, but credentials found:', testError);
         }
 
+        // Return only non-sensitive information
+        const safeCredentials = {
+            port: credentials.port,
+            protocol: credentials.protocol,
+            pid: credentials.pid
+        };
+
         return NextResponse.json({
             success: true,
-            credentials,
+            credentials: safeCredentials,
             message: 'LCU credentials found successfully'
         });
 
