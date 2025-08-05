@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { useRouter } from 'next/navigation';
-import { ArrowLeftIcon } from '@heroicons/react/24/outline';
+import React from "react";
+import { useRouter } from "next/navigation";
+import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 
 interface BackButtonProps {
   to: string;
@@ -10,7 +10,11 @@ interface BackButtonProps {
   className?: string;
 }
 
-export const BackButton = ({ to, children = 'Back', className = '' }: BackButtonProps): React.ReactElement => {
+export const BackButton = ({
+  to,
+  children = "Back",
+  className = "",
+}: BackButtonProps): React.ReactElement => {
   const router = useRouter();
   return (
     <button
@@ -21,4 +25,4 @@ export const BackButton = ({ to, children = 'Back', className = '' }: BackButton
       {children}
     </button>
   );
-}; 
+};

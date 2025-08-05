@@ -1,5 +1,5 @@
-import mongoose from 'mongoose';
-import { config } from '@lib/config';
+import mongoose from "mongoose";
+import { config } from "@lib/config";
 
 interface ConnectionState {
   isConnected: boolean;
@@ -8,14 +8,14 @@ interface ConnectionState {
 
 const connection: ConnectionState = {
   isConnected: false,
-  promise: null
+  promise: null,
 };
 
 class DatabaseConnection {
   private static instance: DatabaseConnection;
   private connectionPromise: Promise<typeof mongoose> | null = null;
 
-  private constructor() { }
+  private constructor() {}
 
   public static getInstance(): DatabaseConnection {
     if (!DatabaseConnection.instance) {
@@ -40,7 +40,7 @@ class DatabaseConnection {
         bufferCommands: false,
         maxPoolSize: 10,
         serverSelectionTimeoutMS: 5000,
-        socketTimeoutMS: 45000
+        socketTimeoutMS: 45000,
       });
 
       const mongooseInstance = await this.connectionPromise;
@@ -48,31 +48,31 @@ class DatabaseConnection {
       connection.isConnected = true;
 
       // Handle connection events
-      mongoose.connection.on('connected', () => {
-        console.log('✅ MongoDB connected successfully');
+      mongoose.connection.on("connected", () => {
+        console.log("✅ MongoDB connected successfully");
         connection.isConnected = true;
       });
 
-      mongoose.connection.on('error', (error) => {
-        console.error('❌ MongoDB connection error:', error);
+      mongoose.connection.on("error", (error) => {
+        console.error("❌ MongoDB connection error:", error);
         connection.isConnected = false;
         this.connectionPromise = null;
       });
 
-      mongoose.connection.on('disconnected', () => {
-        console.warn('⚠️ MongoDB disconnected - by event');
+      mongoose.connection.on("disconnected", () => {
+        console.warn("⚠️ MongoDB disconnected - by event");
         connection.isConnected = false;
         this.connectionPromise = null;
       });
 
-      process.on('SIGINT', async () => {
+      process.on("SIGINT", async () => {
         await this.disconnect();
         process.exit(0);
       });
 
       return mongooseInstance;
     } catch (error) {
-      console.error('❌ Failed to connect to MongoDB:', error);
+      console.error("❌ Failed to connect to MongoDB:", error);
       connection.isConnected = false;
       this.connectionPromise = null;
       throw error;
@@ -84,7 +84,7 @@ class DatabaseConnection {
       await mongoose.disconnect();
       connection.isConnected = false;
       this.connectionPromise = null;
-      console.log('🔌 MongoDB disconnected - by method');
+      console.log("🔌 MongoDB disconnected - by method");
     }
   }
 
@@ -94,12 +94,14 @@ class DatabaseConnection {
 
   public getConnectionState(): string {
     const states = {
-      0: 'disconnected',
-      1: 'connected',
-      2: 'connecting',
-      3: 'disconnecting'
+      0: "disconnected",
+      1: "connected",
+      2: "connecting",
+      3: "disconnecting",
     };
-    return states[mongoose.connection.readyState as keyof typeof states] || 'unknown';
+    return (
+      states[mongoose.connection.readyState as keyof typeof states] || "unknown"
+    );
   }
 }
 

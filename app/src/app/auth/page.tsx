@@ -1,13 +1,19 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { AuthTabs, MessageDisplay, LoginForm, RegisterForm, ContactInfo } from '@lib/components/auth';
-import { useAuth } from '@lib/contexts/AuthContext';
-import { useElectron } from '@lib/contexts/ElectronContext';
-import { useNavigation } from '@lib/contexts/NavigationContext';
-import { LoadingSpinner } from '@lib/components/common';
-import { Cog6ToothIcon } from '@heroicons/react/24/outline';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import {
+  AuthTabs,
+  MessageDisplay,
+  LoginForm,
+  RegisterForm,
+  ContactInfo,
+} from "@lib/components/auth";
+import { useAuth } from "@lib/contexts/AuthContext";
+import { useElectron } from "@lib/contexts/ElectronContext";
+import { useNavigation } from "@lib/contexts/NavigationContext";
+import { LoadingSpinner } from "@lib/components/common";
+import { Cog6ToothIcon } from "@heroicons/react/24/outline";
 
 export default function AuthPage() {
   const router = useRouter();
@@ -15,33 +21,33 @@ export default function AuthPage() {
   const { user, isLoading } = useAuth();
   const { isElectron, useLocalData } = useElectron();
   const [isLogin, setIsLogin] = useState(true);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   useEffect(() => {
-    setActiveModule('auth');
-    
+    setActiveModule("auth");
+
     // Redirect to modules if already authenticated
     if (!isLoading && user) {
       // Check if there's a returnTo path stored
-      const returnTo = localStorage.getItem('returnTo');
-      if (returnTo && returnTo !== '/auth') {
-        localStorage.removeItem('returnTo'); // Clean up
+      const returnTo = localStorage.getItem("returnTo");
+      if (returnTo && returnTo !== "/auth") {
+        localStorage.removeItem("returnTo"); // Clean up
         router.push(returnTo);
       } else {
-        router.push('/modules');
+        router.push("/modules");
       }
     }
   }, [setActiveModule, user, isLoading, router]);
 
   const clearMessages = () => {
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
   };
 
   const handleRegisterSuccess = (message: string) => {
     setSuccess(message);
-    setError('');
+    setError("");
   };
 
   const switchToLogin = () => {
@@ -49,9 +55,7 @@ export default function AuthPage() {
   };
 
   if (isLoading) {
-    return (
-      <LoadingSpinner fullscreen />
-    );
+    return <LoadingSpinner fullscreen />;
   }
 
   if (user) {
@@ -65,16 +69,19 @@ export default function AuthPage() {
         <div className="absolute top-6 right-6 flex items-center space-x-4">
           <div className="text-right">
             <div className="text-sm text-gray-400">
-              Mode: <span className={useLocalData ? 'text-green-400' : 'text-blue-400'}>
-                {useLocalData ? 'Local Data' : 'Online'}
+              Mode:{" "}
+              <span
+                className={useLocalData ? "text-green-400" : "text-blue-400"}
+              >
+                {useLocalData ? "Local Data" : "Online"}
               </span>
             </div>
             <div className="text-xs text-gray-500">
-              {useLocalData ? 'Saving to AppData' : 'Using cloud storage'}
+              {useLocalData ? "Saving to AppData" : "Using cloud storage"}
             </div>
           </div>
           <button
-            onClick={() => router.push('/settings')}
+            onClick={() => router.push("/settings")}
             className="p-2 bg-gray-800/50 hover:bg-gray-700/50 rounded-lg border border-gray-600/50 hover:border-gray-500/50 transition-colors"
             title="Electron Settings"
           >
@@ -110,4 +117,4 @@ export default function AuthPage() {
       </div>
     </div>
   );
-} 
+}

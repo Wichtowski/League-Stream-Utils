@@ -1,22 +1,27 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useNavigation } from '@lib/contexts/NavigationContext';
-import { useAuth } from '@lib/contexts/AuthContext';
-import { useLCU } from '@lib/contexts/LCUContext';
-import { useMockDataContext } from '@lib/contexts/MockDataContext';
-import { AuthGuard } from '@lib/components/auth/AuthGuard';
-import { getChampionById } from '@lib/champions';
-import { useElectron } from '@lib/contexts/ElectronContext';
-import Image from 'next/image';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from "react";
+import { useNavigation } from "@lib/contexts/NavigationContext";
+import { useAuth } from "@lib/contexts/AuthContext";
+import { useLCU } from "@lib/contexts/LCUContext";
+import { useMockDataContext } from "@lib/contexts/MockDataContext";
+import { AuthGuard } from "@lib/components/auth/AuthGuard";
+import { getChampionById } from "@lib/champions";
+import { useElectron } from "@lib/contexts/ElectronContext";
+import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 let userDataPathCache: string | null = null;
-if (typeof window !== 'undefined' && window.electronAPI?.getUserDataPath) {
-  window.electronAPI.getUserDataPath().then((p) => { userDataPathCache = p; }).catch(() => {
-    userDataPathCache = null;
-  });
+if (typeof window !== "undefined" && window.electronAPI?.getUserDataPath) {
+  window.electronAPI
+    .getUserDataPath()
+    .then((p) => {
+      userDataPathCache = p;
+    })
+    .catch(() => {
+      userDataPathCache = null;
+    });
 }
 
 export default function LeagueClientPickBanPage() {
@@ -25,35 +30,35 @@ export default function LeagueClientPickBanPage() {
   const { user: _user, isLoading: _authLoading } = useAuth();
   const { isElectron } = useElectron();
   const { useMockData, toggleMockData } = useMockDataContext();
-  
-  const { 
-    isConnected, 
-    isConnecting, 
-    connectionError, 
-    connect, 
-    disconnect, 
+
+  const {
+    isConnected,
+    isConnecting,
+    connectionError,
+    connect,
+    disconnect,
     champSelectSession,
     autoReconnect,
-    setAutoReconnect
+    setAutoReconnect,
   } = useLCU();
-  
+
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    setActiveModule('leagueclient');
+    setActiveModule("leagueclient");
   }, [setActiveModule]);
 
   const connectToLCU = async (): Promise<void> => {
     if (!isElectron) {
       return;
     }
-    
+
     if (useMockData) {
-      setSuccessMessage('Mock data enabled - no LCU connection needed');
+      setSuccessMessage("Mock data enabled - no LCU connection needed");
       setTimeout(() => setSuccessMessage(null), 3000);
       return;
     }
-    
+
     setSuccessMessage(null);
     await connect();
   };
@@ -64,11 +69,11 @@ export default function LeagueClientPickBanPage() {
 
   const formatTime = (ms: number) => {
     const seconds = Math.ceil(ms / 1000);
-    return `${Math.floor(seconds / 60)}:${(seconds % 60).toString().padStart(2, '0')}`;
+    return `${Math.floor(seconds / 60)}:${(seconds % 60).toString().padStart(2, "0")}`;
   };
 
   const getChampionName = (championId: number) => {
-    if (!championId) return 'None';
+    if (!championId) return "None";
     const champion = getChampionById(championId);
     return champion?.name || `Champion ${championId}`;
   };
@@ -80,21 +85,23 @@ export default function LeagueClientPickBanPage() {
 
     if (/^https?:\/\//.test(champion.image)) return champion.image;
 
-    if (champion.image.startsWith('cache/')) {
+    if (champion.image.startsWith("cache/")) {
       if (userDataPathCache) {
-        const base = userDataPathCache.replace(/\\/g, '/');
-        const rel = champion.image.replace(/\\/g, '/');
+        const base = userDataPathCache.replace(/\\/g, "/");
+        const rel = champion.image.replace(/\\/g, "/");
         return `file://${base}/assets/${rel}`;
       }
       return champion.image;
     }
 
     // Convert DataDragon URL to local cache path
-    const ddragonMatch = champion.image.match(/\/cdn\/([^/]+)\/img\/champion\/([^.]+)\.png$/);
+    const ddragonMatch = champion.image.match(
+      /\/cdn\/([^/]+)\/img\/champion\/([^.]+)\.png$/,
+    );
     if (ddragonMatch) {
       const [, version, key] = ddragonMatch;
       if (userDataPathCache) {
-        const base = userDataPathCache.replace(/\\/g, '/');
+        const base = userDataPathCache.replace(/\\/g, "/");
         const rel = `cache/game/${version}/champion/${key}/square.png`;
         return `file://${base}/assets/${rel}`;
       }
@@ -106,24 +113,24 @@ export default function LeagueClientPickBanPage() {
 
   // Redirect to modules if not in Electron
   useEffect(() => {
-  if (!isElectron) {
-    router.push('/modules');
-  }
+    if (!isElectron) {
+      router.push("/modules");
+    }
   }, [isElectron, router]);
 
   const renderConnectionStatus = () => {
     const getStatusColor = () => {
-      if (useMockData) return 'bg-purple-600';
-      if (isConnected) return 'bg-green-600';
-      if (isConnecting) return 'bg-yellow-600';
-      return 'bg-red-600';
+      if (useMockData) return "bg-purple-600";
+      if (isConnected) return "bg-green-600";
+      if (isConnecting) return "bg-yellow-600";
+      return "bg-red-600";
     };
 
     const getStatusText = () => {
-      if (useMockData) return 'Mock Mode';
-      if (isConnected) return 'Connected';
-      if (isConnecting) return 'Connecting...';
-      return 'Disconnected';
+      if (useMockData) return "Mock Mode";
+      if (isConnected) return "Connected";
+      if (isConnecting) return "Connecting...";
+      return "Disconnected";
     };
 
     return (
@@ -143,7 +150,11 @@ export default function LeagueClientPickBanPage() {
                 disabled={useMockData}
                 className="cursor-pointer rounded"
               />
-              <span className={`cursor-pointer text-sm ${useMockData ? 'text-gray-500' : ''}`}>Auto-reconnect</span>
+              <span
+                className={`cursor-pointer text-sm ${useMockData ? "text-gray-500" : ""}`}
+              >
+                Auto-reconnect
+              </span>
             </label>
             <label className="relative inline-flex items-center cursor-pointer">
               <input
@@ -177,25 +188,32 @@ export default function LeagueClientPickBanPage() {
             )}
           </div>
         </div>
-        
+
         {/* Overlay Navigation */}
         <div className="border-t border-gray-600 pt-4">
           <div className="flex items-center justify-between">
             <div>
-              <h4 className="font-medium text-white mb-1">Tournament Overlay</h4>
+              <h4 className="font-medium text-white mb-1">
+                Tournament Overlay
+              </h4>
               <p className="text-sm text-gray-400">
-                {useMockData 
-                  ? 'Professional esports-style overlay with mock data'
-                  : 'Professional esports-style champion select overlay'
-                }
+                {useMockData
+                  ? "Professional esports-style overlay with mock data"
+                  : "Professional esports-style champion select overlay"}
               </p>
               {useMockData && (
-                <p className="text-xs text-purple-400 mt-1">🎭 Using mock data - no LCU connection required</p>
+                <p className="text-xs text-purple-400 mt-1">
+                  🎭 Using mock data - no LCU connection required
+                </p>
               )}
             </div>
             <div className="flex gap-3">
-              <Link 
-                href={useMockData ? `/modules/pickban/leagueclient/champselect?backend=http://localhost:2137/api/cs&mock=true` : `/modules/pickban/leagueclient/champselect?backend=http://localhost:2137/api/cs`}
+              <Link
+                href={
+                  useMockData
+                    ? `/modules/pickban/leagueclient/champselect?backend=http://localhost:2137/api/cs&mock=true`
+                    : `/modules/pickban/leagueclient/champselect?backend=http://localhost:2137/api/cs`
+                }
                 target="_blank"
                 rel="noopener noreferrer"
                 className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors inline-flex items-center gap-2"
@@ -205,9 +223,13 @@ export default function LeagueClientPickBanPage() {
               </Link>
               <button
                 onClick={() => {
-                  const overlayUrl = window.location.origin + (useMockData ? `/modules/pickban/leagueclient/champselect?backend=http://localhost:2137/api/cs&mock=true` : `/modules/pickban/leagueclient/champselect?backend=http://localhost:2137/api/cs`);
+                  const overlayUrl =
+                    window.location.origin +
+                    (useMockData
+                      ? `/modules/pickban/leagueclient/champselect?backend=http://localhost:2137/api/cs&mock=true`
+                      : `/modules/pickban/leagueclient/champselect?backend=http://localhost:2137/api/cs`);
                   navigator.clipboard.writeText(overlayUrl);
-                  setSuccessMessage('Overlay URL copied to clipboard!');
+                  setSuccessMessage("Overlay URL copied to clipboard!");
                   setTimeout(() => setSuccessMessage(null), 3000);
                 }}
                 className="cursor-pointer bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors inline-flex items-center gap-2"
@@ -236,8 +258,9 @@ export default function LeagueClientPickBanPage() {
       );
     }
 
-    const { phase, timer, myTeam, theirTeam, bans, actions } = champSelectSession;
-    const currentAction = actions?.flat().find(action => action.isInProgress);
+    const { phase, timer, myTeam, theirTeam, bans, actions } =
+      champSelectSession;
+    const currentAction = actions?.flat().find((action) => action.isInProgress);
 
     return (
       <div className="space-y-6">
@@ -247,17 +270,22 @@ export default function LeagueClientPickBanPage() {
             <h3 className="text-lg font-semibold">Champion Select</h3>
             <div className="text-right">
               <div className="text-xl font-mono text-white">
-                {timer?.isInfinite ? '∞' : formatTime(timer?.adjustedTimeLeftInPhase || 0)}
+                {timer?.isInfinite
+                  ? "∞"
+                  : formatTime(timer?.adjustedTimeLeftInPhase || 0)}
               </div>
               <div className="text-sm text-gray-400 capitalize">
-                {phase ? phase.replace(/([A-Z])/g, ' $1').trim() : 'Unknown Phase'}
+                {phase
+                  ? phase.replace(/([A-Z])/g, " $1").trim()
+                  : "Unknown Phase"}
               </div>
             </div>
           </div>
-          
+
           {currentAction && (
             <div className="bg-yellow-600/20 border border-yellow-600 rounded p-2 text-yellow-400 text-sm">
-              Player {currentAction.actorCellId + 1} is {currentAction.type === 'ban' ? 'banning' : 'picking'} a champion
+              Player {currentAction.actorCellId + 1} is{" "}
+              {currentAction.type === "ban" ? "banning" : "picking"} a champion
             </div>
           )}
         </div>
@@ -267,7 +295,7 @@ export default function LeagueClientPickBanPage() {
           {/* Your Team */}
           <div className="bg-gray-700 rounded-lg p-4">
             <h3 className="text-blue-400 font-semibold mb-4">Your Team</h3>
-            
+
             {/* Team Bans */}
             <div className="mb-4">
               <h4 className="text-sm text-gray-300 mb-2">Bans</h4>
@@ -275,9 +303,12 @@ export default function LeagueClientPickBanPage() {
                 {Array.from({ length: 5 }, (_, i) => {
                   const championId = bans?.myTeamBans?.[i];
                   const image = getChampionImage(championId);
-                  
+
                   return (
-                    <div key={i} className="aspect-square bg-gray-800 rounded border-2 border-gray-600 overflow-hidden relative">
+                    <div
+                      key={i}
+                      className="aspect-square bg-gray-800 rounded border-2 border-gray-600 overflow-hidden relative"
+                    >
                       {image ? (
                         <>
                           <Image
@@ -288,7 +319,9 @@ export default function LeagueClientPickBanPage() {
                             className="w-full h-full object-cover"
                           />
                           <div className="absolute inset-0 bg-red-600/70 flex items-center justify-center">
-                            <span className="text-white text-xs font-bold">X</span>
+                            <span className="text-white text-xs font-bold">
+                              X
+                            </span>
                           </div>
                         </>
                       ) : (
@@ -306,11 +339,14 @@ export default function LeagueClientPickBanPage() {
             <div className="space-y-2">
               {myTeam?.map((player) => {
                 const image = getChampionImage(player.championId);
-                
+
                 return (
-                  <div key={player.cellId} className={`flex items-center bg-blue-900/30 rounded p-2 ${
-                    player.isActingNow ? 'ring-2 ring-yellow-400' : ''
-                  }`}>
+                  <div
+                    key={player.cellId}
+                    className={`flex items-center bg-blue-900/30 rounded p-2 ${
+                      player.isActingNow ? "ring-2 ring-yellow-400" : ""
+                    }`}
+                  >
                     <div className="w-12 h-12 bg-gray-700 rounded border-left-2 border-blue-400 overflow-hidden mr-3">
                       {image ? (
                         <Image
@@ -343,7 +379,7 @@ export default function LeagueClientPickBanPage() {
           {/* Enemy Team */}
           <div className="bg-gray-700 rounded-lg p-4">
             <h3 className="text-red-400 font-semibold mb-4">Enemy Team</h3>
-            
+
             {/* Enemy Team Bans */}
             <div className="mb-4">
               <h4 className="text-sm text-gray-300 mb-2">Bans</h4>
@@ -351,9 +387,12 @@ export default function LeagueClientPickBanPage() {
                 {Array.from({ length: 5 }, (_, i) => {
                   const championId = bans?.theirTeamBans?.[i];
                   const image = getChampionImage(championId);
-                  
+
                   return (
-                    <div key={i} className="aspect-square bg-gray-800 rounded border-2 border-gray-600 overflow-hidden relative">
+                    <div
+                      key={i}
+                      className="aspect-square bg-gray-800 rounded border-2 border-gray-600 overflow-hidden relative"
+                    >
                       {image ? (
                         <>
                           <Image
@@ -364,7 +403,9 @@ export default function LeagueClientPickBanPage() {
                             className="w-full h-full object-cover"
                           />
                           <div className="absolute inset-0 bg-red-600/70 flex items-center justify-center">
-                            <span className="text-white text-xs font-bold">X</span>
+                            <span className="text-white text-xs font-bold">
+                              X
+                            </span>
                           </div>
                         </>
                       ) : (
@@ -382,11 +423,14 @@ export default function LeagueClientPickBanPage() {
             <div className="space-y-2">
               {theirTeam?.map((player) => {
                 const image = getChampionImage(player.championId);
-                
+
                 return (
-                  <div key={player.cellId} className={`flex items-center bg-red-900/30 rounded p-2 ${
-                    player.isActingNow ? 'ring-2 ring-yellow-400' : ''
-                  }`}>
+                  <div
+                    key={player.cellId}
+                    className={`flex items-center bg-red-900/30 rounded p-2 ${
+                      player.isActingNow ? "ring-2 ring-yellow-400" : ""
+                    }`}
+                  >
                     <div className="w-12 h-12 bg-gray-700 rounded border-2 border-red-400 overflow-hidden mr-3">
                       {image ? (
                         <Image
@@ -425,10 +469,13 @@ export default function LeagueClientPickBanPage() {
       <div className="min-h-screen  text-white">
         <div className="container mx-auto px-4 py-8">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-2">League Client Integration</h1>
+            <h1 className="text-3xl font-bold mb-2">
+              League Client Integration
+            </h1>
             <p className="text-gray-400">
-              Real-time champion select monitoring and integration with League of Legends client.
-              This feature is only available in the desktop app.
+              Real-time champion select monitoring and integration with League
+              of Legends client. This feature is only available in the desktop
+              app.
             </p>
           </div>
 

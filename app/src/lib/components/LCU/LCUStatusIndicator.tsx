@@ -1,46 +1,49 @@
-'use client';
+"use client";
 
-import { useLCU } from '@lib/contexts/LCUContext';
+import { useLCU } from "@lib/contexts/LCUContext";
 
 interface LCUStatusIndicatorProps {
   className?: string;
   showDetails?: boolean;
 }
 
-export function LCUStatusIndicator({ className = '', showDetails = false }: LCUStatusIndicatorProps): React.ReactElement {
-  const { 
-    isConnected, 
-    isConnecting, 
-    connectionError, 
+export function LCUStatusIndicator({
+  className = "",
+  showDetails = false,
+}: LCUStatusIndicatorProps): React.ReactElement {
+  const {
+    isConnected,
+    isConnecting,
+    connectionError,
     isInitialized,
     lastConnectedAt,
     champSelectSession,
-    autoReconnect 
+    autoReconnect,
   } = useLCU();
 
   const getStatusColor = (): string => {
-    if (isConnected) return 'bg-green-500';
-    if (isConnecting) return 'bg-yellow-500 animate-pulse';
-    if (connectionError) return 'bg-red-500';
-    if (!isInitialized) return 'bg-blue-500 animate-pulse';
-    return 'bg-gray-500';
+    if (isConnected) return "bg-green-500";
+    if (isConnecting) return "bg-yellow-500 animate-pulse";
+    if (connectionError) return "bg-red-500";
+    if (!isInitialized) return "bg-blue-500 animate-pulse";
+    return "bg-gray-500";
   };
 
   const getStatusText = (): string => {
-    if (!isInitialized) return 'Initializing...';
-    if (isConnected) return 'Connected';
-    if (isConnecting) return 'Connecting...';
-    if (connectionError) return 'Error';
-    return 'Disconnected';
+    if (!isInitialized) return "Initializing...";
+    if (isConnected) return "Connected";
+    if (isConnecting) return "Connecting...";
+    if (connectionError) return "Error";
+    return "Disconnected";
   };
 
   const formatLastConnected = (): string => {
-    if (!lastConnectedAt) return 'Never';
+    if (!lastConnectedAt) return "Never";
     const now = new Date();
     const diff = now.getTime() - lastConnectedAt.getTime();
     const minutes = Math.floor(diff / 60000);
     const seconds = Math.floor((diff % 60000) / 1000);
-    
+
     if (minutes > 0) return `${minutes}m ago`;
     return `${seconds}s ago`;
   };
@@ -63,13 +66,13 @@ export function LCUStatusIndicator({ className = '', showDetails = false }: LCUS
         </div>
         <span className="text-sm text-gray-400">{getStatusText()}</span>
       </div>
-      
+
       {showDetails && (
         <div className="space-y-1 text-xs text-gray-500">
           <div>Last Connected: {formatLastConnected()}</div>
           {champSelectSession && (
             <div className="text-green-400">
-              Champion Select: {champSelectSession.timer?.phase || 'Active'}
+              Champion Select: {champSelectSession.timer?.phase || "Active"}
             </div>
           )}
           {autoReconnect && (
@@ -84,4 +87,4 @@ export function LCUStatusIndicator({ className = '', showDetails = false }: LCUS
       )}
     </div>
   );
-} 
+}

@@ -47,7 +47,7 @@ This document outlines **best practices**, **coding conventions**, and **pattern
 
 ## ✅ Do’s and ❌ Don’ts
 
-| ✅ Do                                                        | ❌ Don't                                 |
+| ✅ Do                                                       | ❌ Don't                                |
 | ----------------------------------------------------------- | --------------------------------------- |
 | Use `useEffect`, `useCallback`, and `useMemo` appropriately | Overuse them without understanding deps |
 | Use `async/await` over `.then()`                            | Chain too many `.then()` calls          |
@@ -62,7 +62,6 @@ This document outlines **best practices**, **coding conventions**, and **pattern
 ## 🧹 DRY (Don’t Repeat Yourself)
 
 - 🔁 Identify duplicate logic and extract to:
-
   - **Hooks**: for shared logic
   - **Utils**: for pure functions
   - **Components**: for UI reuse
@@ -71,13 +70,19 @@ This document outlines **best practices**, **coding conventions**, and **pattern
 
   ```ts
   // ❌ Duplicated fetch logic
-  const fetchUser = async () => { /* ... */ }
-  const fetchPost = async () => { /* ... */ }
+  const fetchUser = async () => {
+    /* ... */
+  };
+  const fetchPost = async () => {
+    /* ... */
+  };
 
   // ✅ DRY - reuse API client
-  const apiClient = async (url: string) => { /* ... */ }
-  const fetchUser = () => apiClient('/user')
-  const fetchPost = () => apiClient('/post')
+  const apiClient = async (url: string) => {
+    /* ... */
+  };
+  const fetchUser = () => apiClient("/user");
+  const fetchPost = () => apiClient("/post");
   ```
 
 ---
@@ -97,13 +102,13 @@ This document outlines **best practices**, **coding conventions**, and **pattern
 
   ```tsx
   type ButtonProps = {
-    label: string
-    onClick: () => void
-  }
+    label: string;
+    onClick: () => void;
+  };
 
   const Button: React.FC<ButtonProps> = ({ label, onClick }) => (
     <button onClick={onClick}>{label}</button>
-  )
+  );
   ```
 
 - Avoid unnecessary re-renders with `React.memo`, `useMemo`, and `useCallback`.
@@ -145,12 +150,12 @@ This document outlines **best practices**, **coding conventions**, and **pattern
 ### 🔁 Reusable Fetch Hook (SWR)
 
 ```ts
-import useSWR from 'swr'
+import useSWR from "swr";
 
-const fetcher = (url: string) => fetch(url).then(res => res.json())
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export const useUser = (id: string) =>
-  useSWR(id ? `/api/user/${id}` : null, fetcher)
+  useSWR(id ? `/api/user/${id}` : null, fetcher);
 ```
 
 ---
@@ -159,13 +164,13 @@ export const useUser = (id: string) =>
 
 ```ts
 const apiClient = async <T>(url: string, options?: RequestInit): Promise<T> => {
-  const res = await fetch(url, options)
-  if (!res.ok) throw new Error('API Error')
-  return res.json()
-}
+  const res = await fetch(url, options);
+  if (!res.ok) throw new Error("API Error");
+  return res.json();
+};
 
 // usage:
-const getUser = () => apiClient<User>('/api/user')
+const getUser = () => apiClient<User>("/api/user");
 ```
 
 ---
@@ -174,12 +179,12 @@ const getUser = () => apiClient<User>('/api/user')
 
 ```ts
 interface AuthContextType {
-  user: User | null
-  login: (u: User) => void
-  logout: () => void
+  user: User | null;
+  login: (u: User) => void;
+  logout: () => void;
 }
 
-const AuthContext = React.createContext<AuthContextType | undefined>(undefined)
+const AuthContext = React.createContext<AuthContextType | undefined>(undefined);
 ```
 
 ### Q&A

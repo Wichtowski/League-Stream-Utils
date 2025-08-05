@@ -20,13 +20,13 @@ const eslintConfig = [
       "@typescript-eslint/no-unused-vars": [
         "error",
         {
-          "argsIgnorePattern": "^_",
-          "varsIgnorePattern": "^_",
-          "caughtErrorsIgnorePattern": "^_"
-        }
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+        },
       ],
-      "import/no-default-export": "error"
-    }
+      "import/no-default-export": "error",
+    },
   },
   {
     // Allow default exports for Next.js pages and config files
@@ -42,12 +42,12 @@ const eslintConfig = [
       "next.config.{js,mjs,ts}",
       "tailwind.config.{js,ts}",
       "postcss.config.{js,mjs}",
-      "eslint.config.{js,mjs}"
+      "eslint.config.{js,mjs}",
     ],
     rules: {
-      "import/no-default-export": "off"
-    }
-  }
+      "import/no-default-export": "off",
+    },
+  },
 ];
 
 export default eslintConfig;

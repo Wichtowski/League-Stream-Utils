@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import React, { Component, ReactNode } from 'react';
+import React, { Component, ReactNode } from "react";
 
 interface Props {
   children: ReactNode;
@@ -24,7 +24,11 @@ export class ContextErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error(`Context Error Boundary (${this.props.contextName}):`, error, errorInfo);
+    console.error(
+      `Context Error Boundary (${this.props.contextName}):`,
+      error,
+      errorInfo,
+    );
   }
 
   render() {
@@ -39,12 +43,15 @@ export class ContextErrorBoundary extends Component<Props, State> {
             {this.props.contextName} Error
           </h3>
           <p className="text-red-600 mb-2">
-            Something went wrong with the {this.props.contextName.toLowerCase()} context.
+            Something went wrong with the {this.props.contextName.toLowerCase()}{" "}
+            context.
           </p>
           {this.state.error && (
             <details className="text-sm text-red-500">
               <summary className="cursor-pointer">Error Details</summary>
-              <pre className="mt-2 whitespace-pre-wrap">{this.state.error.message}</pre>
+              <pre className="mt-2 whitespace-pre-wrap">
+                {this.state.error.message}
+              </pre>
             </details>
           )}
           <button
@@ -75,10 +82,8 @@ export function ContextWrapper({ children, contexts }: ContextWrapperProps) {
     const Provider = context.provider;
     return (
       <ContextErrorBoundary contextName={context.name}>
-        <Provider>
-          {wrapped}
-        </Provider>
+        <Provider>{wrapped}</Provider>
       </ContextErrorBoundary>
     );
   }, children);
-} 
+}

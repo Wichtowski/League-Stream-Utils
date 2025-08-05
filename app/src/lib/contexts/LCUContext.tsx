@@ -1,15 +1,22 @@
-'use client';
+"use client";
 
-import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
-import { LCUConnector } from '@lib/services/LCU/lcu-connector';
-import { storage } from '@lib/utils/storage/storage';
-import { usePathname } from 'next/navigation';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  ReactNode,
+} from "react";
+import { LCUConnector } from "@lib/services/LCU/lcu-connector";
+import { storage } from "@lib/utils/storage/storage";
+import { usePathname } from "next/navigation";
 
-import type { ChampSelectSession } from '@lib/types';
+import type { ChampSelectSession } from "@lib/types";
 
-import { LCUData, LCUChampSelectSession } from '../types/electron';
-import { MOCK_CHAMP_SELECT_DATA } from '@lib/mocks/champselect';
-import { useDownload } from './DownloadContext';
+import { LCUData, LCUChampSelectSession } from "../types/electron";
+import { MOCK_CHAMP_SELECT_DATA } from "@lib/mocks/champselect";
+import { useDownload } from "./DownloadContext";
 
 interface LCUContextType {
   // Connection state
@@ -17,19 +24,19 @@ interface LCUContextType {
   isConnecting: boolean;
   connectionError: string | null;
   isInitialized: boolean;
-  
+
   // Connection management
   connect: () => Promise<void>;
   disconnect: () => void;
   reconnect: () => Promise<void>;
-  
+
   // Champion select data
   champSelectSession: ChampSelectSession | null;
-  
+
   // Settings
   autoReconnect: boolean;
   setAutoReconnect: (enabled: boolean) => void;
-  
+
   // Status
   lastConnectedAt: Date | null;
   connectionAttempts: number;
@@ -42,8 +49,8 @@ interface LCUContextType {
 
 const LCUContext = createContext<LCUContextType | undefined>(undefined);
 
-const LCU_SETTINGS_KEY = 'lcu-settings';
-const LCU_CONNECTION_KEY = 'lcu-connection-state';
+const LCU_SETTINGS_KEY = "lcu-settings";
+const LCU_CONNECTION_KEY = "lcu-connection-state";
 
 interface LCUSettings {
   autoReconnect: boolean;
@@ -52,54 +59,62 @@ interface LCUSettings {
 
 export function LCUProvider({ children }: { children: ReactNode }) {
   // Check if we're in Electron environment without depending on the context
-  const isElectron = typeof window !== 'undefined' && window.electronAPI?.isElectron;
-  
+  const isElectron =
+    typeof window !== "undefined" && window.electronAPI?.isElectron;
+
   // Get current pathname for route-based polling control
   const pathname = usePathname();
-  
+
   // Get download state
   const { downloadState } = useDownload();
-  
+
   // Get mock data state directly from localStorage to avoid circular dependency
   const [useMockData] = useState<boolean>(() => {
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('useMockData');
-      return stored === 'true';
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("useMockData");
+      return stored === "true";
     }
     return false;
   });
-  
+
   // Connection state
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
-  const [champSelectSession, setChampSelectSession] = useState<ChampSelectSession | null>(null);
+  const [champSelectSession, setChampSelectSession] =
+    useState<ChampSelectSession | null>(null);
   const [lcuNotFound, setLcuNotFound] = useState(false);
-  
+
   // Settings
   const [autoReconnect, setAutoReconnectState] = useState(true);
   const [lastConnectedAt, setLastConnectedAt] = useState<Date | null>(null);
   const [connectionAttempts, setConnectionAttempts] = useState(0);
-  
+
   // LCU Connector instance
-  const [lcuConnector] = useState(() => new LCUConnector({
-    autoReconnect: false, // We'll handle auto-reconnect at this level
-    maxReconnectAttempts: 5,
-    pollInterval: 1000,
-    isDownloading: () => downloadState.isDownloading
-  }));
+  const [lcuConnector] = useState(
+    () =>
+      new LCUConnector({
+        autoReconnect: false, // We'll handle auto-reconnect at this level
+        maxReconnectAttempts: 5,
+        pollInterval: 1000,
+        isDownloading: () => downloadState.isDownloading,
+      }),
+  );
 
   // Function to update Electron with LCU data
-  const updateElectronLCUData = useCallback(async (data: Partial<LCUData>) => {
-    if (isElectron && window.electronAPI?.updateLCUData) {
-      try {
-        await window.electronAPI.updateLCUData(data);
-      } catch (error) {
-        console.error('Failed to update Electron LCU data:', error);
+  const updateElectronLCUData = useCallback(
+    async (data: Partial<LCUData>) => {
+      if (isElectron && window.electronAPI?.updateLCUData) {
+        try {
+          await window.electronAPI.updateLCUData(data);
+        } catch (error) {
+          console.error("Failed to update Electron LCU data:", error);
+        }
       }
-    }
-  }, [isElectron]);
+    },
+    [isElectron],
+  );
 
   // Load settings on mount
   useEffect(() => {
@@ -108,11 +123,15 @@ export function LCUProvider({ children }: { children: ReactNode }) {
         const settings = await storage.get<LCUSettings>(LCU_SETTINGS_KEY);
         if (settings) {
           setAutoReconnectState(settings.autoReconnect);
-          setLastConnectedAt(settings.lastConnectedAt ? new Date(settings.lastConnectedAt) : null);
+          setLastConnectedAt(
+            settings.lastConnectedAt
+              ? new Date(settings.lastConnectedAt)
+              : null,
+          );
         }
         setIsInitialized(true);
       } catch (error) {
-        console.error('Failed to load LCU settings:', error);
+        console.error("Failed to load LCU settings:", error);
         setIsInitialized(true);
       }
     };
@@ -129,12 +148,19 @@ export function LCUProvider({ children }: { children: ReactNode }) {
 
     const checkAutoConnect = async () => {
       try {
-        const connectionState = await storage.get<{ wasConnected: boolean }>(LCU_CONNECTION_KEY);
-        if (connectionState?.wasConnected && autoReconnect && !isConnected && !isConnecting) {
+        const connectionState = await storage.get<{ wasConnected: boolean }>(
+          LCU_CONNECTION_KEY,
+        );
+        if (
+          connectionState?.wasConnected &&
+          autoReconnect &&
+          !isConnected &&
+          !isConnecting
+        ) {
           setShouldAutoConnect(true);
         }
       } catch (error) {
-        console.error('Failed to check auto-connect state:', error);
+        console.error("Failed to check auto-connect state:", error);
       }
     };
 
@@ -145,7 +171,7 @@ export function LCUProvider({ children }: { children: ReactNode }) {
   const saveSettings = useCallback(async () => {
     const settings: LCUSettings = {
       autoReconnect,
-      lastConnectedAt
+      lastConnectedAt,
     };
     await storage.set(LCU_SETTINGS_KEY, settings);
   }, [autoReconnect, lastConnectedAt]);
@@ -157,50 +183,49 @@ export function LCUProvider({ children }: { children: ReactNode }) {
   // Setup LCU connector event handlers
   useEffect(() => {
     lcuConnector.setOnStatusChange((status) => {
-      setIsConnecting(status === 'connecting');
-      setIsConnected(status === 'connected');
-      
+      setIsConnecting(status === "connecting");
+      setIsConnected(status === "connected");
+
       // Update Electron with connection status
       updateElectronLCUData({
-        isConnected: status === 'connected',
-        isConnecting: status === 'connecting',
-        connectionError: status === 'error' ? connectionError : null,
-        useMockData: useMockData
+        isConnected: status === "connected",
+        isConnecting: status === "connecting",
+        connectionError: status === "error" ? connectionError : null,
+        useMockData: useMockData,
       });
-      
-      if (status === 'connected') {
+
+      if (status === "connected") {
         setConnectionError(null);
         setLastConnectedAt(new Date());
         setConnectionAttempts(0);
         storage.set(LCU_CONNECTION_KEY, { wasConnected: true });
-      } else if (status === 'error') {
-        setConnectionAttempts(prev => prev + 1);
+      } else if (status === "error") {
+        setConnectionAttempts((prev) => prev + 1);
         storage.set(LCU_CONNECTION_KEY, { wasConnected: false });
-      } else if (status === 'disconnected') {
+      } else if (status === "disconnected") {
         storage.set(LCU_CONNECTION_KEY, { wasConnected: false });
       }
     });
 
     lcuConnector.setOnChampSelectUpdate((data) => {
       setChampSelectSession(data);
-      
+
       // Update Electron with champion select data
       updateElectronLCUData({
         champSelectSession: data as LCUChampSelectSession | null,
-        useMockData: useMockData
+        useMockData: useMockData,
       });
     });
 
     lcuConnector.setOnError((error) => {
       setConnectionError(error);
-      setConnectionAttempts(prev => prev + 1);
-      
+      setConnectionAttempts((prev) => prev + 1);
+
       // Update Electron with error
       updateElectronLCUData({
-        connectionError: error
+        connectionError: error,
       });
     });
-
   }, [lcuConnector, updateElectronLCUData, connectionError, useMockData]);
 
   // Handle mock data toggle
@@ -211,14 +236,15 @@ export function LCUProvider({ children }: { children: ReactNode }) {
       setIsConnecting(false);
       setConnectionError(null);
       setChampSelectSession(MOCK_CHAMP_SELECT_DATA as ChampSelectSession);
-      
+
       // Update Electron with mock data
       updateElectronLCUData({
         isConnected: true,
         isConnecting: false,
         connectionError: null,
-        champSelectSession: MOCK_CHAMP_SELECT_DATA as unknown as LCUChampSelectSession,
-        useMockData: true
+        champSelectSession:
+          MOCK_CHAMP_SELECT_DATA as unknown as LCUChampSelectSession,
+        useMockData: true,
       });
     } else {
       // When mock data is disabled, try to connect to real LCU first
@@ -226,28 +252,32 @@ export function LCUProvider({ children }: { children: ReactNode }) {
       setIsConnected(false);
       setIsConnecting(true);
       setConnectionError(null);
-      
+
       // Update Electron with connection attempt
       updateElectronLCUData({
         isConnected: false,
         isConnecting: true,
         connectionError: null,
-        useMockData: false
+        useMockData: false,
       });
-      
+
       // Try to connect to real LCU
       setTimeout(() => {
         lcuConnector.connect().catch((error) => {
-          console.error('Failed to connect to LCU after disabling mock data:', error);
+          console.error(
+            "Failed to connect to LCU after disabling mock data:",
+            error,
+          );
           // If connection fails, clear the mock data
           setChampSelectSession(null);
           setIsConnecting(false);
           updateElectronLCUData({
             isConnected: false,
             isConnecting: false,
-            connectionError: error instanceof Error ? error.message : 'Connection failed',
+            connectionError:
+              error instanceof Error ? error.message : "Connection failed",
             champSelectSession: null,
-            useMockData: false
+            useMockData: false,
           });
         });
       }, 100);
@@ -262,11 +292,15 @@ export function LCUProvider({ children }: { children: ReactNode }) {
       } catch (error: unknown) {
         if (
           error &&
-          typeof error === 'object' &&
-          'message' in error &&
-          typeof (error as { message?: string }).message === 'string' &&
-          ((error as { message: string }).message.toLowerCase().includes('not found') ||
-            (error as { message: string }).message.toLowerCase().includes('404'))
+          typeof error === "object" &&
+          "message" in error &&
+          typeof (error as { message?: string }).message === "string" &&
+          ((error as { message: string }).message
+            .toLowerCase()
+            .includes("not found") ||
+            (error as { message: string }).message
+              .toLowerCase()
+              .includes("404"))
         ) {
           setLcuNotFound(true);
           return;
@@ -275,9 +309,12 @@ export function LCUProvider({ children }: { children: ReactNode }) {
         }
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to connect to League Client';
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to connect to League Client";
       setConnectionError(errorMessage);
-      console.error('LCU connection failed:', error);
+      console.error("LCU connection failed:", error);
     }
   }, [lcuConnector]);
 
@@ -294,7 +331,13 @@ export function LCUProvider({ children }: { children: ReactNode }) {
 
   // Auto-reconnect logic for connection failures
   useEffect(() => {
-    if (!isConnected && !isConnecting && autoReconnect && connectionAttempts > 0 && connectionAttempts < 5) {
+    if (
+      !isConnected &&
+      !isConnecting &&
+      autoReconnect &&
+      connectionAttempts > 0 &&
+      connectionAttempts < 5
+    ) {
       const delay = Math.min(1000 * Math.pow(2, connectionAttempts), 10000);
       const timeoutId = setTimeout(() => {
         connect();
@@ -306,8 +349,8 @@ export function LCUProvider({ children }: { children: ReactNode }) {
 
   // Route-based polling control
   useEffect(() => {
-    const isPickbanModule = pathname?.startsWith('/modules/pickban');
-    
+    const isPickbanModule = pathname?.startsWith("/modules/pickban");
+
     if (isPickbanModule && isConnected && !downloadState.isDownloading) {
       lcuConnector.enablePolling();
     } else {
@@ -358,15 +401,18 @@ export function LCUProvider({ children }: { children: ReactNode }) {
     connectionAttempts,
     enablePolling,
     disablePolling,
-    isPollingEnabled
+    isPollingEnabled,
   };
 
   return (
     <LCUContext.Provider value={value}>
       {lcuNotFound ? (
-        <div style={{ padding: 32, textAlign: 'center', color: '#f87171' }}>
+        <div style={{ padding: 32, textAlign: "center", color: "#f87171" }}>
           <h2>League Client Not Found</h2>
-          <p>The League Client is not running or could not be found. Please start the League Client and try again.</p>
+          <p>
+            The League Client is not running or could not be found. Please start
+            the League Client and try again.
+          </p>
         </div>
       ) : (
         children
@@ -378,7 +424,7 @@ export function LCUProvider({ children }: { children: ReactNode }) {
 export function useLCU(): LCUContextType {
   const context = useContext(LCUContext);
   if (context === undefined) {
-    throw new Error('useLCU must be used within an LCUProvider');
+    throw new Error("useLCU must be used within an LCUProvider");
   }
   return context;
-} 
+}

@@ -1,20 +1,26 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import type { EnhancedChampSelectSession } from '@lib/types';
-import { getChampions } from '@lib/champions';
-import { useNavigation } from '@lib/contexts/NavigationContext';
-import { useMockDataContext } from '@lib/contexts/MockDataContext';
-import { useLCU } from '@lib/contexts/LCUContext';
-import { getDynamicMockData } from '@lib/mocks/dynamic-champselect';
-import { ChampSelectDisplay } from '@lib/components/pages/leagueclient/champselect/ChampSelectDisplay';
-import { BackButton } from '@lib/components/common/buttons';
+import React, { useEffect, useState } from "react";
+import type { EnhancedChampSelectSession } from "@lib/types";
+import { getChampions } from "@lib/champions";
+import { useNavigation } from "@lib/contexts/NavigationContext";
+import { useMockDataContext } from "@lib/contexts/MockDataContext";
+import { useLCU } from "@lib/contexts/LCUContext";
+import { getDynamicMockData } from "@lib/mocks/dynamic-champselect";
+import { ChampSelectDisplay } from "@lib/components/pages/leagueclient/champselect/ChampSelectDisplay";
+import { BackButton } from "@lib/components/common/buttons";
 
 const ChampSelectOverlayPage: React.FC = () => {
   const { useMockData } = useMockDataContext();
-  const { champSelectSession, isConnected, connect, isConnecting, connectionError: _connectionError } = useLCU();
+  const {
+    champSelectSession,
+    isConnected,
+    connect,
+    isConnecting,
+    connectionError: _connectionError,
+  } = useLCU();
   const { setActiveModule } = useNavigation();
-  
+
   // Check for URL parameters
   const [urlMockEnabled, setUrlMockEnabled] = useState(false);
 
@@ -24,18 +30,18 @@ const ChampSelectOverlayPage: React.FC = () => {
 
   // Check URL parameters on mount
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       const urlParams = new URLSearchParams(window.location.search);
-      const mockParam = urlParams.get('mock');
-      
-      setUrlMockEnabled(mockParam === 'true');
+      const mockParam = urlParams.get("mock");
+
+      setUrlMockEnabled(mockParam === "true");
     }
   }, []);
 
   // Auto-connect to LCU when not using mock data and URL mock is not enabled
   useEffect(() => {
     if (!useMockData && !urlMockEnabled && !isConnected && !isConnecting) {
-      console.log('Auto-connecting to LCU for overlay...');
+      console.log("Auto-connecting to LCU for overlay...");
       connect().catch(console.error);
     }
   }, [useMockData, urlMockEnabled, isConnected, isConnecting, connect]);
@@ -60,7 +66,7 @@ const ChampSelectOverlayPage: React.FC = () => {
     const data = getDynamicMockData();
 
     // Ensure champions cache is populated
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       getChampions().catch(console.error);
     }
 
@@ -69,10 +75,7 @@ const ChampSelectOverlayPage: React.FC = () => {
         <div className="mb-4">
           <BackButton to="/modules">Back to Modules</BackButton>
         </div>
-        <ChampSelectDisplay 
-          data={data}
-          isOverlay={true}
-          />
+        <ChampSelectDisplay data={data} isOverlay={true} />
       </>
     );
   }
@@ -86,7 +89,7 @@ const ChampSelectOverlayPage: React.FC = () => {
   const data = champSelectSession as EnhancedChampSelectSession;
 
   // Ensure champions cache is populated
-  if (typeof window !== 'undefined') {
+  if (typeof window !== "undefined") {
     // Trigger load once; ignore errors
     getChampions().catch(console.error);
   }
@@ -96,10 +99,7 @@ const ChampSelectOverlayPage: React.FC = () => {
       <div className="mb-4">
         <BackButton to="/modules">Back to Modules</BackButton>
       </div>
-      <ChampSelectDisplay 
-        data={data}
-        isOverlay={true}
-        />
+      <ChampSelectDisplay data={data} isOverlay={true} />
     </>
   );
 };

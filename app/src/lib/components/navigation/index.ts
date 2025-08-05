@@ -1,7 +1,4 @@
-import { NavigationGuard } from './NavigationGuard';
-import { ContextErrorBoundary } from './ContextErrorBoundary';
+import { NavigationGuard } from "./NavigationGuard";
+import { ContextErrorBoundary } from "./ContextErrorBoundary";
 
-export {
-    NavigationGuard,
-    ContextErrorBoundary
-}
+export { NavigationGuard, ContextErrorBoundary };

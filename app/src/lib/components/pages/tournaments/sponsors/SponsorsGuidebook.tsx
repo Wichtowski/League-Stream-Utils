@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useState } from "react";
 
 export const SponsorsGuidebook = ({ expanded }: { expanded: boolean }) => {
   const [guidebookExpanded, setGuidebookExpanded] = useState(expanded);
@@ -12,7 +12,7 @@ export const SponsorsGuidebook = ({ expanded }: { expanded: boolean }) => {
         className="flex items-center justify-between w-full text-left"
       >
         <h3 className="text-lg font-semibold">📋 Asset Guidebook</h3>
-        <span className="text-2xl">{guidebookExpanded ? '−' : '+'}</span>
+        <span className="text-2xl">{guidebookExpanded ? "−" : "+"}</span>
       </button>
       {guidebookExpanded && (
         <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">

@@ -1,6 +1,6 @@
-import { Champion } from './types';
-import { DDRAGON_CDN, DDRAGON_BASE_URL } from '@lib/utils/constants';
-import { championCacheService } from './services/cache/champion';
+import { Champion } from "./types";
+import { DDRAGON_CDN, DDRAGON_BASE_URL } from "@lib/utils/constants";
+import { championCacheService } from "./services/cache/champion";
 
 interface DataDragonChampion {
   id: string;
@@ -26,16 +26,19 @@ async function getLatestVersion(): Promise<string> {
     const versions = await response.json();
     return versions[0];
   } catch (error) {
-    console.error('Failed to fetch Data Dragon version:', error);
-    return '15.13.1'; // Fallback version
+    console.error("Failed to fetch Data Dragon version:", error);
+    return "15.13.1"; // Fallback version
   }
 }
 
-async function fetchChampionsFromAPI(): Promise<{ champions: Champion[]; version: string }> {
+async function fetchChampionsFromAPI(): Promise<{
+  champions: Champion[];
+  version: string;
+}> {
   const version = await getLatestVersion();
 
   const response = await fetch(
-    `${DDRAGON_CDN}/${version}/data/en_US/champion.json`
+    `${DDRAGON_CDN}/${version}/data/en_US/champion.json`,
   );
 
   if (!response.ok) {
@@ -44,12 +47,14 @@ async function fetchChampionsFromAPI(): Promise<{ champions: Champion[]; version
 
   const data: DataDragonResponse = await response.json();
 
-  const champions: Champion[] = Object.values(data.data).map((champ: DataDragonChampion) => ({
-    id: parseInt(champ.key),
-    name: champ.name,
-    key: champ.id,
-    image: `${DDRAGON_CDN}/${version}/img/champion/${champ.image.full}`
-  }));
+  const champions: Champion[] = Object.values(data.data).map(
+    (champ: DataDragonChampion) => ({
+      id: parseInt(champ.key),
+      name: champ.name,
+      key: champ.id,
+      image: `${DDRAGON_CDN}/${version}/img/champion/${champ.image.full}`,
+    }),
+  );
 
   return { champions, version };
 }
@@ -61,25 +66,29 @@ function isCacheValid(timestamp: number): boolean {
 
 // Browser localStorage cache
 function saveToLocalStorage(champions: Champion[], version: string): void {
-  if (typeof localStorage !== 'undefined') {
+  if (typeof localStorage !== "undefined") {
     try {
       const cacheData = {
         champions,
         version,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
-      localStorage.setItem('champions_cache', JSON.stringify(cacheData));
+      localStorage.setItem("champions_cache", JSON.stringify(cacheData));
     } catch (error) {
-      console.warn('Failed to save champions to localStorage:', error);
+      console.warn("Failed to save champions to localStorage:", error);
     }
   }
 }
 
-function loadFromLocalStorage(): { champions: Champion[]; version: string; timestamp: number } | null {
-  if (typeof localStorage === 'undefined') return null;
+function loadFromLocalStorage(): {
+  champions: Champion[];
+  version: string;
+  timestamp: number;
+} | null {
+  if (typeof localStorage === "undefined") return null;
 
   try {
-    const cached = localStorage.getItem('champions_cache');
+    const cached = localStorage.getItem("champions_cache");
     if (!cached) return null;
 
     const data = JSON.parse(cached);
@@ -87,28 +96,35 @@ function loadFromLocalStorage(): { champions: Champion[]; version: string; times
 
     return data;
   } catch (error) {
-    console.warn('Failed to load champions from localStorage:', error);
+    console.warn("Failed to load champions from localStorage:", error);
     return null;
   }
 }
 
 // Electron file cache
-async function saveToElectronCache(champions: Champion[], version: string): Promise<void> {
-  if (typeof window !== 'undefined' && window.electronAPI) {
+async function saveToElectronCache(
+  champions: Champion[],
+  version: string,
+): Promise<void> {
+  if (typeof window !== "undefined" && window.electronAPI) {
     try {
       await window.electronAPI.saveChampionsCache({
         champions,
         version,
-        lastUpdated: new Date().toISOString()
+        lastUpdated: new Date().toISOString(),
       });
     } catch (error) {
-      console.warn('Failed to save champions to Electron cache:', error);
+      console.warn("Failed to save champions to Electron cache:", error);
     }
   }
 }
 
-async function loadFromElectronCache(): Promise<{ champions: Champion[]; version: string; timestamp: number } | null> {
-  if (typeof window === 'undefined' || !window.electronAPI) return null;
+async function loadFromElectronCache(): Promise<{
+  champions: Champion[];
+  version: string;
+  timestamp: number;
+} | null> {
+  if (typeof window === "undefined" || !window.electronAPI) return null;
 
   try {
     const result = await window.electronAPI.loadChampionsCache();
@@ -118,10 +134,10 @@ async function loadFromElectronCache(): Promise<{ champions: Champion[]; version
     return {
       champions: result.data.champions,
       version: result.data.version,
-      timestamp
+      timestamp,
     };
   } catch (error) {
-    console.warn('Failed to load champions from Electron cache:', error);
+    console.warn("Failed to load champions from Electron cache:", error);
     return null;
   }
 }
@@ -132,7 +148,10 @@ async function getChampionsFromComprehensiveCache(): Promise<Champion[]> {
     // Try to use the new comprehensive caching system
     return await championCacheService.getAllChampions();
   } catch (error) {
-    console.warn('Comprehensive champion cache failed, falling back to basic cache:', error);
+    console.warn(
+      "Comprehensive champion cache failed, falling back to basic cache:",
+      error,
+    );
     return await getChampionsFromBasicCache();
   }
 }
@@ -174,7 +193,7 @@ async function getChampionsFromBasicCache(): Promise<Champion[]> {
 
     return champions;
   } catch (error) {
-    console.error('Error fetching champions from API:', error);
+    console.error("Error fetching champions from API:", error);
 
     // Try to return stale cache as fallback
     if (electronCache) return electronCache.champions;
@@ -188,7 +207,7 @@ async function getChampionsFromBasicCache(): Promise<Champion[]> {
 // Main cache logic
 async function getChampionsFromCache(): Promise<Champion[]> {
   // Check if we're in Electron environment and should use comprehensive caching
-  if (typeof window !== 'undefined' && window.electronAPI) {
+  if (typeof window !== "undefined" && window.electronAPI) {
     return await getChampionsFromComprehensiveCache();
   }
 
@@ -206,16 +225,16 @@ export async function refreshChampionsCache(): Promise<Champion[]> {
   memoryCache = null;
   cacheTimestamp = null;
 
-  if (typeof localStorage !== 'undefined') {
-    localStorage.removeItem('champions_cache');
+  if (typeof localStorage !== "undefined") {
+    localStorage.removeItem("champions_cache");
   }
 
   // Clear comprehensive cache if available
-  if (typeof window !== 'undefined' && window.electronAPI) {
+  if (typeof window !== "undefined" && window.electronAPI) {
     try {
       await championCacheService.clearCache();
     } catch (error) {
-      console.warn('Failed to clear comprehensive champion cache:', error);
+      console.warn("Failed to clear comprehensive champion cache:", error);
     }
   }
 
@@ -228,38 +247,46 @@ export const getChampionsCached = (): Champion[] => {
 
 export const getChampionByKey = (key: string): Champion | undefined => {
   const champions = getChampionsCached();
-  return champions.find(champ => champ.key === key);
+  return champions.find((champ) => champ.key === key);
 };
 
 export const getChampionById = (id: number): Champion | undefined => {
   const champions = getChampionsCached();
-  return champions.find(champ => champ.id === id);
+  return champions.find((champ) => champ.id === id);
 };
 
 export const getChampionByName = (name: string): Champion | undefined => {
   const champions = getChampionsCached();
-  return champions.find(champ => champ.name.toLowerCase() === name.toLowerCase());
+  return champions.find(
+    (champ) => champ.name.toLowerCase() === name.toLowerCase(),
+  );
 };
 
 // Enhanced champion functions
-export async function getChampionByKeyEnhanced(key: string): Promise<Champion | null> {
-  if (typeof window !== 'undefined' && window.electronAPI) {
+export async function getChampionByKeyEnhanced(
+  key: string,
+): Promise<Champion | null> {
+  if (typeof window !== "undefined" && window.electronAPI) {
     try {
       return await championCacheService.getChampionByKey(key);
     } catch (error) {
-      console.warn('Failed to get enhanced champion data:', error);
+      console.warn("Failed to get enhanced champion data:", error);
       return getChampionByKey(key) || null;
     }
   }
   return getChampionByKey(key) || null;
 }
 
-export async function getChampionCacheStats(): Promise<{ totalChampions: number; cacheSize: number; version: string } | null> {
-  if (typeof window !== 'undefined' && window.electronAPI) {
+export async function getChampionCacheStats(): Promise<{
+  totalChampions: number;
+  cacheSize: number;
+  version: string;
+} | null> {
+  if (typeof window !== "undefined" && window.electronAPI) {
     try {
       return await championCacheService.getCacheStats();
     } catch (error) {
-      console.warn('Failed to get champion cache stats:', error);
+      console.warn("Failed to get champion cache stats:", error);
       return null;
     }
   }
@@ -267,6 +294,6 @@ export async function getChampionCacheStats(): Promise<{ totalChampions: number;
 }
 
 // Initialize champions cache on module load (for server-side)
-if (typeof window === 'undefined') {
+if (typeof window === "undefined") {
   getChampions().catch(console.error);
-} 
+}

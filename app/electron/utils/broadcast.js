@@ -1,30 +1,30 @@
 /* eslint-disable-next-line @typescript-eslint/no-require-imports */
-const { BrowserWindow } = require('electron');
+const { BrowserWindow } = require("electron");
 
 // Function to broadcast LCU data updates to all windows
 function broadcastLCUDataUpdate(mainWindow, lcuData) {
-    if (mainWindow) {
-        mainWindow.webContents.send('lcu-data-update', lcuData);
+  if (mainWindow) {
+    mainWindow.webContents.send("lcu-data-update", lcuData);
+  }
+  // Also send to any overlay windows
+  BrowserWindow.getAllWindows().forEach((window) => {
+    if (window !== mainWindow) {
+      window.webContents.send("lcu-data-update", lcuData);
     }
-    // Also send to any overlay windows
-    BrowserWindow.getAllWindows().forEach(window => {
-        if (window !== mainWindow) {
-            window.webContents.send('lcu-data-update', lcuData);
-        }
-    });
+  });
 }
 
 // Function to broadcast mock data toggle
 function broadcastMockDataToggle(mainWindow, useMockData) {
-    if (mainWindow) {
-        mainWindow.webContents.send('mock-data-toggle', useMockData);
+  if (mainWindow) {
+    mainWindow.webContents.send("mock-data-toggle", useMockData);
+  }
+  // Also send to any overlay windows
+  BrowserWindow.getAllWindows().forEach((window) => {
+    if (window !== mainWindow) {
+      window.webContents.send("mock-data-toggle", useMockData);
     }
-    // Also send to any overlay windows
-    BrowserWindow.getAllWindows().forEach(window => {
-        if (window !== mainWindow) {
-            window.webContents.send('mock-data-toggle', useMockData);
-        }
-    });
+  });
 }
 
 module.exports = { broadcastLCUDataUpdate, broadcastMockDataToggle };

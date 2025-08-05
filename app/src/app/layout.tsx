@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Footer } from "@lib/components/common";
-import { 
+import {
   NavigationProvider,
   ModalProvider,
   AuthProvider,
@@ -17,9 +17,8 @@ import {
   SettingsProvider,
   MockDataProvider,
   DownloadProvider,
-  PredictionsProvider
-}
-from "@lib/contexts";
+  PredictionsProvider,
+} from "@lib/contexts";
 import { NavigationGuard } from "@lib/components/navigation/NavigationGuard";
 import { ContextWrapper } from "@lib/components/navigation/ContextErrorBoundary";
 import { ChampionCacheInitializer } from "@lib/components/LCU/ChampionCacheInitializer";
@@ -64,16 +63,14 @@ export default function RootLayout({
           { name: "Tournaments", provider: TournamentsProvider },
           { name: "Pickban", provider: PickbanProvider },
           { name: "Navigation", provider: NavigationProvider },
-          { name: "Modal", provider: ModalProvider }
+          { name: "Modal", provider: ModalProvider },
         ]}
       >
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col bg-black`}
-          >
+        >
           <NavigationGuard>
-            <main className="flex-1">
-              {children}
-            </main>
+            <main className="flex-1">{children}</main>
             <Footer />
             <ChampionCacheInitializer />
           </NavigationGuard>

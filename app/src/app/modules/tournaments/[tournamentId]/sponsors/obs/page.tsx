@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useEffect, useState, useCallback } from 'react';
-import type { Sponsorship } from '@lib/types';
-import { SponsorWindow } from '@lib/components/pages/tournaments/sponsors/SponsorWindow';
+import { useEffect, useState, useCallback } from "react";
+import type { Sponsorship } from "@lib/types";
+import { SponsorWindow } from "@lib/components/pages/tournaments/sponsors/SponsorWindow";
 
 interface TournamentInfo {
   id: string;
@@ -21,13 +21,15 @@ interface SponsorsDisplayPageProps {
   }>;
 }
 
-export default function SponsorsDisplayPage({ params }: SponsorsDisplayPageProps) {
+export default function SponsorsDisplayPage({
+  params,
+}: SponsorsDisplayPageProps) {
   const [data, setData] = useState<SponsorsDisplayData | null>(null);
   const [currentSponsorIndex, setCurrentSponsorIndex] = useState(0);
   const [isVisible, setIsVisible] = useState(true);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [tournamentId, setTournamentId] = useState<string>('');
+  const [tournamentId, setTournamentId] = useState<string>("");
 
   useEffect(() => {
     const resolveParams = async () => {
@@ -39,27 +41,29 @@ export default function SponsorsDisplayPage({ params }: SponsorsDisplayPageProps
 
   const fetchSponsors = useCallback(async (): Promise<void> => {
     if (!tournamentId) return;
-    
+
     try {
-      const response = await fetch(`/api/v1/tournaments/${tournamentId}/sponsors/display`);
+      const response = await fetch(
+        `/api/v1/tournaments/${tournamentId}/sponsors/display`,
+      );
       if (!response.ok) {
-        throw new Error('Failed to fetch sponsors');
+        throw new Error("Failed to fetch sponsors");
       }
       const sponsorsData = await response.json();
       setData(sponsorsData);
       setLoading(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load sponsors');
+      setError(err instanceof Error ? err.message : "Failed to load sponsors");
       setLoading(false);
     }
   }, [tournamentId]);
 
   useEffect(() => {
     fetchSponsors();
-    
+
     // Set up periodic refresh every 30 seconds for OBS display
     const refreshInterval = setInterval(fetchSponsors, 30000);
-    
+
     return () => clearInterval(refreshInterval);
   }, [fetchSponsors]);
 
@@ -69,16 +73,17 @@ export default function SponsorsDisplayPage({ params }: SponsorsDisplayPageProps
     const fadeOutDuration = 1000; // 1 second fade out
     const displayDuration = 3000; // 3 seconds display
     const fadeInDuration = 1000; // 1 second fade in
-    const totalCycleDuration = fadeOutDuration + displayDuration + fadeInDuration;
+    const totalCycleDuration =
+      fadeOutDuration + displayDuration + fadeInDuration;
 
     const cycleSponsors = (): void => {
       // Fade out
       setIsVisible(false);
-      
+
       setTimeout(() => {
         // Change sponsor
         setCurrentSponsorIndex((prev) => (prev + 1) % data.sponsors.length);
-        
+
         // Fade in
         setTimeout(() => {
           setIsVisible(true);
@@ -128,4 +133,4 @@ export default function SponsorsDisplayPage({ params }: SponsorsDisplayPageProps
   return (
     <SponsorWindow currentSponsor={currentSponsor} isVisible={isVisible} />
   );
-} 
+}

@@ -1,6 +1,14 @@
-import { v4 as uuidv4 } from 'uuid';
-import type { GameSession, Champion, GameConfig, WSMessage, GameState, PlayerRole, ImageStorage } from '@lib/types';
-import { getChampionById, getChampions } from '@lib/champions';
+import { v4 as uuidv4 } from "uuid";
+import type {
+  GameSession,
+  Champion,
+  GameConfig,
+  WSMessage,
+  GameState,
+  PlayerRole,
+  ImageStorage,
+} from "@lib/types";
+import { getChampionById, getChampions } from "@lib/champions";
 
 import {
   getGameSession as getGameSessionFromDB,
@@ -8,43 +16,43 @@ import {
   getAllGameSessions,
   getUsedChampionsInSeries,
   addUsedChampion,
-  recordGameResult
-} from '@lib/database';
+  recordGameResult,
+} from "@lib/database";
 
-import type { Team } from '@lib/types';
-import { getTeamLogoUrl } from '@lib/utils/media/image';
+import type { Team } from "@lib/types";
+import { getTeamLogoUrl } from "@lib/utils/media/image";
 
 // Pick and ban phase configuration - 22 turns total
 const PICK_BAN_ORDER = [
   // Ban phase 1 (6 bans)
-  { phase: 'ban1', team: 'blue', type: 'ban' },
-  { phase: 'ban1', team: 'red', type: 'ban' },
-  { phase: 'ban1', team: 'blue', type: 'ban' },
-  { phase: 'ban1', team: 'red', type: 'ban' },
-  { phase: 'ban1', team: 'blue', type: 'ban' },
-  { phase: 'ban1', team: 'red', type: 'ban' },
+  { phase: "ban1", team: "blue", type: "ban" },
+  { phase: "ban1", team: "red", type: "ban" },
+  { phase: "ban1", team: "blue", type: "ban" },
+  { phase: "ban1", team: "red", type: "ban" },
+  { phase: "ban1", team: "blue", type: "ban" },
+  { phase: "ban1", team: "red", type: "ban" },
 
   // Pick phase 1 (6 picks)
-  { phase: 'pick1', team: 'blue', type: 'pick' },
-  { phase: 'pick1', team: 'red', type: 'pick' },
-  { phase: 'pick1', team: 'red', type: 'pick' },
-  { phase: 'pick1', team: 'blue', type: 'pick' },
-  { phase: 'pick1', team: 'blue', type: 'pick' },
-  { phase: 'pick1', team: 'red', type: 'pick' },
+  { phase: "pick1", team: "blue", type: "pick" },
+  { phase: "pick1", team: "red", type: "pick" },
+  { phase: "pick1", team: "red", type: "pick" },
+  { phase: "pick1", team: "blue", type: "pick" },
+  { phase: "pick1", team: "blue", type: "pick" },
+  { phase: "pick1", team: "red", type: "pick" },
 
   // Ban phase 2 (4 bans)
-  { phase: 'ban2', team: 'red', type: 'ban' },
-  { phase: 'ban2', team: 'blue', type: 'ban' },
-  { phase: 'ban2', team: 'red', type: 'ban' },
-  { phase: 'ban2', team: 'blue', type: 'ban' },
+  { phase: "ban2", team: "red", type: "ban" },
+  { phase: "ban2", team: "blue", type: "ban" },
+  { phase: "ban2", team: "red", type: "ban" },
+  { phase: "ban2", team: "blue", type: "ban" },
 
   // Pick phase 2 (6 picks)
-  { phase: 'pick2', team: 'red', type: 'pick' },
-  { phase: 'pick2', team: 'blue', type: 'pick' },
-  { phase: 'pick2', team: 'blue', type: 'pick' },
-  { phase: 'pick2', team: 'red', type: 'pick' },
-  { phase: 'pick2', team: 'red', type: 'pick' },
-  { phase: 'pick2', team: 'blue', type: 'pick' }
+  { phase: "pick2", team: "red", type: "pick" },
+  { phase: "pick2", team: "blue", type: "pick" },
+  { phase: "pick2", team: "blue", type: "pick" },
+  { phase: "pick2", team: "red", type: "pick" },
+  { phase: "pick2", team: "red", type: "pick" },
+  { phase: "pick2", team: "blue", type: "pick" },
 ];
 
 // Timer management
@@ -52,28 +60,30 @@ const TIMER_DURATIONS = {
   ban: 27000, // 27 seconds for bans
   pick: 27000, // 27 seconds for picks
   finalization: 59000, // 59 seconds for finalization
-  lobby: 0
+  lobby: 0,
 };
 
 const timers = new Map<string, NodeJS.Timeout>();
 
-export async function createGameSession(config?: Partial<GameConfig>): Promise<GameSession> {
+export async function createGameSession(
+  config?: Partial<GameConfig>,
+): Promise<GameSession> {
   const sessionId = uuidv4();
 
-  const currentPatch = config?.patchName || '14.24';
+  const currentPatch = config?.patchName || "14.24";
 
   const defaultConfig: GameConfig = {
-    seriesType: 'BO1',
+    seriesType: "BO1",
     currentGame: 1,
     totalGames: 1,
     isFearlessDraft: false,
     patchName: currentPatch,
-    ...config
+    ...config,
   };
 
-  if (defaultConfig.seriesType === 'BO3') {
+  if (defaultConfig.seriesType === "BO3") {
     defaultConfig.totalGames = 3;
-  } else if (defaultConfig.seriesType === 'BO5') {
+  } else if (defaultConfig.seriesType === "BO5") {
     defaultConfig.totalGames = 5;
   }
 
@@ -82,52 +92,57 @@ export async function createGameSession(config?: Partial<GameConfig>): Promise<G
     teams: {
       blue: {
         id: uuidv4(),
-        name: defaultConfig.blueTeamName || 'Blue Team',
-        side: 'blue',
+        name: defaultConfig.blueTeamName || "Blue Team",
+        side: "blue",
         bans: [],
         picks: [],
         isReady: false,
         coach: defaultConfig.blueCoach,
         usedChampions: [],
-        logo: defaultConfig.blueTeamLogo as unknown as ImageStorage
+        logo: defaultConfig.blueTeamLogo as unknown as ImageStorage,
       },
       red: {
         id: uuidv4(),
-        name: defaultConfig.redTeamName || 'Red Team',
-        side: 'red',
+        name: defaultConfig.redTeamName || "Red Team",
+        side: "red",
         bans: [],
         picks: [],
         isReady: false,
         coach: defaultConfig.redCoach,
         usedChampions: [],
-        logo: defaultConfig.redTeamLogo as unknown as ImageStorage
-      }
+        logo: defaultConfig.redTeamLogo as unknown as ImageStorage,
+      },
     },
-    phase: 'config',
-    currentTeam: 'blue',
+    phase: "config",
+    currentTeam: "blue",
     turnNumber: 0,
     createdAt: new Date(),
     lastActivity: new Date(),
     timer: {
       remaining: 0,
       totalTime: 0,
-      isActive: false
+      isActive: false,
     },
     bothTeamsReady: false,
     config: defaultConfig,
     seriesScore: { blue: 0, red: 0 },
-    gameHistory: []
+    gameHistory: [],
   };
 
   const savedSession = await saveGameSession(session);
   return savedSession;
 }
 
-export async function getGameSession(sessionId: string): Promise<GameSession | null> {
+export async function getGameSession(
+  sessionId: string,
+): Promise<GameSession | null> {
   return await getGameSessionFromDB(sessionId);
 }
 
-export async function updateGameSession(sessionId: string, updates: Partial<GameSession>): Promise<GameSession | null> {
+export async function updateGameSession(
+  sessionId: string,
+  updates: Partial<GameSession>,
+): Promise<GameSession | null> {
   const session = await getGameSession(sessionId);
   if (!session) return null;
 
@@ -137,7 +152,10 @@ export async function updateGameSession(sessionId: string, updates: Partial<Game
   return await saveGameSession(updatedSession);
 }
 
-export async function updateGameConfig(sessionId: string, config: Partial<GameConfig>): Promise<GameSession | null> {
+export async function updateGameConfig(
+  sessionId: string,
+  config: Partial<GameConfig>,
+): Promise<GameSession | null> {
   const session = await getGameSession(sessionId);
   if (!session) return null;
 
@@ -164,11 +182,11 @@ export async function updateGameConfig(sessionId: string, config: Partial<GameCo
     session.teams.red.coach = config.redCoach;
   }
 
-  if (config.seriesType === 'BO1') {
+  if (config.seriesType === "BO1") {
     session.config.totalGames = 1;
-  } else if (config.seriesType === 'BO3') {
+  } else if (config.seriesType === "BO3") {
     session.config.totalGames = 3;
-  } else if (config.seriesType === 'BO5') {
+  } else if (config.seriesType === "BO5") {
     session.config.totalGames = 5;
   }
 
@@ -176,19 +194,30 @@ export async function updateGameConfig(sessionId: string, config: Partial<GameCo
   return await saveGameSession(session);
 }
 
-export function getCurrentTurn(session: GameSession): { team: 'blue' | 'red'; type: 'pick' | 'ban'; phase: string } | null {
+export function getCurrentTurn(
+  session: GameSession,
+): { team: "blue" | "red"; type: "pick" | "ban"; phase: string } | null {
   if (session.turnNumber >= PICK_BAN_ORDER.length) {
     return null;
   }
 
-  return PICK_BAN_ORDER[session.turnNumber] as { team: 'blue' | 'red'; type: 'pick' | 'ban'; phase: string };
+  return PICK_BAN_ORDER[session.turnNumber] as {
+    team: "blue" | "red";
+    type: "pick" | "ban";
+    phase: string;
+  };
 }
 
-export async function isChampionAvailable(session: GameSession, championId: number): Promise<boolean> {
+export async function isChampionAvailable(
+  session: GameSession,
+  championId: number,
+): Promise<boolean> {
   const allBans = [...session.teams.blue.bans, ...session.teams.red.bans];
   const allPicks = [...session.teams.blue.picks, ...session.teams.red.picks];
 
-  const unavailableInCurrentGame = allBans.some(c => c.id === championId) || allPicks.some(c => c.id === championId);
+  const unavailableInCurrentGame =
+    allBans.some((c) => c.id === championId) ||
+    allPicks.some((c) => c.id === championId);
 
   if (unavailableInCurrentGame) {
     return false;
@@ -196,23 +225,31 @@ export async function isChampionAvailable(session: GameSession, championId: numb
 
   if (session.config.isFearlessDraft) {
     const usedChampions = await getUsedChampionsInSeries(session.id);
-    const isUsedInSeries = usedChampions.some(c => c.id === championId);
+    const isUsedInSeries = usedChampions.some((c) => c.id === championId);
     return !isUsedInSeries;
   }
 
   return true;
 }
 
-export function canTeamAct(session: GameSession, teamSide: 'blue' | 'red'): boolean {
+export function canTeamAct(
+  session: GameSession,
+  teamSide: "blue" | "red",
+): boolean {
   const currentTurn = getCurrentTurn(session);
   return currentTurn?.team === teamSide;
 }
 
-export async function setTeamReady(session: GameSession, teamSide: 'blue' | 'red', ready: boolean): Promise<GameSession> {
+export async function setTeamReady(
+  session: GameSession,
+  teamSide: "blue" | "red",
+  ready: boolean,
+): Promise<GameSession> {
   session.teams[teamSide].isReady = ready;
-  session.bothTeamsReady = session.teams.blue.isReady && session.teams.red.isReady;
+  session.bothTeamsReady =
+    session.teams.blue.isReady && session.teams.red.isReady;
 
-  if (session.bothTeamsReady && session.phase === 'lobby') {
+  if (session.bothTeamsReady && session.phase === "lobby") {
     await startGame(session);
   }
 
@@ -221,8 +258,8 @@ export async function setTeamReady(session: GameSession, teamSide: 'blue' | 'red
 }
 
 export async function startGame(session: GameSession): Promise<void> {
-  session.phase = 'ban1';
-  session.currentTeam = 'blue';
+  session.phase = "ban1";
+  session.currentTeam = "blue";
   session.turnNumber = 0;
   await saveGameSession(session);
   startTimer(session);
@@ -238,7 +275,7 @@ export function startTimer(session: GameSession): void {
   if (!currentTurn) return;
 
   let duration: number;
-  if (session.phase === 'finalization') {
+  if (session.phase === "finalization") {
     duration = TIMER_DURATIONS.finalization;
   } else {
     duration = TIMER_DURATIONS[currentTurn.type] || TIMER_DURATIONS.ban;
@@ -248,7 +285,7 @@ export function startTimer(session: GameSession): void {
     remaining: duration,
     totalTime: duration,
     isActive: true,
-    startedAt: new Date()
+    startedAt: new Date(),
   };
 
   const timer = setInterval(async () => {
@@ -289,7 +326,8 @@ export async function handleTimerExpired(session: GameSession): Promise<void> {
 
   // Continue with extended time
   const timer = setInterval(async () => {
-    if (session.timer.remaining <= -10000) { // Allow 10 seconds of negative time
+    if (session.timer.remaining <= -10000) {
+      // Allow 10 seconds of negative time
       clearInterval(timer);
       timers.delete(session.id);
       // Still don't auto-advance, just stop the timer
@@ -305,10 +343,18 @@ export async function handleTimerExpired(session: GameSession): Promise<void> {
   timers.set(session.id, timer);
 }
 
-export async function banChampion(session: GameSession, championId: number, teamSide: 'blue' | 'red'): Promise<boolean> {
+export async function banChampion(
+  session: GameSession,
+  championId: number,
+  teamSide: "blue" | "red",
+): Promise<boolean> {
   const currentTurn = getCurrentTurn(session);
 
-  if (!currentTurn || currentTurn.team !== teamSide || currentTurn.type !== 'ban') {
+  if (
+    !currentTurn ||
+    currentTurn.team !== teamSide ||
+    currentTurn.type !== "ban"
+  ) {
     return false;
   }
 
@@ -332,17 +378,25 @@ export async function banChampion(session: GameSession, championId: number, team
 
   await saveGameSession(session);
 
-  if (session.phase !== 'completed') {
+  if (session.phase !== "completed") {
     startTimer(session);
   }
 
   return true;
 }
 
-export async function pickChampion(session: GameSession, championId: number, teamSide: 'blue' | 'red'): Promise<boolean> {
+export async function pickChampion(
+  session: GameSession,
+  championId: number,
+  teamSide: "blue" | "red",
+): Promise<boolean> {
   const currentTurn = getCurrentTurn(session);
 
-  if (!currentTurn || currentTurn.team !== teamSide || currentTurn.type !== 'pick') {
+  if (
+    !currentTurn ||
+    currentTurn.team !== teamSide ||
+    currentTurn.type !== "pick"
+  ) {
     return false;
   }
 
@@ -368,7 +422,7 @@ export async function pickChampion(session: GameSession, championId: number, tea
   updateGamePhase(session);
   await saveGameSession(session);
 
-  if (session.phase !== 'completed') {
+  if (session.phase !== "completed") {
     startTimer(session);
   }
 
@@ -381,14 +435,14 @@ function updateGamePhase(session: GameSession): void {
   if (!currentTurn) {
     // Check if all picks and bans are complete (22 turns)
     if (session.turnNumber >= PICK_BAN_ORDER.length) {
-      session.phase = 'finalization';
+      session.phase = "finalization";
       return;
     }
-    session.phase = 'completed';
+    session.phase = "completed";
     return;
   }
 
-  session.phase = currentTurn.phase as GameSession['phase'];
+  session.phase = currentTurn.phase as GameSession["phase"];
   session.currentTeam = currentTurn.team;
 }
 
@@ -400,12 +454,12 @@ export function getGameState(session: GameSession): GameState {
     teams: {
       blue: {
         ...session.teams.blue,
-        prefix: session.config.blueTeamPrefix
+        prefix: session.config.blueTeamPrefix,
       },
       red: {
         ...session.teams.red,
-        prefix: session.config.redTeamPrefix
-      }
+        prefix: session.config.redTeamPrefix,
+      },
     },
     phase: session.phase,
     currentTurn,
@@ -415,7 +469,7 @@ export function getGameState(session: GameSession): GameState {
     bothTeamsReady: session.bothTeamsReady,
     config: session.config,
     seriesScore: session.seriesScore,
-    hoverState: session.hoverState
+    hoverState: session.hoverState,
   };
 }
 
@@ -423,27 +477,33 @@ export async function getAllSessions(): Promise<GameSession[]> {
   return await getAllGameSessions();
 }
 
-export function getPickBanOrder(): Array<{ team: 'blue' | 'red', action: 'ban' | 'pick' }> {
-  return PICK_BAN_ORDER.map(turn => ({
-    team: turn.team as 'blue' | 'red',
-    action: turn.type as 'ban' | 'pick'
+export function getPickBanOrder(): Array<{
+  team: "blue" | "red";
+  action: "ban" | "pick";
+}> {
+  return PICK_BAN_ORDER.map((turn) => ({
+    team: turn.team as "blue" | "red",
+    action: turn.type as "ban" | "pick",
   }));
 }
 
 export async function completeGame(
   sessionId: string,
-  winner: 'blue' | 'red',
+  winner: "blue" | "red",
   tournamentId?: string,
-  gameDuration?: number
+  gameDuration?: number,
 ): Promise<boolean> {
   try {
     const session = await getGameSession(sessionId);
-    if (!session || session.phase !== 'completed') {
+    if (!session || session.phase !== "completed") {
       return false;
     }
 
     // Validate that both teams have 5 picks
-    if (session.teams.blue.picks.length !== 5 || session.teams.red.picks.length !== 5) {
+    if (
+      session.teams.blue.picks.length !== 5 ||
+      session.teams.red.picks.length !== 5
+    ) {
       return false;
     }
 
@@ -458,31 +518,31 @@ export async function completeGame(
       blueTeam: {
         teamId: session.teams.blue.id,
         teamName: session.teams.blue.name,
-        won: winner === 'blue',
+        won: winner === "blue",
         picks: session.teams.blue.picks.map((champion, index) => ({
           championId: champion.id,
-          role: ['TOP', 'JUNGLE', 'MID', 'ADC', 'SUPPORT'][index] as PlayerRole,
-          player: undefined
+          role: ["TOP", "JUNGLE", "MID", "ADC", "SUPPORT"][index] as PlayerRole,
+          player: undefined,
         })),
-        bans: session.teams.blue.bans.map(champion => champion.id)
+        bans: session.teams.blue.bans.map((champion) => champion.id),
       },
       redTeam: {
         teamId: session.teams.red.id,
         teamName: session.teams.red.name,
-        won: winner === 'red',
+        won: winner === "red",
         picks: session.teams.red.picks.map((champion, index) => ({
           championId: champion.id,
-          role: ['TOP', 'JUNGLE', 'MID', 'ADC', 'SUPPORT'][index] as PlayerRole,
-          player: undefined
+          role: ["TOP", "JUNGLE", "MID", "ADC", "SUPPORT"][index] as PlayerRole,
+          player: undefined,
         })),
-        bans: session.teams.red.bans.map(champion => champion.id)
-      }
+        bans: session.teams.red.bans.map((champion) => champion.id),
+      },
     };
 
     // Record the game result for statistics
     await recordGameResult(gameResult);
 
-    if (session.config.seriesType !== 'BO1') {
+    if (session.config.seriesType !== "BO1") {
       if (!session.seriesScore) {
         session.seriesScore = { blue: 0, red: 0 };
       }
@@ -491,7 +551,7 @@ export async function completeGame(
       // Check if series is complete
       const requiredWins = Math.ceil(session.config.totalGames / 2);
       if (session.seriesScore[winner] >= requiredWins) {
-        session.phase = 'completed';
+        session.phase = "completed";
       } else {
         // Start next game in series
         session.config.currentGame += 1;
@@ -503,7 +563,7 @@ export async function completeGame(
     await saveGameSession(session);
     return true;
   } catch (error) {
-    console.error('Error completing game:', error);
+    console.error("Error completing game:", error);
     return false;
   }
 }
@@ -519,21 +579,23 @@ function resetSessionForNextGame(session: GameSession): void {
   session.teams.red.picks = [];
 
   // Reset game state
-  session.phase = 'config';
-  session.currentTeam = 'blue';
+  session.phase = "config";
+  session.currentTeam = "blue";
   session.turnNumber = 0;
   session.bothTeamsReady = false;
   session.timer = {
     remaining: 0,
     totalTime: 0,
-    isActive: false
+    isActive: false,
   };
 
   // Update last activity
   session.lastActivity = new Date();
 }
 
-export async function getAvailableChampions(session: GameSession): Promise<Champion[]> {
+export async function getAvailableChampions(
+  session: GameSession,
+): Promise<Champion[]> {
   const allChampions = await getChampions();
 
   if (!session.config.isFearlessDraft) {
@@ -541,21 +603,31 @@ export async function getAvailableChampions(session: GameSession): Promise<Champ
   }
 
   const usedChampions = await getUsedChampionsInSeries(session.id);
-  return allChampions.filter((champion: Champion) =>
-    !usedChampions.some((used: Champion) => used.id === champion.id)
+  return allChampions.filter(
+    (champion: Champion) =>
+      !usedChampions.some((used: Champion) => used.id === champion.id),
   );
 }
 
-export function generateTeamUrl(sessionId: string, teamSide: 'blue' | 'red', baseUrl: string): string {
+export function generateTeamUrl(
+  sessionId: string,
+  teamSide: "blue" | "red",
+  baseUrl: string,
+): string {
   return `${baseUrl}/game/${sessionId}?team=${teamSide}`;
 }
 
-export function createWSMessage(type: WSMessage['type'], payload: WSMessage['payload'], sessionId?: string, teamSide?: 'blue' | 'red'): WSMessage {
+export function createWSMessage(
+  type: WSMessage["type"],
+  payload: WSMessage["payload"],
+  sessionId?: string,
+  teamSide?: "blue" | "red",
+): WSMessage {
   return {
     type,
     payload,
     sessionId,
-    teamSide
+    teamSide,
   };
 }
 
@@ -563,7 +635,7 @@ export function createWSMessage(type: WSMessage['type'], payload: WSMessage['pay
 export async function createGameSessionFromTeams(
   blueTeam: Team,
   redTeam: Team,
-  config?: Partial<GameConfig>
+  config?: Partial<GameConfig>,
 ): Promise<GameSession> {
   const session = await createGameSession({
     ...config,
@@ -572,8 +644,8 @@ export async function createGameSessionFromTeams(
     blueTeamPrefix: blueTeam.tag,
     redTeamPrefix: redTeam.tag,
     blueTeamLogo: getTeamLogoUrl(blueTeam),
-    redTeamLogo: getTeamLogoUrl(redTeam)
+    redTeamLogo: getTeamLogoUrl(redTeam),
   });
 
   return session;
-} 
+}

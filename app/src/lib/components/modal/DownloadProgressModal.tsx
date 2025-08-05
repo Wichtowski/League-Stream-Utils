@@ -1,5 +1,5 @@
-import React from 'react';
-import { DownloadProgress } from '@lib/types/progress';
+import React from "react";
+import { DownloadProgress } from "@lib/types/progress";
 
 interface DownloadProgressModalProps {
   isOpen: boolean;
@@ -8,19 +8,21 @@ interface DownloadProgressModalProps {
 }
 
 const stageLabels = {
-  'champion-data': 'Downloading champion data',
-  'champion-images': 'Downloading champion images',
-  'ability-images': 'Downloading ability images',
-  'complete': 'Download complete'
+  "champion-data": "Downloading champion data",
+  "champion-images": "Downloading champion images",
+  "ability-images": "Downloading ability images",
+  complete: "Download complete",
 };
 
 // Type guard for championName
-function hasChampionName(progress: DownloadProgress | { championName?: string }): progress is DownloadProgress & { championName: string } {
+function hasChampionName(
+  progress: DownloadProgress | { championName?: string },
+): progress is DownloadProgress & { championName: string } {
   return (
-    typeof progress === 'object' &&
+    typeof progress === "object" &&
     progress !== null &&
-    'championName' in progress &&
-    typeof (progress as { championName?: unknown }).championName === 'string' &&
+    "championName" in progress &&
+    typeof (progress as { championName?: unknown }).championName === "string" &&
     Boolean((progress as { championName?: string }).championName)
   );
 }
@@ -28,7 +30,7 @@ function hasChampionName(progress: DownloadProgress | { championName?: string })
 export const DownloadProgressModal: React.FC<DownloadProgressModalProps> = ({
   isOpen,
   progress,
-  onCancel
+  onCancel,
 }) => {
   if (!isOpen) return null;
 
@@ -39,19 +41,20 @@ export const DownloadProgressModal: React.FC<DownloadProgressModalProps> = ({
           <h3 className="text-lg font-semibold text-white mb-4">
             Downloading Champion Data
           </h3>
-          
+
           <div className="mb-4">
             <div className="text-sm text-gray-300 mb-2">
-              {stageLabels[progress.stage as keyof typeof stageLabels] || progress.stage}
+              {stageLabels[progress.stage as keyof typeof stageLabels] ||
+                progress.stage}
             </div>
-            
+
             {/* Champion Name Progress */}
             {hasChampionName(progress) && (
               <div className="text-sm text-blue-300 mb-2">
                 Processing: {progress.championName}
               </div>
             )}
-            
+
             <div className="text-sm text-gray-400 mb-2">
               {progress.current} / {progress.total} champions
             </div>
@@ -59,7 +62,7 @@ export const DownloadProgressModal: React.FC<DownloadProgressModalProps> = ({
 
           {/* Progress Bar */}
           <div className="w-full bg-gray-700 rounded-full h-3 mb-4">
-            <div 
+            <div
               className="bg-blue-600 h-3 rounded-full transition-all duration-300 ease-out"
               style={{ width: `${progress.percentage}%` }}
             />
@@ -73,11 +76,13 @@ export const DownloadProgressModal: React.FC<DownloadProgressModalProps> = ({
           {/* Progress Details */}
           <div className="text-xs text-gray-400 space-y-1">
             <div>Stage: {progress.stage}</div>
-            <div>Progress: {progress.current} of {progress.total}</div>
+            <div>
+              Progress: {progress.current} of {progress.total}
+            </div>
           </div>
 
           {/* Cancel Button */}
-          {onCancel && progress.stage !== 'complete' && (
+          {onCancel && progress.stage !== "complete" && (
             <button
               onClick={onCancel}
               className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
@@ -87,7 +92,7 @@ export const DownloadProgressModal: React.FC<DownloadProgressModalProps> = ({
           )}
 
           {/* Close Button when complete */}
-          {progress.stage === 'complete' && (
+          {progress.stage === "complete" && (
             <button
               onClick={onCancel}
               className="mt-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
@@ -99,4 +104,4 @@ export const DownloadProgressModal: React.FC<DownloadProgressModalProps> = ({
       </div>
     </div>
   );
-}; 
+};

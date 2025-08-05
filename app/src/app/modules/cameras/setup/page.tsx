@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useNavigation } from '@lib/contexts/NavigationContext';
-import { useAuth } from '@lib/contexts/AuthContext';
-import { useCameras } from '@lib/contexts/CamerasContext';
-import { useTeams } from '@lib/contexts/TeamsContext';
-import Image from 'next/image';
-import type { CameraPlayer, CameraTeam } from '@lib/types';
-import { BackButton } from '@/lib/components/common/buttons';
+import { useNavigation } from "@lib/contexts/NavigationContext";
+import { useAuth } from "@lib/contexts/AuthContext";
+import { useCameras } from "@lib/contexts/CamerasContext";
+import { useTeams } from "@lib/contexts/TeamsContext";
+import Image from "next/image";
+import type { CameraPlayer, CameraTeam } from "@lib/types";
+import { BackButton } from "@/lib/components/common/buttons";
 
 export default function CameraSetupListPage() {
   const router = useRouter();
@@ -23,28 +23,34 @@ export default function CameraSetupListPage() {
   const cameraTeams = cameraTeamsRaw as unknown as CameraTeam[];
 
   // Merge logic: combine userTeams (full info) with cameraTeams (camera URLs)
-  const mergedTeams = userTeams.map(team => {
-    const cameraTeam = cameraTeams.find((ct: CameraTeam) => ct.teamId === team.id);
+  const mergedTeams = userTeams.map((team) => {
+    const cameraTeam = cameraTeams.find(
+      (ct: CameraTeam) => ct.teamId === team.id,
+    );
     // Merge all players (main + subs)
     const allPlayers = [
-      ...team.players.main.map(player => {
-        const cameraPlayer = cameraTeam?.players.find((cp: CameraPlayer) =>
-          (cp.playerId && cp.playerId === player.id) || (cp.inGameName && cp.inGameName === player.inGameName)
+      ...team.players.main.map((player) => {
+        const cameraPlayer = cameraTeam?.players.find(
+          (cp: CameraPlayer) =>
+            (cp.playerId && cp.playerId === player.id) ||
+            (cp.inGameName && cp.inGameName === player.inGameName),
         );
         return {
           ...player,
           cameraUrl: cameraPlayer?.url || null,
         };
       }),
-      ...team.players.substitutes.map(player => {
-        const cameraPlayer = cameraTeam?.players.find((cp: CameraPlayer) =>
-          (cp.playerId && cp.playerId === player.id) || (cp.inGameName && cp.inGameName === player.inGameName)
+      ...team.players.substitutes.map((player) => {
+        const cameraPlayer = cameraTeam?.players.find(
+          (cp: CameraPlayer) =>
+            (cp.playerId && cp.playerId === player.id) ||
+            (cp.inGameName && cp.inGameName === player.inGameName),
         );
         return {
           ...player,
           cameraUrl: cameraPlayer?.url || null,
         };
-      })
+      }),
     ];
     return {
       id: team.id,
@@ -55,7 +61,7 @@ export default function CameraSetupListPage() {
   });
 
   useEffect(() => {
-    setActiveModule('cameras');
+    setActiveModule("cameras");
     if (!authLoading && !camerasLoading) {
       setLoading(false);
     }
@@ -76,8 +82,12 @@ export default function CameraSetupListPage() {
         <div className="flex justify-between items-center mb-8">
           <BackButton to="/modules/cameras">Back to Camera Hub</BackButton>
           <div>
-            <h1 className="text-4xl font-bold text-white mb-2">Camera Stream Setup</h1>
-            <p className="text-gray-400">Select a team to configure stream URLs</p>
+            <h1 className="text-4xl font-bold text-white mb-2">
+              Camera Stream Setup
+            </h1>
+            <p className="text-gray-400">
+              Select a team to configure stream URLs
+            </p>
           </div>
           <BackButton to="/modules">Back to Modules</BackButton>
         </div>
@@ -86,9 +96,11 @@ export default function CameraSetupListPage() {
         {mergedTeams.length === 0 ? (
           <div className="text-center py-12">
             <h3 className="text-xl text-gray-400 mb-4">No teams found</h3>
-            <p className="text-gray-500 mb-6">Create teams first to configure camera streams</p>
+            <p className="text-gray-500 mb-6">
+              Create teams first to configure camera streams
+            </p>
             <button
-              onClick={() => router.push('/modules/teams')}
+              onClick={() => router.push("/modules/teams")}
               className="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg"
             >
               Manage Teams
@@ -97,17 +109,21 @@ export default function CameraSetupListPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {mergedTeams.map((team, idx) => {
-              const configuredCount = team.allPlayers.filter(p => p.cameraUrl && p.cameraUrl.trim() !== '').length;
+              const configuredCount = team.allPlayers.filter(
+                (p) => p.cameraUrl && p.cameraUrl.trim() !== "",
+              ).length;
               return (
                 <div
                   key={team.id || idx}
-                  onClick={() => router.push(`/modules/cameras/setup/${team.id}`)}
+                  onClick={() =>
+                    router.push(`/modules/cameras/setup/${team.id}`)
+                  }
                   className="bg-gray-800 hover:bg-gray-750 border border-gray-700 hover:border-blue-500 rounded-lg p-6 cursor-pointer transition-all duration-200 transform hover:scale-105"
                 >
                   <div className="flex items-center gap-4 mb-4">
                     {team.logo?.data ? (
-                      <Image 
-                        src={team.logo.data} 
+                      <Image
+                        src={team.logo.data}
                         alt={team.name}
                         width={48}
                         height={48}
@@ -119,8 +135,12 @@ export default function CameraSetupListPage() {
                       </div>
                     )}
                     <div>
-                      <h2 className="text-xl font-bold text-white">{team.name}</h2>
-                      <p className="text-gray-400">{team.allPlayers.length} players</p>
+                      <h2 className="text-xl font-bold text-white">
+                        {team.name}
+                      </h2>
+                      <p className="text-gray-400">
+                        {team.allPlayers.length} players
+                      </p>
                     </div>
                   </div>
 
@@ -128,32 +148,33 @@ export default function CameraSetupListPage() {
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-400">Streams configured:</span>
                       <span className="text-blue-400">
-                        {configuredCount} / {team.allPlayers.length} 
+                        {configuredCount} / {team.allPlayers.length}
                       </span>
                     </div>
-                    
+
                     <div className="w-full bg-gray-700 rounded-full h-2">
-                      <div 
+                      <div
                         className="bg-blue-500 h-2 rounded-full transition-all duration-300"
-                        style={{ 
-                          width: `${(configuredCount / team.allPlayers.length) * 100}%` 
+                        style={{
+                          width: `${(configuredCount / team.allPlayers.length) * 100}%`,
                         }}
                       ></div>
                     </div>
 
                     <div className="pt-2">
                       <p className="text-xs text-gray-500">
-                        Players: {team.allPlayers.map(p => p.inGameName).join(', ')}
+                        Players:{" "}
+                        {team.allPlayers.map((p) => p.inGameName).join(", ")}
                       </p>
                     </div>
                   </div>
 
                   <div className="mt-4 pt-4 border-t border-gray-700">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-400">Click to configure</span>
-                      <div className="text-blue-400">
-                        →
-                      </div>
+                      <span className="text-sm text-gray-400">
+                        Click to configure
+                      </span>
+                      <div className="text-blue-400">→</div>
                     </div>
                   </div>
                 </div>
@@ -164,19 +185,30 @@ export default function CameraSetupListPage() {
 
         {/* Help Section */}
         <div className="mt-8 bg-gray-800 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-white mb-4">How to Configure Streams</h3>
+          <h3 className="text-lg font-semibold text-white mb-4">
+            How to Configure Streams
+          </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
             <div>
-              <h4 className="font-medium text-gray-300 mb-2">Step 1: Select Team</h4>
-              <p className="text-gray-400">Click on a team card above to configure stream URLs for that team&apos;s players.</p>
+              <h4 className="font-medium text-gray-300 mb-2">
+                Step 1: Select Team
+              </h4>
+              <p className="text-gray-400">
+                Click on a team card above to configure stream URLs for that
+                team&apos;s players.
+              </p>
             </div>
             <div>
-              <h4 className="font-medium text-gray-300 mb-2">Step 2: Add URLs</h4>
-              <p className="text-gray-400">Enter stream URLs for each player (Twitch, YouTube, OBS, etc.).</p>
+              <h4 className="font-medium text-gray-300 mb-2">
+                Step 2: Add URLs
+              </h4>
+              <p className="text-gray-400">
+                Enter stream URLs for each player (Twitch, YouTube, OBS, etc.).
+              </p>
             </div>
           </div>
         </div>
       </div>
     </div>
   );
-} 
+}

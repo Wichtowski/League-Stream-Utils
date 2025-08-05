@@ -1,15 +1,20 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { dynamicMock, MockPhase } from '@lib/mocks/dynamic-champselect';
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { dynamicMock, MockPhase } from "@lib/mocks/dynamic-champselect";
 
 interface MockControlPanelProps {
   isVisible: boolean;
   onToggle: () => void;
 }
 
-const MockControlPanel: React.FC<MockControlPanelProps> = ({ isVisible, onToggle }) => {
-  const [currentState, setCurrentState] = useState<ReturnType<typeof dynamicMock.getCurrentState> | null>(null);
+const MockControlPanel: React.FC<MockControlPanelProps> = ({
+  isVisible,
+  onToggle,
+}) => {
+  const [currentState, setCurrentState] = useState<ReturnType<
+    typeof dynamicMock.getCurrentState
+  > | null>(null);
   const [autoAdvance, setAutoAdvance] = useState(false);
   const [autoAdvanceInterval, setAutoAdvanceInterval] = useState<number>(5000);
   const [seed, setSeed] = useState<number | null>(null);
@@ -39,28 +44,32 @@ const MockControlPanel: React.FC<MockControlPanelProps> = ({ isVisible, onToggle
       const rect = panelRef.current.getBoundingClientRect();
       setDragOffset({
         x: e.clientX - rect.left,
-        y: e.clientY - rect.top
+        y: e.clientY - rect.top,
       });
       setIsDragging(true);
     }
   }, []);
 
-  const handleMouseMove = useCallback((e: MouseEvent) => {
-    if (isDragging) {
-      e.preventDefault();
-      const newX = e.clientX - dragOffset.x;
-      const newY = e.clientY - dragOffset.y;
-      
-      // Keep panel within viewport bounds
-      const maxX = window.innerWidth - (panelRef.current?.offsetWidth || 320);
-      const maxY = window.innerHeight - (panelRef.current?.offsetHeight || 400);
-      
-      setPosition({
-        x: Math.max(0, Math.min(newX, maxX)),
-        y: Math.max(0, Math.min(newY, maxY))
-      });
-    }
-  }, [isDragging, dragOffset]);
+  const handleMouseMove = useCallback(
+    (e: MouseEvent) => {
+      if (isDragging) {
+        e.preventDefault();
+        const newX = e.clientX - dragOffset.x;
+        const newY = e.clientY - dragOffset.y;
+
+        // Keep panel within viewport bounds
+        const maxX = window.innerWidth - (panelRef.current?.offsetWidth || 320);
+        const maxY =
+          window.innerHeight - (panelRef.current?.offsetHeight || 400);
+
+        setPosition({
+          x: Math.max(0, Math.min(newX, maxX)),
+          y: Math.max(0, Math.min(newY, maxY)),
+        });
+      }
+    },
+    [isDragging, dragOffset],
+  );
 
   const handleMouseUp = useCallback(() => {
     setIsDragging(false);
@@ -68,11 +77,11 @@ const MockControlPanel: React.FC<MockControlPanelProps> = ({ isVisible, onToggle
 
   useEffect(() => {
     if (isDragging) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
       return () => {
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
+        document.removeEventListener("mousemove", handleMouseMove);
+        document.removeEventListener("mouseup", handleMouseUp);
       };
     }
   }, [isDragging, handleMouseMove, handleMouseUp]);
@@ -107,35 +116,43 @@ const MockControlPanel: React.FC<MockControlPanelProps> = ({ isVisible, onToggle
     setCurrentState(dynamicMock.getCurrentState());
   }, []);
 
-
-
   const handleChampionHoverFromInput = useCallback(() => {
-    const input = document.querySelector('input[placeholder="Champion ID"]') as HTMLInputElement;
-    const championId = parseInt(input?.value || '0');
+    const input = document.querySelector(
+      'input[placeholder="Champion ID"]',
+    ) as HTMLInputElement;
+    const championId = parseInt(input?.value || "0");
     if (championId > 0) {
       dynamicMock.forceChampionHover(championId);
     }
   }, []);
 
-  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      const championId = parseInt(e.currentTarget.value);
-      if (championId > 0) {
-        dynamicMock.forceChampionHover(championId);
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === "Enter") {
+        const championId = parseInt(e.currentTarget.value);
+        if (championId > 0) {
+          dynamicMock.forceChampionHover(championId);
+        }
       }
-    }
-  }, []);
+    },
+    [],
+  );
 
-  const handleAutoAdvanceIntervalChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setAutoAdvanceInterval(Math.max(5000, parseInt(e.target.value)));
-  }, []);
+  const handleAutoAdvanceIntervalChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setAutoAdvanceInterval(Math.max(5000, parseInt(e.target.value)));
+    },
+    [],
+  );
 
   const handleGoToStart = useCallback(() => {
     handleTurnChange(0);
   }, [handleTurnChange]);
 
   const handleGoToEnd = useCallback(() => {
-    handleTurnChange(currentState?.totalTurns ? currentState.totalTurns - 1 : 0);
+    handleTurnChange(
+      currentState?.totalTurns ? currentState.totalTurns - 1 : 0,
+    );
   }, [handleTurnChange, currentState?.totalTurns]);
 
   if (!isVisible) {
@@ -152,7 +169,7 @@ const MockControlPanel: React.FC<MockControlPanelProps> = ({ isVisible, onToggle
   // Don't render until we have state
   if (!currentState) {
     return (
-      <div 
+      <div
         ref={panelRef}
         style={{ left: position.x, top: position.y }}
         className="fixed z-50 bg-gray-800 border border-gray-600 rounded-lg shadow-lg p-4 min-w-80 cursor-move"
@@ -164,10 +181,10 @@ const MockControlPanel: React.FC<MockControlPanelProps> = ({ isVisible, onToggle
   }
 
   return (
-    <div 
+    <div
       ref={panelRef}
       style={{ left: position.x, top: position.y }}
-      className={`fixed z-50 bg-gray-800 border border-gray-600 rounded-lg shadow-lg p-4 min-w-80 select-none ${isDragging ? 'cursor-grabbing' : 'cursor-move'}`}
+      className={`fixed z-50 bg-gray-800 border border-gray-600 rounded-lg shadow-lg p-4 min-w-80 select-none ${isDragging ? "cursor-grabbing" : "cursor-move"}`}
     >
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-white font-semibold">Mock Control Panel</h3>
@@ -193,14 +210,22 @@ const MockControlPanel: React.FC<MockControlPanelProps> = ({ isVisible, onToggle
         {/* Current State */}
         <div className="bg-gray-700 rounded p-3">
           <div className="text-white text-sm">
-            <div>Phase: <span className="font-semibold">{currentState.phase}</span></div>
-            <div>Turn: <span className="font-semibold">{currentState.turn + 1}</span> / {currentState.totalTurns}</div>
+            <div>
+              Phase: <span className="font-semibold">{currentState.phase}</span>
+            </div>
+            <div>
+              Turn:{" "}
+              <span className="font-semibold">{currentState.turn + 1}</span> /{" "}
+              {currentState.totalTurns}
+            </div>
           </div>
         </div>
 
         {/* Phase Selection */}
         <div>
-          <label className="block text-white text-sm font-medium mb-2">Phase:</label>
+          <label className="block text-white text-sm font-medium mb-2">
+            Phase:
+          </label>
           <select
             value={currentState.phase}
             onChange={(e) => handlePhaseChange(e.target.value as MockPhase)}
@@ -213,8 +238,6 @@ const MockControlPanel: React.FC<MockControlPanelProps> = ({ isVisible, onToggle
             <option value="FINALIZATION">Finalization</option>
           </select>
         </div>
-
-
 
         {/* Turn Slider */}
         <div>
@@ -244,7 +267,9 @@ const MockControlPanel: React.FC<MockControlPanelProps> = ({ isVisible, onToggle
 
         {/* Hover Champion */}
         <div>
-          <label className="block text-white text-sm font-medium mb-2">Hover Champion:</label>
+          <label className="block text-white text-sm font-medium mb-2">
+            Hover Champion:
+          </label>
           <div className="flex gap-2">
             <input
               type="number"
@@ -261,13 +286,17 @@ const MockControlPanel: React.FC<MockControlPanelProps> = ({ isVisible, onToggle
               Hover
             </button>
           </div>
-          <p className="text-gray-400 text-xs mt-1">Enter champion ID and press Enter or click Hover</p>
+          <p className="text-gray-400 text-xs mt-1">
+            Enter champion ID and press Enter or click Hover
+          </p>
         </div>
 
         {/* Champion Seed */}
         <div className="border-t border-gray-600 pt-4">
           <div className="flex items-center justify-between mb-2">
-            <label className="text-white text-sm font-medium">Champion Seed:</label>
+            <label className="text-white text-sm font-medium">
+              Champion Seed:
+            </label>
             <input
               type="number"
               value={seed || 0}
@@ -277,13 +306,17 @@ const MockControlPanel: React.FC<MockControlPanelProps> = ({ isVisible, onToggle
               className="w-20 bg-gray-700 text-white rounded px-2 py-1 border border-gray-600 text-sm"
             />
           </div>
-          <p className="text-gray-400 text-xs">Change seed for different champion variety</p>
+          <p className="text-gray-400 text-xs">
+            Change seed for different champion variety
+          </p>
         </div>
 
         {/* Auto Advance */}
         <div className="border-t border-gray-600 pt-4">
           <div className="flex items-center justify-between mb-2">
-            <label className="text-white text-sm font-medium">Auto Advance:</label>
+            <label className="text-white text-sm font-medium">
+              Auto Advance:
+            </label>
             <input
               type="checkbox"
               checked={autoAdvance}
@@ -291,7 +324,7 @@ const MockControlPanel: React.FC<MockControlPanelProps> = ({ isVisible, onToggle
               className="rounded"
             />
           </div>
-          
+
           <div className="flex items-center gap-2">
             <label className="text-white text-sm">Interval (ms):</label>
             <input
@@ -328,4 +361,4 @@ const MockControlPanel: React.FC<MockControlPanelProps> = ({ isVisible, onToggle
   );
 };
 
-export { MockControlPanel }; 
+export { MockControlPanel };

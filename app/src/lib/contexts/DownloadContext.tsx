@@ -1,9 +1,18 @@
-'use client';
+"use client";
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { assetDownloader, DownloadProgress } from '@lib/services/cache/asset-downloader';
-import { championCacheService } from '@lib/services/cache/champion';
-import { startupService } from '@lib/services/initialization/startup-service';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
+import {
+  assetDownloader,
+  DownloadProgress,
+} from "@lib/services/cache/asset-downloader";
+import { championCacheService } from "@lib/services/cache/champion";
+import { startupService } from "@lib/services/initialization/startup-service";
 
 interface DownloadState {
   isDownloading: boolean;
@@ -18,12 +27,14 @@ interface DownloadContextType {
   resetDownloadState: () => void;
 }
 
-const DownloadContext = createContext<DownloadContextType | undefined>(undefined);
+const DownloadContext = createContext<DownloadContextType | undefined>(
+  undefined,
+);
 
 export const useDownload = (): DownloadContextType => {
   const context = useContext(DownloadContext);
   if (!context) {
-    throw new Error('useDownload must be used within a DownloadProvider');
+    throw new Error("useDownload must be used within a DownloadProvider");
   }
   return context;
 };
@@ -32,45 +43,52 @@ interface DownloadProviderProps {
   children: React.ReactNode;
 }
 
-export const DownloadProvider: React.FC<DownloadProviderProps> = ({ children }) => {
+export const DownloadProvider: React.FC<DownloadProviderProps> = ({
+  children,
+}) => {
   const [downloadState, setDownloadState] = useState<DownloadState>({
     isDownloading: false,
-    progress: null
+    progress: null,
   });
 
   const startDownload = async (): Promise<void> => {
-    if (typeof window === 'undefined' || !window.electronAPI) {
-      console.log('Not in Electron environment, skipping download');
+    if (typeof window === "undefined" || !window.electronAPI) {
+      console.log("Not in Electron environment, skipping download");
       return;
     }
-    if (assetDownloader.isCurrentlyDownloading() || championCacheService.isCurrentlyDownloading() || startupService.isDownloadInProgress()) {
-      console.log('Download already in progress');
+    if (
+      assetDownloader.isCurrentlyDownloading() ||
+      championCacheService.isCurrentlyDownloading() ||
+      startupService.isDownloadInProgress()
+    ) {
+      console.log("Download already in progress");
       return;
     }
     try {
       setDownloadState({
         isDownloading: true,
         progress: {
-          stage: 'checking',
+          stage: "checking",
           current: 0,
           total: 0,
-          message: 'Analyzing required assets...',
+          message: "Analyzing required assets...",
           errors: [],
           activeConnections: 0,
-          queueLength: 0
-        }
+          queueLength: 0,
+        },
       });
       assetDownloader.onProgress((progress) => {
         setDownloadState({
-          isDownloading: progress.stage !== 'complete' && progress.stage !== 'error',
-          progress
+          isDownloading:
+            progress.stage !== "complete" && progress.stage !== "error",
+          progress,
         });
       });
       const result = await assetDownloader.downloadAllAssets();
       setDownloadState({
         isDownloading: false,
         progress: {
-          stage: result.success ? 'complete' : 'error',
+          stage: result.success ? "complete" : "error",
           current: result.stats.downloadedFiles,
           total: result.stats.totalFiles,
           message: result.success
@@ -78,22 +96,22 @@ export const DownloadProvider: React.FC<DownloadProviderProps> = ({ children }) 
             : `Download completed with ${result.stats.failedFiles} errors`,
           errors: result.errors,
           activeConnections: 0,
-          queueLength: 0
-        }
+          queueLength: 0,
+        },
       });
     } catch (error) {
-      console.error('Failed to start download:', error);
+      console.error("Failed to start download:", error);
       setDownloadState({
         isDownloading: false,
         progress: {
-          stage: 'error',
+          stage: "error",
           current: 0,
           total: 0,
           message: `Failed to start download: ${error}`,
           errors: [error as string],
           activeConnections: 0,
-          queueLength: 0
-        }
+          queueLength: 0,
+        },
       });
     }
   };
@@ -104,56 +122,57 @@ export const DownloadProvider: React.FC<DownloadProviderProps> = ({ children }) 
     setDownloadState({
       isDownloading: false,
       progress: {
-        stage: 'error',
+        stage: "error",
         current: 0,
         total: 0,
-        message: 'Download cancelled by user',
-        errors: ['Download was cancelled'],
+        message: "Download cancelled by user",
+        errors: ["Download was cancelled"],
         activeConnections: 0,
-        queueLength: 0
-      }
+        queueLength: 0,
+      },
     });
   };
 
   const checkDownloadStatus = useCallback(async (): Promise<void> => {
-    if (typeof window === 'undefined' || !window.electronAPI) {
+    if (typeof window === "undefined" || !window.electronAPI) {
       return;
     }
     try {
       const assetDownloading = assetDownloader.isCurrentlyDownloading();
       const championDownloading = championCacheService.isCurrentlyDownloading();
       const startupDownloading = startupService.isDownloadInProgress();
-      const isDownloading = assetDownloading || championDownloading || startupDownloading;
-      
+      const isDownloading =
+        assetDownloading || championDownloading || startupDownloading;
+
       if (isDownloading && !downloadState.isDownloading) {
         setDownloadState({
           isDownloading: true,
           progress: {
-            stage: 'checking',
+            stage: "checking",
             current: 0,
             total: 0,
-            message: 'Checking download status...',
+            message: "Checking download status...",
             errors: [],
             activeConnections: 0,
-            queueLength: 0
-          }
+            queueLength: 0,
+          },
         });
       } else if (!isDownloading && downloadState.isDownloading) {
         setDownloadState({
           isDownloading: false,
           progress: {
-            stage: 'complete',
+            stage: "complete",
             current: 0,
             total: 0,
-            message: 'Download completed',
+            message: "Download completed",
             errors: [],
             activeConnections: 0,
-            queueLength: 0
-          }
+            queueLength: 0,
+          },
         });
       }
     } catch (error) {
-      console.error('Failed to check download status:', error);
+      console.error("Failed to check download status:", error);
     }
   }, [downloadState.isDownloading]);
 
@@ -161,14 +180,14 @@ export const DownloadProvider: React.FC<DownloadProviderProps> = ({ children }) 
     setDownloadState({
       isDownloading: false,
       progress: {
-        stage: 'complete',
+        stage: "complete",
         current: 0,
         total: 0,
-        message: 'All assets downloaded',
+        message: "All assets downloaded",
         errors: [],
         activeConnections: 0,
-        queueLength: 0
-      }
+        queueLength: 0,
+      },
     });
   };
 
@@ -197,4 +216,4 @@ export const DownloadProvider: React.FC<DownloadProviderProps> = ({ children }) 
       {children}
     </DownloadContext.Provider>
   );
-}; 
+};

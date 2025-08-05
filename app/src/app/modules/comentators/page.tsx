@@ -61,7 +61,11 @@ export default function ComentatorsPage(): React.ReactElement {
       await fetch("/api/v1/comentators", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, xHandle, tournamentId: selectedTournament }),
+        body: JSON.stringify({
+          name,
+          xHandle,
+          tournamentId: selectedTournament,
+        }),
       });
       // Re-fetch
       const res = await fetch("/api/v1/comentators");
@@ -79,31 +83,37 @@ export default function ComentatorsPage(): React.ReactElement {
 
   // Filter commentators for the selected tournament
   const filteredComentators = selectedTournament
-    ? comentators.filter(c => c.tournaments.includes(selectedTournament))
+    ? comentators.filter((c) => c.tournaments.includes(selectedTournament))
     : [];
 
   return (
     <AuthGuard>
       <div className="min-h-screen p-6 max-w-3xl mx-auto">
         <button
-          onClick={() => router.push('/modules')}
+          onClick={() => router.push("/modules")}
           className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg mb-8"
         >
           ← Back to Modules
         </button>
-        <h1 className="text-3xl font-bold text-white mb-8 text-center">Comentators</h1>
+        <h1 className="text-3xl font-bold text-white mb-8 text-center">
+          Comentators
+        </h1>
         {!selectedTournament ? (
           <div>
-            <h2 className="text-xl text-white mb-4 text-center">Select Tournament</h2>
+            <h2 className="text-xl text-white mb-4 text-center">
+              Select Tournament
+            </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
-              {tournaments.map(t => (
+              {tournaments.map((t) => (
                 <button
                   key={t.id}
                   onClick={() => setSelectedTournament(t.id)}
                   className="bg-gray-800 hover:bg-blue-700 text-white rounded-xl p-6 border border-gray-700 hover:border-blue-500 transition-all duration-200 shadow-lg flex flex-col items-center"
                 >
                   <span className="text-lg font-semibold mb-2">{t.name}</span>
-                  <span className="text-gray-400 text-sm">{t.abbreviation}</span>
+                  <span className="text-gray-400 text-sm">
+                    {t.abbreviation}
+                  </span>
                 </button>
               ))}
             </div>
@@ -112,7 +122,9 @@ export default function ComentatorsPage(): React.ReactElement {
           <>
             <div className="flex items-center justify-between mb-8">
               <div>
-                <h2 className="text-2xl font-bold text-white">{tournaments.find(t => t.id === selectedTournament)?.name}</h2>
+                <h2 className="text-2xl font-bold text-white">
+                  {tournaments.find((t) => t.id === selectedTournament)?.name}
+                </h2>
                 <div className="text-gray-400 text-sm">Tournament</div>
               </div>
               <button
@@ -123,23 +135,32 @@ export default function ComentatorsPage(): React.ReactElement {
               </button>
             </div>
             <div className="bg-gray-900 rounded-xl p-6 mb-10 shadow-lg">
-              <h3 className="text-xl font-semibold text-white mb-4">Add Comentator</h3>
-              <form onSubmit={handleAdd} className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
+              <h3 className="text-xl font-semibold text-white mb-4">
+                Add Comentator
+              </h3>
+              <form
+                onSubmit={handleAdd}
+                className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end"
+              >
                 <div>
-                  <label className="block text-gray-300 mb-2">Display Name</label>
+                  <label className="block text-gray-300 mb-2">
+                    Display Name
+                  </label>
                   <input
                     className="w-full p-2 rounded bg-gray-700 text-white"
                     value={name}
-                    onChange={e => setName(e.target.value)}
+                    onChange={(e) => setName(e.target.value)}
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-gray-300 mb-2">x.com Handle (optional)</label>
+                  <label className="block text-gray-300 mb-2">
+                    x.com Handle (optional)
+                  </label>
                   <input
                     className="w-full p-2 rounded bg-gray-700 text-white"
                     value={xHandle}
-                    onChange={e => setXHandle(e.target.value)}
+                    onChange={(e) => setXHandle(e.target.value)}
                     placeholder="@yourhandle"
                   />
                 </div>
@@ -151,17 +172,26 @@ export default function ComentatorsPage(): React.ReactElement {
                   {loading ? "Adding..." : "Add Comentator"}
                 </button>
               </form>
-              {successMsg && <div className="text-green-400 mt-4">{successMsg}</div>}
+              {successMsg && (
+                <div className="text-green-400 mt-4">{successMsg}</div>
+              )}
             </div>
-            <h3 className="text-xl font-semibold text-white mb-4">Comentators for this Tournament</h3>
+            <h3 className="text-xl font-semibold text-white mb-4">
+              Comentators for this Tournament
+            </h3>
             {loading ? (
               <div className="text-white">Loading...</div>
             ) : filteredComentators.length === 0 ? (
-              <div className="text-gray-400">No comentators yet for this tournament.</div>
+              <div className="text-gray-400">
+                No comentators yet for this tournament.
+              </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                {filteredComentators.map(c => (
-                  <div key={c.id} className="bg-gray-800 rounded-xl p-5 border border-gray-700 shadow flex flex-col gap-2">
+                {filteredComentators.map((c) => (
+                  <div
+                    key={c.id}
+                    className="bg-gray-800 rounded-xl p-5 border border-gray-700 shadow flex flex-col gap-2"
+                  >
                     <div className="text-lg font-bold text-white">{c.name}</div>
                     {c.xHandle && (
                       <a
@@ -183,4 +213,3 @@ export default function ComentatorsPage(): React.ReactElement {
     </AuthGuard>
   );
 }
-

@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@lib/contexts/AuthContext';
-import { useElectron } from '@lib/contexts/ElectronContext';
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@lib/contexts/AuthContext";
+import { useElectron } from "@lib/contexts/ElectronContext";
 
 const NotFoundPage: React.FC = (): React.ReactElement => {
   const router = useRouter();
@@ -14,9 +14,9 @@ const NotFoundPage: React.FC = (): React.ReactElement => {
     if (authLoading || isElectronLoading || isElectron) return;
 
     if (user) {
-      router.replace('/modules');
+      router.replace("/modules");
     } else {
-      router.replace('/auth');
+      router.replace("/auth");
     }
   }, [authLoading, isElectronLoading, isElectron, user, router]);
 

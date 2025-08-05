@@ -1,9 +1,15 @@
-import { v4 as uuidv4 } from 'uuid';
-import { connectToDatabase } from './connection';
-import { UserModel } from './models';
-import type { User as UserType, UserRegistration, UserQueryResult } from '@lib/types';
+import { v4 as uuidv4 } from "uuid";
+import { connectToDatabase } from "./connection";
+import { UserModel } from "./models";
+import type {
+  User as UserType,
+  UserRegistration,
+  UserQueryResult,
+} from "@lib/types";
 
-export async function createUser(userData: UserRegistration & { passwordHistory?: string[] }): Promise<UserType> {
+export async function createUser(
+  userData: UserRegistration & { passwordHistory?: string[] },
+): Promise<UserType> {
   await connectToDatabase();
 
   const newUser = new UserModel({
@@ -14,7 +20,7 @@ export async function createUser(userData: UserRegistration & { passwordHistory?
     email: userData.email,
     isAdmin: false,
     sessionsCreatedToday: 0,
-    lastSessionDate: '',
+    lastSessionDate: "",
   });
 
   await newUser.save();
@@ -22,7 +28,9 @@ export async function createUser(userData: UserRegistration & { passwordHistory?
   return newUser;
 }
 
-export async function getUserByUsername(username: string): Promise<UserQueryResult> {
+export async function getUserByUsername(
+  username: string,
+): Promise<UserQueryResult> {
   await connectToDatabase();
   return await UserModel.findOne({ username });
 }
@@ -39,7 +47,7 @@ export async function updateUserSessionCount(userId: string): Promise<void> {
   const user: UserQueryResult = await UserModel.findOne({ id: userId });
 
   if (!user) {
-    throw new Error('User not found');
+    throw new Error("User not found");
   }
 
   if (user.lastSessionDate !== today) {
@@ -74,7 +82,10 @@ export async function canUserCreateSession(userId: string): Promise<boolean> {
   return user.sessionsCreatedToday < 2;
 }
 
-export async function lockUserAccount(userId: string, lockDurationMs: number): Promise<void> {
+export async function lockUserAccount(
+  userId: string,
+  lockDurationMs: number,
+): Promise<void> {
   await connectToDatabase();
 
   const lockedUntil = new Date(Date.now() + lockDurationMs);
@@ -84,9 +95,9 @@ export async function lockUserAccount(userId: string, lockDurationMs: number): P
     {
       $set: {
         isLocked: true,
-        lockedUntil: lockedUntil
-      }
-    }
+        lockedUntil: lockedUntil,
+      },
+    },
   );
 }
 
@@ -98,13 +109,16 @@ export async function unlockUserAccount(userId: string): Promise<void> {
     {
       $unset: {
         isLocked: 1,
-        lockedUntil: 1
-      }
-    }
+        lockedUntil: 1,
+      },
+    },
   );
 }
 
-export async function updateUserLoginInfo(userId: string, ip: string): Promise<void> {
+export async function updateUserLoginInfo(
+  userId: string,
+  ip: string,
+): Promise<void> {
   await connectToDatabase();
 
   await UserModel.updateOne(
@@ -112,8 +126,8 @@ export async function updateUserLoginInfo(userId: string, ip: string): Promise<v
     {
       $set: {
         lastLoginAt: new Date(),
-        lastLoginIP: ip
-      }
-    }
+        lastLoginIP: ip,
+      },
+    },
   );
-} 
+}

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import type { Team, CreateTeamRequest, TeamTier } from '@lib/types';
+import React, { useState } from "react";
+import type { Team, CreateTeamRequest, TeamTier } from "@lib/types";
 
 interface TeamEditFormProps {
   team: Team;
@@ -7,47 +7,67 @@ interface TeamEditFormProps {
   onCancel: () => void;
 }
 
-export const TeamEditForm: React.FC<TeamEditFormProps> = ({ team, onSave, onCancel }) => {
+export const TeamEditForm: React.FC<TeamEditFormProps> = ({
+  team,
+  onSave,
+  onCancel,
+}) => {
   const [editFormData, setEditFormData] = useState<Partial<CreateTeamRequest>>({
     name: team.name,
     tag: team.tag,
     colors: team.colors,
     players: {
-      main: team.players.main.map(p => ({ role: p.role, inGameName: p.inGameName, tag: p.tag })),
-      substitutes: team.players.substitutes.map(p => ({ role: p.role, inGameName: p.inGameName, tag: p.tag }))
+      main: team.players.main.map((p) => ({
+        role: p.role,
+        inGameName: p.inGameName,
+        tag: p.tag,
+      })),
+      substitutes: team.players.substitutes.map((p) => ({
+        role: p.role,
+        inGameName: p.inGameName,
+        tag: p.tag,
+      })),
     },
     region: team.region,
     tier: team.tier,
     logo: team.logo,
     socialMedia: team.socialMedia,
-    staff: team.staff
+    staff: team.staff,
   });
   const [editing, setEditing] = useState(false);
 
-  const updateEditPlayer = (index: number, field: 'inGameName' | 'tag', value: string) => {
+  const updateEditPlayer = (
+    index: number,
+    field: "inGameName" | "tag",
+    value: string,
+  ) => {
     const newPlayers = [...(editFormData.players?.main || [])];
     newPlayers[index] = { ...newPlayers[index], [field]: value };
     setEditFormData({
       ...editFormData,
-      players: { ...editFormData.players!, main: newPlayers }
+      players: { ...editFormData.players!, main: newPlayers },
     });
   };
 
-  const updateEditSubstitute = (index: number, field: 'role' | 'inGameName' | 'tag', value: string) => {
+  const updateEditSubstitute = (
+    index: number,
+    field: "role" | "inGameName" | "tag",
+    value: string,
+  ) => {
     const newSubs = [...(editFormData.players?.substitutes || [])];
     newSubs[index] = { ...newSubs[index], [field]: value };
     setEditFormData({
       ...editFormData,
-      players: { ...editFormData.players!, substitutes: newSubs }
+      players: { ...editFormData.players!, substitutes: newSubs },
     });
   };
 
   const addEditSubstitute = () => {
     const newSubs = [...(editFormData.players?.substitutes || [])];
-    newSubs.push({ role: 'TOP', inGameName: '', tag: '' });
+    newSubs.push({ role: "TOP", inGameName: "", tag: "" });
     setEditFormData({
       ...editFormData,
-      players: { ...editFormData.players!, substitutes: newSubs }
+      players: { ...editFormData.players!, substitutes: newSubs },
     });
   };
 
@@ -56,7 +76,7 @@ export const TeamEditForm: React.FC<TeamEditFormProps> = ({ team, onSave, onCanc
     newSubs.splice(index, 1);
     setEditFormData({
       ...editFormData,
-      players: { ...editFormData.players!, substitutes: newSubs }
+      players: { ...editFormData.players!, substitutes: newSubs },
     });
   };
 
@@ -74,18 +94,25 @@ export const TeamEditForm: React.FC<TeamEditFormProps> = ({ team, onSave, onCanc
     <div className="min-h-screen text-white">
       <div className="container mx-auto px-6 py-8">
         <h1 className="text-3xl font-bold mb-8">Edit Team: {team.name}</h1>
-        
-        <form onSubmit={handleEditSave} className="space-y-6 bg-gray-800 rounded-lg p-6">
+
+        <form
+          onSubmit={handleEditSave}
+          className="space-y-6 bg-gray-800 rounded-lg p-6"
+        >
           <h2 className="text-xl font-bold mb-4">Edit Team Information</h2>
 
           {/* Basic Info */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-2">Team Name</label>
+              <label className="block text-sm font-medium mb-2">
+                Team Name
+              </label>
               <input
                 type="text"
                 value={editFormData.name}
-                onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
+                onChange={(e) =>
+                  setEditFormData({ ...editFormData, name: e.target.value })
+                }
                 className="w-full bg-gray-700 rounded px-3 py-2"
                 required
               />
@@ -95,7 +122,9 @@ export const TeamEditForm: React.FC<TeamEditFormProps> = ({ team, onSave, onCanc
               <input
                 type="text"
                 value={editFormData.tag}
-                onChange={(e) => setEditFormData({ ...editFormData, tag: e.target.value })}
+                onChange={(e) =>
+                  setEditFormData({ ...editFormData, tag: e.target.value })
+                }
                 className="w-full bg-gray-700 rounded px-3 py-2"
                 maxLength={5}
                 required
@@ -106,7 +135,9 @@ export const TeamEditForm: React.FC<TeamEditFormProps> = ({ team, onSave, onCanc
               <input
                 type="text"
                 value={editFormData.region}
-                onChange={(e) => setEditFormData({ ...editFormData, region: e.target.value })}
+                onChange={(e) =>
+                  setEditFormData({ ...editFormData, region: e.target.value })
+                }
                 className="w-full bg-gray-700 rounded px-3 py-2"
                 placeholder="e.g., EUNE, EUW, NA"
                 required
@@ -116,7 +147,12 @@ export const TeamEditForm: React.FC<TeamEditFormProps> = ({ team, onSave, onCanc
               <label className="block text-sm font-medium mb-2">Tier</label>
               <select
                 value={editFormData.tier}
-                onChange={(e) => setEditFormData({ ...editFormData, tier: e.target.value as TeamTier })}
+                onChange={(e) =>
+                  setEditFormData({
+                    ...editFormData,
+                    tier: e.target.value as TeamTier,
+                  })
+                }
                 className="w-full bg-gray-700 rounded px-3 py-2"
               >
                 <option value="amateur">Amateur</option>
@@ -131,7 +167,10 @@ export const TeamEditForm: React.FC<TeamEditFormProps> = ({ team, onSave, onCanc
             <h3 className="text-lg font-medium mb-3">Main Roster</h3>
             <div className="space-y-3">
               {editFormData.players?.main.map((player, index) => (
-                <div key={player.role} className="grid grid-cols-3 gap-4 items-center">
+                <div
+                  key={player.role}
+                  className="grid grid-cols-3 gap-4 items-center"
+                >
                   <div className="bg-gray-700 px-3 py-2 rounded text-center font-medium">
                     {player.role}
                   </div>
@@ -139,7 +178,9 @@ export const TeamEditForm: React.FC<TeamEditFormProps> = ({ team, onSave, onCanc
                     type="text"
                     placeholder="In-game name"
                     value={player.inGameName}
-                    onChange={(e) => updateEditPlayer(index, 'inGameName', e.target.value)}
+                    onChange={(e) =>
+                      updateEditPlayer(index, "inGameName", e.target.value)
+                    }
                     className="bg-gray-700 rounded px-3 py-2"
                     required
                   />
@@ -147,7 +188,9 @@ export const TeamEditForm: React.FC<TeamEditFormProps> = ({ team, onSave, onCanc
                     type="text"
                     placeholder="Riot tag (e.g., #EUW)"
                     value={player.tag}
-                    onChange={(e) => updateEditPlayer(index, 'tag', e.target.value)}
+                    onChange={(e) =>
+                      updateEditPlayer(index, "tag", e.target.value)
+                    }
                     className="bg-gray-700 rounded px-3 py-2"
                     required
                   />
@@ -170,10 +213,15 @@ export const TeamEditForm: React.FC<TeamEditFormProps> = ({ team, onSave, onCanc
             </div>
             <div className="space-y-3">
               {editFormData.players?.substitutes.map((player, index) => (
-                <div key={index} className="grid grid-cols-4 gap-4 items-center">
+                <div
+                  key={index}
+                  className="grid grid-cols-4 gap-4 items-center"
+                >
                   <select
                     value={player.role}
-                    onChange={(e) => updateEditSubstitute(index, 'role', e.target.value)}
+                    onChange={(e) =>
+                      updateEditSubstitute(index, "role", e.target.value)
+                    }
                     className="bg-gray-700 rounded px-3 py-2"
                   >
                     <option value="TOP">TOP</option>
@@ -186,14 +234,18 @@ export const TeamEditForm: React.FC<TeamEditFormProps> = ({ team, onSave, onCanc
                     type="text"
                     placeholder="In-game name"
                     value={player.inGameName}
-                    onChange={(e) => updateEditSubstitute(index, 'inGameName', e.target.value)}
+                    onChange={(e) =>
+                      updateEditSubstitute(index, "inGameName", e.target.value)
+                    }
                     className="bg-gray-700 rounded px-3 py-2"
                   />
                   <input
                     type="text"
                     placeholder="Riot tag"
                     value={player.tag}
-                    onChange={(e) => updateEditSubstitute(index, 'tag', e.target.value)}
+                    onChange={(e) =>
+                      updateEditSubstitute(index, "tag", e.target.value)
+                    }
                     className="bg-gray-700 rounded px-3 py-2"
                   />
                   <button
@@ -214,7 +266,7 @@ export const TeamEditForm: React.FC<TeamEditFormProps> = ({ team, onSave, onCanc
               disabled={editing}
               className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 px-6 py-2 rounded-lg"
             >
-              {editing ? 'Saving...' : 'Save Changes'}
+              {editing ? "Saving..." : "Save Changes"}
             </button>
             <button
               type="button"

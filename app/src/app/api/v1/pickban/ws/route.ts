@@ -1,4 +1,4 @@
-import { WebSocketServer, WebSocket } from 'ws';
+import { WebSocketServer, WebSocket } from "ws";
 import {
   getGameSession,
   banChampion,
@@ -6,9 +6,9 @@ import {
   getGameState,
   canTeamAct,
   setTeamReady,
-  updateGameSession
-} from '@lib/game/game-logic';
-import type { WSMessage, TeamSide } from '@lib/types';
+  updateGameSession,
+} from "@lib/game/game-logic";
+import type { WSMessage, TeamSide } from "@lib/types";
 
 interface ExtendedWebSocket extends WebSocket {
   sessionId?: string;
@@ -25,27 +25,29 @@ function initWebSocketServer() {
 
   wss = new WebSocketServer({
     port: 8080,
-    verifyClient: () => true
+    verifyClient: () => true,
   });
 
-  wss.on('connection', (ws) => {
-    console.log('New WebSocket connection');
+  wss.on("connection", (ws) => {
+    console.log("New WebSocket connection");
 
-    ws.on('message', async (data) => {
+    ws.on("message", async (data) => {
       try {
         const message: WSMessage = JSON.parse(data.toString());
         await handleWebSocketMessage(ws, message);
       } catch (error) {
-        console.error('Error handling WebSocket message:', error);
-        ws.send(JSON.stringify({
-          type: 'error',
-          payload: { message: 'Invalid message format' }
-        }));
+        console.error("Error handling WebSocket message:", error);
+        ws.send(
+          JSON.stringify({
+            type: "error",
+            payload: { message: "Invalid message format" },
+          }),
+        );
       }
     });
 
-    ws.on('close', () => {
-      console.log('WebSocket connection closed');
+    ws.on("close", () => {
+      console.log("WebSocket connection closed");
       for (const [sessionId, sessionConnections] of connections.entries()) {
         sessionConnections.delete(ws);
         if (sessionConnections.size === 0) {
@@ -58,91 +60,115 @@ function initWebSocketServer() {
   return wss;
 }
 
-async function handleWebSocketMessage(ws: ExtendedWebSocket, message: WSMessage) {
+async function handleWebSocketMessage(
+  ws: ExtendedWebSocket,
+  message: WSMessage,
+) {
   const { type, payload, sessionId, teamSide } = message;
 
   if (!sessionId) {
-    ws.send(JSON.stringify({
-      type: 'error',
-      payload: { message: 'Session ID required' }
-    }));
+    ws.send(
+      JSON.stringify({
+        type: "error",
+        payload: { message: "Session ID required" },
+      }),
+    );
     return;
   }
 
   const session = await getGameSession(sessionId);
   if (!session) {
-    ws.send(JSON.stringify({
-      type: 'error',
-      payload: { message: 'Session not found' }
-    }));
+    ws.send(
+      JSON.stringify({
+        type: "error",
+        payload: { message: "Session not found" },
+      }),
+    );
     return;
   }
 
   switch (type) {
-    case 'join':
+    case "join":
       await handleJoinSession(ws, sessionId, teamSide);
       break;
 
-    case 'ban':
+    case "ban":
       if (!teamSide || !payload.championId) {
-        ws.send(JSON.stringify({
-          type: 'error',
-          payload: { message: 'Team side and champion ID required for ban' }
-        }));
+        ws.send(
+          JSON.stringify({
+            type: "error",
+            payload: { message: "Team side and champion ID required for ban" },
+          }),
+        );
         return;
       }
 
       if (!canTeamAct(session, teamSide)) {
-        ws.send(JSON.stringify({
-          type: 'error',
-          payload: { message: 'Not your turn' }
-        }));
+        ws.send(
+          JSON.stringify({
+            type: "error",
+            payload: { message: "Not your turn" },
+          }),
+        );
         return;
       }
 
       if (await banChampion(session, payload.championId, teamSide)) {
         await broadcastGameState(sessionId);
       } else {
-        ws.send(JSON.stringify({
-          type: 'error',
-          payload: { message: 'Invalid ban action' }
-        }));
+        ws.send(
+          JSON.stringify({
+            type: "error",
+            payload: { message: "Invalid ban action" },
+          }),
+        );
       }
       break;
 
-    case 'pick':
+    case "pick":
       if (!teamSide || !payload.championId) {
-        ws.send(JSON.stringify({
-          type: 'error',
-          payload: { message: 'Team side and champion ID required for pick' }
-        }));
+        ws.send(
+          JSON.stringify({
+            type: "error",
+            payload: { message: "Team side and champion ID required for pick" },
+          }),
+        );
         return;
       }
 
       if (!canTeamAct(session, teamSide)) {
-        ws.send(JSON.stringify({
-          type: 'error',
-          payload: { message: 'Not your turn' }
-        }));
+        ws.send(
+          JSON.stringify({
+            type: "error",
+            payload: { message: "Not your turn" },
+          }),
+        );
         return;
       }
 
       if (await pickChampion(session, payload.championId, teamSide)) {
         await broadcastGameState(sessionId);
       } else {
-        ws.send(JSON.stringify({
-          type: 'error',
-          payload: { message: 'Invalid pick action' }
-        }));
+        ws.send(
+          JSON.stringify({
+            type: "error",
+            payload: { message: "Invalid pick action" },
+          }),
+        );
       }
       break;
 
-    case 'hover':
+    case "hover":
       if (!teamSide || !payload.championId || !payload.actionType) {
-        ws.send(JSON.stringify({
-          type: 'error',
-          payload: { message: 'Team side, champion ID, and action type required for hover' }
-        }));
+        ws.send(
+          JSON.stringify({
+            type: "error",
+            payload: {
+              message:
+                "Team side, champion ID, and action type required for hover",
+            },
+          }),
+        );
         return;
       }
 
@@ -153,7 +179,7 @@ async function handleWebSocketMessage(ws: ExtendedWebSocket, message: WSMessage)
 
       session.hoverState[`${teamSide}Team`] = {
         hoveredChampionId: payload.championId,
-        actionType: payload.actionType
+        actionType: payload.actionType,
       };
 
       // Save the session to persist hover state
@@ -163,35 +189,49 @@ async function handleWebSocketMessage(ws: ExtendedWebSocket, message: WSMessage)
       await broadcastGameState(sessionId);
       break;
 
-    case 'ready':
+    case "ready":
       if (!teamSide) {
-        ws.send(JSON.stringify({
-          type: 'error',
-          payload: { message: 'Team side required for ready action' }
-        }));
+        ws.send(
+          JSON.stringify({
+            type: "error",
+            payload: { message: "Team side required for ready action" },
+          }),
+        );
         return;
       }
 
-      const readyResult = await setTeamReady(session, teamSide, payload.ready || false);
+      const readyResult = await setTeamReady(
+        session,
+        teamSide,
+        payload.ready || false,
+      );
       if (readyResult) {
         await broadcastGameState(sessionId);
       } else {
-        ws.send(JSON.stringify({
-          type: 'error',
-          payload: { message: 'Failed to set ready state' }
-        }));
+        ws.send(
+          JSON.stringify({
+            type: "error",
+            payload: { message: "Failed to set ready state" },
+          }),
+        );
       }
       break;
 
     default:
-      ws.send(JSON.stringify({
-        type: 'error',
-        payload: { message: 'Unknown message type' }
-      }));
+      ws.send(
+        JSON.stringify({
+          type: "error",
+          payload: { message: "Unknown message type" },
+        }),
+      );
   }
 }
 
-async function handleJoinSession(ws: ExtendedWebSocket, sessionId: string, teamSide?: TeamSide) {
+async function handleJoinSession(
+  ws: ExtendedWebSocket,
+  sessionId: string,
+  teamSide?: TeamSide,
+) {
   if (!connections.has(sessionId)) {
     connections.set(sessionId, new Set());
   }
@@ -205,10 +245,12 @@ async function handleJoinSession(ws: ExtendedWebSocket, sessionId: string, teamS
   // Send current game state
   const session = await getGameSession(sessionId);
   if (session) {
-    ws.send(JSON.stringify({
-      type: 'gameState',
-      payload: getGameState(session)
-    }));
+    ws.send(
+      JSON.stringify({
+        type: "gameState",
+        payload: getGameState(session),
+      }),
+    );
   }
 }
 
@@ -218,14 +260,15 @@ async function broadcastGameState(sessionId: string) {
 
   const gameState = getGameState(session);
   const message = JSON.stringify({
-    type: 'gameState',
-    payload: gameState
+    type: "gameState",
+    payload: gameState,
   });
 
   const sessionConnections = connections.get(sessionId);
   if (sessionConnections) {
-    sessionConnections.forEach(ws => {
-      if (ws.readyState === 1) { // WebSocket.OPEN
+    sessionConnections.forEach((ws) => {
+      if (ws.readyState === 1) {
+        // WebSocket.OPEN
         ws.send(message);
       }
     });
@@ -236,10 +279,10 @@ export async function GET() {
   // Initialize WebSocket server on first request
   initWebSocketServer();
 
-  return new Response('WebSocket server running on port 8080', {
+  return new Response("WebSocket server running on port 8080", {
     status: 200,
     headers: {
-      'Content-Type': 'text/plain',
+      "Content-Type": "text/plain",
     },
   });
-} 
+}

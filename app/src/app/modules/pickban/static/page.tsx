@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import type { GameSession, SessionUrls } from '@lib/types';
-import { useNavigation } from '@lib/contexts/NavigationContext';
-import { useModal } from '@lib/contexts/ModalContext';
-import { useAuth } from '@lib/contexts/AuthContext';
-import { useAuthenticatedFetch } from '@lib/hooks/useAuthenticatedFetch';
-import { API_BASE_URL } from '@lib/utils/constants';
-import { PickBanHub } from '@lib/components/pages/home';
-import { AuthGuard } from '@lib/components/auth/AuthGuard';
+import { useState, useEffect, useCallback } from "react";
+import type { GameSession, SessionUrls } from "@lib/types";
+import { useNavigation } from "@lib/contexts/NavigationContext";
+import { useModal } from "@lib/contexts/ModalContext";
+import { useAuth } from "@lib/contexts/AuthContext";
+import { useAuthenticatedFetch } from "@lib/hooks/useAuthenticatedFetch";
+import { API_BASE_URL } from "@lib/utils/constants";
+import { PickBanHub } from "@lib/components/pages/home";
+import { AuthGuard } from "@lib/components/auth/AuthGuard";
 
 export default function StaticPickBanPage() {
   const { setActiveModule } = useNavigation();
@@ -18,22 +18,26 @@ export default function StaticPickBanPage() {
   const [sessions, setSessions] = useState<GameSession[]>([]);
   const [loading, setLoading] = useState(false);
   const [sessionsLoading, setSessionsLoading] = useState(false);
-  const [newSessionUrls, setNewSessionUrls] = useState<SessionUrls | null>(null);
+  const [newSessionUrls, setNewSessionUrls] = useState<SessionUrls | null>(
+    null,
+  );
   const [error, setError] = useState<string | null>(null);
 
   const fetchSessions = useCallback(async () => {
     try {
       setSessionsLoading(true);
-      const response = await authenticatedFetch(`${API_BASE_URL}/pickban/sessions`);
+      const response = await authenticatedFetch(
+        `${API_BASE_URL}/pickban/sessions`,
+      );
 
       if (response.ok) {
         const data = await response.json();
         setSessions(Array.isArray(data) ? data : []);
       } else {
-        throw new Error('Failed to fetch sessions');
+        throw new Error("Failed to fetch sessions");
       }
     } catch (error) {
-      setError('Failed to fetch sessions');
+      setError("Failed to fetch sessions");
       console.error(error);
       setSessions([]);
     } finally {
@@ -42,7 +46,7 @@ export default function StaticPickBanPage() {
   }, [authenticatedFetch]);
 
   useEffect(() => {
-    setActiveModule('pickban/static');
+    setActiveModule("pickban/static");
     fetchSessions();
   }, [fetchSessions, setActiveModule]);
 
@@ -53,33 +57,38 @@ export default function StaticPickBanPage() {
     setError(null);
 
     try {
-      const response = await authenticatedFetch(`${API_BASE_URL}/pickban/sessions`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
+      const response = await authenticatedFetch(
+        `${API_BASE_URL}/pickban/sessions`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            type: "static", // Mark as static session
+            config: {
+              enableLCU: false, // Disable LCU for static sessions
+              mode: "manual",
+            },
+          }),
         },
-        body: JSON.stringify({
-          type: 'static', // Mark as static session
-          config: {
-            enableLCU: false, // Disable LCU for static sessions
-            mode: 'manual'
-          }
-        })
-      });
+      );
 
       if (response.ok) {
         const data = await response.json();
         setNewSessionUrls({
           ...data.urls,
-          sessionId: data.sessionId
+          sessionId: data.sessionId,
         });
         await fetchSessions();
       } else {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to create session');
+        throw new Error(errorData.error || "Failed to create session");
       }
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to create session');
+      setError(
+        error instanceof Error ? error.message : "Failed to create session",
+      );
     } finally {
       setLoading(false);
     }
@@ -89,11 +98,12 @@ export default function StaticPickBanPage() {
     if (!authUser?.isAdmin) return;
 
     const confirmed = await showConfirm({
-      type: 'danger',
-      title: 'Delete Session',
-      message: 'Are you sure you want to delete this session? This action cannot be undone.',
-      confirmText: 'Delete',
-      cancelText: 'Cancel'
+      type: "danger",
+      title: "Delete Session",
+      message:
+        "Are you sure you want to delete this session? This action cannot be undone.",
+      confirmText: "Delete",
+      cancelText: "Cancel",
     });
 
     if (!confirmed) {
@@ -101,18 +111,23 @@ export default function StaticPickBanPage() {
     }
 
     try {
-      const response = await authenticatedFetch(`${API_BASE_URL}/pickban/sessions/${sessionId}`, {
-        method: 'DELETE'
-      });
+      const response = await authenticatedFetch(
+        `${API_BASE_URL}/pickban/sessions/${sessionId}`,
+        {
+          method: "DELETE",
+        },
+      );
 
       if (response.ok) {
         await fetchSessions();
       } else {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to delete session');
+        throw new Error(errorData.error || "Failed to delete session");
       }
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to delete session');
+      setError(
+        error instanceof Error ? error.message : "Failed to delete session",
+      );
     }
   };
 
@@ -123,15 +138,18 @@ export default function StaticPickBanPage() {
           <div className="mb-8">
             <h1 className="text-3xl font-bold mb-2">Pick & Ban</h1>
             <p className="text-gray-400">
-              Create and manage pick & ban sessions without League Client integration.
-              Perfect for tournaments, practice, or when League Client is not available.
+              Create and manage pick & ban sessions without League Client
+              integration. Perfect for tournaments, practice, or when League
+              Client is not available.
             </p>
           </div>
 
           {authUser && (
             <PickBanHub
               user={authUser}
-              sessions={sessions.filter(session => session.type === 'web' || !session.type)} // Show static or legacy sessions
+              sessions={sessions.filter(
+                (session) => session.type === "web" || !session.type,
+              )} // Show static or legacy sessions
               sessionsLoading={sessionsLoading}
               onCreateSession={createSession}
               onDeleteSession={deleteSession}
@@ -144,4 +162,4 @@ export default function StaticPickBanPage() {
       </div>
     </AuthGuard>
   );
-} 
+}

@@ -1,23 +1,21 @@
-'use client';
+"use client";
 
-import React from 'react';
+import React from "react";
 
 interface CameraLayoutProps {
-    children: React.ReactNode;
-    backgroundColor?: 'black' | 'gray-900';
-    className?: string;
+  children: React.ReactNode;
+  backgroundColor?: "black" | "gray-900";
+  className?: string;
 }
 
 export const CameraLayout = ({
-    children,
-    backgroundColor = 'black',
-    className = ''
+  children,
+  backgroundColor = "black",
+  className = "",
 }: CameraLayoutProps): React.ReactElement => {
-    const bgClass = backgroundColor === 'black' ? 'bg-black' : '';
+  const bgClass = backgroundColor === "black" ? "bg-black" : "";
 
-    return (
-        <div className={`min-h-screen ${bgClass} ${className}`}>
-            {children}
-        </div>
-    );
+  return (
+    <div className={`min-h-screen ${bgClass} ${className}`}>{children}</div>
+  );
 };

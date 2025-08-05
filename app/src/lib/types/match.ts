@@ -5,8 +5,8 @@ import { ImageStorage } from "./tournament";
 export interface Match {
   id: string;
   name: string;
-  type: 'tournament' | 'standalone';
-  
+  type: "tournament" | "standalone";
+
   // Tournament context (only for tournament matches)
   tournamentId?: string;
   tournamentName?: string;
@@ -14,38 +14,38 @@ export interface Match {
   bracketNodeId?: string;
   roundName?: string;
   matchNumber?: number;
-  
+
   // Teams
   blueTeam: MatchTeam;
   redTeam: MatchTeam;
-  
+
   // Match configuration
   format: MatchFormat;
   isFearlessDraft: boolean;
   patchName: string;
-  
+
   // Scheduling
   scheduledTime?: Date;
   startTime?: Date;
   endTime?: Date;
-  
+
   // Status and results
   status: MatchStatus;
-  winner?: 'blue' | 'red';
+  winner?: "blue" | "red";
   score: {
     blue: number;
     red: number;
   };
-  
+
   // Game results (for BO3/BO5)
   games: GameResult[];
-  
+
   // Commentators assigned to this match
   commentators: MatchCommentator[];
-  
+
   // Predictions
   predictions: MatchPrediction[];
-  
+
   // Metadata
   createdBy: string;
   createdAt: Date;
@@ -87,7 +87,7 @@ export interface MatchPrediction {
 export interface GameResult {
   id: string;
   gameNumber: number;
-  winner: 'blue' | 'red';
+  winner: "blue" | "red";
   duration: number; // in seconds
   blueTeam: {
     kills: number;
@@ -110,12 +110,16 @@ export interface GameResult {
   completedAt: Date;
 }
 
-export type MatchStatus = 'scheduled' | 'in-progress' | 'completed' | 'cancelled';
+export type MatchStatus =
+  | "scheduled"
+  | "in-progress"
+  | "completed"
+  | "cancelled";
 
 // API Request/Response types
 export interface CreateMatchRequest {
   name: string;
-  type: 'tournament' | 'standalone';
+  type: "tournament" | "standalone";
   tournamentId?: string;
   bracketNodeId?: string;
   blueTeamId: string;
@@ -131,7 +135,7 @@ export interface UpdateMatchRequest {
   name?: string;
   scheduledTime?: string;
   status?: MatchStatus;
-  winner?: 'blue' | 'red';
+  winner?: "blue" | "red";
   score?: { blue: number; red: number };
   commentators?: string[];
 }
@@ -143,4 +147,4 @@ export interface AssignCommentatorRequest {
 
 export interface SubmitPredictionRequest {
   prediction: string;
-} 
+}

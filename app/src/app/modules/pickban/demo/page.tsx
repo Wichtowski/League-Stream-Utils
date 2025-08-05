@@ -1,19 +1,21 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { getDynamicMockData } from '@lib/mocks/dynamic-champselect';
-import { getChampions } from '@lib/champions';
-import { ChampSelectDisplay } from '@lib/components/pages/leagueclient/champselect/ChampSelectDisplay';
-import { BackButton } from '@lib/components/common/buttons';
+import React, { useState, useEffect } from "react";
+import { getDynamicMockData } from "@lib/mocks/dynamic-champselect";
+import { getChampions } from "@lib/champions";
+import { ChampSelectDisplay } from "@lib/components/pages/leagueclient/champselect/ChampSelectDisplay";
+import { BackButton } from "@lib/components/common/buttons";
 
 const DemoPage: React.FC = () => {
-  const [mockData, setMockData] = useState<ReturnType<typeof getDynamicMockData> | null>(null);
+  const [mockData, setMockData] = useState<ReturnType<
+    typeof getDynamicMockData
+  > | null>(null);
   const [showControls, setShowControls] = useState(true);
 
   useEffect(() => {
     // Initialize mock data on client side
     setMockData(getDynamicMockData());
-    
+
     // Ensure champions cache is populated
     getChampions().catch(console.error);
 
@@ -38,14 +40,14 @@ const DemoPage: React.FC = () => {
       <div className="mb-4">
         <BackButton to="/modules">Back to Modules</BackButton>
       </div>
-      <ChampSelectDisplay 
-      data={mockData}
-      isOverlay={false}
-      showControls={showControls}
-      onToggleControls={() => setShowControls(!showControls)}
+      <ChampSelectDisplay
+        data={mockData}
+        isOverlay={false}
+        showControls={showControls}
+        onToggleControls={() => setShowControls(!showControls)}
       />
     </>
   );
 };
 
-export default DemoPage; 
+export default DemoPage;

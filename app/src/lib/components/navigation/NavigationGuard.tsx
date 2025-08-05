@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
-import { useAuth } from '@lib/contexts/AuthContext';
-import { useElectron } from '@lib/contexts/ElectronContext';
+import { useEffect } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useAuth } from "@lib/contexts/AuthContext";
+import { useElectron } from "@lib/contexts/ElectronContext";
 
 interface NavigationGuardProps {
   children: React.ReactNode;
@@ -22,24 +22,24 @@ const NavigationGuard = ({ children }: NavigationGuardProps) => {
     }
 
     // Skip guard for API routes and Next.js internal routes
-    if (pathname.startsWith('/api') || pathname.startsWith('/_next')) {
+    if (pathname.startsWith("/api") || pathname.startsWith("/_next")) {
       return;
     }
 
     // Define valid routes
     const validRoutes = [
-      '/',
-      '/auth',
-      '/modules',
-      '/settings',
-      '/debug-contexts',
-      '/download/assets',
+      "/",
+      "/auth",
+      "/modules",
+      "/settings",
+      "/debug-contexts",
+      "/download/assets",
     ];
 
     // Check if current path starts with any valid route
-    const isValidRoute = validRoutes.some(route => {
-      if (route === '/') {
-        return pathname === '/';
+    const isValidRoute = validRoutes.some((route) => {
+      if (route === "/") {
+        return pathname === "/";
       }
       return pathname.startsWith(route);
     });
@@ -53,18 +53,26 @@ const NavigationGuard = ({ children }: NavigationGuardProps) => {
     const isAuthenticated = !!user;
     const isElectronLocal = isElectron && useLocalData;
 
-    console.log('NavigationGuard: Invalid route detected:', pathname);
+    console.log("NavigationGuard: Invalid route detected:", pathname);
 
     if (isElectronLocal || isAuthenticated) {
       // Redirect authenticated users or electron local users to modules
-      router.replace('/modules');
+      router.replace("/modules");
     } else {
       // Redirect unauthenticated users to auth
-      router.replace('/auth');
+      router.replace("/auth");
     }
-  }, [pathname, router, user, authLoading, isElectron, isElectronLoading, useLocalData]);
+  }, [
+    pathname,
+    router,
+    user,
+    authLoading,
+    isElectron,
+    isElectronLoading,
+    useLocalData,
+  ]);
 
   return <>{children}</>;
 };
 
-export { NavigationGuard }; 
+export { NavigationGuard };

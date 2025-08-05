@@ -1,14 +1,17 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useRouter } from 'next/navigation';
+import { useRouter } from "next/navigation";
 import { useTournaments } from "@lib/contexts/TournamentsContext";
-import { useNavigation } from '@lib/contexts/NavigationContext';
-import { useModal } from '@lib/components/modal';
+import { useNavigation } from "@lib/contexts/NavigationContext";
+import { useModal } from "@lib/components/modal";
 import { AuthGuard } from "@lib/components/auth/AuthGuard";
-import { LoadingSpinner } from '@lib/components/common';
-import { tournamentStorage, LastSelectedTournament } from '@lib/utils/storage/tournament-storage';
-import type { Tournament } from '@lib/types/tournament';
+import { LoadingSpinner } from "@lib/components/common";
+import {
+  tournamentStorage,
+  LastSelectedTournament,
+} from "@lib/utils/storage/tournament-storage";
+import type { Tournament } from "@lib/types/tournament";
 
 interface Commentator {
   id: string;
@@ -27,32 +30,38 @@ export default function CommentatorsPage(): React.ReactElement {
   const [xHandle, setXHandle] = useState("");
   const [loading, setLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
-  const [lastSelectedTournament, setLastSelectedTournament] = useState<LastSelectedTournament | null>(null);
+  const [lastSelectedTournament, setLastSelectedTournament] =
+    useState<LastSelectedTournament | null>(null);
   const [tournament, setTournament] = useState<Tournament | null>(null);
 
   useEffect(() => {
-    setActiveModule('commentators');
+    setActiveModule("commentators");
   }, [setActiveModule]);
 
   useEffect(() => {
     const loadLastSelectedTournament = async () => {
       try {
-        const lastSelected = await tournamentStorage.getLastSelectedTournament();
-        if (lastSelected && await tournamentStorage.isLastSelectedTournamentValid()) {
+        const lastSelected =
+          await tournamentStorage.getLastSelectedTournament();
+        if (
+          lastSelected &&
+          (await tournamentStorage.isLastSelectedTournamentValid())
+        ) {
           setLastSelectedTournament(lastSelected);
         } else {
-          await showAlert({ 
-            type: 'error', 
-            message: 'No tournament selected. Please select a tournament first.' 
+          await showAlert({
+            type: "error",
+            message:
+              "No tournament selected. Please select a tournament first.",
           });
-          router.push('/modules/tournaments');
+          router.push("/modules/tournaments");
         }
       } catch (_error) {
-        await showAlert({ 
-          type: 'error', 
-          message: 'Failed to load tournament selection.' 
+        await showAlert({
+          type: "error",
+          message: "Failed to load tournament selection.",
         });
-        router.push('/modules/tournaments');
+        router.push("/modules/tournaments");
       }
     };
 
@@ -60,14 +69,20 @@ export default function CommentatorsPage(): React.ReactElement {
   }, [router, showAlert]);
 
   useEffect(() => {
-    if (!tournamentsLoading && tournaments.length > 0 && lastSelectedTournament) {
-      const foundTournament = tournaments.find(t => t.id === lastSelectedTournament.tournamentId);
+    if (
+      !tournamentsLoading &&
+      tournaments.length > 0 &&
+      lastSelectedTournament
+    ) {
+      const foundTournament = tournaments.find(
+        (t) => t.id === lastSelectedTournament.tournamentId,
+      );
       if (foundTournament) {
         setTournament(foundTournament);
       } else {
         // Tournament no longer exists, clear the selection
         tournamentStorage.clearLastSelectedTournament();
-        router.push('/modules/tournaments');
+        router.push("/modules/tournaments");
       }
     }
   }, [tournaments, tournamentsLoading, lastSelectedTournament, router]);
@@ -75,7 +90,7 @@ export default function CommentatorsPage(): React.ReactElement {
   // Fetch commentators from API or Electron
   useEffect(() => {
     if (!lastSelectedTournament) return;
-    
+
     setLoading(true);
     const fetchCommentators = async () => {
       if (typeof window !== "undefined" && window.electronAPI?.storage?.get) {
@@ -98,7 +113,7 @@ export default function CommentatorsPage(): React.ReactElement {
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!lastSelectedTournament || !name) return;
-    
+
     setLoading(true);
     if (typeof window !== "undefined" && window.electronAPI?.storage?.set) {
       const newCommentator: Commentator = {
@@ -114,7 +129,11 @@ export default function CommentatorsPage(): React.ReactElement {
       await fetch("/api/v1/comentators", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, xHandle, tournamentId: lastSelectedTournament.tournamentId }),
+        body: JSON.stringify({
+          name,
+          xHandle,
+          tournamentId: lastSelectedTournament.tournamentId,
+        }),
       });
       // Re-fetch
       const res = await fetch("/api/v1/comentators");
@@ -132,7 +151,9 @@ export default function CommentatorsPage(): React.ReactElement {
 
   // Filter commentators for the selected tournament
   const filteredCommentators = lastSelectedTournament
-    ? commentators.filter(c => c.tournaments.includes(lastSelectedTournament.tournamentId))
+    ? commentators.filter((c) =>
+        c.tournaments.includes(lastSelectedTournament.tournamentId),
+      )
     : [];
 
   if (loading || tournamentsLoading) {
@@ -150,9 +171,12 @@ export default function CommentatorsPage(): React.ReactElement {
           <div className="container mx-auto px-6 py-8">
             <div className="text-center">
               <h1 className="text-2xl font-bold mb-4">Tournament Not Found</h1>
-              <p>The tournament you&apos;re looking for doesn&apos;t exist or you don&apos;t have access to it.</p>
+              <p>
+                The tournament you&apos;re looking for doesn&apos;t exist or you
+                don&apos;t have access to it.
+              </p>
               <button
-                onClick={() => router.push('/modules/tournaments')}
+                onClick={() => router.push("/modules/tournaments")}
                 className="mt-4 bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg"
               >
                 Select Tournament
@@ -170,9 +194,11 @@ export default function CommentatorsPage(): React.ReactElement {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold text-white">Commentators</h1>
-            <p className="text-gray-400 mt-2">{tournament.name} ({tournament.abbreviation})</p>
+            <p className="text-gray-400 mt-2">
+              {tournament.name} ({tournament.abbreviation})
+            </p>
             <button
-              onClick={() => router.push('/modules/tournaments')}
+              onClick={() => router.push("/modules/tournaments")}
               className="mt-2 text-blue-400 hover:text-blue-300 text-sm"
             >
               ← Change Tournament
@@ -181,23 +207,30 @@ export default function CommentatorsPage(): React.ReactElement {
         </div>
 
         <div className="bg-gray-900 rounded-xl p-6 mb-10 shadow-lg">
-          <h3 className="text-xl font-semibold text-white mb-4">Add Commentator</h3>
-          <form onSubmit={handleAdd} className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
+          <h3 className="text-xl font-semibold text-white mb-4">
+            Add Commentator
+          </h3>
+          <form
+            onSubmit={handleAdd}
+            className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end"
+          >
             <div>
               <label className="block text-gray-300 mb-2">Display Name</label>
               <input
                 className="w-full p-2 rounded bg-gray-700 text-white"
                 value={name}
-                onChange={e => setName(e.target.value)}
+                onChange={(e) => setName(e.target.value)}
                 required
               />
             </div>
             <div>
-              <label className="block text-gray-300 mb-2">x.com Handle (optional)</label>
+              <label className="block text-gray-300 mb-2">
+                x.com Handle (optional)
+              </label>
               <input
                 className="w-full p-2 rounded bg-gray-700 text-white"
                 value={xHandle}
-                onChange={e => setXHandle(e.target.value)}
+                onChange={(e) => setXHandle(e.target.value)}
                 placeholder="@yourhandle"
               />
             </div>
@@ -209,18 +242,27 @@ export default function CommentatorsPage(): React.ReactElement {
               {loading ? "Adding..." : "Add Commentator"}
             </button>
           </form>
-          {successMsg && <div className="text-green-400 mt-4">{successMsg}</div>}
+          {successMsg && (
+            <div className="text-green-400 mt-4">{successMsg}</div>
+          )}
         </div>
 
-        <h3 className="text-xl font-semibold text-white mb-4">Commentators for this Tournament</h3>
+        <h3 className="text-xl font-semibold text-white mb-4">
+          Commentators for this Tournament
+        </h3>
         {loading ? (
           <div className="text-white">Loading...</div>
         ) : filteredCommentators.length === 0 ? (
-          <div className="text-gray-400">No commentators yet for this tournament.</div>
+          <div className="text-gray-400">
+            No commentators yet for this tournament.
+          </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {filteredCommentators.map(c => (
-              <div key={c.id} className="bg-gray-800 rounded-xl p-5 border border-gray-700 shadow flex flex-col gap-2">
+            {filteredCommentators.map((c) => (
+              <div
+                key={c.id}
+                className="bg-gray-800 rounded-xl p-5 border border-gray-700 shadow flex flex-col gap-2"
+              >
                 <div className="text-lg font-bold text-white">{c.name}</div>
                 {c.xHandle && (
                   <a
@@ -239,4 +281,4 @@ export default function CommentatorsPage(): React.ReactElement {
       </div>
     </AuthGuard>
   );
-} 
+}
