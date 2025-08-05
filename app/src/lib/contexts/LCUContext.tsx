@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { LCUConnector } from '@lib/services/LCU/lcu-connector';
 import { storage } from '@lib/utils/storage/storage';
+import { usePathname } from 'next/navigation';
 
 import type { ChampSelectSession } from '@lib/types';
 
@@ -32,6 +33,11 @@ interface LCUContextType {
   // Status
   lastConnectedAt: Date | null;
   connectionAttempts: number;
+
+  // Polling control
+  enablePolling: () => void;
+  disablePolling: () => void;
+  isPollingEnabled: () => boolean;
 }
 
 const LCUContext = createContext<LCUContextType | undefined>(undefined);
@@ -47,6 +53,9 @@ interface LCUSettings {
 export function LCUProvider({ children }: { children: ReactNode }) {
   // Check if we're in Electron environment without depending on the context
   const isElectron = typeof window !== 'undefined' && window.electronAPI?.isElectron;
+  
+  // Get current pathname for route-based polling control
+  const pathname = usePathname();
   
   // Get download state
   const { downloadState } = useDownload();
@@ -295,12 +304,16 @@ export function LCUProvider({ children }: { children: ReactNode }) {
     }
   }, [isConnected, isConnecting, autoReconnect, connectionAttempts, connect]);
 
-  // Start polling when downloads are complete
+  // Route-based polling control
   useEffect(() => {
-    if (isConnected && !downloadState.isDownloading) {
-      lcuConnector.startPollingIfReady();
+    const isPickbanModule = pathname?.startsWith('/modules/pickban');
+    
+    if (isPickbanModule && isConnected && !downloadState.isDownloading) {
+      lcuConnector.enablePolling();
+    } else {
+      lcuConnector.disablePolling();
     }
-  }, [isConnected, downloadState.isDownloading, lcuConnector]);
+  }, [pathname, lcuConnector, isConnected, downloadState.isDownloading]);
 
   const disconnect = useCallback(() => {
     lcuConnector.disconnect();
@@ -318,6 +331,18 @@ export function LCUProvider({ children }: { children: ReactNode }) {
     setAutoReconnectState(enabled);
   }, []);
 
+  const enablePolling = useCallback(() => {
+    lcuConnector.enablePolling();
+  }, [lcuConnector]);
+
+  const disablePolling = useCallback(() => {
+    lcuConnector.disablePolling();
+  }, [lcuConnector]);
+
+  const isPollingEnabled = useCallback(() => {
+    return lcuConnector.isPollingEnabled();
+  }, [lcuConnector]);
+
   const value: LCUContextType = {
     isConnected,
     isConnecting,
@@ -330,7 +355,10 @@ export function LCUProvider({ children }: { children: ReactNode }) {
     autoReconnect,
     setAutoReconnect,
     lastConnectedAt,
-    connectionAttempts
+    connectionAttempts,
+    enablePolling,
+    disablePolling,
+    isPollingEnabled
   };
 
   return (

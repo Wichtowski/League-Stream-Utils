@@ -2,7 +2,6 @@ import type { ChampSelectSession } from '@lib/types';
 
 interface LCUCredentials {
   port: string;
-  password: string;
   protocol: string;
 }
 
@@ -22,6 +21,7 @@ class LCUConnector {
   private pollingInterval: NodeJS.Timeout | null = null;
   private retryTimeout: NodeJS.Timeout | null = null;
   private reconnectAttempts = 0;
+  private pollingEnabled = false;
 
   private readonly autoReconnect: boolean;
   private readonly maxReconnectAttempts: number;
@@ -53,6 +53,23 @@ class LCUConnector {
 
   public setOnError(handler: (error: string) => void): void {
     this.onError = handler;
+  }
+
+  // Polling control methods
+  public enablePolling(): void {
+    this.pollingEnabled = true;
+    if (this.connectionStatus === 'connected' && (!this.isDownloading || !this.isDownloading())) {
+      this.startPolling();
+    }
+  }
+
+  public disablePolling(): void {
+    this.pollingEnabled = false;
+    this.stopPolling();
+  }
+
+  public isPollingEnabled(): boolean {
+    return this.pollingEnabled;
   }
 
   // Getters
@@ -91,7 +108,6 @@ class LCUConnector {
       }
       return {
         port: data.credentials.port,
-        password: data.credentials.password,
         protocol: data.credentials.protocol
       };
     } catch (err) {
@@ -100,35 +116,7 @@ class LCUConnector {
     }
   }
 
-  private async makeRequest(endpoint: string, method: 'GET' | 'POST' | 'PATCH' = 'GET', body?: unknown): Promise<unknown> {
-    if (!this.credentials) {
-      throw new Error('No LCU credentials available');
-    }
 
-    const url = `${this.credentials.protocol}://127.0.0.1:${this.credentials.port}${endpoint}`;
-    const auth = btoa(`riot:${this.credentials.password}`);
-
-    const response = await fetch(url, {
-      method,
-      headers: {
-        'Authorization': `Basic ${auth}`,
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: body ? JSON.stringify(body) : undefined,
-    });
-
-    if (!response.ok) {
-      throw new Error(`LCU request failed: ${response.status} ${response.statusText}`);
-    }
-
-    const contentType = response.headers.get('content-type');
-    if (contentType && contentType.includes('application/json')) {
-      return await response.json();
-    }
-
-    return await response.text();
-  }
 
   private async pollChampSelect(): Promise<void> {
     // If using mock data, don't make real API calls
@@ -155,6 +143,11 @@ class LCUConnector {
   private startPolling(): void {
     // Don't start polling if using mock data
     if (this.useMockData) {
+      return;
+    }
+
+    // Don't start polling if polling is disabled
+    if (!this.pollingEnabled) {
       return;
     }
 
@@ -318,8 +311,8 @@ class LCUConnector {
   }
 
   public startPollingIfReady(): void {
-    // Only start polling if we're connected and downloads are not in progress
-    if (this.connectionStatus === 'connected' && (!this.isDownloading || !this.isDownloading())) {
+    // Only start polling if we're connected, downloads are not in progress, and polling is enabled
+    if (this.connectionStatus === 'connected' && (!this.isDownloading || !this.isDownloading()) && this.pollingEnabled) {
       this.startPolling();
     }
   }
