@@ -10,6 +10,7 @@ import { useModal } from '@lib/components/modal';
 import { AuthGuard } from '@lib/components/auth/AuthGuard';
 import { LoadingSpinner } from '@lib/components/common';
 import { BackButton } from '@/lib/components/common/buttons';
+import { tournamentStorage } from '@lib/utils/storage/tournament-storage';
 
 // Dynamic imports for lazy loading
 const TournamentCreationForm = dynamic(
@@ -124,6 +125,13 @@ export default function TournamentsPage() {
                                             key={tournament.id}
                                             href={`/modules/tournaments/${tournament.id}`}
                                             className="bg-gray-800 hover:bg-blue-700 text-white rounded-xl p-6 border border-gray-700 hover:border-blue-500 transition-all duration-200 shadow-lg text-left block"
+                                            onClick={async () => {
+                                                try {
+                                                    await tournamentStorage.setLastSelectedTournament(tournament.id, tournament.name);
+                                                } catch (error) {
+                                                    console.error('Failed to save last selected tournament:', error);
+                                                }
+                                            }}
                                         >
                                             <div className="flex justify-between items-start mb-4">
                                                 <div>

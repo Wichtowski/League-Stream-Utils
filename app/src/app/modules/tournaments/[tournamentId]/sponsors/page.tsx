@@ -1,23 +1,18 @@
 'use client';
 
-import { useEffect, useState, Suspense } from 'react';
-import dynamic from 'next/dynamic';
+import { useEffect, useState, useCallback } from 'react';
 import { useTournaments } from '@lib/contexts/TournamentsContext';
 import { useNavigation } from '@lib/contexts/NavigationContext';
 import { useModal } from '@lib/components/modal';
 import { AuthGuard } from '@lib/components/auth/AuthGuard';
 import { LoadingSpinner } from '@lib/components/common';
 import { BackButton } from '@/lib/components/common/buttons';
-import { Tournament } from '@/lib/types/tournament';
-
-// Dynamic imports for lazy loading
-const SponsorManager = dynamic(
-  () => import('@lib/components/pages/tournaments').then(mod => ({ default: mod.SponsorManager })),
-  { 
-    loading: () => <LoadingSpinner text="Loading sponsor manager..." />,
-    ssr: false 
-  }
-);
+import { Tournament, Sponsorship, ImageStorage } from '@/lib/types/tournament';
+import { SponsorsGuidebook } from '@lib/components/pages/tournaments/sponsors/SponsorsGuidebook';
+import { OBSDisplayInfo } from '@lib/components/pages/tournaments/sponsors/OBSDisplayInfo';
+import { SponsorWindow } from '@lib/components/pages/tournaments/sponsors/SponsorWindow';
+import { SponsorForm } from '@lib/components/pages/tournaments/sponsors/SponsorForm';
+import { SponsorsList } from '@lib/components/pages/tournaments/sponsors/SponsorsList';
 
 interface TournamentSponsorsPageProps {
   params: Promise<{
@@ -25,13 +20,46 @@ interface TournamentSponsorsPageProps {
   }>;
 }
 
+interface SponsorFormData {
+  name: string;
+  logo: ImageStorage | null;
+  website: string;
+  tier: 'title' | 'presenting' | 'official' | 'partner';
+  displayPriority: number;
+  showName: boolean;
+  namePosition: 'left' | 'right';
+  fillContainer: boolean;
+}
+
+const createDefaultSponsorForm = (): SponsorFormData => ({
+  name: '',
+  logo: null,
+  website: '',
+  tier: 'partner',
+  displayPriority: 0,
+  showName: true,
+  namePosition: 'right',
+  fillContainer: false
+});
+
 export default function TournamentSponsorsPage({ params }: TournamentSponsorsPageProps) {
   const { tournaments, loading: tournamentsLoading, error, refreshTournaments } = useTournaments();
   const { setActiveModule } = useNavigation();
-  const { showAlert } = useModal();
+  const { showAlert, showConfirm } = useModal();
   const [tournament, setTournament] = useState<Tournament>();
   const [loading, setLoading] = useState(true);
   const [tournamentId, setTournamentId] = useState<string>('');
+  
+  // Sponsor management state
+  const [sponsors, setSponsors] = useState<Sponsorship[]>([]);
+  const [sponsorsLoading, setSponsorsLoading] = useState(true);
+  const [formData, setFormData] = useState<SponsorFormData>(createDefaultSponsorForm());
+  const [editingSponsor, setEditingSponsor] = useState<Sponsorship | null>(null);
+  const [showAddForm, setShowAddForm] = useState(false);
+  
+  // Preview cycling state
+  const [currentSponsorIndex, setCurrentSponsorIndex] = useState(0);
+  const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
     setActiveModule('tournaments');
@@ -61,6 +89,222 @@ export default function TournamentSponsorsPage({ params }: TournamentSponsorsPag
     }
   }, [error, showAlert]);
 
+  const fetchSponsors = useCallback(async (): Promise<void> => {
+    try {
+      const response = await fetch(`/api/v1/tournaments/${tournamentId}/sponsors`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch sponsors');
+      }
+      const data = await response.json();
+      setSponsors(data.sponsors || []);
+      setSponsorsLoading(false);
+    } catch (_error) {
+      await showAlert({ 
+        type: 'error', 
+        message: 'Failed to load sponsors' 
+      });
+      setSponsorsLoading(false);
+    }
+  }, [tournamentId, showAlert]);
+
+  useEffect(() => {
+    if (tournamentId) {
+      fetchSponsors();
+    }
+  }, [fetchSponsors, tournamentId]);
+
+  // Cycling effect for sponsor preview
+  useEffect(() => {
+    if (sponsors.length === 0) return;
+
+    const fadeOutDuration = 1000; // 1 second fade out
+    const displayDuration = 3000; // 3 seconds display
+    const fadeInDuration = 1000; // 1 second fade in
+    const totalCycleDuration = fadeOutDuration + displayDuration + fadeInDuration;
+
+    const cycleSponsors = (): void => {
+      // Fade out
+      setIsVisible(false);
+      
+      setTimeout(() => {
+        // Change sponsor
+        setCurrentSponsorIndex((prev) => (prev + 1) % sponsors.length);
+        
+        // Fade in
+        setTimeout(() => {
+          setIsVisible(true);
+        }, 50); // Small delay to ensure DOM update
+      }, fadeOutDuration);
+    };
+
+    const interval = setInterval(cycleSponsors, totalCycleDuration);
+
+    return () => clearInterval(interval);
+  }, [sponsors]);
+
+  const handleAddSponsor = async (): Promise<void> => {
+    if (!formData.name || !formData.logo) {
+      await showAlert({ 
+        type: 'error', 
+        message: 'Name and logo are required' 
+      });
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/v1/tournaments/${tournamentId}/sponsors`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to add sponsor');
+      }
+
+      await showAlert({ 
+        type: 'success', 
+        message: 'Sponsor added successfully' 
+      });
+      
+      setFormData(createDefaultSponsorForm());
+      setShowAddForm(false);
+      await fetchSponsors();
+      refreshTournaments();
+    } catch (error) {
+      await showAlert({ 
+        type: 'error', 
+        message: error instanceof Error ? error.message : 'Failed to add sponsor' 
+      });
+    }
+  };
+
+  const handleUpdateSponsor = async (): Promise<void> => {
+    if (!editingSponsor || !formData.name || !formData.logo) {
+      await showAlert({ 
+        type: 'error', 
+        message: 'Name and logo are required' 
+      });
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/v1/tournaments/${tournamentId}/sponsors/${editingSponsor.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to update sponsor');
+      }
+
+      await showAlert({ 
+        type: 'success', 
+        message: 'Sponsor updated successfully' 
+      });
+      
+      setFormData(createDefaultSponsorForm());
+      setEditingSponsor(null);
+      await fetchSponsors();
+      refreshTournaments();
+    } catch (error) {
+      await showAlert({ 
+        type: 'error', 
+        message: error instanceof Error ? error.message : 'Failed to update sponsor' 
+      });
+    }
+  };
+
+  const handleDeleteSponsor = async (sponsor: Sponsorship): Promise<void> => {
+    const confirmed = await showConfirm({
+      title: 'Delete Sponsor',
+      message: `Are you sure you want to delete "${sponsor.name}"?`,
+      confirmText: 'Delete',
+      cancelText: 'Cancel'
+    });
+
+    if (!confirmed) return;
+
+    try {
+      const response = await fetch(`/api/v1/tournaments/${tournamentId}/sponsors/${sponsor.id}`, {
+        method: 'DELETE'
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to delete sponsor');
+      }
+
+      await showAlert({ 
+        type: 'success', 
+        message: 'Sponsor deleted successfully' 
+      });
+      
+      await fetchSponsors();
+      refreshTournaments();
+    } catch (error) {
+      await showAlert({ 
+        type: 'error', 
+        message: error instanceof Error ? error.message : 'Failed to delete sponsor' 
+      });
+    }
+  };
+
+  const handleEditSponsor = (sponsor: Sponsorship): void => {
+    setEditingSponsor(sponsor);
+    setFormData({
+      name: sponsor.name,
+      logo: sponsor.logo,
+      website: sponsor.website || '',
+      tier: sponsor.tier,
+      displayPriority: sponsor.displayPriority,
+      showName: sponsor.showName ?? true,
+      namePosition: sponsor.namePosition ?? 'right',
+      fillContainer: sponsor.fillContainer ?? false
+    });
+  };
+
+  const handleCancelEdit = (): void => {
+    setEditingSponsor(null);
+    setFormData(createDefaultSponsorForm());
+  };
+
+  const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>): void => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const result = e.target?.result as string;
+      const base64Data = result.split(',')[1];
+      
+      setFormData(prev => ({
+        ...prev,
+        logo: {
+          type: 'upload',
+          data: base64Data,
+          size: file.size,
+          format: file.type.includes('png') ? 'png' : file.type.includes('jpg') || file.type.includes('jpeg') ? 'jpg' : 'webp'
+        }
+      }));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleLogoUrlChange = (url: string): void => {
+    setFormData(prev => ({
+      ...prev,
+      logo: url ? {
+        type: 'url',
+        url,
+        format: 'png'
+      } : null
+    }));
+  };
+
   if (loading || tournamentsLoading) {
     return (
       <AuthGuard loadingMessage="Loading tournament...">
@@ -75,7 +319,7 @@ export default function TournamentSponsorsPage({ params }: TournamentSponsorsPag
         <div className="min-h-screen text-white">
           <div className="container mx-auto px-6 py-8">
             <div className="mb-4">
-              <BackButton to="/modules/tournaments">Back to Tournaments</BackButton>
+              <BackButton to={`/modules/tournaments/${tournamentId}`}>Back to Tournaments</BackButton>
             </div>
             <div className="text-center">
               <h1 className="text-2xl font-bold mb-4">Tournament Not Found</h1>
@@ -92,21 +336,85 @@ export default function TournamentSponsorsPage({ params }: TournamentSponsorsPag
       <div className="min-h-screen text-white">
         <div className="container mx-auto px-6 py-8">
           <div className="mb-4">
-            <BackButton to="/modules/tournaments">Back to Tournaments</BackButton>
+            <BackButton to={`/modules/tournaments/${tournamentId}`}>Back to Tournaments</BackButton>
           </div>
           
           <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-2">Tournament Sponsors</h1>
+            <h1 className="text-3xl font-bold mb-2">Add Tournament Sponsors</h1>
             <p className="text-gray-300">{tournament.name} ({tournament.abbreviation})</p>
           </div>
 
-          <Suspense fallback={<LoadingSpinner text="Loading sponsor manager..." />}>
-            <SponsorManager 
-              tournamentId={tournamentId}
-              tournament={tournament}
-              onSponsorsUpdated={() => refreshTournaments()}
+          <div className="space-y-6">
+             {/* Cycling Preview Section */}
+             <div className="bg-gray-800 rounded-lg p-6">
+                <h3 className="text-lg font-semibold mb-4">Sponsor Cycling Preview</h3>
+                <div className="space-y-4 center">
+                 {/* All Sponsors Preview */}
+                 {sponsors.length > 0 && (
+                   <div>
+                     <h4 className="text-sm font-medium mb-2">All Sponsors Preview (Cycling):</h4>
+                     <div className="mt-2 text-center">
+                       <p className="text-xs text-gray-400">
+                         Currently showing: {sponsors[currentSponsorIndex]?.name} ({currentSponsorIndex + 1} of {sponsors.length})
+                       </p>
+                     </div>
+                     <div className="relative">
+                       <SponsorWindow 
+                         currentSponsor={sponsors[currentSponsorIndex] || sponsors[0]} 
+                         isVisible={isVisible}
+                         fixed={false}
+                       />
+                     </div>
+                   </div>
+                 )}
+              </div>
+            </div>
+
+            {/* Add Sponsor Button */}
+            {!showAddForm && !editingSponsor && (
+              <div className="bg-gray-800 rounded-lg p-6">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-semibold">Add New Sponsor</h3>
+                  <button
+                    onClick={() => setShowAddForm(true)}
+                    className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg"
+                  >
+                    Add New Sponsor
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Add Sponsor Form */}
+            {(showAddForm || editingSponsor) && (
+              <SponsorForm
+                formData={formData}
+                setFormData={setFormData}
+                editingSponsor={editingSponsor}
+                onAddSponsor={handleAddSponsor}
+                onUpdateSponsor={handleUpdateSponsor}
+                onCancelEdit={handleCancelEdit}
+                onCloseForm={() => {
+                  setShowAddForm(false);
+                  setEditingSponsor(null);
+                  setFormData(createDefaultSponsorForm());
+                }}
+                handleLogoUpload={handleLogoUpload}
+                handleLogoUrlChange={handleLogoUrlChange}
+              />
+            )}
+
+            <SponsorsList
+              sponsors={sponsors}
+              loading={sponsorsLoading}
+              onEditSponsor={handleEditSponsor}
+              onDeleteSponsor={handleDeleteSponsor}
             />
-          </Suspense>
+
+            <SponsorsGuidebook />
+            
+            <OBSDisplayInfo tournamentId={tournamentId} />
+          </div>
         </div>
       </div>
     </AuthGuard>
