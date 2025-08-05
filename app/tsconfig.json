@@ -26,6 +26,6 @@
       "@auth/*": ["./src/auth/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/app/pages/404/page.js", "src/app/modules/pickban/leagueclient/champselect-overlay/components/ChampSelectLayout.tsx", "src/app/lib/services/base-blueprint-downloader.ts"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/app/pages/404/page.js", "src/app/modules/pickban/leagueclient/champselect/components/ChampSelectLayout.tsx", "src/app/lib/services/base-blueprint-downloader.ts"],
   "exclude": ["node_modules"]
 }

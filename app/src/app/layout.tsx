@@ -47,29 +47,29 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
+      <ContextWrapper
+        contexts={[
+          { name: "Electron", provider: ElectronProvider },
+          { name: "Auth", provider: AuthProvider },
+          { name: "Predictions", provider: PredictionsProvider },
+          { name: "MockData", provider: MockDataProvider },
+          { name: "Download", provider: DownloadProvider },
+          { name: "LCU", provider: LCUProvider },
+          { name: "Cameras", provider: CamerasProvider },
+          { name: "Settings", provider: SettingsProvider },
+          { name: "Teams", provider: TeamsProvider },
+          { name: "TournamentData", provider: TournamentDataProvider },
+          { name: "TournamentBracket", provider: TournamentBracketProvider },
+          { name: "TournamentStats", provider: TournamentStatsProvider },
+          { name: "Tournaments", provider: TournamentsProvider },
+          { name: "Pickban", provider: PickbanProvider },
+          { name: "Navigation", provider: NavigationProvider },
+          { name: "Modal", provider: ModalProvider }
+        ]}
       >
-        <ContextWrapper
-          contexts={[
-            { name: "Electron", provider: ElectronProvider },
-            { name: "Auth", provider: AuthProvider },
-            { name: "Predictions", provider: PredictionsProvider },
-            { name: "MockData", provider: MockDataProvider },
-            { name: "Download", provider: DownloadProvider },
-            { name: "LCU", provider: LCUProvider },
-            { name: "Cameras", provider: CamerasProvider },
-            { name: "Settings", provider: SettingsProvider },
-            { name: "Teams", provider: TeamsProvider },
-            { name: "TournamentData", provider: TournamentDataProvider },
-            { name: "TournamentBracket", provider: TournamentBracketProvider },
-            { name: "TournamentStats", provider: TournamentStatsProvider },
-            { name: "Tournaments", provider: TournamentsProvider },
-            { name: "Pickban", provider: PickbanProvider },
-            { name: "Navigation", provider: NavigationProvider },
-            { name: "Modal", provider: ModalProvider }
-          ]}
-        >
+        <body
+          className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col bg-black`}
+          >
           <NavigationGuard>
             <main className="flex-1">
               {children}
@@ -77,8 +77,8 @@ export default function RootLayout({
             <Footer />
             <ChampionCacheInitializer />
           </NavigationGuard>
-        </ContextWrapper>
-      </body>
+        </body>
+      </ContextWrapper>
     </html>
   );
 }
