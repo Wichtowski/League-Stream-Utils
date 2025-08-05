@@ -108,7 +108,11 @@ export const SponsorForm = ({
                   <input
                     type="checkbox"
                     checked={formData.showName}
-                    onChange={(e) => setFormData({ ...formData, showName: e.target.checked })}
+                    onChange={(e) => setFormData({ 
+                      ...formData, 
+                      showName: e.target.checked,
+                      fillContainer: e.target.checked ? false : formData.fillContainer
+                    })}
                     className="mr-2"
                   />
                   <span className="text-sm">Show sponsor name</span>
@@ -130,7 +134,11 @@ export const SponsorForm = ({
                   <input
                     type="checkbox"
                     checked={formData.fillContainer}
-                    onChange={(e) => setFormData({ ...formData, fillContainer: e.target.checked })}
+                    onChange={(e) => setFormData({ 
+                      ...formData, 
+                      fillContainer: e.target.checked,
+                      showName: e.target.checked ? false : formData.showName
+                    })}
                     className="mr-2"
                   />
                   <span className="text-sm">Fill container (no black background)</span>

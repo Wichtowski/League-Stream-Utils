@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 
-export const SponsorsGuidebook = () => {
-  const [guidebookExpanded, setGuidebookExpanded] = useState(false);
+export const SponsorsGuidebook = ({ expanded }: { expanded: boolean }) => {
+  const [guidebookExpanded, setGuidebookExpanded] = useState(expanded);
 
   return (
     <div className="bg-green-900 bg-opacity-50 rounded-lg p-4">
