@@ -1,0 +1,24 @@
+name: Project Reminder
+
+on:
+  schedule:
+    # Run every day at 17:00 UTC (5:00 PM)
+    - cron: '0 17 * * *'
+  workflow_dispatch: # Allow manual triggering
+
+jobs:
+  fail-reminder:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Check if you worked on the project today
+        run: |
+          echo "🎮 Checking if you worked on League Stream Utils today..."
+          echo "⏰ It's 17:00 - time to check your progress!"
+          
+      - name: Fail intentionally to remind you
+        run: |
+          echo "❌ Workflow failed - this is your reminder to work on League Stream Utils!" >> $GITHUB_STEP_SUMMARY
+          echo "🚀 Go check your project: https://github.com/${{ github.repository }}" >> $GITHUB_STEP_SUMMARY
+          echo "💪 Every small contribution counts!" >> $GITHUB_STEP_SUMMARY
+          exit 1
