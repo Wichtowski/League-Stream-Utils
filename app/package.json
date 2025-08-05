@@ -9,7 +9,7 @@
     "generate-secrets": "node scripts/generate-secrets.js",
     "check-env": "node -e \"require('./src/app/lib/config.js')\"",
     "security-audit": "npm audit --audit-level moderate",
-    "dev": "bun run next dev --turbopack",
+    "dev": "next dev --turbopack --port 2137",
     "build": "bun run next build",
     "start": "bun run next start",
     "lint": "bun run next lint",

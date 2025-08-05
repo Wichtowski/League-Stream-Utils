@@ -1,39 +1,119 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from 'next/navigation';
 import { useUser } from "@lib/contexts/AuthContext";
+import { useNavigation } from '@lib/contexts/NavigationContext';
+import { useModal } from '@lib/components/modal';
 import { AuthGuard } from "@lib/components/auth/AuthGuard";
-import { BackButton } from '@lib/components/common/buttons';
+import { LoadingSpinner } from '@lib/components/common';
 import type { Match } from "@lib/types/match";
+import type { Tournament } from "@lib/types/tournament";
+import { tournamentStorage, LastSelectedTournament } from '@lib/utils/storage/tournament-storage';
 
 export default function MatchesPage(): React.ReactElement {
+  const router = useRouter();
   const user = useUser();
+  const { setActiveModule } = useNavigation();
+  const { showAlert } = useModal();
   const [matches, setMatches] = useState<Match[]>([]);
+  const [tournament, setTournament] = useState<Tournament | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [lastSelectedTournament, setLastSelectedTournament] = useState<LastSelectedTournament | null>(null);
 
   useEffect(() => {
-    const fetchMatches = async () => {
+    setActiveModule('matches');
+  }, [setActiveModule]);
+
+  useEffect(() => {
+    const loadLastSelectedTournament = async () => {
+      try {
+        const lastSelected = await tournamentStorage.getLastSelectedTournament();
+        if (lastSelected && await tournamentStorage.isLastSelectedTournamentValid()) {
+          setLastSelectedTournament(lastSelected);
+        } else {
+          await showAlert({ 
+            type: 'error', 
+            message: 'No tournament selected. Please select a tournament first.' 
+          });
+          router.push('/modules/tournaments');
+        }
+      } catch (_error) {
+        await showAlert({ 
+          type: 'error', 
+          message: 'Failed to load tournament selection.' 
+        });
+        router.push('/modules/tournaments');
+      }
+    };
+
+    loadLastSelectedTournament();
+  }, [router, showAlert]);
+
+  useEffect(() => {
+    if (!lastSelectedTournament) return;
+    
+    const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await fetch('/api/v1/matches');
-        if (!response.ok) {
+        
+        // Fetch tournament data
+        const tournamentResponse = await fetch(`/api/v1/tournaments/${lastSelectedTournament.tournamentId}`);
+        if (!tournamentResponse.ok) {
+          throw new Error('Failed to fetch tournament');
+        }
+        const tournamentData = await tournamentResponse.json();
+        setTournament(tournamentData.tournament);
+
+        // Fetch matches
+        const matchesResponse = await fetch(`/api/v1/tournaments/${lastSelectedTournament.tournamentId}/matches`);
+        if (!matchesResponse.ok) {
           throw new Error('Failed to fetch matches');
         }
-        const data = await response.json();
-        setMatches(data.matches || []);
+        const matchesData = await matchesResponse.json();
+        setMatches(matchesData.matches || []);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch matches');
+        setError(err instanceof Error ? err.message : 'Failed to fetch data');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchMatches();
-  }, []);
+    fetchData();
+  }, [lastSelectedTournament]);
 
   if (!user) {
     return <AuthGuard>{null}</AuthGuard>;
+  }
+
+  if (loading) {
+    return (
+      <AuthGuard loadingMessage="Loading matches...">
+        <LoadingSpinner fullscreen text="Loading matches..." />
+      </AuthGuard>
+    );
+  }
+
+  if (!tournament || !lastSelectedTournament) {
+    return (
+      <AuthGuard loadingMessage="Loading tournament...">
+        <div className="min-h-screen text-white">
+          <div className="container mx-auto px-6 py-8">
+            <div className="text-center">
+              <h1 className="text-2xl font-bold mb-4">Tournament Not Found</h1>
+              <p>The tournament you&apos;re looking for doesn&apos;t exist or you don&apos;t have access to it.</p>
+              <button
+                onClick={() => router.push('/modules/tournaments')}
+                className="mt-4 bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg"
+              >
+                Select Tournament
+              </button>
+            </div>
+          </div>
+        </div>
+      </AuthGuard>
+    );
   }
 
   return (
@@ -41,10 +121,19 @@ export default function MatchesPage(): React.ReactElement {
       <div className="min-h-screen p-6 max-w-6xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-white">Standalone Matches</h1>
-            <p className="text-gray-400 mt-2">Manage and view standalone matches</p>
+            <h1 className="text-3xl font-bold text-white">
+              {tournament ? `${tournament.name} Matches` : 'Tournament Matches'}
+            </h1>
+            <p className="text-gray-400 mt-2">
+              {tournament ? tournament.abbreviation : 'Loading...'}
+            </p>
+            <button
+              onClick={() => router.push('/modules/tournaments')}
+              className="mt-2 text-blue-400 hover:text-blue-300 text-sm"
+            >
+              ← Change Tournament
+            </button>
           </div>
-          <BackButton to="/modules" />
         </div>
 
         {error && (
@@ -53,19 +142,15 @@ export default function MatchesPage(): React.ReactElement {
           </div>
         )}
 
-        {loading ? (
+        {matches.length === 0 ? (
           <div className="text-center py-12">
-            <div className="text-white">Loading matches...</div>
-          </div>
-        ) : matches.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="text-gray-400 text-lg mb-4">No standalone matches found</div>
-            <p className="text-gray-500">Create your first match to get started</p>
+            <div className="text-gray-400 text-lg mb-4">No matches found for this tournament</div>
+            <p className="text-gray-500">Matches will appear here once they are created</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
             {matches.map((match) => (
-              <MatchCard key={match.id} match={match} />
+              <TournamentMatchCard key={match.id} match={match} tournament={tournament} />
             ))}
           </div>
         )}
@@ -74,11 +159,12 @@ export default function MatchesPage(): React.ReactElement {
   );
 }
 
-interface MatchCardProps {
+interface TournamentMatchCardProps {
   match: Match;
+  tournament: Tournament | null;
 }
 
-function MatchCard({ match }: MatchCardProps): React.ReactElement {
+function TournamentMatchCard({ match, tournament }: TournamentMatchCardProps): React.ReactElement {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'scheduled': return 'text-yellow-400';
@@ -102,7 +188,12 @@ function MatchCard({ match }: MatchCardProps): React.ReactElement {
   return (
     <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 hover:border-blue-500 transition-all duration-200 shadow-lg">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-xl font-semibold text-white">{match.name}</h3>
+        <div>
+          <h3 className="text-xl font-semibold text-white">{match.name}</h3>
+          {match.roundName && (
+            <p className="text-gray-400 text-sm">{match.roundName}</p>
+          )}
+        </div>
         <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(match.status)}`}>
           {getStatusText(match.status)}
         </span>
@@ -165,14 +256,14 @@ function MatchCard({ match }: MatchCardProps): React.ReactElement {
         {/* Actions */}
         <div className="flex space-x-2 pt-4">
           <button
-            onClick={() => window.location.href = `/modules/matches/${match.id}`}
+            onClick={() => window.location.href = `/modules/tournaments/${tournament?.id}/matches/${match.id}`}
             className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
           >
             View Details
           </button>
           {match.status === 'scheduled' && (
             <button
-              onClick={() => window.location.href = `/modules/matches/${match.id}/edit`}
+              onClick={() => window.location.href = `/modules/tournaments/${tournament?.id}/matches/${match.id}/edit`}
               className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
             >
               Edit

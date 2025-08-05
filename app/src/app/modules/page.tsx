@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useNavigation } from '@lib/contexts/NavigationContext';
 import { AuthGuard } from '@lib/components/auth/AuthGuard';
@@ -10,6 +10,7 @@ import { useDownload } from '@lib/contexts/DownloadContext';
 import { AssetDownloadProgress } from '@lib/components/LCU';
 import { Cog6ToothIcon } from '@heroicons/react/24/outline';
 import { getVisibleModules, ModuleCard } from '@lib/navigation';
+import { tournamentStorage, LastSelectedTournament } from '@lib/utils/storage/tournament-storage';
 
 export default function ModulesPage() {
     const router = useRouter();
@@ -17,10 +18,37 @@ export default function ModulesPage() {
     const user = useUser();
     const { isElectron, useLocalData } = useElectron();
     const { downloadState: downloadState, cancelDownload } = useDownload();
+    const [hasLastSelectedTournament, setHasLastSelectedTournament] = useState(false);
+    const [lastSelectedTournament, setLastSelectedTournament] = useState<LastSelectedTournament | null>(null);
 
     useEffect(() => {
         setActiveModule('modules');
     }, [setActiveModule]);
+
+    useEffect(() => {
+        const checkLastSelectedTournament = async () => {
+            try {
+                const lastSelected = await tournamentStorage.getLastSelectedTournament();
+                const isValid = await tournamentStorage.isLastSelectedTournamentValid();
+                setHasLastSelectedTournament(isValid);
+                setLastSelectedTournament(lastSelected);
+            } catch (error) {
+                console.error('Failed to check last selected tournament:', error);
+                setHasLastSelectedTournament(false);
+                setLastSelectedTournament(null);
+            }
+        };
+
+        checkLastSelectedTournament();
+
+        // Listen for storage changes
+        const handleStorageChange = () => {
+            checkLastSelectedTournament();
+        };
+
+        window.addEventListener('storage', handleStorageChange);
+        return () => window.removeEventListener('storage', handleStorageChange);
+    }, []);
 
     // Memoize the visible modules to prevent unnecessary recalculations
     const visibleModules = useMemo(() => {
@@ -32,10 +60,11 @@ export default function ModulesPage() {
             useLocalData,
             isAuthenticated,
             isAdmin,
+            hasLastSelectedTournament,
         });
 
         return modules;
-    }, [user, isElectron, useLocalData]);
+    }, [user, isElectron, useLocalData, hasLastSelectedTournament]);
 
     // Block access if downloads are in progress in Electron
     if (
@@ -60,11 +89,23 @@ export default function ModulesPage() {
     const handleModuleClick = (module: ModuleCard) => {
         console.log('Module clicked:', module.name, 'path:', module.path);
         try {
+            if (module.status === 'coming-soon') {
+                return;
+            }
+            if (isHiddenBehindTournament(module)) {
+                if (!lastSelectedTournament) {
+                    return;
+                } else {
+                    router.push(`/modules/tournaments/${lastSelectedTournament.tournamentId}/${module.id}`);
+                }
+            }
             router.push(module.path);
         } catch (error) {
             console.error('Navigation error:', error);
         }
     };
+
+    const isHiddenBehindTournament = (module: ModuleCard) => module.name === 'Matches' || module.name === 'Commentators' || module.name === 'Sponsors' ;
 
     return (
         <AuthGuard loadingMessage="Loading modules...">
@@ -109,7 +150,7 @@ export default function ModulesPage() {
                             <div
                                 key={module.id}
                                 onClick={() => handleModuleClick(module)}
-                                className="group cursor-pointer bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-700 hover:border-gray-600 transition-all duration-300 hover:scale-105 hover:shadow-2xl"
+                                className={`group cursor-pointer bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-700 hover:border-gray-600 transition-all duration-300 hover:scale-105 hover:shadow-2xl ${module.status === 'coming-soon' ? 'opacity-50 cursor-not-allowed' : ''}`}
                             >
                                 <div className="flex items-start justify-between mb-4">
                                     <div className={`w-12 h-12 bg-gradient-to-br ${module.color} rounded-lg flex items-center justify-center text-2xl`}>
@@ -126,11 +167,28 @@ export default function ModulesPage() {
                                                 NEW
                                             </span>
                                         )}
+                                        {module.status === 'revamped' && (
+                                            <span className="bg-purple-600 text-purple-100 px-2 py-1 rounded text-xs font-semibold">
+                                                REVAMPED
+                                            </span>
+                                        )}
+                                        {module.status === 'coming-soon' && (
+                                            <span className="bg-gray-600 text-gray-100 px-2 py-1 rounded text-xs font-semibold disabled">
+                                                COMING SOON
+                                            </span>
+                                        )}
                                     </div>
                                 </div>
                                 <h3 className="text-xl font-bold text-white mb-2 group-hover:text-blue-400 transition-colors">
-                                    {module.name}
-                                </h3>
+                                     {isHiddenBehindTournament(module) && (
+                                         <div className="flex items-center space-x-2">
+                                             <span className="text-gray-400 text-sm">
+                                                 Current Tournament: {lastSelectedTournament?.tournamentName}
+                                             </span>
+                                         </div>
+                                     )}
+                                     {module.name}
+                                 </h3>
                                 <p className="text-gray-300 text-sm leading-relaxed">
                                     {module.description}
                                 </p>
