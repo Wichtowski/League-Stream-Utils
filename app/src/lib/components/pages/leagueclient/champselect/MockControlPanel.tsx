@@ -28,6 +28,9 @@ const MockControlPanel: React.FC<MockControlPanelProps> = ({
     setCurrentState(dynamicMock.getCurrentState());
     setSeed(dynamicMock.getSeed());
 
+    // Set initial position to right side
+    setPosition({ x: window.innerWidth - 340, y: 20 });
+
     const updateState = () => {
       setCurrentState(dynamicMock.getCurrentState());
     };

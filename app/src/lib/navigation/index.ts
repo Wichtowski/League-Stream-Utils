@@ -13,6 +13,7 @@ export interface ModuleCard {
   icon: ReactNode | string;
   path: string;
   color: string;
+  spotlightColor: string;
   status: "available" | "beta" | "new" | "revamped" | "coming-soon";
   category: ModuleCategory;
   adminOnly?: boolean;
@@ -27,6 +28,7 @@ export const MODULES: ModuleCard[] = [
     icon: "👥",
     path: "/modules/teams",
     color: "from-blue-500 to-cyan-500",
+    spotlightColor: "rgba(14, 165, 233, 0.15)",
     status: "available",
     category: "core",
   },
@@ -38,6 +40,7 @@ export const MODULES: ModuleCard[] = [
     icon: "🏆",
     path: "/modules/tournaments",
     color: "from-yellow-500 to-orange-500",
+    spotlightColor: "rgba(245, 158, 11, 0.15)",
     status: "available",
     category: "tournament",
   },
@@ -49,6 +52,7 @@ export const MODULES: ModuleCard[] = [
     icon: "🔧",
     path: "/modules/tournaments",
     color: "from-purple-500 to-pink-500",
+    spotlightColor: "rgba(168, 85, 247, 0.15)",
     status: "new",
     category: "tournament",
     adminOnly: true,
@@ -59,8 +63,9 @@ export const MODULES: ModuleCard[] = [
     description:
       "Champion draft interface for tournament matches with live updates",
     icon: "⚔️",
-    path: "/modules/pickban/static",
+    path: "/modules/pickban",
     color: "from-purple-500 to-pink-500",
+    spotlightColor: "rgba(168, 85, 247, 0.15)",
     status: "available",
     category: "core",
   },
@@ -72,6 +77,7 @@ export const MODULES: ModuleCard[] = [
     icon: "📹",
     path: "/modules/cameras",
     color: "from-green-500 to-emerald-500",
+    spotlightColor: "rgba(34, 197, 94, 0.15)",
     status: "available",
     category: "core",
   },
@@ -82,6 +88,7 @@ export const MODULES: ModuleCard[] = [
     icon: "📱",
     path: "/modules/pickban/leagueclient",
     color: "from-teal-500 to-cyan-500",
+    spotlightColor: "rgba(20, 184, 166, 0.15)",
     status: "beta",
     category: "integration",
   },
@@ -93,6 +100,7 @@ export const MODULES: ModuleCard[] = [
     icon: "⚡",
     path: "/modules/champ-ability",
     color: "from-indigo-500 to-purple-500",
+    spotlightColor: "rgba(99, 102, 241, 0.15)",
     status: "available",
     category: "core",
   },
@@ -104,6 +112,7 @@ export const MODULES: ModuleCard[] = [
     icon: "🗣️",
     path: "", // PATH IS DYNAMIC SET IN handleModuleClick
     color: "from-pink-500 to-yellow-500",
+    spotlightColor: "rgba(236, 72, 153, 0.15)",
     status: "new",
     category: "tournament",
   },
@@ -114,6 +123,7 @@ export const MODULES: ModuleCard[] = [
     icon: "💼",
     path: "", // PATH IS DYNAMIC SET IN handleModuleClick
     color: "from-emerald-500 to-teal-500",
+    spotlightColor: "rgba(16, 185, 129, 0.15)",
     status: "new",
     category: "tournament",
   },
@@ -124,6 +134,7 @@ export const MODULES: ModuleCard[] = [
     icon: "🎮",
     path: "", // PATH IS DYNAMIC SET IN handleModuleClick
     color: "from-red-500 to-pink-500",
+    spotlightColor: "rgba(239, 68, 68, 0.15)",
     status: "new",
     category: "tournament",
   },
