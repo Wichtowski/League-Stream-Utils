@@ -80,7 +80,7 @@ export const MODULES: ModuleCard[] = [
     name: "League Client",
     description: "Connect to the League of Legends client to get live data",
     icon: "📱",
-    path: "/modules/leagueclient",
+    path: "/modules/pickban/leagueclient",
     color: "from-teal-500 to-cyan-500",
     status: "beta",
     category: "integration",
