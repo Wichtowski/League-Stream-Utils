@@ -20,14 +20,14 @@ export const Breadcrumbs: React.FC<BreadcrumbsProps> = ({
   className = "" 
 }) => {
   return (
-        <nav className={`flex items-center space-x-3 text-base mb-4 ${className} `}>
-            <Link
-                href="/modules"
-                className="flex items-start text-gray-400 hover:text-white transition-colors"
-            >
-                <HomeIcon className="w-6 h-6 mr-2 flex-shrink-0" />
-                <span className="text-lg">Modules</span>
-            </Link>
+      <nav className={`flex items-center space-x-3 text-base mb-4 ${className} `}>
+        <Link
+          href="/modules"
+          className="flex items-start text-gray-400 hover:text-white transition-colors"
+        >
+          <HomeIcon className="w-6 h-6 mr-2 flex-shrink-0" />
+          <span className="text-lg">Modules</span>
+        </Link>
        
        {items.map((item, index) => (
          <div key={index} className="flex items-center space-x-3">
