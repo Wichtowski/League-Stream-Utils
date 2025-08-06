@@ -1,5 +1,5 @@
 /* eslint-disable-next-line @typescript-eslint/no-require-imports */
-const { ipcMain } = require("electron");
+import { ipcMain } from "electron";
 
 function registerLCUHandlers(
   lcuDataRef,
@@ -27,4 +27,4 @@ function registerLCUHandlers(
   });
 }
 
-module.exports = { registerLCUHandlers };
+export { registerLCUHandlers };

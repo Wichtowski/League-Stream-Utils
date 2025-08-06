@@ -1,9 +1,7 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
-const https = require("https");
-const { ipcMain } = require("electron");
-const path = require("path");
-const fs = require("fs");
-/* eslint-enable @typescript-eslint/no-require-imports */
+import https from "https";
+import { ipcMain } from "electron";
+import path from "path";
+import fs from "fs";
 
 function registerChampionHandlers(mainWindow, championsPath, userDataPath) {
   ipcMain.handle("save-champions-cache", async (event, championsData) => {
@@ -170,4 +168,4 @@ function formatBytes(bytes) {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
 }
 
-module.exports = { registerChampionHandlers };
+export { registerChampionHandlers };

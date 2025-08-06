@@ -1,8 +1,6 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
-const { ipcMain, dialog } = require("electron");
-const path = require("path");
-const fs = require("fs");
-/* eslint-enable @typescript-eslint/no-require-imports */
+import { ipcMain, dialog } from "electron";
+import path from "path";
+import fs from "fs";
 
 function registerTournamentHandlers(mainWindow, tournamentsPath) {
   ipcMain.handle("save-tournament-file", async (event, tournamentData) => {
@@ -29,4 +27,4 @@ function registerTournamentHandlers(mainWindow, tournamentsPath) {
   });
 }
 
-module.exports = { registerTournamentHandlers };
+export { registerTournamentHandlers };

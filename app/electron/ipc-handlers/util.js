@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
-const { ipcMain, app } = require("electron");
-const fs = require("fs");
-const path = require("path");
+import { ipcMain, app } from "electron";
+import fs from "fs";
+import path from "path";
 /* eslint-enable @typescript-eslint/no-require-imports */
 
 // File operation lock to prevent concurrent access
@@ -367,4 +367,4 @@ function registerUtilHandlers() {
   });
 }
 
-module.exports = { registerUtilHandlers };
+export { registerUtilHandlers };

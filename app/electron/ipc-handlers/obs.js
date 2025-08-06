@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
-const { ipcMain } = require("electron");
-const WebSocket = require("ws");
+import { ipcMain } from "electron";
+import WebSocket from "ws";
 /* eslint-enable @typescript-eslint/no-require-imports */
 
 class OBSClient {
@@ -416,4 +416,4 @@ function registerOBSHandlers() {
   });
 }
 
-module.exports = { registerOBSHandlers };
+export { registerOBSHandlers };

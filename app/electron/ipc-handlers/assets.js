@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
-const https = require("https");
-const http = require("http");
-const { ipcMain } = require("electron");
-const path = require("path");
-const fs = require("fs");
+import https from "https";
+import http from "http";
+import { ipcMain } from "electron";
+import path from "path";
+import fs from "fs";
+import { createHash } from "crypto";
 /* eslint-enable @typescript-eslint/no-require-imports */
 
 function registerAssetHandlers(_mainWindow, assetsPath, assetCachePath) {
@@ -502,11 +503,8 @@ function registerAssetHandlers(_mainWindow, assetsPath, assetCachePath) {
   // Helper function for calculating file checksum
   function calculateFileChecksum(filePath) {
     try {
-      /* eslint-disable @typescript-eslint/no-require-imports */
-      const crypto = require("crypto");
-      /* eslint-enable @typescript-eslint/no-require-imports */
       const fileBuffer = fs.readFileSync(filePath);
-      const hashSum = crypto.createHash("md5");
+      const hashSum = createHash("md5");
       hashSum.update(fileBuffer);
       return hashSum.digest("hex");
     } catch (_error) {
@@ -515,4 +513,4 @@ function registerAssetHandlers(_mainWindow, assetsPath, assetCachePath) {
   }
 }
 
-module.exports = { registerAssetHandlers };
+export { registerAssetHandlers };

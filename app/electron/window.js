@@ -1,8 +1,12 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
-const { BrowserWindow, shell } = require("electron");
-const path = require("path");
+import { BrowserWindow, shell } from "electron";
+import path from "path";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
 const isDev = process.env.NODE_ENV === "development";
-/* eslint-enable @typescript-eslint/no-require-imports */
 
 function createWindow(mainWindow) {
   // Create the browser window
@@ -85,4 +89,4 @@ function createWindow(mainWindow) {
   });
 }
 
-module.exports = { createWindow };
+export { createWindow };

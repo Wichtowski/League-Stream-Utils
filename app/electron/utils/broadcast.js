@@ -1,5 +1,4 @@
-/* eslint-disable-next-line @typescript-eslint/no-require-imports */
-const { BrowserWindow } = require("electron");
+import { BrowserWindow } from "electron";
 
 // Function to broadcast LCU data updates to all windows
 function broadcastLCUDataUpdate(mainWindow, lcuData) {
@@ -27,4 +26,4 @@ function broadcastMockDataToggle(mainWindow, useMockData) {
   });
 }
 
-module.exports = { broadcastLCUDataUpdate, broadcastMockDataToggle };
+export { broadcastLCUDataUpdate, broadcastMockDataToggle };
