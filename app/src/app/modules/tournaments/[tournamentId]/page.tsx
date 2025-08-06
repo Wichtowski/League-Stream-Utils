@@ -1,30 +1,24 @@
 "use client";
 
 import { useEffect, useState, Suspense } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useTournaments } from "@lib/contexts/TournamentsContext";
 import { useNavigation } from "@lib/contexts/NavigationContext";
 import { useModal } from "@lib/components/modal";
-import { AuthGuard } from "@lib/components/auth/AuthGuard";
-import { Breadcrumbs, LoadingSpinner } from "@lib/components/common";
-import { BackButton } from "@/lib/components/common/buttons";
-import type { Tournament, TournamentStatus } from "@lib/types";
-import dynamic from "next/dynamic";
+import { LoadingSpinner } from "@lib/components/common";
+import { PageWrapper } from "@lib/layout/PageWrapper";
+import { Tournament, TournamentStatus } from "@/lib/types";
+import { TournamentEditor } from "@lib/components/pages/tournaments/TournamentEditor";
 
-// Dynamic imports for lazy loading
-const TournamentEditor = dynamic(
-  () =>
-    import("@lib/components/pages/tournaments").then((mod) => ({
-      default: mod.TournamentEditor,
-    })),
-  {
-    loading: () => <LoadingSpinner text="Loading tournament editor..." />,
-    ssr: false,
-  },
-);
+interface TournamentDetailPageProps {
+  params: Promise<{
+    tournamentId: string;
+  }>;
+}
 
-export default function TournamentDetailPage() {
-  const params = useParams();
+export default function TournamentDetailPage({
+  params,
+}: TournamentDetailPageProps) {
   const router = useRouter();
   const {
     tournaments,
@@ -36,12 +30,19 @@ export default function TournamentDetailPage() {
   const { setActiveModule } = useNavigation();
   const { showAlert } = useModal();
   const [tournament, setTournament] = useState<Tournament | null>(null);
-
-  const tournamentId = params.tournamentId as string;
+  const [tournamentId, setTournamentId] = useState<string>("");
 
   useEffect(() => {
     setActiveModule("tournaments");
   }, [setActiveModule]);
+
+  useEffect(() => {
+    const resolveParams = async () => {
+      const resolvedParams = await params;
+      setTournamentId(resolvedParams.tournamentId);
+    };
+    resolveParams();
+  }, [params]);
 
   useEffect(() => {
     if (tournaments.length > 0 && tournamentId) {
@@ -93,43 +94,31 @@ export default function TournamentDetailPage() {
 
   if (tournamentsLoading || !tournament) {
     return (
-      <AuthGuard loadingMessage="Loading tournament...">
-        <div className="mb-4">
-          <BackButton to="/modules/tournaments">Back to Tournaments</BackButton>
-        </div>
+      <PageWrapper loadingMessage="Loading tournament...">
         <LoadingSpinner fullscreen text="Loading tournament..." />
-      </AuthGuard>
+      </PageWrapper>
     );
   }
 
   return (
-    <AuthGuard loadingMessage="Loading tournament...">
-      <div className="min-h-screen text-white">
-        <div className="container mx-auto px-6 py-8">
-          <div className="mb-4 flex justify-between items-center">
-            <Breadcrumbs 
-              items={[
-                { label: "Tournaments", href: `/modules/tournaments` },
-                { label: tournament.name, href: `/modules/tournaments/${tournamentId}`, isActive: true },
-              ]} />
-          </div>
-          <div className="flex justify-between items-center mb-8">
-            <div>
-              <h1 className="text-3xl font-bold">{tournament.name}</h1>
-              <p className="text-gray-400">{tournament.abbreviation}</p>
-            </div>
-          </div>
-          <Suspense
-            fallback={<LoadingSpinner text="Loading tournament editor..." />}
-          >
-            <TournamentEditor
-              tournament={tournament}
-              onStatusUpdate={updateTournamentStatus}
-              onTournamentUpdate={handleTournamentUpdated}
-            />
-          </Suspense>
-        </div>
-      </div>
-    </AuthGuard>
+    <PageWrapper
+      loadingMessage="Loading tournament..."
+      breadcrumbs={[
+        { label: "Tournaments", href: `/modules/tournaments` },
+        { label: tournament.name, href: `/modules/tournaments/${tournamentId}`, isActive: true },
+      ]}
+      title={tournament.name}
+      subtitle={tournament.abbreviation}
+    >
+      <Suspense
+        fallback={<LoadingSpinner text="Loading tournament editor..." />}
+      >
+        <TournamentEditor
+          tournament={tournament}
+          onStatusUpdate={updateTournamentStatus}
+          onTournamentUpdate={handleTournamentUpdated}
+        />
+      </Suspense>
+    </PageWrapper>
   );
 }

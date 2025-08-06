@@ -7,6 +7,7 @@ import { useModal } from "@lib/contexts/ModalContext";
 import { useAuth } from "@lib/contexts/AuthContext";
 import { useAuthenticatedFetch } from "@lib/hooks/useAuthenticatedFetch";
 import type { GameSession } from "@lib/types";
+import { PageWrapper } from "@lib/layout/PageWrapper";
 
 interface PickBanConfig {
   format: "tournament" | "ranked" | "custom";
@@ -160,103 +161,99 @@ export default function StaticConfigPage(): React.ReactElement {
 
   if (!session) {
     return (
-      <div className="min-h-screen  flex items-center justify-center">
-        <div className="text-white">Session not found</div>
-      </div>
+      <PageWrapper requireAuth={false}>
+        <div className="flex items-center justify-center">
+          <div className="text-white">Session not found</div>
+        </div>
+      </PageWrapper>
     );
   }
 
   return (
-    <div className="min-h-screen  text-white">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold">Configure Pick & Ban</h1>
-            <p className="text-gray-400">{`Session ${sessionId}`}</p>
-          </div>
-          <div className="flex gap-3">
-            <button
-              onClick={() => router.push("/modules/pickban/static")}
-              className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors"
-            >
-              Back to Sessions
-            </button>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Configuration Form */}
-          <div className="space-y-6">
-            {/* Format Selection */}
-            <div className="bg-gray-800 rounded-lg p-6">
-              <h2 className="text-xl font-semibold mb-4">Draft Format</h2>
-              <div className="space-y-3">
-                <label className="flex items-center">
-                  <input
-                    type="radio"
-                    name="format"
-                    value="tournament"
-                    checked={config.format === "tournament"}
-                    onChange={(e) =>
-                      setConfig((prev) => ({
-                        ...prev,
-                        format: e.target.value as PickBanConfig["format"],
-                      }))
-                    }
-                    className="mr-2"
-                  />
-                  <div>
-                    <span className="font-medium">Tournament</span>
-                    <p className="text-sm text-gray-400">
-                      Standard tournament format (3 bans, 5 picks each)
-                    </p>
-                  </div>
-                </label>
-                <label className="flex items-center">
-                  <input
-                    type="radio"
-                    name="format"
-                    value="ranked"
-                    checked={config.format === "ranked"}
-                    onChange={(e) =>
-                      setConfig((prev) => ({
-                        ...prev,
-                        format: e.target.value as PickBanConfig["format"],
-                      }))
-                    }
-                    className="mr-2"
-                  />
-                  <div>
-                    <span className="font-medium">Ranked</span>
-                    <p className="text-sm text-gray-400">
-                      Ranked game format (5 bans, 5 picks each)
-                    </p>
-                  </div>
-                </label>
-                <label className="flex items-center">
-                  <input
-                    type="radio"
-                    name="format"
-                    value="custom"
-                    checked={config.format === "custom"}
-                    onChange={(e) =>
-                      setConfig((prev) => ({
-                        ...prev,
-                        format: e.target.value as PickBanConfig["format"],
-                      }))
-                    }
-                    className="mr-2"
-                  />
-                  <div>
-                    <span className="font-medium">Custom</span>
-                    <p className="text-sm text-gray-400">
-                      Configure your own format
-                    </p>
-                  </div>
-                </label>
-              </div>
+    <PageWrapper
+      title="Configure Pick & Ban"
+      subtitle={`Session ${sessionId}`}
+      actions={
+        <button
+          onClick={() => router.push("/modules/pickban/static")}
+          className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors"
+        >
+          Back to Sessions
+        </button>
+      }
+    >
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Configuration Form */}
+        <div className="space-y-6">
+          {/* Format Selection */}
+          <div className="bg-gray-800 rounded-lg p-6">
+            <h2 className="text-xl font-semibold mb-4">Draft Format</h2>
+            <div className="space-y-3">
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="format"
+                  value="tournament"
+                  checked={config.format === "tournament"}
+                  onChange={(e) =>
+                    setConfig((prev) => ({
+                      ...prev,
+                      format: e.target.value as PickBanConfig["format"],
+                    }))
+                  }
+                  className="mr-2"
+                />
+                <div>
+                  <span className="font-medium">Tournament</span>
+                  <p className="text-sm text-gray-400">
+                    Standard tournament format (3 bans, 5 picks each)
+                  </p>
+                </div>
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="format"
+                  value="ranked"
+                  checked={config.format === "ranked"}
+                  onChange={(e) =>
+                    setConfig((prev) => ({
+                      ...prev,
+                      format: e.target.value as PickBanConfig["format"],
+                    }))
+                  }
+                  className="mr-2"
+                />
+                <div>
+                  <span className="font-medium">Ranked</span>
+                  <p className="text-sm text-gray-400">
+                    Ranked game format (5 bans, 5 picks each)
+                  </p>
+                </div>
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="format"
+                  value="custom"
+                  checked={config.format === "custom"}
+                  onChange={(e) =>
+                    setConfig((prev) => ({
+                      ...prev,
+                      format: e.target.value as PickBanConfig["format"],
+                    }))
+                  }
+                  className="mr-2"
+                />
+                <div>
+                  <span className="font-medium">Custom</span>
+                  <p className="text-sm text-gray-400">
+                    Configure your own format
+                  </p>
+                </div>
+              </label>
             </div>
+          </div>
 
             {/* Team Names */}
             <div className="bg-gray-800 rounded-lg p-6">
@@ -505,6 +502,6 @@ export default function StaticConfigPage(): React.ReactElement {
           </div>
         </div>
       </div>
-    </div>
+    </PageWrapper>
   );
 }

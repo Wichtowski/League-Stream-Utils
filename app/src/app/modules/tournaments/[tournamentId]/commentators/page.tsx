@@ -5,13 +5,13 @@ import { useRouter } from "next/navigation";
 import { useTournaments } from "@lib/contexts/TournamentsContext";
 import { useNavigation } from "@lib/contexts/NavigationContext";
 import { useModal } from "@lib/components/modal";
-import { AuthGuard } from "@lib/components/auth/AuthGuard";
 import { LoadingSpinner } from "@lib/components/common";
 import {
   tournamentStorage,
   LastSelectedTournament,
 } from "@lib/utils/storage/tournament-storage";
 import type { Tournament } from "@lib/types/tournament";
+import { PageWrapper } from "@lib/layout/PageWrapper";
 
 interface Commentator {
   id: string;
@@ -159,127 +159,120 @@ export default function CommentatorsPage(): React.ReactElement {
 
   if (loading || tournamentsLoading) {
     return (
-      <AuthGuard loadingMessage="Loading commentators...">
+      <PageWrapper loadingMessage="Loading commentators...">
         <LoadingSpinner fullscreen text="Loading commentators..." />
-      </AuthGuard>
+      </PageWrapper>
     );
   }
 
   if (!tournament || !lastSelectedTournament) {
     return (
-      <AuthGuard loadingMessage="Loading tournament...">
-        <div className="min-h-screen text-white">
-          <div className="container mx-auto px-6 py-8">
-            <div className="text-center">
-              <h1 className="text-2xl font-bold mb-4">Tournament Not Found</h1>
-              <p>
-                The tournament you&apos;re looking for doesn&apos;t exist or you
-                don&apos;t have access to it.
-              </p>
-              <button
-                onClick={() => router.push("/modules/tournaments")}
-                className="mt-4 bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg"
-              >
-                Select Tournament
-              </button>
-            </div>
-          </div>
+      <PageWrapper
+        loadingMessage="Loading tournament..."
+        title="Tournament Not Found"
+      >
+        <div className="text-center">
+          <p>
+            The tournament you&apos;re looking for doesn&apos;t exist or you
+            don&apos;t have access to it.
+          </p>
+          <button
+            onClick={() => router.push("/modules/tournaments")}
+            className="mt-4 bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg"
+          >
+            Select Tournament
+          </button>
         </div>
-      </AuthGuard>
+      </PageWrapper>
     );
   }
 
   return (
-    <AuthGuard>
-      <div className="min-h-screen p-6 max-w-3xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-white">Commentators</h1>
-            <p className="text-gray-400 mt-2">
-              {tournament.name} ({tournament.abbreviation})
-            </p>
-            <button
-              onClick={() => router.push("/modules/tournaments")}
-              className="mt-2 text-blue-400 hover:text-blue-300 text-sm"
-            >
-              ← Change Tournament
-            </button>
-          </div>
-        </div>
-
-        <div className="bg-gray-900 rounded-xl p-6 mb-10 shadow-lg">
-          <h3 className="text-xl font-semibold text-white mb-4">
-            Add Commentator
-          </h3>
-          <form
-            onSubmit={handleAdd}
-            className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end"
-          >
-            <div>
-              <label className="block text-gray-300 mb-2">Display Name</label>
-              <input
-                className="w-full p-2 rounded bg-gray-700 text-white"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-gray-300 mb-2">
-                x.com Handle (optional)
-              </label>
-              <input
-                className="w-full p-2 rounded bg-gray-700 text-white"
-                value={xHandle}
-                onChange={(e) => setXHandle(e.target.value)}
-                placeholder="@yourhandle"
-              />
-            </div>
-            <button
-              type="submit"
-              className="col-span-1 sm:col-span-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg mt-2"
-              disabled={loading}
-            >
-              {loading ? "Adding..." : "Add Commentator"}
-            </button>
-          </form>
-          {successMsg && (
-            <div className="text-green-400 mt-4">{successMsg}</div>
-          )}
-        </div>
-
+    <PageWrapper
+      title="Commentators"
+      subtitle={`${tournament.name} (${tournament.abbreviation})`}
+      actions={
+        <button
+          onClick={() => router.push("/modules/tournaments")}
+          className="text-blue-400 hover:text-blue-300 text-sm"
+        >
+          ← Change Tournament
+        </button>
+      }
+      contentClassName="max-w-3xl mx-auto"
+    >
+      <div className="bg-gray-900 rounded-xl p-6 mb-10 shadow-lg">
         <h3 className="text-xl font-semibold text-white mb-4">
-          Commentators for this Tournament
+          Add Commentator
         </h3>
-        {loading ? (
-          <div className="text-white">Loading...</div>
-        ) : filteredCommentators.length === 0 ? (
-          <div className="text-gray-400">
-            No commentators yet for this tournament.
+        <form
+          onSubmit={handleAdd}
+          className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end"
+        >
+          <div>
+            <label className="block text-gray-300 mb-2">Display Name</label>
+            <input
+              className="w-full p-2 rounded bg-gray-700 text-white"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+            />
           </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {filteredCommentators.map((c) => (
-              <div
-                key={c.id}
-                className="bg-gray-800 rounded-xl p-5 border border-gray-700 shadow flex flex-col gap-2"
-              >
-                <div className="text-lg font-bold text-white">{c.name}</div>
-                {c.xHandle && (
-                  <a
-                    href={`https://x.com/${c.xHandle.replace(/^@/, "")}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-400 hover:underline text-sm"
-                  >
-                    {c.xHandle}
-                  </a>
-                )}
-              </div>
-            ))}
+          <div>
+            <label className="block text-gray-300 mb-2">
+              x.com Handle (optional)
+            </label>
+            <input
+              className="w-full p-2 rounded bg-gray-700 text-white"
+              value={xHandle}
+              onChange={(e) => setXHandle(e.target.value)}
+              placeholder="@yourhandle"
+            />
           </div>
+          <button
+            type="submit"
+            className="col-span-1 sm:col-span-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg mt-2"
+            disabled={loading}
+          >
+            {loading ? "Adding..." : "Add Commentator"}
+          </button>
+        </form>
+        {successMsg && (
+          <div className="text-green-400 mt-4">{successMsg}</div>
         )}
       </div>
-    </AuthGuard>
+
+      <h3 className="text-xl font-semibold text-white mb-4">
+        Commentators for this Tournament
+      </h3>
+      {loading ? (
+        <div className="text-white">Loading...</div>
+      ) : filteredCommentators.length === 0 ? (
+        <div className="text-gray-400">
+          No commentators yet for this tournament.
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          {filteredCommentators.map((c) => (
+            <div
+              key={c.id}
+              className="bg-gray-800 rounded-xl p-5 border border-gray-700 shadow flex flex-col gap-2"
+            >
+              <div className="text-lg font-bold text-white">{c.name}</div>
+              {c.xHandle && (
+                <a
+                  href={`https://x.com/${c.xHandle.replace(/^@/, "")}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-400 hover:underline text-sm"
+                >
+                  {c.xHandle}
+                </a>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </PageWrapper>
   );
 }

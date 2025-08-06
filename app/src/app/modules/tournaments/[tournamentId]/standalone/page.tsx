@@ -4,8 +4,8 @@ import { useEffect, useState, useCallback } from "react";
 import { useTournaments } from "@lib/contexts/TournamentsContext";
 import { useNavigation } from "@lib/contexts/NavigationContext";
 import { useModal } from "@lib/components/modal";
-import { AuthGuard } from "@lib/components/auth/AuthGuard";
-import { Breadcrumbs, LoadingSpinner } from "@lib/components/common";
+import { LoadingSpinner } from "@lib/components/common";
+import { PageWrapper } from "@lib/layout/PageWrapper";
 import { Tournament, Team, CreateTeamRequest } from "@/lib/types";
 import { TeamCreationForm } from "@lib/components/pages/teams/TeamCreationForm";
 
@@ -223,202 +223,187 @@ export default function TournamentStandaloneTeamsPage({
 
   if (loading || tournamentsLoading) {
     return (
-      <AuthGuard loadingMessage="Loading tournament...">
+      <PageWrapper loadingMessage="Loading tournament...">
         <LoadingSpinner fullscreen text="Loading tournament..." />
-      </AuthGuard>
+      </PageWrapper>
     );
   }
 
   if (!tournament) {
     return (
-      <AuthGuard loadingMessage="Loading tournament...">
-        <div className="min-h-screen text-white">
-          <div className="container mx-auto px-6 py-8">
-            <div className="mb-4 flex justify-between items-center">
-              <Breadcrumbs items={[]} />
-            </div>
-            <div className="text-center">
-              <h1 className="text-2xl font-bold mb-4">Tournament Not Found</h1>
-              <p>
-                The tournament you&apos;re looking for doesn&apos;t exist or you
-                don&apos;t have access to it.
-              </p>
-            </div>
-          </div>
+      <PageWrapper 
+        loadingMessage="Loading tournament..."
+        title="Tournament Not Found"
+        subtitle="The tournament you're looking for doesn't exist or you don't have access to it."
+      >
+        <div className="text-center">
+          <p className="text-gray-400">
+            The tournament you&apos;re looking for doesn&apos;t exist or you
+            don&apos;t have access to it.
+          </p>
         </div>
-      </AuthGuard>
+      </PageWrapper>
     );
   }
 
   return (
-    <AuthGuard loadingMessage="Loading standalone teams...">
-      <div className="min-h-screen text-white">
-        <div className="container mx-auto px-6 py-8">
-          <div className="mb-4 flex justify-between items-center">
-            <Breadcrumbs 
-              items={[
-                { label: "Tournaments", href: `/modules/tournaments` },
-                { label: tournament.name, href: `/modules/tournaments/${tournamentId}` },
-                { label: "Standalone Teams", href: `/modules/tournaments/${tournamentId}/standalone`, isActive: true },
-              ]} />
+    <PageWrapper
+      loadingMessage="Loading standalone teams..."
+      breadcrumbs={[
+        { label: "Tournaments", href: `/modules/tournaments` },
+        { label: tournament.name, href: `/modules/tournaments/${tournamentId}` },
+        { label: "Standalone Teams", href: `/modules/tournaments/${tournamentId}/standalone`, isActive: true },
+      ]}
+      title="Manage Standalone Teams"
+      subtitle={`${tournament.name} (${tournament.abbreviation})`}
+    >
+      <div className="space-y-6">
+        {/* Team Creation Section */}
+        {!showCreateForm && (
+          <div className="bg-gray-800 rounded-lg p-6">
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-semibold">Create New Team</h3>
+              <button
+                onClick={() => setShowCreateForm(true)}
+                className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg"
+              >
+                Create New Team
+              </button>
+            </div>
           </div>
+        )}
 
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-2">Manage Standalone Teams</h1>
-            <p className="text-gray-300">
-              {tournament.name} ({tournament.abbreviation})
-            </p>
+        {/* Team Creation Form */}
+        {showCreateForm && (
+          <div className="bg-gray-800 rounded-lg p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-lg font-semibold">Create New Team</h3>
+              <button
+                onClick={() => setShowCreateForm(false)}
+                className="text-gray-400 hover:text-white text-2xl font-bold"
+              >
+                ×
+              </button>
+            </div>
+            <TeamCreationForm
+              onSubmit={handleCreateTeam}
+              onCancel={() => setShowCreateForm(false)}
+              isCreating={creatingTeam}
+            />
           </div>
+        )}
 
-          <div className="space-y-6">
-            {/* Team Creation Section */}
-            {!showCreateForm && (
-              <div className="bg-gray-800 rounded-lg p-6">
-                <div className="flex justify-between items-center">
-                  <h3 className="text-lg font-semibold">Create New Team</h3>
-                  <button
-                    onClick={() => setShowCreateForm(true)}
-                    className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg"
+        {/* Team Selection and Registration */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Available Teams */}
+          <div className="bg-gray-800 rounded-lg p-6">
+            <h3 className="text-lg font-semibold mb-4">Available Teams</h3>
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {teamsLoading ? (
+                <LoadingSpinner text="Loading teams..." />
+              ) : teams.length > 0 ? (
+                teams.map((team) => (
+                  <div
+                    key={team.id}
+                    onClick={() => setSelectedTeam(team.id)}
+                    className={`p-3 rounded-lg cursor-pointer transition-colors ${
+                      selectedTeam === team.id
+                        ? "bg-green-600 text-white"
+                        : "bg-gray-700 text-gray-200 hover:bg-gray-600"
+                    }`}
                   >
-                    Create New Team
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Team Creation Form */}
-            {showCreateForm && (
-              <div className="bg-gray-800 rounded-lg p-6">
-                <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-lg font-semibold">Create New Team</h3>
-                  <button
-                    onClick={() => setShowCreateForm(false)}
-                    className="text-gray-400 hover:text-white text-2xl font-bold"
-                  >
-                    ×
-                  </button>
-                </div>
-                <TeamCreationForm
-                  onSubmit={handleCreateTeam}
-                  onCancel={() => setShowCreateForm(false)}
-                  isCreating={creatingTeam}
-                />
-              </div>
-            )}
-
-            {/* Team Selection and Registration */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Available Teams */}
-              <div className="bg-gray-800 rounded-lg p-6">
-                <h3 className="text-lg font-semibold mb-4">Available Teams</h3>
-                <div className="space-y-2 max-h-64 overflow-y-auto">
-                  {teamsLoading ? (
-                    <LoadingSpinner text="Loading teams..." />
-                  ) : teams.length > 0 ? (
-                    teams.map((team) => (
-                      <div
-                        key={team.id}
-                        onClick={() => setSelectedTeam(team.id)}
-                        className={`p-3 rounded-lg cursor-pointer transition-colors ${
-                          selectedTeam === team.id
-                            ? "bg-green-600 text-white"
-                            : "bg-gray-700 text-gray-200 hover:bg-gray-600"
-                        }`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="font-medium">{team.name}</div>
-                            <div className="text-sm opacity-75">({team.tag})</div>
-                          </div>
-                          <div className="text-sm opacity-75">
-                            {team.players.main.length}/5 players
-                          </div>
-                        </div>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="font-medium">{team.name}</div>
+                        <div className="text-sm opacity-75">({team.tag})</div>
                       </div>
-                    ))
-                  ) : (
-                    <p className="text-gray-400 text-center py-4">
-                      No teams available
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              {/* Registration Action */}
-              <div className="bg-gray-800 rounded-lg p-6">
-                <h3 className="text-lg font-semibold mb-4">Register Team</h3>
-                {selectedTeamData ? (
-                  <div className="space-y-4">
-                    <div className="bg-gray-700 p-4 rounded-lg">
-                      <h4 className="font-medium text-white mb-2">
-                        Selected Team
-                      </h4>
-                      <div className="text-sm text-gray-300">
-                        <p><strong>Name:</strong> {selectedTeamData.name}</p>
-                        <p><strong>Tag:</strong> {selectedTeamData.tag}</p>
-                        <p><strong>Players:</strong> {selectedTeamData.players.main.length}/5</p>
-                        <p><strong>Region:</strong> {selectedTeamData.region}</p>
-                        <p><strong>Tier:</strong> {selectedTeamData.tier}</p>
+                      <div className="text-sm opacity-75">
+                        {team.players.main.length}/5 players
                       </div>
                     </div>
-                    <button
-                      onClick={handleRegisterTeam}
-                      disabled={registering}
-                      className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 px-4 py-2 rounded-lg"
-                    >
-                      {registering ? "Registering..." : "Register Team"}
-                    </button>
                   </div>
-                ) : (
-                  <div className="text-center text-gray-400 py-8">
-                    <p>Select a team from the left to register it</p>
-                  </div>
-                )}
-              </div>
+                ))
+              ) : (
+                <p className="text-gray-400 text-center py-4">
+                  No teams available
+                </p>
+              )}
             </div>
+          </div>
 
-            {/* Registered Teams */}
-            {tournament.registeredTeams && tournament.registeredTeams.length > 0 && (
-              <div className="bg-gray-800 rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-white mb-4">
-                  Registered Teams ({tournament.registeredTeams.length})
-                </h3>
-                <div className="space-y-2 max-h-64 overflow-y-auto">
-                  {tournament.registeredTeams.map((teamId) => {
-                    const team = teams.find((t) => t.id === teamId);
-                    return (
-                      <div
-                        key={teamId}
-                        className="flex items-center justify-between bg-gray-700 p-3 rounded-lg"
-                      >
-                        <div>
-                          <span className="text-white font-medium">
-                            {team?.name || "Unknown Team"}
-                          </span>
-                          <span className="text-gray-400 ml-2">
-                            ({team?.tag || "N/A"})
-                          </span>
-                          {team && (
-                            <span className="text-gray-400 ml-2">
-                              • {team.players.main.length}/5 players
-                            </span>
-                          )}
-                        </div>
-                        <button
-                          onClick={() => handleUnregisterTeam(teamId)}
-                          className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
-                        >
-                          Remove
-                        </button>
-                      </div>
-                    );
-                  })}
+          {/* Registration Action */}
+          <div className="bg-gray-800 rounded-lg p-6">
+            <h3 className="text-lg font-semibold mb-4">Register Team</h3>
+            {selectedTeamData ? (
+              <div className="space-y-4">
+                <div className="bg-gray-700 p-4 rounded-lg">
+                  <h4 className="font-medium text-white mb-2">
+                    Selected Team
+                  </h4>
+                  <div className="text-sm text-gray-300">
+                    <p><strong>Name:</strong> {selectedTeamData.name}</p>
+                    <p><strong>Tag:</strong> {selectedTeamData.tag}</p>
+                    <p><strong>Players:</strong> {selectedTeamData.players.main.length}/5</p>
+                    <p><strong>Region:</strong> {selectedTeamData.region}</p>
+                    <p><strong>Tier:</strong> {selectedTeamData.tier}</p>
+                  </div>
                 </div>
+                <button
+                  onClick={handleRegisterTeam}
+                  disabled={registering}
+                  className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 px-4 py-2 rounded-lg"
+                >
+                  {registering ? "Registering..." : "Register Team"}
+                </button>
+              </div>
+            ) : (
+              <div className="text-center text-gray-400 py-8">
+                <p>Select a team from the left to register it</p>
               </div>
             )}
           </div>
         </div>
+
+        {/* Registered Teams */}
+        {tournament.registeredTeams && tournament.registeredTeams.length > 0 && (
+          <div className="bg-gray-800 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-white mb-4">
+              Registered Teams ({tournament.registeredTeams.length})
+            </h3>
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {tournament.registeredTeams.map((teamId) => {
+                const team = teams.find((t) => t.id === teamId);
+                return (
+                  <div
+                    key={teamId}
+                    className="flex items-center justify-between bg-gray-700 p-3 rounded-lg"
+                  >
+                    <div>
+                      <span className="text-white font-medium">
+                        {team?.name || "Unknown Team"}
+                      </span>
+                      <span className="text-gray-400 ml-2">
+                        ({team?.tag || "N/A"})
+                      </span>
+                      {team && (
+                        <span className="text-gray-400 ml-2">
+                          • {team.players.main.length}/5 players
+                        </span>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => handleUnregisterTeam(teamId)}
+                      className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
-    </AuthGuard>
+    </PageWrapper>
   );
 } 

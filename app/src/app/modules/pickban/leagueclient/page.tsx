@@ -5,12 +5,12 @@ import { useNavigation } from "@lib/contexts/NavigationContext";
 import { useAuth } from "@lib/contexts/AuthContext";
 import { useLCU } from "@lib/contexts/LCUContext";
 import { useMockDataContext } from "@lib/contexts/MockDataContext";
-import { AuthGuard } from "@lib/components/auth/AuthGuard";
 import { getChampionById } from "@lib/champions";
 import { useElectron } from "@lib/contexts/ElectronContext";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { PageWrapper } from "@lib/layout/PageWrapper";
 
 let userDataPathCache: string | null = null;
 if (typeof window !== "undefined" && window.electronAPI?.getUserDataPath) {
@@ -465,36 +465,28 @@ export default function LeagueClientPickBanPage() {
   };
 
   return (
-    <AuthGuard>
-      <div className="min-h-screen  text-white">
-        <div className="container mx-auto px-4 py-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-2">
-              League Client Integration
-            </h1>
-            <p className="text-gray-400">
-              Real-time champion select monitoring and integration with League
-              of Legends client. This feature is only available in the desktop
-              app.
-            </p>
-          </div>
-
-          {connectionError && (
-            <div className="bg-red-600/20 border border-red-600 rounded-lg p-4 mb-6">
-              <p className="text-red-400">{connectionError}</p>
-            </div>
-          )}
-
-          {successMessage && (
-            <div className="bg-green-600/20 border border-green-600 rounded-lg p-4 mb-6">
-              <p className="text-green-400">{successMessage}</p>
-            </div>
-          )}
-
-          {renderConnectionStatus()}
-          {renderChampSelectInterface()}
+    <PageWrapper
+      title="League Client Integration"
+      breadcrumbs={[
+        { label: "Pick & Ban", href: "/modules/pickban", isActive: false },
+        { label: "League Client", href: "/modules/pickban/leagueclient", isActive: true },
+      ]}
+      subtitle="Real-time champion select monitoring and integration with League of Legends client. This feature is only available in the desktop app."
+    >
+      {connectionError && (
+        <div className="bg-red-600/20 border border-red-600 rounded-lg p-4 mb-6">
+          <p className="text-red-400">{connectionError}</p>
         </div>
-      </div>
-    </AuthGuard>
+      )}
+
+      {successMessage && (
+        <div className="bg-green-600/20 border border-green-600 rounded-lg p-4 mb-6">
+          <p className="text-green-400">{successMessage}</p>
+        </div>
+      )}
+
+      {renderConnectionStatus()}
+      {renderChampSelectInterface()}
+    </PageWrapper>
   );
 }

@@ -5,20 +5,21 @@ import { useTournaments } from "@lib/contexts/TournamentsContext";
 import { usePickban } from "@lib/contexts/PickbanContext";
 import { useSettings } from "@lib/contexts/SettingsContext";
 import { useAuth } from "@lib/contexts/AuthContext";
+import { PageWrapper } from "@lib/layout/PageWrapper";
 
 export default function DebugContextsPage() {
   return (
-    <div className="min-h-screen  text-white p-8">
-      <h1 className="text-3xl font-bold mb-8">Context Debug Dashboard</h1>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <AuthDebug />
-        <SettingsDebug />
-        <TeamsDebug />
-        <TournamentsDebug />
-        <PickbanDebug />
-      </div>
-    </div>
+    <PageWrapper
+      requireAuth={false}
+      title="Context Debug Dashboard"
+      contentClassName="grid grid-cols-1 lg:grid-cols-2 gap-8"
+    >
+      <AuthDebug />
+      <SettingsDebug />
+      <TeamsDebug />
+      <TournamentsDebug />
+      <PickbanDebug />
+    </PageWrapper>
   );
 }
 

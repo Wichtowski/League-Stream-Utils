@@ -14,6 +14,7 @@ import {
   useChampionHoverAnimation,
   useTurnSequence,
 } from "@lib/hooks/useChampSelectData";
+import { PageWrapper } from "@lib/layout/PageWrapper";
 
 interface PickBanAction {
   id: string;
@@ -296,14 +297,36 @@ export default function StaticPickBanGamePage() {
 
   if (!session) {
     return (
-      <div className="min-h-screen  flex items-center justify-center">
-        <div className="text-white">Session not found</div>
-      </div>
+      <PageWrapper requireAuth={false}>
+        <div className="flex items-center justify-center">
+          <div className="text-white">Session not found</div>
+        </div>
+      </PageWrapper>
     );
   }
 
   return (
-    <div className="min-h-screen  text-white">
+    <PageWrapper
+      title={session.name || `Session ${sessionId}`}
+      subtitle="Static Pick & Ban Interface"
+      actions={
+        <div className="flex gap-3">
+          <button
+            onClick={undoLastAction}
+            disabled={actions.length === 0}
+            className="bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors"
+          >
+            Undo Last
+          </button>
+          <button
+            onClick={() => router.push("/modules/pickban/static")}
+            className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors"
+          >
+            Back to Sessions
+          </button>
+        </div>
+      }
+    >
       {/* Champion Select Modal */}
       {showChampionSelect && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -381,303 +404,276 @@ export default function StaticPickBanGamePage() {
         </div>
       )}
 
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-8">
+      {/* Current Phase Info */}
+      <div className="bg-gray-800 rounded-lg p-6 mb-6">
+        <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold">
-              {session.name || `Session ${sessionId}`}
-            </h1>
-            <p className="text-gray-400">Static Pick & Ban Interface</p>
+            <h2 className="text-xl font-semibold capitalize">
+              {currentPhase.replace(/(\d)/, " $1")} Phase
+            </h2>
+            <p className="text-gray-400">
+              {currentPhase === "finished"
+                ? "Draft Complete!"
+                : `${currentTeam.charAt(0).toUpperCase() + currentTeam.slice(1)} team ${
+                    currentPhase.startsWith("ban") ? "bans" : "picks"
+                  } champion ${currentPosition}`}
+            </p>
           </div>
-          <div className="flex gap-3">
-            <button
-              onClick={undoLastAction}
-              disabled={actions.length === 0}
-              className="bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors"
-            >
-              Undo Last
-            </button>
-            <button
-              onClick={() => router.push("/modules/pickban/static")}
-              className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors"
-            >
-              Back to Sessions
-            </button>
-          </div>
+          {currentPhase !== "finished" && (
+            <div className="flex gap-3">
+              <button
+                onClick={() => openChampionSelect("ban")}
+                disabled={!currentPhase.startsWith("ban")}
+                className="bg-red-600 hover:bg-red-700 disabled:bg-gray-600 text-white px-6 py-3 rounded-lg transition-colors"
+              >
+                Ban Champion
+              </button>
+              <button
+                onClick={() => openChampionSelect("pick")}
+                disabled={!currentPhase.startsWith("pick")}
+                className="bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white px-6 py-3 rounded-lg transition-colors"
+              >
+                Pick Champion
+              </button>
+            </div>
+          )}
         </div>
+      </div>
 
-        {/* Current Phase Info */}
-        <div className="bg-gray-800 rounded-lg p-6 mb-6">
-          <div className="flex justify-between items-center">
-            <div>
-              <h2 className="text-xl font-semibold capitalize">
-                {currentPhase.replace(/(\d)/, " $1")} Phase
-              </h2>
-              <p className="text-gray-400">
-                {currentPhase === "finished"
-                  ? "Draft Complete!"
-                  : `${currentTeam.charAt(0).toUpperCase() + currentTeam.slice(1)} team ${
-                      currentPhase.startsWith("ban") ? "bans" : "picks"
-                    } champion ${currentPosition}`}
-              </p>
-            </div>
-            {currentPhase !== "finished" && (
-              <div className="flex gap-3">
-                <button
-                  onClick={() => openChampionSelect("ban")}
-                  disabled={!currentPhase.startsWith("ban")}
-                  className="bg-red-600 hover:bg-red-700 disabled:bg-gray-600 text-white px-6 py-3 rounded-lg transition-colors"
-                >
-                  Ban Champion
-                </button>
-                <button
-                  onClick={() => openChampionSelect("pick")}
-                  disabled={!currentPhase.startsWith("pick")}
-                  className="bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white px-6 py-3 rounded-lg transition-colors"
-                >
-                  Pick Champion
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
+      {/* Teams Display */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        {/* Blue Team */}
+        <div className="bg-blue-900/30 rounded-lg p-6 border border-blue-600">
+          <h3 className="text-xl font-semibold text-blue-400 mb-4">
+            Blue Team
+          </h3>
 
-        {/* Teams Display */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-          {/* Blue Team */}
-          <div className="bg-blue-900/30 rounded-lg p-6 border border-blue-600">
-            <h3 className="text-xl font-semibold text-blue-400 mb-4">
-              Blue Team
-            </h3>
+          {/* Blue Team Bans */}
+          <div className="mb-6">
+            <h4 className="text-sm font-medium text-gray-300 mb-2">Bans</h4>
+            <div className="grid grid-cols-5 gap-2">
+              {Array.from({ length: 5 }, (_, i) => {
+                const ban = getTeamBans("blue")[i];
+                const champion = ban ? getChampionById(ban.championId) : null;
 
-            {/* Blue Team Bans */}
-            <div className="mb-6">
-              <h4 className="text-sm font-medium text-gray-300 mb-2">Bans</h4>
-              <div className="grid grid-cols-5 gap-2">
-                {Array.from({ length: 5 }, (_, i) => {
-                  const ban = getTeamBans("blue")[i];
-                  const champion = ban ? getChampionById(ban.championId) : null;
-
-                  return (
-                    <div
-                      key={i}
-                      className="aspect-square bg-gray-800 rounded border border-gray-600 overflow-hidden relative"
-                    >
-                      {champion ? (
-                        <>
-                          <Image
-                            src={champion.image}
-                            alt={champion.name}
-                            width={60}
-                            height={60}
-                            className="w-full h-full object-cover grayscale"
-                          />
-                          <div className="absolute inset-0 bg-red-600/70 flex items-center justify-center">
-                            <span className="text-white font-bold">X</span>
-                          </div>
-                        </>
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-500 text-xs">
-                          Ban {i + 1}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Blue Team Picks */}
-            <div>
-              <h4 className="text-sm font-medium text-gray-300 mb-2">Picks</h4>
-              <div className="space-y-2">
-                {Array.from({ length: 5 }, (_, i) => {
-                  const pick = getTeamPicks("blue")[i];
-                  const champion = pick
-                    ? getChampionById(pick.championId)
-                    : null;
-
-                  return (
-                    <div
-                      key={i}
-                      className="flex items-center bg-blue-800/30 rounded p-3"
-                    >
-                      <div className="w-12 h-12 bg-gray-800 rounded border border-gray-600 overflow-hidden mr-3">
-                        {champion ? (
-                          <Image
-                            src={champion.image}
-                            alt={champion.name}
-                            width={48}
-                            height={48}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-gray-500 text-xs">
-                            {i + 1}
-                          </div>
-                        )}
-                      </div>
-                      <div>
-                        <div className="font-medium">
-                          {champion?.name || `Player ${i + 1}`}
-                        </div>
-                        <div className="text-xs text-gray-400">
-                          {champion?.title || "No champion selected"}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-
-          {/* Red Team */}
-          <div className="bg-red-900/30 rounded-lg p-6 border border-red-600">
-            <h3 className="text-xl font-semibold text-red-400 mb-4">
-              Red Team
-            </h3>
-
-            {/* Red Team Bans */}
-            <div className="mb-6">
-              <h4 className="text-sm font-medium text-gray-300 mb-2">Bans</h4>
-              <div className="grid grid-cols-5 gap-2">
-                {Array.from({ length: 5 }, (_, i) => {
-                  const ban = getTeamBans("red")[i];
-                  const champion = ban ? getChampionById(ban.championId) : null;
-
-                  return (
-                    <div
-                      key={i}
-                      className="aspect-square bg-gray-800 rounded border border-gray-600 overflow-hidden relative"
-                    >
-                      {champion ? (
-                        <>
-                          <Image
-                            src={champion.image}
-                            alt={champion.name}
-                            width={60}
-                            height={60}
-                            className="w-full h-full object-cover grayscale"
-                          />
-                          <div className="absolute inset-0 bg-red-600/70 flex items-center justify-center">
-                            <span className="text-white font-bold">X</span>
-                          </div>
-                        </>
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-500 text-xs">
-                          Ban {i + 1}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Red Team Picks */}
-            <div>
-              <h4 className="text-sm font-medium text-gray-300 mb-2">Picks</h4>
-              <div className="space-y-2">
-                {Array.from({ length: 5 }, (_, i) => {
-                  const pick = getTeamPicks("red")[i];
-                  const champion = pick
-                    ? getChampionById(pick.championId)
-                    : null;
-
-                  return (
-                    <div
-                      key={i}
-                      className="flex items-center bg-red-800/30 rounded p-3"
-                    >
-                      <div className="w-12 h-12 bg-gray-800 rounded border border-gray-600 overflow-hidden mr-3">
-                        {champion ? (
-                          <Image
-                            src={champion.image}
-                            alt={champion.name}
-                            width={48}
-                            height={48}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-gray-500 text-xs">
-                            {i + 1}
-                          </div>
-                        )}
-                      </div>
-                      <div>
-                        <div className="font-medium">
-                          {champion?.name || `Player ${i + 1}`}
-                        </div>
-                        <div className="text-xs text-gray-400">
-                          {champion?.title || "No champion selected"}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Action History */}
-        {actions.length > 0 && (
-          <div className="bg-gray-800 rounded-lg p-6">
-            <h3 className="text-xl font-semibold mb-4">Draft History</h3>
-            <div className="space-y-2">
-              {actions.map((action, index) => {
-                const champion = getChampionById(action.championId);
                 return (
                   <div
-                    key={action.id}
-                    className="flex items-center justify-between bg-gray-700 rounded p-3"
+                    key={i}
+                    className="aspect-square bg-gray-800 rounded border border-gray-600 overflow-hidden relative"
                   >
-                    <div className="flex items-center gap-3">
-                      <span className="text-sm text-gray-400">
-                        #{index + 1}
-                      </span>
-                      <div className="w-8 h-8 bg-gray-600 rounded overflow-hidden">
-                        {champion && (
-                          <Image
-                            src={champion.image}
-                            alt={champion.name}
-                            width={32}
-                            height={32}
-                            className="w-full h-full object-cover"
-                          />
-                        )}
+                    {champion ? (
+                      <>
+                        <Image
+                          src={champion.image}
+                          alt={champion.name}
+                          width={60}
+                          height={60}
+                          className="w-full h-full object-cover grayscale"
+                        />
+                        <div className="absolute inset-0 bg-red-600/70 flex items-center justify-center">
+                          <span className="text-white font-bold">X</span>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-500 text-xs">
+                        Ban {i + 1}
                       </div>
-                      <div>
-                        <span className="font-medium">{champion?.name}</span>
-                        <span
-                          className={`ml-2 px-2 py-1 rounded text-xs ${
-                            action.type === "ban"
-                              ? "bg-red-600"
-                              : "bg-green-600"
-                          }`}
-                        >
-                          {action.type.toUpperCase()}
-                        </span>
-                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Blue Team Picks */}
+          <div>
+            <h4 className="text-sm font-medium text-gray-300 mb-2">Picks</h4>
+            <div className="space-y-2">
+              {Array.from({ length: 5 }, (_, i) => {
+                const pick = getTeamPicks("blue")[i];
+                const champion = pick
+                  ? getChampionById(pick.championId)
+                  : null;
+
+                return (
+                  <div
+                    key={i}
+                    className="flex items-center bg-blue-800/30 rounded p-3"
+                  >
+                    <div className="w-12 h-12 bg-gray-800 rounded border border-gray-600 overflow-hidden mr-3">
+                      {champion ? (
+                        <Image
+                          src={champion.image}
+                          alt={champion.name}
+                          width={48}
+                          height={48}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-gray-500 text-xs">
+                          {i + 1}
+                        </div>
+                      )}
                     </div>
-                    <div className="text-sm text-gray-400">
-                      <span
-                        className={`px-2 py-1 rounded ${
-                          action.team === "blue" ? "bg-blue-600" : "bg-red-600"
-                        }`}
-                      >
-                        {action.team.toUpperCase()}
-                      </span>
+                    <div>
+                      <div className="font-medium">
+                        {champion?.name || `Player ${i + 1}`}
+                      </div>
+                      <div className="text-xs text-gray-400">
+                        {champion?.title || "No champion selected"}
+                      </div>
                     </div>
                   </div>
                 );
               })}
             </div>
           </div>
-        )}
+        </div>
+
+        {/* Red Team */}
+        <div className="bg-red-900/30 rounded-lg p-6 border border-red-600">
+          <h3 className="text-xl font-semibold text-red-400 mb-4">
+            Red Team
+          </h3>
+
+          {/* Red Team Bans */}
+          <div className="mb-6">
+            <h4 className="text-sm font-medium text-gray-300 mb-2">Bans</h4>
+            <div className="grid grid-cols-5 gap-2">
+              {Array.from({ length: 5 }, (_, i) => {
+                const ban = getTeamBans("red")[i];
+                const champion = ban ? getChampionById(ban.championId) : null;
+
+                return (
+                  <div
+                    key={i}
+                    className="aspect-square bg-gray-800 rounded border border-gray-600 overflow-hidden relative"
+                  >
+                    {champion ? (
+                      <>
+                        <Image
+                          src={champion.image}
+                          alt={champion.name}
+                          width={60}
+                          height={60}
+                          className="w-full h-full object-cover grayscale"
+                        />
+                        <div className="absolute inset-0 bg-red-600/70 flex items-center justify-center">
+                          <span className="text-white font-bold">X</span>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-500 text-xs">
+                        Ban {i + 1}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Red Team Picks */}
+          <div>
+            <h4 className="text-sm font-medium text-gray-300 mb-2">Picks</h4>
+            <div className="space-y-2">
+              {Array.from({ length: 5 }, (_, i) => {
+                const pick = getTeamPicks("red")[i];
+                const champion = pick
+                  ? getChampionById(pick.championId)
+                  : null;
+
+                return (
+                  <div
+                    key={i}
+                    className="flex items-center bg-red-800/30 rounded p-3"
+                  >
+                    <div className="w-12 h-12 bg-gray-800 rounded border border-gray-600 overflow-hidden mr-3">
+                      {champion ? (
+                        <Image
+                          src={champion.image}
+                          alt={champion.name}
+                          width={48}
+                          height={48}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-gray-500 text-xs">
+                          {i + 1}
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <div className="font-medium">
+                        {champion?.name || `Player ${i + 1}`}
+                      </div>
+                      <div className="text-xs text-gray-400">
+                        {champion?.title || "No champion selected"}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
+
+      {/* Action History */}
+      {actions.length > 0 && (
+        <div className="bg-gray-800 rounded-lg p-6">
+          <h3 className="text-xl font-semibold mb-4">Draft History</h3>
+          <div className="space-y-2">
+            {actions.map((action, index) => {
+              const champion = getChampionById(action.championId);
+              return (
+                <div
+                  key={action.id}
+                  className="flex items-center justify-between bg-gray-700 rounded p-3"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm text-gray-400">
+                      #{index + 1}
+                    </span>
+                    <div className="w-8 h-8 bg-gray-600 rounded overflow-hidden">
+                      {champion && (
+                        <Image
+                          src={champion.image}
+                          alt={champion.name}
+                          width={32}
+                          height={32}
+                          className="w-full h-full object-cover"
+                        />
+                      )}
+                    </div>
+                    <div>
+                      <span className="font-medium">{champion?.name}</span>
+                      <span
+                        className={`ml-2 px-2 py-1 rounded text-xs ${
+                          action.type === "ban"
+                            ? "bg-red-600"
+                            : "bg-green-600"
+                        }`}
+                      >
+                        {action.type.toUpperCase()}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="text-sm text-gray-400">
+                    <span
+                      className={`px-2 py-1 rounded ${
+                        action.team === "blue" ? "bg-blue-600" : "bg-red-600"
+                      }`}
+                    >
+                      {action.team.toUpperCase()}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </PageWrapper>
   );
 }

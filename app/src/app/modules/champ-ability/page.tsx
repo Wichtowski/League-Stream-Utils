@@ -11,6 +11,7 @@ import { assetCache } from "@lib/services/cache/asset";
 import { championCacheService } from "@lib/services/cache/champion";
 import { DownloadProgressModal } from "@lib/components/modal";
 import { BackButton } from "@/lib/components/common/buttons";
+import { PageWrapper } from "@lib/layout/PageWrapper";
 
 type Spell = {
   id: string;
@@ -231,21 +232,21 @@ export default function ChampAbilityPage() {
 
   if (loading)
     return (
-      <div className="flex justify-center items-center h-screen">
-        Loading...
-      </div>
+      <PageWrapper requireAuth={false}>
+        <div className="flex justify-center items-center h-screen">
+          Loading...
+        </div>
+      </PageWrapper>
     );
 
   return (
-    <div className="min-h-screen text-white p-4 flex flex-col items-center justify-center">
+    <PageWrapper
+      requireAuth={false}
+      title="League of Legends Champion Spell Showcase"
+      actions={<BackButton to="/modules">Back to Modules</BackButton>}
+      contentClassName="flex flex-col items-center"
+    >
       <div className="w-full max-w-7xl p-4 flex flex-col items-center">
-        <div className="mb-4">
-          <BackButton to="/modules">Back to Modules</BackButton>
-        </div>
-        <h1 className="text-3xl font-bold mb-6 text-center">
-          League of Legends Champion Spell Showcase
-        </h1>
-
         <div className="flex justify-center mb-6 w-full gap-4">
           <input
             type="text"
@@ -590,7 +591,7 @@ export default function ChampAbilityPage() {
       {isDownloading && (
         <div className="fixed inset-0 bg-black bg-opacity-30 z-40 pointer-events-none" />
       )}
-    </div>
+    </PageWrapper>
   );
 }
 

@@ -2,10 +2,10 @@
 
 import React, { useState, useEffect } from "react";
 import { useUser } from "@lib/contexts/AuthContext";
-import { AuthGuard } from "@lib/components/auth/AuthGuard";
 import { BackButton } from "@lib/components/common/buttons";
 import type { Match } from "@lib/types/match";
 import type { Tournament } from "@lib/types/tournament";
+import { PageWrapper } from "@lib/layout/PageWrapper";
 
 interface TournamentMatchesPageProps {
   params: Promise<{
@@ -68,35 +68,27 @@ export default function TournamentMatchesPage({
   }, [tournamentId]);
 
   if (!user) {
-    return <AuthGuard>{null}</AuthGuard>;
+    return <PageWrapper requireAuth={true}>{null}</PageWrapper>;
   }
 
   return (
-    <AuthGuard>
-      <div className="min-h-screen p-6 max-w-6xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-white">
-              {tournament ? `${tournament.name} Matches` : "Tournament Matches"}
-            </h1>
-            <p className="text-gray-400 mt-2">
-              {tournament ? tournament.abbreviation : "Loading..."}
-            </p>
-          </div>
-          <BackButton to="/modules/tournaments" />
+    <PageWrapper
+      title={tournament ? `${tournament.name} Matches` : "Tournament Matches"}
+      subtitle={tournament ? tournament.abbreviation : "Loading..."}
+      actions={<BackButton to="/modules/tournaments" />}
+      contentClassName="max-w-6xl mx-auto"
+    >
+      {error && (
+        <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-4 mb-6">
+          <p className="text-red-400">{error}</p>
         </div>
+      )}
 
-        {error && (
-          <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-4 mb-6">
-            <p className="text-red-400">{error}</p>
-          </div>
-        )}
-
-        {loading ? (
-          <div className="text-center py-12">
-            <div className="text-white">Loading matches...</div>
-          </div>
-        ) : matches.length === 0 ? (
+      {loading ? (
+        <div className="text-center py-12">
+          <div className="text-white">Loading matches...</div>
+        </div>
+      ) : matches.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-gray-400 text-lg mb-4">
               No matches found for this tournament
@@ -116,8 +108,7 @@ export default function TournamentMatchesPage({
             ))}
           </div>
         )}
-      </div>
-    </AuthGuard>
+    </PageWrapper>
   );
 }
 

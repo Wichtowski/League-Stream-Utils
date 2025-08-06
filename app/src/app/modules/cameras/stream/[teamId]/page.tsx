@@ -8,6 +8,7 @@ import { useAuthenticatedFetch } from "@lib/hooks/useAuthenticatedFetch";
 import { CameraPlayer, CameraTeam } from "@lib/types";
 import Image from "next/image";
 import { Breadcrumbs } from "@/lib/components/common";
+import { PageWrapper } from "@lib/layout/PageWrapper";
 
 export default function TeamCameraStreamPage() {
   const router = useRouter();
@@ -165,45 +166,48 @@ export default function TeamCameraStreamPage() {
     };
 
     return (
-      <AuthGuard>
-        <div className="min-h-screen bg-black flex items-center justify-center p-8">
-          <div className="text-center max-w-md">
-            <div className="text-red-400 text-6xl mb-6">🚫</div>
-            <h2 className="text-2xl font-bold text-white mb-4">
-              Access Denied
-            </h2>
-            <p className="text-gray-400 mb-6">{getAccessMessage()}</p>
-            <div className="space-x-4">
-              <button
-                onClick={() => router.push("/modules/cameras")}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors"
-              >
-                Camera Hub
-              </button>
-              <button
-                onClick={() => router.push("/modules/teams")}
-                className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg transition-colors"
-              >
-                My Teams
-              </button>
-            </div>
+      <PageWrapper
+        title="Access Denied"
+        className="bg-black"
+        contentClassName="flex items-center justify-center p-8"
+      >
+        <div className="text-center max-w-md">
+          <div className="text-red-400 text-6xl mb-6">🚫</div>
+          <h2 className="text-2xl font-bold text-white mb-4">
+            Access Denied
+          </h2>
+          <p className="text-gray-400 mb-6">{getAccessMessage()}</p>
+          <div className="space-x-4">
+            <button
+              onClick={() => router.push("/modules/cameras")}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors"
+            >
+              Camera Hub
+            </button>
+            <button
+              onClick={() => router.push("/modules/teams")}
+              className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg transition-colors"
+            >
+              My Teams
+            </button>
           </div>
         </div>
-      </AuthGuard>
+      </PageWrapper>
     );
   }
 
   return (
-    <AuthGuard loadingMessage="Loading team camera...">
-      <div className="mb-4 flex justify-between items-center">
-        <Breadcrumbs items={[
-          { label: "Camera Hub", href: "/modules/cameras" },
-          { label: "Setup", href: `/modules/cameras/setup` },
-          { label: teamName, href: `/modules/cameras/setup/${teamId}`, isActive: true },
-        ]} />
-      </div>
+    <PageWrapper
+      loadingMessage="Loading team camera..."
+      breadcrumbs={[
+        { label: "Camera Hub", href: "/modules/cameras" },
+        { label: "Setup", href: `/modules/cameras/setup` },
+        { label: teamName, href: `/modules/cameras/setup/${teamId}`, isActive: true },
+      ]}
+      className="bg-black"
+    >
       {players.length === 0 ? (
-        <div className="min-h-screen bg-black flex items-center justify-center p-8">
+        <div className="flex items-center justify-center p-8">
           <div className="text-center">
             <h2 className="text-2xl font-bold text-white mb-4">
               No Players Found
@@ -223,40 +227,39 @@ export default function TeamCameraStreamPage() {
         </div>
       ) : (
         <Suspense fallback={<div>Loading...</div>}>
-          <div className="min-h-screen bg-black">
-            <div className="relative w-full aspect-video">
-              {/* Main Stream Display */}
-              {currentPlayer && (
-                <div className="absolute inset-0 w-full h-full block">
-                  {currentPlayer.url ? (
-                    <iframe
-                      src={currentPlayer.url}
-                      className="w-full h-full"
-                      allow="autoplay; fullscreen"
-                      onError={handleStreamError}
-                      title={`${currentPlayer.inGameName || currentPlayer.playerName} camera feed`}
-                    />
-                  ) : currentPlayer.imagePath ? (
-                    <Image
-                      src={currentPlayer.imagePath}
-                      alt={
-                        currentPlayer.inGameName ||
-                        currentPlayer.playerName ||
-                        "Player"
-                      }
-                      fill
-                      className="object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gray-800 flex items-center justify-center">
-                      <div className="text-center text-gray-400">
-                        <div className="text-2xl mb-2">📹</div>
-                        <p className="text-sm">No feed</p>
-                      </div>
+          <div className="relative w-full aspect-video">
+            {/* Main Stream Display */}
+            {currentPlayer && (
+              <div className="absolute inset-0 w-full h-full block">
+                {currentPlayer.url ? (
+                  <iframe
+                    src={currentPlayer.url}
+                    className="w-full h-full"
+                    allow="autoplay; fullscreen"
+                    onError={handleStreamError}
+                    title={`${currentPlayer.inGameName || currentPlayer.playerName} camera feed`}
+                  />
+                ) : currentPlayer.imagePath ? (
+                  <Image
+                    src={currentPlayer.imagePath}
+                    alt={
+                      currentPlayer.inGameName ||
+                      currentPlayer.playerName ||
+                      "Player"
+                    }
+                    fill
+                    className="object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gray-800 flex items-center justify-center">
+                    <div className="text-center text-gray-400">
+                      <div className="text-2xl mb-2">📹</div>
+                      <p className="text-sm">No feed</p>
                     </div>
-                  )}
-                </div>
-              )}
+                  </div>
+                )}
+              </div>
+            )}
 
               {/* Player Name Overlay - Full width bottom centered */}
               {currentPlayer && (
@@ -307,6 +310,6 @@ export default function TeamCameraStreamPage() {
           </div>
         </Suspense>
       )}
-    </AuthGuard>
+    </PageWrapper>
   );
 }

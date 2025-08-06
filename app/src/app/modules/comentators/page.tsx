@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import { useTournaments } from "@lib/contexts/TournamentsContext";
-import { AuthGuard } from "@lib/components/auth/AuthGuard";
 import { useRouter } from "next/navigation";
+import { PageWrapper } from "@lib/layout/PageWrapper";
 
 interface Comentator {
   id: string;
@@ -87,129 +87,129 @@ export default function ComentatorsPage(): React.ReactElement {
     : [];
 
   return (
-    <AuthGuard>
-      <div className="min-h-screen p-6 max-w-3xl mx-auto">
+    <PageWrapper
+      title="Comentators"
+      actions={
         <button
           onClick={() => router.push("/modules")}
-          className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg mb-8"
+          className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg"
         >
           ← Back to Modules
         </button>
-        <h1 className="text-3xl font-bold text-white mb-8 text-center">
-          Comentators
-        </h1>
-        {!selectedTournament ? (
-          <div>
-            <h2 className="text-xl text-white mb-4 text-center">
-              Select Tournament
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
-              {tournaments.map((t) => (
-                <button
-                  key={t.id}
-                  onClick={() => setSelectedTournament(t.id)}
-                  className="bg-gray-800 hover:bg-blue-700 text-white rounded-xl p-6 border border-gray-700 hover:border-blue-500 transition-all duration-200 shadow-lg flex flex-col items-center"
-                >
-                  <span className="text-lg font-semibold mb-2">{t.name}</span>
-                  <span className="text-gray-400 text-sm">
-                    {t.abbreviation}
-                  </span>
-                </button>
-              ))}
-            </div>
+      }
+      contentClassName="max-w-3xl mx-auto"
+    >
+      {!selectedTournament ? (
+        <div>
+          <h2 className="text-xl text-white mb-4 text-center">
+            Select Tournament
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
+            {tournaments.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => setSelectedTournament(t.id)}
+                className="bg-gray-800 hover:bg-blue-700 text-white rounded-xl p-6 border border-gray-700 hover:border-blue-500 transition-all duration-200 shadow-lg flex flex-col items-center"
+              >
+                <span className="text-lg font-semibold mb-2">{t.name}</span>
+                <span className="text-gray-400 text-sm">
+                  {t.abbreviation}
+                </span>
+              </button>
+            ))}
           </div>
-        ) : (
-          <>
-            <div className="flex items-center justify-between mb-8">
+        </div>
+      ) : (
+        <>
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h2 className="text-2xl font-bold text-white">
+                {tournaments.find((t) => t.id === selectedTournament)?.name}
+              </h2>
+              <div className="text-gray-400 text-sm">Tournament</div>
+            </div>
+            <button
+              onClick={() => setSelectedTournament("")}
+              className="bg-gray-700 hover:bg-gray-800 text-white px-4 py-2 rounded-lg"
+            >
+              Change
+            </button>
+          </div>
+          <div className="bg-gray-900 rounded-xl p-6 mb-10 shadow-lg">
+            <h3 className="text-xl font-semibold text-white mb-4">
+              Add Comentator
+            </h3>
+            <form
+              onSubmit={handleAdd}
+              className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end"
+            >
               <div>
-                <h2 className="text-2xl font-bold text-white">
-                  {tournaments.find((t) => t.id === selectedTournament)?.name}
-                </h2>
-                <div className="text-gray-400 text-sm">Tournament</div>
+                <label className="block text-gray-300 mb-2">
+                  Display Name
+                </label>
+                <input
+                  className="w-full p-2 rounded bg-gray-700 text-white"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-gray-300 mb-2">
+                  x.com Handle (optional)
+                </label>
+                <input
+                  className="w-full p-2 rounded bg-gray-700 text-white"
+                  value={xHandle}
+                  onChange={(e) => setXHandle(e.target.value)}
+                  placeholder="@yourhandle"
+                />
               </div>
               <button
-                onClick={() => setSelectedTournament("")}
-                className="bg-gray-700 hover:bg-gray-800 text-white px-4 py-2 rounded-lg"
+                type="submit"
+                className="col-span-1 sm:col-span-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg mt-2"
+                disabled={loading}
               >
-                Change
+                {loading ? "Adding..." : "Add Comentator"}
               </button>
-            </div>
-            <div className="bg-gray-900 rounded-xl p-6 mb-10 shadow-lg">
-              <h3 className="text-xl font-semibold text-white mb-4">
-                Add Comentator
-              </h3>
-              <form
-                onSubmit={handleAdd}
-                className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end"
-              >
-                <div>
-                  <label className="block text-gray-300 mb-2">
-                    Display Name
-                  </label>
-                  <input
-                    className="w-full p-2 rounded bg-gray-700 text-white"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-gray-300 mb-2">
-                    x.com Handle (optional)
-                  </label>
-                  <input
-                    className="w-full p-2 rounded bg-gray-700 text-white"
-                    value={xHandle}
-                    onChange={(e) => setXHandle(e.target.value)}
-                    placeholder="@yourhandle"
-                  />
-                </div>
-                <button
-                  type="submit"
-                  className="col-span-1 sm:col-span-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg mt-2"
-                  disabled={loading}
-                >
-                  {loading ? "Adding..." : "Add Comentator"}
-                </button>
-              </form>
-              {successMsg && (
-                <div className="text-green-400 mt-4">{successMsg}</div>
-              )}
-            </div>
-            <h3 className="text-xl font-semibold text-white mb-4">
-              Comentators for this Tournament
-            </h3>
-            {loading ? (
-              <div className="text-white">Loading...</div>
-            ) : filteredComentators.length === 0 ? (
-              <div className="text-gray-400">
-                No comentators yet for this tournament.
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                {filteredComentators.map((c) => (
-                  <div
-                    key={c.id}
-                    className="bg-gray-800 rounded-xl p-5 border border-gray-700 shadow flex flex-col gap-2"
-                  >
-                    <div className="text-lg font-bold text-white">{c.name}</div>
-                    {c.xHandle && (
-                      <a
-                        href={`https://x.com/${c.xHandle.replace(/^@/, "")}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-400 hover:underline text-sm"
-                      >
-                        {c.xHandle}
-                      </a>
-                    )}
-                  </div>
-                ))}
-              </div>
+            </form>
+            {successMsg && (
+              <div className="text-green-400 mt-4">{successMsg}</div>
             )}
-          </>
-        )}
-      </div>
-    </AuthGuard>
+          </div>
+          <h3 className="text-xl font-semibold text-white mb-4">
+            Comentators for this Tournament
+          </h3>
+          {loading ? (
+            <div className="text-white">Loading...</div>
+          ) : filteredComentators.length === 0 ? (
+            <div className="text-gray-400">
+              No comentators yet for this tournament.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              {filteredComentators.map((c) => (
+                <div
+                  key={c.id}
+                  className="bg-gray-800 rounded-xl p-5 border border-gray-700 shadow flex flex-col gap-2"
+                >
+                  <div className="text-lg font-bold text-white">{c.name}</div>
+                  {c.xHandle && (
+                    <a
+                      href={`https://x.com/${c.xHandle.replace(/^@/, "")}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-400 hover:underline text-sm"
+                    >
+                      {c.xHandle}
+                    </a>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      )}
+    </PageWrapper>
   );
 }

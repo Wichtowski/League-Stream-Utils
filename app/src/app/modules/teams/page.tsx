@@ -4,8 +4,8 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import type { Team, CreateTeamRequest } from "@lib/types";
 import { useNavigation, useUser, useTeams, useModal } from "@lib/contexts";
-import { AuthGuard } from "@lib/components/auth/AuthGuard";
-import { Breadcrumbs, LoadingSpinner } from "@lib/components/common";
+import { LoadingSpinner } from "@lib/components/common";
+import { PageWrapper } from "@lib/layout/PageWrapper";
 import { TeamCreationForm, TeamCard } from "@lib/components/pages/teams";
 
 export default function TeamsPage() {
@@ -102,146 +102,144 @@ export default function TeamsPage() {
 
   const handleVerifyAllPlayers = async (team: Team) => {
     setVerifyingAllTeams((prev) => new Set(prev).add(team.id));
-    const confirmed = await showConfirm({
-      title: "Verify All Players",
-      message: `Are you sure you want to verify all players in team "${team.name}"? This will verify all main roster and substitute players.`,
-      confirmText: "Verify All",
-      cancelText: "Cancel",
-    });
-
-    if (confirmed) {
-      try {
-        const result = await verifyAllPlayers(team.id);
-        if (result.success) {
-          await showAlert({
-            type: "success",
-            message: "Team verified successfully!",
-          });
-        } else {
-          await showAlert({
-            type: "error",
-            message: result.error || "Failed to verify team",
-          });
-        }
-      } catch (error) {
-        console.error("Failed to verify team:", error);
+    try {
+      const response = await verifyAllPlayers(team.id);
+      if (response.success) {
+        await showAlert({
+          type: "success",
+          message: "Team verified successfully!",
+        });
+        refreshTeams();
+      } else {
+        console.error("Verification failed:", response.error);
         await showAlert({
           type: "error",
-          message: "Failed to verify team",
+          message: `Failed to verify team: ${response.error || "Unknown error"}`,
         });
       }
+    } catch (error) {
+      console.error("Failed to verify team:", error);
+      await showAlert({ type: "error", message: "Failed to verify team" });
+    } finally {
+      setVerifyingAllTeams((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(team.id);
+        return newSet;
+      });
     }
-    setVerifyingAllTeams((prev) => {
-      const newSet = new Set(prev);
-      newSet.delete(team.id);
-      return newSet;
-    });
   };
 
   const handleAdminVerify = async (team: Team) => {
     const confirmed = await showConfirm({
       title: "Admin Verify Team",
-      message: `Verify entire team "${team.name}" and all players?`,
-      type: "default",
+      message: `Are you sure you want to admin verify ${team.name}? This will mark all players as verified.`,
+      confirmText: "Verify",
+      cancelText: "Cancel",
     });
 
-    if (confirmed) {
-      try {
-        const response = await verifyAllPlayers(team.id);
-        if (response.success) {
-          await showAlert({
-            type: "success",
-            message: "Team verified successfully!",
-          });
-          refreshTeams();
-        } else {
-          console.error("Verification failed:", response.error);
-          await showAlert({
-            type: "error",
-            message: `Failed to verify team: ${response.error || "Unknown error"}`,
-          });
-        }
-      } catch (error) {
-        console.error("Failed to verify team:", error);
-        await showAlert({ type: "error", message: "Failed to verify team" });
+    if (!confirmed) return;
+
+    setVerifyingAllTeams((prev) => new Set(prev).add(team.id));
+    try {
+      const response = await verifyAllPlayers(team.id);
+      if (response.success) {
+        await showAlert({
+          type: "success",
+          message: "Team verified successfully!",
+        });
+        refreshTeams();
+      } else {
+        console.error("Verification failed:", response.error);
+        await showAlert({
+          type: "error",
+          message: `Failed to verify team: ${response.error || "Unknown error"}`,
+        });
       }
+    } catch (error) {
+      console.error("Failed to verify team:", error);
+      await showAlert({ type: "error", message: "Failed to verify team" });
+    } finally {
+      setVerifyingAllTeams((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(team.id);
+        return newSet;
+      });
     }
   };
 
-  return (
-    <AuthGuard loadingMessage="Loading teams...">
-      {loading ? (
+  if (loading) {
+    return (
+      <PageWrapper loadingMessage="Loading teams...">
         <LoadingSpinner fullscreen text="Loading teams..." variant="white" />
-      ) : (
-        <div className="min-h-screen text-white">
-          <div className="container mx-auto px-6 py-8">
-            <div className="mb-4 flex justify-between items-center">
-              <Breadcrumbs items={[
-                { label: "Teams", href: "/modules/teams", isActive: true },
-              ]} />
-              <button
-                onClick={() => setShowCreateForm(true)}
-                className="cursor-pointer bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-lg"
-              >
-                Create Team
-              </button>
-            </div>
-            <div className="flex justify-center">
-              <h1 className="text-3xl font-bold">My Teams</h1>
-            </div>
+      </PageWrapper>
+    );
+  }
 
-            {showCreateForm && (
-              <TeamCreationForm
-                onSubmit={handleCreateTeam}
-                onCancel={() => setShowCreateForm(false)}
-                isCreating={creating}
-              />
-            )}
-
-            <div className="grid gap-6">
-              {teams.length === 0 ? (
-                <div className="text-center py-12">
-                  <h3 className="text-xl text-gray-400 mb-4">
-                    No teams created yet
-                  </h3>
-                  <button
-                    onClick={() => setShowCreateForm(true)}
-                    className="cursor-pointer bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-lg"
-                  >
-                    Create Your First Team
-                  </button>
-                </div>
-              ) : (
-                teams
-                  .filter(
-                    (team) =>
-                      team &&
-                      team.name &&
-                      team.tag &&
-                      team.players &&
-                      team.players.main,
-                  )
-                  .map((team) => (
-                    <TeamCard
-                      key={team.id}
-                      team={team}
-                      currentUserId={user?.id}
-                      isAdmin={user?.isAdmin}
-                      verifyingPlayers={verifyingPlayers}
-                      verifyingAllTeams={verifyingAllTeams}
-                      onEditTeam={(teamId) =>
-                        router.push(`/modules/teams/${teamId}`)
-                      }
-                      onVerifyPlayer={handleVerifyPlayer}
-                      onVerifyAllPlayers={handleVerifyAllPlayers}
-                      onAdminVerify={handleAdminVerify}
-                    />
-                  ))
-              )}
-            </div>
-          </div>
-        </div>
+  return (
+    <PageWrapper
+      loadingMessage="Loading teams..."
+      breadcrumbs={[
+        { label: "Teams", href: "/modules/teams", isActive: true },
+      ]}
+      title="My Teams"
+      actions={
+        <button
+          onClick={() => setShowCreateForm(true)}
+          className="cursor-pointer bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-lg"
+        >
+          Create Team
+        </button>
+      }
+    >
+      {showCreateForm && (
+        <TeamCreationForm
+          onSubmit={handleCreateTeam}
+          onCancel={() => setShowCreateForm(false)}
+          isCreating={creating}
+        />
       )}
-    </AuthGuard>
+
+      <div className="grid gap-6">
+        {teams.length === 0 ? (
+          <div className="text-center py-12">
+            <h3 className="text-xl text-gray-400 mb-4">
+              No teams created yet
+            </h3>
+            <button
+              onClick={() => setShowCreateForm(true)}
+              className="cursor-pointer bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-lg"
+            >
+              Create Your First Team
+            </button>
+          </div>
+        ) : (
+          teams
+            .filter(
+              (team) =>
+                team &&
+                team.name &&
+                team.tag &&
+                team.players &&
+                team.players.main,
+            )
+            .map((team) => (
+              <TeamCard
+                key={team.id}
+                team={team}
+                currentUserId={user?.id}
+                isAdmin={user?.isAdmin}
+                verifyingPlayers={verifyingPlayers}
+                verifyingAllTeams={verifyingAllTeams}
+                onEditTeam={(teamId) =>
+                  router.push(`/modules/teams/${teamId}`)
+                }
+                onVerifyPlayer={handleVerifyPlayer}
+                onVerifyAllPlayers={handleVerifyAllPlayers}
+                onAdminVerify={handleAdminVerify}
+              />
+            ))
+        )}
+      </div>
+    </PageWrapper>
   );
 }

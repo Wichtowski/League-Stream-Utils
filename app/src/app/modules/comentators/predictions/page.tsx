@@ -2,11 +2,11 @@
 
 import React, { useState, useEffect } from "react";
 import { useUser } from "@lib/contexts/AuthContext";
-import { AuthGuard } from "@lib/components/auth/AuthGuard";
+import { BackButton } from "@lib/components/common/buttons";
 import { useTournaments } from "@lib/contexts/TournamentsContext";
+import { PageWrapper } from "@lib/layout/PageWrapper";
 import type { Tournament } from "@lib/types";
 import type { BracketStructure, BracketNode } from "@lib/types/tournament";
-import { BackButton } from "@lib/components/common/buttons";
 
 interface Match {
   id: string;
@@ -80,81 +80,81 @@ export default function ComentatorPredictionsPage(): React.ReactElement {
   }, [mode, selectedTournament, getBracket]);
 
   if (!user) {
-    return <AuthGuard>{null}</AuthGuard>;
+    return <PageWrapper requireAuth={true}>{null}</PageWrapper>;
   }
 
   if (!mode) {
     return (
-      <AuthGuard loadingMessage="Loading predictions...">
-        <div className="mb-4">
-          <BackButton to="/modules">Back to Modules</BackButton>
+      <PageWrapper
+        title="Comentator Predictions"
+        actions={<BackButton to="/modules">Back to Modules</BackButton>}
+        contentClassName="max-w-xl mx-auto"
+      >
+        <div className="space-y-4">
+          <button
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg w-full"
+            onClick={() => setMode("tournament")}
+          >
+            Select Tournament
+          </button>
+          <button
+            className="bg-pink-600 hover:bg-pink-700 text-white px-4 py-2 rounded-lg w-full"
+            onClick={() => setMode("quick")}
+          >
+            Quick Match
+          </button>
         </div>
-        <div className="min-h-screen p-6 max-w-xl mx-auto">
-          <h1 className="text-3xl font-bold text-white mb-6">
-            Comentator Predictions
-          </h1>
-          <div className="space-y-4">
-            <button
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg w-full"
-              onClick={() => setMode("tournament")}
-            >
-              Select Tournament
-            </button>
-            <button
-              className="bg-pink-600 hover:bg-pink-700 text-white px-4 py-2 rounded-lg w-full"
-              onClick={() => setMode("quick")}
-            >
-              Quick Match
-            </button>
-          </div>
-        </div>
-      </AuthGuard>
+      </PageWrapper>
     );
   }
 
   if (mode === "tournament" && !selectedTournament) {
     return (
-      <AuthGuard>
-        <div className="min-h-screen p-6 max-w-xl mx-auto">
-          <h2 className="text-xl text-white mb-4">Select Tournament</h2>
-          <ul className="space-y-4">
-            {tournaments
-              .filter((t) => t.status === "ongoing")
-              .map((t) => (
-                <li
-                  key={t.id}
-                  className="bg-gray-800 rounded-lg p-4 flex justify-between items-center"
+      <PageWrapper
+        title="Select Tournament"
+        actions={<BackButton to="/modules">Back to Modules</BackButton>}
+        contentClassName="max-w-xl mx-auto"
+      >
+        <ul className="space-y-4">
+          {tournaments
+            .filter((t) => t.status === "ongoing")
+            .map((t) => (
+              <li
+                key={t.id}
+                className="bg-gray-800 rounded-lg p-4 flex justify-between items-center"
+              >
+                <div className="text-white font-semibold">{t.name}</div>
+                <button
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
+                  onClick={() => setSelectedTournament(t)}
                 >
-                  <div className="text-white font-semibold">{t.name}</div>
-                  <button
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
-                    onClick={() => setSelectedTournament(t)}
-                  >
-                    Select
-                  </button>
-                </li>
-              ))}
-          </ul>
-          {tournaments.filter((t) => t.status === "ongoing").length === 0 && (
-            <div className="text-gray-400 mt-4">
-              No ongoing tournaments available.
-            </div>
-          )}
-          <button
-            className="mt-6 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg"
-            onClick={() => setMode(undefined)}
-          >
-            Back
-          </button>
-        </div>
-      </AuthGuard>
+                  Select
+                </button>
+              </li>
+            ))}
+        </ul>
+        {tournaments.filter((t) => t.status === "ongoing").length === 0 && (
+          <div className="text-gray-400 mt-4">
+            No ongoing tournaments available.
+          </div>
+        )}
+        <button
+          className="mt-6 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg"
+          onClick={() => setMode(undefined)}
+        >
+          Back
+        </button>
+      </PageWrapper>
     );
   }
 
   if (!selectedMatch) {
     return (
-      <AuthGuard>
-        <div className="min-h-screen p-6 max-w-xl mx-auto">
+      <PageWrapper
+        title="Select a match"
+        actions={<BackButton to="/modules">Back to Modules</BackButton>}
+        contentClassName="max-w-xl mx-auto"
+      >
           <h2 className="text-xl text-white mb-4">Select a match</h2>
           {loadingMatches ? (
             <div className="text-white">Loading matches...</div>
@@ -199,8 +199,7 @@ export default function ComentatorPredictionsPage(): React.ReactElement {
           >
             Back
           </button>
-        </div>
-      </AuthGuard>
+      </PageWrapper>
     );
   }
 
@@ -209,8 +208,8 @@ export default function ComentatorPredictionsPage(): React.ReactElement {
     if (typeof window !== "undefined") {
       window.location.href = `/modules/comentators/predictions/${selectedMatch.id}`;
     }
-    return <AuthGuard>{null}</AuthGuard>;
+    return <PageWrapper requireAuth={true}>{null}</PageWrapper>;
   }
 
-  return <AuthGuard>{null}</AuthGuard>;
+  return <PageWrapper requireAuth={true}>{null}</PageWrapper>;
 }

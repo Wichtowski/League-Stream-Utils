@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { getDynamicMockData } from "@lib/mocks/dynamic-champselect";
 import { getChampions } from "@lib/champions";
 import { ChampSelectDisplay } from "@lib/components/pages/leagueclient/champselect/ChampSelectDisplay";
-import { BackButton } from "@lib/components/common/buttons";
+import { Breadcrumbs } from "@lib/components/common/Breadcrumbs";
 
 const DemoPage: React.FC = () => {
   const [mockData, setMockData] = useState<ReturnType<
@@ -37,8 +37,11 @@ const DemoPage: React.FC = () => {
 
   return (
     <>
-      <div className="mb-4">
-        <BackButton to="/modules">Back to Modules</BackButton>
+      <div className="mb-4 p-4">
+        <Breadcrumbs items={[
+          { label: "Pick & Ban", href: "/modules/pickban" },
+          { label: "Demo", href: "/modules/pickban/demo", isActive: true },
+        ]} />
       </div>
       <ChampSelectDisplay
         data={mockData}

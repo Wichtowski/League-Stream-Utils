@@ -9,6 +9,7 @@ import { AuthGuard } from "@lib/components/auth/AuthGuard";
 import { Breadcrumbs, LoadingSpinner } from "@lib/components/common";
 import type { CameraTeam } from "@lib/types/camera";
 import { Accordion, AccordionItem } from "@lib/components/common/Accordion";
+import { PageWrapper } from "@lib/layout/PageWrapper";
 
 export default function AllCamerasPage() {
   const router = useRouter();
@@ -55,46 +56,38 @@ export default function AllCamerasPage() {
 
   if (teamsLoading) {
     return (
-      <AuthGuard loadingMessage="Loading cameras...">
+      <PageWrapper loadingMessage="Loading cameras...">
         <LoadingSpinner fullscreen text="Loading cameras..." />
-      </AuthGuard>
+      </PageWrapper>
     );
   }
 
      if (!teams.length) {
      return (
-       <AuthGuard loadingMessage="Loading cameras...">
-         <div className="min-h-screen text-white">
-           <div className="container mx-auto px-6 py-8">
-             <Breadcrumbs items={[
-               { label: "Cameras", href: "/modules/cameras" },
-               { label: "All Cameras", isActive: true },
-             ]} />
-             
-             <div className="flex justify-between items-center mb-8">
-               <div>
-                 <h1 className="text-3xl font-bold">All Cameras</h1>
-                 <p className="text-gray-400">No teams configured</p>
-               </div>
-             </div>
-
-             <div className="text-center py-12">
-               <h2 className="text-2xl font-bold text-white mb-4">
-                 No Teams Configured
-               </h2>
-               <p className="text-gray-400 mb-6">
-                 Set up your camera configurations first.
-               </p>
-               <button
-                 onClick={() => router.push("/modules/cameras")}
-                 className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors"
-               >
-                 Configure Cameras
-               </button>
-             </div>
-           </div>
+       <PageWrapper
+         loadingMessage="Loading cameras..."
+         breadcrumbs={[
+           { label: "Cameras", href: "/modules/cameras" },
+           { label: "All Cameras", isActive: true },
+         ]}
+         title="All Cameras"
+         subtitle="No teams configured"
+       >
+         <div className="text-center py-12">
+           <h2 className="text-2xl font-bold text-white mb-4">
+             No Teams Configured
+           </h2>
+           <p className="text-gray-400 mb-6">
+             Set up your camera configurations first.
+           </p>
+           <button
+             onClick={() => router.push("/modules/cameras")}
+             className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors"
+           >
+             Configure Cameras
+           </button>
          </div>
-       </AuthGuard>
+       </PageWrapper>
      );
    }
 
@@ -220,47 +213,37 @@ export default function AllCamerasPage() {
   }));
 
      return (
-     <AuthGuard loadingMessage="Loading cameras...">
-       <div className="min-h-screen text-white">
-         <div className="container mx-auto px-6 py-8">
-           <Breadcrumbs items={[
-             { label: "Cameras", href: "/modules/cameras" },
-             { label: "All Cameras", isActive: true },
-           ]} />
-           
-           <div className="flex justify-between items-center mb-8">
-             <div>
-               <h1 className="text-3xl font-bold">All Cameras</h1>
-               <p className="text-gray-400">
-                 {validTeams.length} team{validTeams.length !== 1 ? "s" : ""}
-               </p>
-             </div>
-             <div className="flex gap-3">
-               <button
-                 onClick={() => router.push("/modules/cameras")}
-                 className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors"
-               >
-                 Setup
-               </button>
-             </div>
-           </div>
+     <PageWrapper
+       loadingMessage="Loading cameras..."
+       breadcrumbs={[
+         { label: "Cameras", href: "/modules/cameras" },
+         { label: "All Cameras", isActive: true },
+       ]}
+       title="All Cameras"
+       subtitle={`${validTeams.length} team${validTeams.length !== 1 ? "s" : ""}`}
+       actions={
+         <button
+           onClick={() => router.push("/modules/cameras")}
+           className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors"
+         >
+           Setup
+         </button>
+       }
+     >
+       {/* Team Accordions */}
+       <Accordion
+         items={accordionItems}
+         openId={openTeamId}
+         onToggle={handleAccordionToggle}
+       />
 
-           {/* Team Accordions */}
-           <Accordion
-             items={accordionItems}
-             openId={openTeamId}
-             onToggle={handleAccordionToggle}
-           />
-
-           {/* Footer Info */}
-           <div className="mt-6 text-center text-gray-400 text-sm">
-             <p>
-               Open a team to view its cameras. Use number keys (1-9) in single
-               view to switch between cameras
-             </p>
-           </div>
-         </div>
+       {/* Footer Info */}
+       <div className="mt-6 text-center text-gray-400 text-sm">
+         <p>
+           Open a team to view its cameras. Use number keys (1-9) in single
+           view to switch between cameras
+         </p>
        </div>
-     </AuthGuard>
+     </PageWrapper>
    );
 }

@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useTournaments } from "@lib/contexts/TournamentsContext";
 import { useNavigation } from "@lib/contexts/NavigationContext";
 import { useModal } from "@lib/components/modal";
-import { AuthGuard } from "@lib/components/auth/AuthGuard";
+
 import { LoadingSpinner } from "@lib/components/common";
 import { BackButton } from "@/lib/components/common/buttons";
 import { Tournament, Sponsorship, ImageStorage } from "@/lib/types/tournament";
@@ -13,7 +13,8 @@ import { OBSDisplayInfo } from "@lib/components/pages/tournaments/sponsors/OBSDi
 import { SponsorWindow } from "@lib/components/pages/tournaments/sponsors/SponsorWindow";
 import { SponsorForm } from "@lib/components/pages/tournaments/sponsors/SponsorForm";
 import { SponsorsList } from "@lib/components/pages/tournaments/sponsors/SponsorsList";
-import { Breadcrumbs } from "@lib/components/common";
+import { PageWrapper } from "@lib/layout/PageWrapper";
+
 
 interface TournamentSponsorsPageProps {
   params: Promise<{
@@ -342,146 +343,134 @@ export default function TournamentSponsorsPage({
 
   if (loading || tournamentsLoading) {
     return (
-      <AuthGuard loadingMessage="Loading tournament...">
+      <PageWrapper loadingMessage="Loading tournament...">
         <LoadingSpinner fullscreen text="Loading tournament..." />
-      </AuthGuard>
+      </PageWrapper>
     );
   }
 
   if (!tournament) {
     return (
-      <AuthGuard loadingMessage="Loading tournament...">
-        <div className="min-h-screen text-white">
-          <div className="container mx-auto px-6 py-8">
-            <div className="mb-4 flex justify-between items-center">
-              <BackButton to={`/modules`}>Back to Modules</BackButton>
-              <BackButton to={`/modules/tournaments/${tournamentId}`}>
-                Back to Tournaments
-              </BackButton>
-            </div>
-            <div className="text-center">
-              <h1 className="text-2xl font-bold mb-4">Tournament Not Found</h1>
-              <p>
-                The tournament you&apos;re looking for doesn&apos;t exist or you
-                don&apos;t have access to it.
-              </p>
-            </div>
+      <PageWrapper
+        loadingMessage="Loading tournament..."
+        title="Tournament Not Found"
+        actions={
+          <div className="flex gap-4">
+            <BackButton to={`/modules`}>Back to Modules</BackButton>
+            <BackButton to={`/modules/tournaments/${tournamentId}`}>
+              Back to Tournaments
+            </BackButton>
           </div>
+        }
+      >
+        <div className="text-center">
+          <p>
+            The tournament you&apos;re looking for doesn&apos;t exist or you
+            don&apos;t have access to it.
+          </p>
         </div>
-      </AuthGuard>
+      </PageWrapper>
     );
   }
 
   return (
-    <AuthGuard loadingMessage="Loading sponsors...">
-      <div className="min-h-screen text-white">
-        <div className="container mx-auto px-6 py-8">
-          <div className="mb-4 flex justify-left items-center gap-4">
-            <Breadcrumbs
-              items={[
-                { label: "Tournaments", href: `/modules/tournaments` },
-                { label: tournament.name, href: `/modules/tournaments/${tournamentId}` },
-                { label: "Sponsors", href: `/modules/tournaments/${tournamentId}/sponsors`, isActive: true },
-              ]}
-            />
-          </div>
-
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-2">Add Tournament Sponsors</h1>
-            <p className="text-gray-300">
-              {tournament.name} ({tournament.abbreviation})
-            </p>
-          </div>
-
-          <div className="space-y-6">
-            <div className="flex gap-6">
-              <div className="flex-1 bg-gray-800 rounded-lg p-6 h-[360px] flex flex-col">
-                <div className="flex-1 flex flex-col justify-center items-center">
-                  <h2 className="text-2xl font-semibold text-center mb-3">
-                    Sponsor Cycling Preview
-                  </h2>
-                  {sponsors.length > 0 ? (
-                    <div className="text-center">
-                      <h4 className="text-sm font-medium mb-1">
-                        All Sponsors Preview (Cycling):
-                      </h4>
-                      <div className="mt-2 mb-3">
-                        <p className="text-xs text-gray-400">
-                          Currently showing:{" "}
-                          {sponsors[currentSponsorIndex]?.name} (
-                          {currentSponsorIndex + 1} of {sponsors.length})
-                        </p>
-                      </div>
-                      <div className="relative">
-                        <SponsorWindow
-                          currentSponsor={
-                            sponsors[currentSponsorIndex] || sponsors[0]
-                          }
-                          isVisible={isVisible}
-                          fixed={false}
-                        />
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="text-center text-gray-400">
-                      <p>No sponsors added yet</p>
-                      <p className="text-sm">
-                        Add sponsors to see the cycling preview
-                      </p>
-                    </div>
-                  )}
+    <PageWrapper
+      loadingMessage="Loading sponsors..."
+      breadcrumbs={[
+        { label: "Tournaments", href: `/modules/tournaments` },
+        { label: tournament.name, href: `/modules/tournaments/${tournamentId}` },
+        { label: "Sponsors", href: `/modules/tournaments/${tournamentId}/sponsors`, isActive: true },
+      ]}
+      title="Add Tournament Sponsors"
+      subtitle={`${tournament.name} (${tournament.abbreviation})`}
+    >
+      <div className="space-y-6">
+        <div className="flex gap-6">
+          <div className="flex-1 bg-gray-800 rounded-lg p-6 h-[360px] flex flex-col">
+            <div className="flex-1 flex flex-col justify-center items-center">
+              <h2 className="text-2xl font-semibold text-center mb-3">
+                Sponsor Cycling Preview
+              </h2>
+              {sponsors.length > 0 ? (
+                <div className="text-center">
+                  <h4 className="text-sm font-medium mb-1">
+                    All Sponsors Preview (Cycling):
+                  </h4>
+                  <div className="mt-2 mb-3">
+                    <p className="text-xs text-gray-400">
+                      Currently showing:{" "}
+                      {sponsors[currentSponsorIndex]?.name} (
+                      {currentSponsorIndex + 1} of {sponsors.length})
+                    </p>
+                  </div>
+                  <div className="relative">
+                    <SponsorWindow
+                      currentSponsor={
+                        sponsors[currentSponsorIndex] || sponsors[0]
+                      }
+                      isVisible={isVisible}
+                      fixed={false}
+                    />
+                  </div>
                 </div>
-              </div>
-
-              <div className="flex-1 space-y-6">
-                <SponsorsGuidebook expanded={false} />
-                <OBSDisplayInfo tournamentId={tournamentId} />
-              </div>
+              ) : (
+                <div className="text-center text-gray-400">
+                  <p>No sponsors added yet</p>
+                  <p className="text-sm">
+                    Add sponsors to see the cycling preview
+                  </p>
+                </div>
+              )}
             </div>
+          </div>
 
-            {/* Add Sponsor Button */}
-            {!showAddForm && !editingSponsor && (
-              <div className="bg-gray-800 rounded-lg p-6">
-                <div className="flex justify-between items-center">
-                  <h3 className="text-lg font-semibold">Add New Sponsor</h3>
-                  <button
-                    onClick={() => setShowAddForm(true)}
-                    className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg"
-                  >
-                    Add New Sponsor
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Add Sponsor Form */}
-            {(showAddForm || editingSponsor) && (
-              <SponsorForm
-                formData={formData}
-                setFormData={setFormData}
-                editingSponsor={editingSponsor}
-                onAddSponsor={handleAddSponsor}
-                onUpdateSponsor={handleUpdateSponsor}
-                onCancelEdit={handleCancelEdit}
-                onCloseForm={() => {
-                  setShowAddForm(false);
-                  setEditingSponsor(null);
-                  setFormData(createDefaultSponsorForm());
-                }}
-                handleLogoUpload={handleLogoUpload}
-                handleLogoUrlChange={handleLogoUrlChange}
-              />
-            )}
-
-            <SponsorsList
-              sponsors={sponsors}
-              loading={sponsorsLoading}
-              onEditSponsor={handleEditSponsor}
-              onDeleteSponsor={handleDeleteSponsor}
-            />
+          <div className="flex-1 space-y-6">
+            <SponsorsGuidebook expanded={false} />
+            <OBSDisplayInfo tournamentId={tournamentId} />
           </div>
         </div>
+
+        {/* Add Sponsor Button */}
+        {!showAddForm && !editingSponsor && (
+          <div className="bg-gray-800 rounded-lg p-6">
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-semibold">Add New Sponsor</h3>
+              <button
+                onClick={() => setShowAddForm(true)}
+                className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg"
+              >
+                Add New Sponsor
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Add Sponsor Form */}
+        {(showAddForm || editingSponsor) && (
+          <SponsorForm
+            formData={formData}
+            setFormData={setFormData}
+            editingSponsor={editingSponsor}
+            onAddSponsor={handleAddSponsor}
+            onUpdateSponsor={handleUpdateSponsor}
+            onCancelEdit={handleCancelEdit}
+            onCloseForm={() => {
+              setShowAddForm(false);
+              setEditingSponsor(null);
+              setFormData(createDefaultSponsorForm());
+            }}
+            handleLogoUpload={handleLogoUpload}
+            handleLogoUrlChange={handleLogoUrlChange}
+          />
+        )}
+
+        <SponsorsList
+          sponsors={sponsors}
+          loading={sponsorsLoading}
+          onEditSponsor={handleEditSponsor}
+          onDeleteSponsor={handleDeleteSponsor}
+        />
       </div>
-    </AuthGuard>
+    </PageWrapper>
   );
 }

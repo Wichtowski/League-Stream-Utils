@@ -8,7 +8,6 @@ import { useMockDataContext } from "@lib/contexts/MockDataContext";
 import { useLCU } from "@lib/contexts/LCUContext";
 import { getDynamicMockData } from "@lib/mocks/dynamic-champselect";
 import { ChampSelectDisplay } from "@lib/components/pages/leagueclient/champselect/ChampSelectDisplay";
-import { BackButton } from "@lib/components/common/buttons";
 
 const ChampSelectOverlayPage: React.FC = () => {
   const { useMockData } = useMockDataContext();
@@ -72,9 +71,6 @@ const ChampSelectOverlayPage: React.FC = () => {
 
     return (
       <>
-        <div className="mb-4">
-          <BackButton to="/modules">Back to Modules</BackButton>
-        </div>
         <ChampSelectDisplay data={data} isOverlay={true} />
       </>
     );
@@ -96,9 +92,6 @@ const ChampSelectOverlayPage: React.FC = () => {
 
   return (
     <>
-      <div className="mb-4">
-        <BackButton to="/modules">Back to Modules</BackButton>
-      </div>
       <ChampSelectDisplay data={data} isOverlay={true} />
     </>
   );

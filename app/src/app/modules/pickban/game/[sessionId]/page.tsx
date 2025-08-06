@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { Champion, GameState } from "@lib/types";
 import { useGameStateHoverAnimation } from "@lib/hooks/useChampSelectData";
+import { PageWrapper } from "@lib/layout/PageWrapper";
 
 export default function GamePage({
   params,
@@ -243,14 +244,17 @@ export default function GamePage({
 
   if (!gameState) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 flex items-center justify-center">
+      <PageWrapper
+        requireAuth={false}
+        className="bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900"
+        contentClassName="flex items-center justify-center"
+      >
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500 mx-auto mb-4"></div>
           <div className="text-white text-2xl font-semibold">
-            {connected ? "Loading game..." : "Connecting..."}
+            Redirecting to configuration...
           </div>
         </div>
-      </div>
+      </PageWrapper>
     );
   }
 
@@ -269,113 +273,105 @@ export default function GamePage({
 
   if (gameState.phase === "lobby") {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 text-white">
-        <div className="container mx-auto px-6 py-12">
-          <div className="text-center mb-12">
-            <h1 className="text-6xl font-bold mb-4 bg-gradient-to-r from-blue-400 via-purple-500 to-red-400 bg-clip-text text-transparent">
-              DRAFT LOBBY
-            </h1>
-            <p className="text-xl text-gray-300">
-              Teams must ready up to begin the draft phase
-            </p>
-          </div>
+      <PageWrapper
+        requireAuth={false}
+        className="bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900"
+        title="DRAFT LOBBY"
+        subtitle="Teams must ready up to begin the draft phase"
+        contentClassName="container mx-auto px-6 py-12"
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          {/* Blue Team */}
+          <div className="bg-gradient-to-br from-blue-900/40 to-blue-600/20 backdrop-blur-lg rounded-3xl p-8 border border-blue-500/30 shadow-2xl">
+            <div className="text-center">
+              <h2 className="text-3xl font-bold text-blue-400 mb-6">
+                BLUE TEAM
+              </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            {/* Blue Team */}
-            <div className="bg-gradient-to-br from-blue-900/40 to-blue-600/20 backdrop-blur-lg rounded-3xl p-8 border border-blue-500/30 shadow-2xl">
-              <div className="text-center">
-                <h2 className="text-3xl font-bold text-blue-400 mb-6">
-                  BLUE TEAM
-                </h2>
-
-                {teamSide === "blue" && (
-                  <button
-                    onClick={handleReadyToggle}
-                    className={`px-8 py-4 rounded-xl text-xl font-bold transition-all duration-300 ${
-                      gameState.teams.blue.isReady
-                        ? "bg-green-600 hover:bg-green-700 text-white"
-                        : "bg-gray-700 hover:bg-gray-600 text-gray-300"
-                    }`}
-                  >
-                    {gameState.teams.blue.isReady ? "✓ READY" : "READY UP"}
-                  </button>
-                )}
-
-                <div
-                  className={`mt-4 text-lg ${
+              {teamSide === "blue" && (
+                <button
+                  onClick={handleReadyToggle}
+                  className={`px-8 py-4 rounded-xl text-xl font-bold transition-all duration-300 ${
                     gameState.teams.blue.isReady
-                      ? "text-green-400"
-                      : "text-gray-400"
+                      ? "bg-green-600 hover:bg-green-700 text-white"
+                      : "bg-gray-700 hover:bg-gray-600 text-gray-300"
                   }`}
                 >
-                  {gameState.teams.blue.isReady ? "Ready!" : "Not Ready"}
-                </div>
-              </div>
-            </div>
+                  {gameState.teams.blue.isReady ? "✓ READY" : "READY UP"}
+                </button>
+              )}
 
-            {/* Red Team */}
-            <div className="bg-gradient-to-br from-red-900/40 to-red-600/20 backdrop-blur-lg rounded-3xl p-8 border border-red-500/30 shadow-2xl">
-              <div className="text-center">
-                <h2 className="text-3xl font-bold text-red-400 mb-6">
-                  RED TEAM
-                </h2>
-
-                {teamSide === "red" && (
-                  <button
-                    onClick={handleReadyToggle}
-                    className={`px-8 py-4 rounded-xl text-xl font-bold transition-all duration-300 ${
-                      gameState.teams.red.isReady
-                        ? "bg-green-600 hover:bg-green-700 text-white"
-                        : "bg-gray-700 hover:bg-gray-600 text-gray-300"
-                    }`}
-                  >
-                    {gameState.teams.red.isReady ? "✓ READY" : "READY UP"}
-                  </button>
-                )}
-
-                <div
-                  className={`mt-4 text-lg ${
-                    gameState.teams.red.isReady
-                      ? "text-green-400"
-                      : "text-gray-400"
-                  }`}
-                >
-                  {gameState.teams.red.isReady ? "Ready!" : "Not Ready"}
-                </div>
+              <div
+                className={`mt-4 text-lg ${
+                  gameState.teams.blue.isReady
+                    ? "text-green-400"
+                    : "text-gray-400"
+                }`}
+              >
+                {gameState.teams.blue.isReady ? "Ready!" : "Not Ready"}
               </div>
             </div>
           </div>
 
-          {/* OBS Link */}
-          <div className="text-center mt-12">
-            <div className="bg-black/50 backdrop-blur-lg rounded-2xl p-6 border border-white/20 inline-block">
-              <h3 className="text-lg font-semibold mb-2">OBS Overlay URL:</h3>
-              <code className="text-blue-400 break-all">
-                {window.location.origin}/obs/{resolvedParams.sessionId}
-              </code>
+          {/* Red Team */}
+          <div className="bg-gradient-to-br from-red-900/40 to-red-600/20 backdrop-blur-lg rounded-3xl p-8 border border-red-500/30 shadow-2xl">
+            <div className="text-center">
+              <h2 className="text-3xl font-bold text-red-400 mb-6">
+                RED TEAM
+              </h2>
+
+              {teamSide === "red" && (
+                <button
+                  onClick={handleReadyToggle}
+                  className={`px-8 py-4 rounded-xl text-xl font-bold transition-all duration-300 ${
+                    gameState.teams.red.isReady
+                      ? "bg-green-600 hover:bg-green-700 text-white"
+                      : "bg-gray-700 hover:bg-gray-600 text-gray-300"
+                  }`}
+                >
+                  {gameState.teams.red.isReady ? "✓ READY" : "READY UP"}
+                </button>
+              )}
+
+              <div
+                className={`mt-4 text-lg ${
+                  gameState.teams.red.isReady
+                    ? "text-green-400"
+                    : "text-gray-400"
+                }`}
+              >
+                {gameState.teams.red.isReady ? "Ready!" : "Not Ready"}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+
+        {/* OBS Link */}
+        <div className="text-center mt-12">
+          <div className="bg-black/50 backdrop-blur-lg rounded-2xl p-6 border border-white/20 inline-block">
+            <h3 className="text-lg font-semibold mb-2">OBS Overlay URL:</h3>
+            <code className="text-blue-400 break-all">
+              {window.location.origin}/obs/{resolvedParams.sessionId}
+            </code>
+          </div>
+        </div>
+      </PageWrapper>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-900 to-gray-900 text-white">
-      {/* Enhanced Header */}
-      <div className="bg-black/40 backdrop-blur-lg border-b border-white/10 p-4">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="flex items-center space-x-6">
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
-              DRAFT PHASE
-            </h1>
-            <div
-              className={`px-3 py-1 rounded-full text-sm font-medium ${
-                connected ? "bg-green-600" : "bg-red-600"
-              }`}
-            >
-              {connected ? "● LIVE" : "● DISCONNECTED"}
-            </div>
+    <PageWrapper
+      requireAuth={false}
+      className="bg-gradient-to-br from-gray-900 via-slate-900 to-gray-900"
+      title="DRAFT PHASE"
+      actions={
+        <div className="flex items-center space-x-6">
+          <div
+            className={`px-3 py-1 rounded-full text-sm font-medium ${
+              connected ? "bg-green-600" : "bg-red-600"
+            }`}
+          >
+            {connected ? "● LIVE" : "● DISCONNECTED"}
           </div>
 
           {/* Timer */}
@@ -425,8 +421,8 @@ export default function GamePage({
             )}
           </div>
         </div>
-      </div>
-
+      }
+    >
       {error && (
         <div className="bg-red-600 text-white p-4 text-center font-semibold">
           {error}
@@ -745,6 +741,6 @@ export default function GamePage({
           </div>
         </div>
       </div>
-    </div>
+    </PageWrapper>
   );
 }

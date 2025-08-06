@@ -8,8 +8,7 @@ import { useAuth } from "@lib/contexts/AuthContext";
 import { useAuthenticatedFetch } from "@lib/hooks/useAuthenticatedFetch";
 import { API_BASE_URL } from "@lib/utils/constants";
 import { PickBanContent } from "@lib/components/pages/pickban/PickBanContent";
-import { AuthGuard } from "@lib/components/auth/AuthGuard";
-import { Breadcrumbs } from "@/lib/components/common";
+import { PageWrapper } from "@lib/layout/PageWrapper";
 
 export default function StaticPickBanPage() {
   const { setActiveModule } = useNavigation();
@@ -133,30 +132,27 @@ export default function StaticPickBanPage() {
   };
 
   return (
-    <AuthGuard loadingMessage="Loading Static Pick & Ban...">
+    <PageWrapper
+      loadingMessage="Loading Static Pick & Ban..."
+      breadcrumbs={[
+        { label: "Pick & Ban", href: "/modules/pickban" },
+        { label: "Static", isActive: true },
+      ]}
+    >
       {authUser && (
-        <div className="min-h-screen text-white">
-          <div className="container mx-auto px-6 py-8">
-          <Breadcrumbs items={[
-            { label: "Pick & Ban", href: "/modules/pickban" },
-            { label: "Static", isActive: true },
-          ]} />
-
-          <PickBanContent
-            user={authUser}
-            sessions={sessions.filter(
-              (session) => session.type === "web" || !session.type,
-            )} // Show static or legacy sessions
-            sessionsLoading={sessionsLoading}
-            onCreateSession={createSession}
-            onDeleteSession={deleteSession}
-            loading={loading}
-            error={error}
-              newSessionUrls={newSessionUrls}
-            />
-          </div>
-        </div>
+        <PickBanContent
+          user={authUser}
+          sessions={sessions.filter(
+            (session) => session.type === "web" || !session.type,
+          )} // Show static or legacy sessions
+          sessionsLoading={sessionsLoading}
+          onCreateSession={createSession}
+          onDeleteSession={deleteSession}
+          loading={loading}
+          error={error}
+          newSessionUrls={newSessionUrls}
+        />
       )}
-    </AuthGuard>
+    </PageWrapper>
   );
 }
