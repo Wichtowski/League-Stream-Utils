@@ -43,7 +43,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           error: "Champion select request failed",
           message: champSelectResult.error,
         },
-        { status: 500 },
+        { status: 200 },
       );
     }
 
