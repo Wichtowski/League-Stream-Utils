@@ -11,6 +11,8 @@ interface TournamentEditorProps {
   onTournamentUpdate: () => void;
 }
 
+const buttonStyle = "px-4 py-2 rounded text-sm cursor-pointer";
+
 export const TournamentEditor = ({
   tournament,
   onStatusUpdate,
@@ -81,21 +83,30 @@ export const TournamentEditor = ({
 
       {/* Quick Actions */}
       <div className="bg-gray-800 rounded-lg p-6">
-        <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
+        <h3 className="text-lg font-semibold mb-4">Tournament Actions</h3>
         <div className="flex flex-wrap gap-3">
           <button
             onClick={() =>
               router.push(`/modules/tournaments/${tournament.id}/sponsors`)
             }
-            className="bg-indigo-600 hover:bg-indigo-700 px-4 py-2 rounded text-sm"
+            className={`${buttonStyle} bg-indigo-600 hover:bg-indigo-700`}
           >
             Manage Sponsors
+          </button>
+
+          <button
+            onClick={() =>
+              router.push(`/modules/tournaments/${tournament.id}/standalone`)
+            }
+            className={`${buttonStyle} bg-orange-600 hover:bg-orange-700`}
+          >
+            Manage Standalone Teams
           </button>
 
           {tournament.status === "draft" && (
             <button
               onClick={() => onStatusUpdate(tournament.id, "registration")}
-              className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-sm"
+              className={`${buttonStyle} bg-blue-600 hover:bg-blue-700`}
             >
               Open Registration
             </button>
@@ -105,25 +116,19 @@ export const TournamentEditor = ({
             <>
               <button
                 onClick={() => onStatusUpdate(tournament.id, "ongoing")}
-                className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded text-sm"
+                className={`${buttonStyle} bg-green-600 hover:bg-green-700`}
               >
                 Start Tournament
               </button>
               <button
                 onClick={() => setShowMyTeamRegistration(true)}
-                className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded text-sm"
+                className={`${buttonStyle} bg-purple-600 hover:bg-purple-700`}
               >
                 Add Teams
               </button>
               <button
-                onClick={() => setShowStandaloneTeamManager(true)}
-                className="bg-orange-600 hover:bg-orange-700 px-4 py-2 rounded text-sm"
-              >
-                Add Standalone Teams
-              </button>
-              <button
                 onClick={() => onStatusUpdate(tournament.id, "draft")}
-                className="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded text-sm"
+                className={`${buttonStyle} bg-gray-600 hover:bg-gray-700`}
               >
                 Close Registration
               </button>
@@ -133,7 +138,7 @@ export const TournamentEditor = ({
           {tournament.status === "ongoing" && (
             <button
               onClick={() => onStatusUpdate(tournament.id, "completed")}
-              className="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded text-sm"
+              className={`${buttonStyle} bg-gray-600 hover:bg-gray-700`}
             >
               Complete Tournament
             </button>
@@ -141,26 +146,6 @@ export const TournamentEditor = ({
         </div>
       </div>
 
-      {/* Team Management */}
-      {tournament.status === "registration" && (
-        <div className="bg-gray-800 rounded-lg p-6">
-          <h3 className="text-lg font-semibold mb-4">Team Management</h3>
-          <div className="flex flex-wrap gap-3">
-            <button
-              onClick={() => setShowMyTeamRegistration(true)}
-              className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded text-sm"
-            >
-              Add Teams
-            </button>
-            <button
-              onClick={() => setShowStandaloneTeamManager(true)}
-              className="bg-orange-600 hover:bg-orange-700 px-4 py-2 rounded text-sm"
-            >
-              Add Standalone Teams
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Modals */}
       {showMyTeamRegistration && (

@@ -276,7 +276,6 @@ class GameUIBlueprintDownloader extends BaseCacheService {
           if (typeof window !== "undefined" && window.electronAPI?.isElectron) {
             // Download from local development server
             const assetUrl = `http://localhost:2137/assets/${category}/${filename}`;
-            console.log(`Attempting to download: ${assetUrl} -> ${assetKey}`);
 
             try {
               const downloadResult = await window.electronAPI.downloadAsset(
