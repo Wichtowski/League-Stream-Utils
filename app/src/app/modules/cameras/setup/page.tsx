@@ -8,7 +8,7 @@ import { useCameras } from "@lib/contexts/CamerasContext";
 import { useTeams } from "@lib/contexts/TeamsContext";
 import Image from "next/image";
 import type { CameraPlayer, CameraTeam } from "@lib/types";
-import { BackButton } from "@/lib/components/common/buttons";
+import { Breadcrumbs } from "@/lib/components/common";
 
 export default function CameraSetupListPage() {
   const router = useRouter();
@@ -79,8 +79,11 @@ export default function CameraSetupListPage() {
     <div className="min-h-screen p-6">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
+        <Breadcrumbs items={[
+          { label: "Camera Hub", href: "/modules/cameras" },
+          { label: "Setup", href: `/modules/cameras/setup`, isActive: true },
+        ]} />
         <div className="flex justify-between items-center mb-8">
-          <BackButton to="/modules/cameras">Back to Camera Hub</BackButton>
           <div>
             <h1 className="text-4xl font-bold text-white mb-2">
               Camera Stream Setup
@@ -89,7 +92,6 @@ export default function CameraSetupListPage() {
               Select a team to configure stream URLs
             </p>
           </div>
-          <BackButton to="/modules">Back to Modules</BackButton>
         </div>
 
         {/* Teams List */}

@@ -10,7 +10,7 @@ import { useElectron } from "@lib/contexts/ElectronContext";
 import { useAuthenticatedFetch } from "@lib/hooks/useAuthenticatedFetch";
 import { useTeams } from "@lib/contexts/TeamsContext";
 import type { CameraPlayer, CameraTeam } from "@lib/types";
-import { BackButton } from "@/lib/components/common/buttons";
+import { Breadcrumbs } from "@/lib/components/common";
 
 export default function TeamCameraSetupPage() {
   const router = useRouter();
@@ -228,9 +228,11 @@ export default function TeamCameraSetupPage() {
             </div>
           </div>
           <div className="flex gap-3">
-            <BackButton to="/modules/cameras/setup">
-              Back to Camera Hub
-            </BackButton>
+            <Breadcrumbs items={[
+              { label: "Camera Hub", href: "/modules/cameras" },
+              { label: "Setup", href: "/modules/cameras/setup" },
+              { label: team.teamName, href: `/modules/cameras/setup/${teamId}`, isActive: true },
+            ]}/>
             <button
               onClick={saveSettings}
               disabled={saving}

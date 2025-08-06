@@ -2,12 +2,11 @@
 
 import { useEffect, useState, Suspense } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useAuth } from "@lib/contexts/AuthContext";
 import { useTournaments } from "@lib/contexts/TournamentsContext";
 import { useNavigation } from "@lib/contexts/NavigationContext";
 import { useModal } from "@lib/components/modal";
 import { AuthGuard } from "@lib/components/auth/AuthGuard";
-import { LoadingSpinner } from "@lib/components/common";
+import { Breadcrumbs, LoadingSpinner } from "@lib/components/common";
 import { BackButton } from "@/lib/components/common/buttons";
 import type { Tournament, TournamentStatus } from "@lib/types";
 import dynamic from "next/dynamic";
@@ -27,7 +26,6 @@ const TournamentEditor = dynamic(
 export default function TournamentDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const { user } = useAuth();
   const {
     tournaments,
     loading: tournamentsLoading,
@@ -106,22 +104,19 @@ export default function TournamentDetailPage() {
 
   return (
     <AuthGuard loadingMessage="Loading tournament...">
-      <div className="mb-4">
-        <BackButton to="/modules/tournaments">Back to Tournaments</BackButton>
-      </div>
       <div className="min-h-screen text-white">
         <div className="container mx-auto px-6 py-8">
+          <div className="mb-4 flex justify-between items-center">
+            <Breadcrumbs 
+              items={[
+                { label: "Tournaments", href: `/modules/tournaments` },
+                { label: tournament.name, href: `/modules/tournaments/${tournamentId}`, isActive: true },
+              ]} />
+          </div>
           <div className="flex justify-between items-center mb-8">
             <div>
               <h1 className="text-3xl font-bold">{tournament.name}</h1>
               <p className="text-gray-400">{tournament.abbreviation}</p>
-            </div>
-            <div className="flex items-center space-x-4">
-              {user?.isAdmin && (
-                <span className="bg-purple-600 text-white px-2 py-1 rounded text-sm">
-                  Admin
-                </span>
-              )}
             </div>
           </div>
           <Suspense

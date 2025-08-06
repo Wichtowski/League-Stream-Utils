@@ -6,18 +6,16 @@ import { useAuth } from "@lib/contexts/AuthContext";
 import { useCameras } from "@lib/contexts/CamerasContext";
 import { useTeams } from "@lib/contexts/TeamsContext";
 import { CameraPlayer, CameraTeam } from "@lib/types";
-import { LoadingSpinner } from "@lib/components/common";
-import { BackButton } from "@/lib/components/common/buttons";
+import { Breadcrumbs, LoadingSpinner } from "@lib/components/common";
 import { useRouter } from "next/navigation";
 
 export default function CamerasPage() {
   const { setActiveModule } = useNavigation();
-  const { user, isLoading: authLoading } = useAuth();
+  const { isLoading: authLoading } = useAuth();
   const { teams: cameraTeamsRaw, loading: camerasLoading } = useCameras();
   const { teams: userTeams } = useTeams();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [showAdminView, setShowAdminView] = useState(false);
 
   // Ensure cameraTeams is typed as CameraTeam[]
   const cameraTeams = cameraTeamsRaw as unknown as CameraTeam[];
@@ -76,36 +74,18 @@ export default function CamerasPage() {
   );
 
   return (
-    <div className="min-h-screen p-6">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="flex justify-between items-center mb-4">
-            <div>
-              <BackButton to="/modules">Back to Modules</BackButton>
-            </div>
-            <div>
-              <h1 className="text-4xl font-bold text-white mb-2">
-                Camera Control
-              </h1>
-              <p className="text-gray-400">
-                {totalPlayers} cameras across {mergedTeams.length} teams
-              </p>
-            </div>
-            <div className="flex items-center space-x-2">
-              {user?.isAdmin && (
-                <button
-                  onClick={() => setShowAdminView(!showAdminView)}
-                  className={`cursor-pointer px-3 py-1 rounded text-sm transition-colors ${
-                    showAdminView
-                      ? "bg-purple-600 hover:bg-purple-700 text-white"
-                      : "bg-gray-600 hover:bg-gray-700 text-white"
-                  }`}
-                >
-                  {showAdminView ? "👤 User View" : "🔧 Admin View"}
-                </button>
-              )}
-            </div>
+    <div className="min-h-screen text-white">
+      <div className="container mx-auto px-6 py-8">
+        <Breadcrumbs items={[
+          { label: "Camera Hub", href: "/modules/cameras", isActive: true },
+        ]} />
+        
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-3xl font-bold">Camera Control</h1>
+            <p className="text-gray-400">
+              {totalPlayers} cameras across {mergedTeams.length} teams
+            </p>
           </div>
         </div>
 

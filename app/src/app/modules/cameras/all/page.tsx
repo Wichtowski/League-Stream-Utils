@@ -6,7 +6,7 @@ import Image from "next/image";
 import { useNavigation } from "@lib/contexts/NavigationContext";
 import { useCameras } from "@lib/contexts/CamerasContext";
 import { AuthGuard } from "@lib/components/auth/AuthGuard";
-import { LoadingSpinner } from "@lib/components/common";
+import { Breadcrumbs, LoadingSpinner } from "@lib/components/common";
 import type { CameraTeam } from "@lib/types/camera";
 import { Accordion, AccordionItem } from "@lib/components/common/Accordion";
 
@@ -61,32 +61,51 @@ export default function AllCamerasPage() {
     );
   }
 
-  if (!teams.length) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-8">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-white mb-4">
-            No Teams Configured
-          </h2>
-          <p className="text-gray-400 mb-6">
-            Set up your camera configurations first.
-          </p>
-          <button
-            onClick={() => router.push("/modules/cameras")}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors"
-          >
-            Configure Cameras
-          </button>
-        </div>
-      </div>
-    );
-  }
+     if (!teams.length) {
+     return (
+       <AuthGuard loadingMessage="Loading cameras...">
+         <div className="min-h-screen text-white">
+           <div className="container mx-auto px-6 py-8">
+             <Breadcrumbs items={[
+               { label: "Cameras", href: "/modules/cameras" },
+               { label: "All Cameras", isActive: true },
+             ]} />
+             
+             <div className="flex justify-between items-center mb-8">
+               <div>
+                 <h1 className="text-3xl font-bold">All Cameras</h1>
+                 <p className="text-gray-400">No teams configured</p>
+               </div>
+             </div>
 
-  const accordionItems: AccordionItem[] = teams.map((team) => ({
+             <div className="text-center py-12">
+               <h2 className="text-2xl font-bold text-white mb-4">
+                 No Teams Configured
+               </h2>
+               <p className="text-gray-400 mb-6">
+                 Set up your camera configurations first.
+               </p>
+               <button
+                 onClick={() => router.push("/modules/cameras")}
+                 className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors"
+               >
+                 Configure Cameras
+               </button>
+             </div>
+           </div>
+         </div>
+       </AuthGuard>
+     );
+   }
+
+    // Filter out teams that don't have proper data
+  const validTeams = teams.filter(team => team && team.id && team.name);
+
+  const accordionItems: AccordionItem[] = validTeams.map((team) => ({
     id: team.id,
     header: (
       <div className="flex items-center gap-4">
-        {team.logo.type === "url" && team.logo.url ? (
+        {team.logo && team.logo.type === "url" && team.logo.url ? (
           <Image
             src={team.logo.url}
             alt={team.name}
@@ -94,7 +113,7 @@ export default function AllCamerasPage() {
             height={40}
             className="rounded-full object-cover"
           />
-        ) : team.logo.type === "upload" && team.logo.data ? (
+        ) : team.logo && team.logo.type === "upload" && team.logo.data ? (
           <Image
             src={team.logo.data}
             alt={team.name}
@@ -102,10 +121,16 @@ export default function AllCamerasPage() {
             height={40}
             className="rounded-full object-cover"
           />
-        ) : null}
-        <span className="text-xl font-bold text-white">{team.name}</span>
-      </div>
-    ),
+                 ) : (
+           <div className="w-10 h-10 bg-gray-600 rounded-full flex items-center justify-center">
+             <span className="text-white text-sm font-bold">
+               {team.name.charAt(0).toUpperCase()}
+             </span>
+           </div>
+         )}
+         <span className="text-xl font-bold text-white">{team.name}</span>
+       </div>
+     ),
     renderContent: () =>
       loadingTeams.has(team.id) ? (
         <div className="flex justify-center py-8">
@@ -194,46 +219,48 @@ export default function AllCamerasPage() {
       ),
   }));
 
-  return (
-    <AuthGuard loadingMessage="Loading cameras...">
-      <div className="min-h-screen p-4">
-        {/* Header */}
-        <div className="mb-6">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-3xl font-bold text-white mb-2">
-                All Cameras
-              </h1>
-              <p className="text-gray-400">
-                {teams.length} team{teams.length !== 1 ? "s" : ""}
-              </p>
-            </div>
-            <div className="flex gap-3">
-              <button
-                onClick={() => router.push("/modules/cameras")}
-                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors"
-              >
-                Setup
-              </button>
-            </div>
-          </div>
-        </div>
+     return (
+     <AuthGuard loadingMessage="Loading cameras...">
+       <div className="min-h-screen text-white">
+         <div className="container mx-auto px-6 py-8">
+           <Breadcrumbs items={[
+             { label: "Cameras", href: "/modules/cameras" },
+             { label: "All Cameras", isActive: true },
+           ]} />
+           
+           <div className="flex justify-between items-center mb-8">
+             <div>
+               <h1 className="text-3xl font-bold">All Cameras</h1>
+               <p className="text-gray-400">
+                 {validTeams.length} team{validTeams.length !== 1 ? "s" : ""}
+               </p>
+             </div>
+             <div className="flex gap-3">
+               <button
+                 onClick={() => router.push("/modules/cameras")}
+                 className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors"
+               >
+                 Setup
+               </button>
+             </div>
+           </div>
 
-        {/* Team Accordions */}
-        <Accordion
-          items={accordionItems}
-          openId={openTeamId}
-          onToggle={handleAccordionToggle}
-        />
+           {/* Team Accordions */}
+           <Accordion
+             items={accordionItems}
+             openId={openTeamId}
+             onToggle={handleAccordionToggle}
+           />
 
-        {/* Footer Info */}
-        <div className="mt-6 text-center text-gray-400 text-sm">
-          <p>
-            Open a team to view its cameras. Use number keys (1-9) in single
-            view to switch between cameras
-          </p>
-        </div>
-      </div>
-    </AuthGuard>
-  );
+           {/* Footer Info */}
+           <div className="mt-6 text-center text-gray-400 text-sm">
+             <p>
+               Open a team to view its cameras. Use number keys (1-9) in single
+               view to switch between cameras
+             </p>
+           </div>
+         </div>
+       </div>
+     </AuthGuard>
+   );
 }

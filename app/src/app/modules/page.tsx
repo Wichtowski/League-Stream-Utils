@@ -91,7 +91,6 @@ export default function ModulesPage() {
   }
 
   const handleModuleClick = (module: ModuleCard) => {
-    console.log("Module clicked:", module.name, "path:", module.path);
     try {
       if (module.status === "coming-soon") {
         return;

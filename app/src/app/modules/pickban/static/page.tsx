@@ -7,8 +7,9 @@ import { useModal } from "@lib/contexts/ModalContext";
 import { useAuth } from "@lib/contexts/AuthContext";
 import { useAuthenticatedFetch } from "@lib/hooks/useAuthenticatedFetch";
 import { API_BASE_URL } from "@lib/utils/constants";
-import { PickBanHub } from "@lib/components/pages/home";
+import { PickBanContent } from "@lib/components/pages/pickban/PickBanContent";
 import { AuthGuard } from "@lib/components/auth/AuthGuard";
+import { Breadcrumbs } from "@/lib/components/common";
 
 export default function StaticPickBanPage() {
   const { setActiveModule } = useNavigation();
@@ -133,33 +134,29 @@ export default function StaticPickBanPage() {
 
   return (
     <AuthGuard loadingMessage="Loading Static Pick & Ban...">
-      <div className="min-h-screen  text-white">
-        <div className="container mx-auto px-4 py-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-2">Pick & Ban</h1>
-            <p className="text-gray-400">
-              Create and manage pick & ban sessions without League Client
-              integration. Perfect for tournaments, practice, or when League
-              Client is not available.
-            </p>
-          </div>
+      {authUser && (
+        <div className="min-h-screen text-white">
+          <div className="container mx-auto px-6 py-8">
+          <Breadcrumbs items={[
+            { label: "Pick & Ban", href: "/modules/pickban" },
+            { label: "Static", isActive: true },
+          ]} />
 
-          {authUser && (
-            <PickBanHub
-              user={authUser}
-              sessions={sessions.filter(
-                (session) => session.type === "web" || !session.type,
-              )} // Show static or legacy sessions
-              sessionsLoading={sessionsLoading}
-              onCreateSession={createSession}
-              onDeleteSession={deleteSession}
-              loading={loading}
-              error={error}
+          <PickBanContent
+            user={authUser}
+            sessions={sessions.filter(
+              (session) => session.type === "web" || !session.type,
+            )} // Show static or legacy sessions
+            sessionsLoading={sessionsLoading}
+            onCreateSession={createSession}
+            onDeleteSession={deleteSession}
+            loading={loading}
+            error={error}
               newSessionUrls={newSessionUrls}
             />
-          )}
+          </div>
         </div>
-      </div>
+      )}
     </AuthGuard>
   );
 }

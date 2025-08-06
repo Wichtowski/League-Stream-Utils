@@ -5,8 +5,7 @@ import { useRouter } from "next/navigation";
 import type { Team, CreateTeamRequest } from "@lib/types";
 import { useNavigation, useUser, useTeams, useModal } from "@lib/contexts";
 import { AuthGuard } from "@lib/components/auth/AuthGuard";
-import { BackButton } from "@/lib/components/common/buttons";
-import { LoadingSpinner } from "@lib/components/common";
+import { Breadcrumbs, LoadingSpinner } from "@lib/components/common";
 import { TeamCreationForm, TeamCard } from "@lib/components/pages/teams";
 
 export default function TeamsPage() {
@@ -176,15 +175,19 @@ export default function TeamsPage() {
       ) : (
         <div className="min-h-screen text-white">
           <div className="container mx-auto px-6 py-8">
-            <div className="flex justify-between items-center mb-8 content-center">
-              <BackButton to="/modules">Back to Modules</BackButton>
-              <h1 className="text-3xl font-bold">My Teams</h1>
+            <div className="mb-4 flex justify-between items-center">
+              <Breadcrumbs items={[
+                { label: "Teams", href: "/modules/teams", isActive: true },
+              ]} />
               <button
                 onClick={() => setShowCreateForm(true)}
                 className="cursor-pointer bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-lg"
               >
                 Create Team
               </button>
+            </div>
+            <div className="flex justify-center">
+              <h1 className="text-3xl font-bold">My Teams</h1>
             </div>
 
             {showCreateForm && (

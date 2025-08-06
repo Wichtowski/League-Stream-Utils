@@ -13,6 +13,7 @@ import { OBSDisplayInfo } from "@lib/components/pages/tournaments/sponsors/OBSDi
 import { SponsorWindow } from "@lib/components/pages/tournaments/sponsors/SponsorWindow";
 import { SponsorForm } from "@lib/components/pages/tournaments/sponsors/SponsorForm";
 import { SponsorsList } from "@lib/components/pages/tournaments/sponsors/SponsorsList";
+import { Breadcrumbs } from "@lib/components/common";
 
 interface TournamentSponsorsPageProps {
   params: Promise<{
@@ -352,7 +353,8 @@ export default function TournamentSponsorsPage({
       <AuthGuard loadingMessage="Loading tournament...">
         <div className="min-h-screen text-white">
           <div className="container mx-auto px-6 py-8">
-            <div className="mb-4">
+            <div className="mb-4 flex justify-between items-center">
+              <BackButton to={`/modules`}>Back to Modules</BackButton>
               <BackButton to={`/modules/tournaments/${tournamentId}`}>
                 Back to Tournaments
               </BackButton>
@@ -374,10 +376,14 @@ export default function TournamentSponsorsPage({
     <AuthGuard loadingMessage="Loading sponsors...">
       <div className="min-h-screen text-white">
         <div className="container mx-auto px-6 py-8">
-          <div className="mb-4">
-            <BackButton to={`/modules/tournaments/${tournamentId}`}>
-              Back to Tournaments
-            </BackButton>
+          <div className="mb-4 flex justify-left items-center gap-4">
+            <Breadcrumbs
+              items={[
+                { label: "Tournaments", href: `/modules/tournaments` },
+                { label: tournament.name, href: `/modules/tournaments/${tournamentId}` },
+                { label: "Sponsors", href: `/modules/tournaments/${tournamentId}/sponsors`, isActive: true },
+              ]}
+            />
           </div>
 
           <div className="mb-8">
