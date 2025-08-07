@@ -1,5 +1,5 @@
 {
-  "name": "League Stream Utils",
+  "name": "LeagueStreamUtils",
   "version": "1.0.0",
   "description": "League of Legends Stream Management",
   "type": "module",
@@ -21,8 +21,8 @@
     "electron:wsl": "export $DISPLAY=:0 && cross-env NODE_ENV=development electron .",
     "electron-dev": "concurrently \"bun run dev -- --port 2137\" \"wait-on http://localhost:2137 && electron .\"",
     "electron-windows": "cross-env NODE_ENV=development electron .",
-    "electron-build": "bun run build && next export && electron-builder",
-    "dist": "bun run build && next export && electron-builder --publish=never"
+    "electron-build": "bun run build && electron-builder",
+    "dist": "bun run build && electron-builder --publish=never"
   },
   "dependencies": {
     "@auth/mongodb-adapter": "^3.9.1",
@@ -30,10 +30,13 @@
     "@types/mongoose": "^5.11.97",
     "axios": "^1.10.0",
     "bcryptjs": "^2.4.3",
+    "gasp": "^0.0.2",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.12.0",
+    "mongodb-memory-server": "^10.2.0",
     "mongoose": "^8.16.0",
     "next": "15.3.3",
+    "next-electron-rsc": "^0.3.0",
     "node-cache": "^5.1.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
@@ -70,11 +73,11 @@
     "appId": "com.league-stream-utils.app",
     "productName": "League Stream Utils",
     "directories": {
-      "output": "dist",
+      "output": "dist-electron",
       "buildResources": "assets"
     },
     "files": [
-      "out/**/*",
+      ".next/standalone/**/*",
       "electron/**/*",
       "node_modules/**/*"
     ],

@@ -1,13 +1,28 @@
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, protocol } from "electron";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
+import { createHandler } from 'next-electron-rsc';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const isDev = process.env.NODE_ENV === "development";
+
+// ⬇ Next.js handler ⬇
+const appPath = app.getAppPath();
+const dir = path.join(appPath, '.next', 'standalone');
+
+const { createInterceptor, localhostUrl } = createHandler({
+  dev: isDev,
+  dir,
+  protocol,
+  debug: true,
+  turbo: true, // optional
+  port: 2137
+});
+
 
 // Import modules using dynamic imports
 let createWindow, registerTournamentHandlers, registerChampionHandlers, 
@@ -60,21 +75,17 @@ let useMockData = false;
 // Simple HTTP server for web overlay data
 let dataServer;
 
-// Tournament data storage paths
+// Data storage paths
 const userDataPath = app.getPath("userData");
-const tournamentsPath = path.join(userDataPath, "tournaments");
-const championsPath = path.join(userDataPath, "champions");
 const assetsPath = path.join(userDataPath, "assets");
-const uploadsPath = path.join(userDataPath, "uploads", "cameras");
-const assetCachePath = path.join(userDataPath, "assets");
+const databasePath = path.join(userDataPath, "database");
+const championsPath = path.join(userDataPath, "champions");
 
 // Ensure directories exist
 [
-  tournamentsPath,
-  championsPath,
   assetsPath,
-  uploadsPath,
-  assetCachePath,
+  databasePath,
+  championsPath,
 ].forEach((dir) => {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
@@ -88,13 +99,34 @@ app.whenReady().then(async () => {
   // Load all modules first
   await loadModules();
   
+  // Initialize MongoDB if running in Electron
+  try {
+    console.log('🐳 Initializing local MongoDB...');
+    const { localMongoDBService } = await import('../src/lib/services/local-mongodb/local-mongodb-service.js');
+    
+    // Check if MongoDB is already running
+    const status = await localMongoDBService.getStatus();
+    
+    if (!status.isRunning) {
+      console.log('🚀 Starting local MongoDB...');
+      await localMongoDBService.start();
+      await localMongoDBService.waitForReady();
+      console.log('✅ Local MongoDB is ready');
+    } else {
+      console.log('✅ Local MongoDB is already running');
+    }
+  } catch (error) {
+    console.error('❌ Failed to initialize local MongoDB:', error);
+    console.warn('⚠️ Continuing with external MongoDB...');
+  }
+  
   // Register handlers after modules are loaded
   const lcuDataRef = { value: lcuData };
   const useMockDataRef = { value: useMockData };
   
-  registerTournamentHandlers(mainWindow, tournamentsPath);
+  registerTournamentHandlers(mainWindow, databasePath);
   registerChampionHandlers(mainWindow, championsPath, userDataPath);
-  registerAssetHandlers(mainWindow, assetsPath, assetCachePath);
+  registerAssetHandlers(mainWindow, assetsPath, assetsPath);
   registerLCUHandlers(
     lcuDataRef,
     useMockDataRef,
@@ -105,7 +137,7 @@ app.whenReady().then(async () => {
   registerOBSHandlers();
   
   // Create window after handlers are registered
-  createWindow(mainWindowRef);
+  createWindow(mainWindowRef, localhostUrl, createInterceptor);
   mainWindow = mainWindowRef.value;
 });
 
@@ -129,11 +161,3 @@ app.on("before-quit", () => {
     dataServer.close();
   }
 });
-
-// Start Next.js in development
-if (isDev) {
-  app.whenReady().then(() => {
-    // Next.js should already be running via npm run dev
-    console.log("Development mode: assuming Next.js is running on port 2137");
-  });
-}

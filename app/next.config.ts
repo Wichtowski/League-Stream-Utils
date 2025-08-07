@@ -1,6 +1,16 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  output: 'standalone',
+  outputFileTracingIncludes: {
+    '*': ['public/**/*', '.next/static/**/*'],
+  },
+  serverExternalPackages: ['electron'], // to prevent bundling Electron
+  // Bundle splitting optimizations
+  experimental: {
+    // Enable better tree shaking
+    optimizePackageImports: ["@heroicons/react"],
+  },
   images: {
     remotePatterns: [
       {
@@ -10,11 +20,6 @@ const nextConfig: NextConfig = {
       },
     ],
     domains: ["vdo.ninja", "via.placeholder.com"],
-  },
-  // Bundle splitting optimizations
-  experimental: {
-    // Enable better tree shaking
-    optimizePackageImports: ["@heroicons/react"],
   },
   // Webpack configuration for bundle splitting
   webpack: (config, { dev, isServer }) => {
@@ -69,5 +74,7 @@ const nextConfig: NextConfig = {
   // Enable source maps in development only
   productionBrowserSourceMaps: false,
 };
+
+if (process.env.NODE_ENV === 'development') delete nextConfig.output; // for HMR
 
 export default nextConfig;

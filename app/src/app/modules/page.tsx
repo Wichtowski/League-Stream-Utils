@@ -7,7 +7,6 @@ import { useUser } from "@lib/contexts/AuthContext";
 import { useElectron } from "@lib/contexts/ElectronContext";
 import { useDownload } from "@lib/contexts/DownloadContext";
 import { AssetDownloadProgress } from "@lib/components/LCU";
-import { Cog6ToothIcon } from "@heroicons/react/24/outline";
 import { getVisibleModules, ModuleCard } from "@lib/navigation";
 import {
   tournamentStorage,
@@ -26,6 +25,7 @@ export default function ModulesPage() {
     useState(false);
   const [lastSelectedTournament, setLastSelectedTournament] =
     useState<LastSelectedTournament | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     setActiveModule("modules");
@@ -43,6 +43,8 @@ export default function ModulesPage() {
         console.error("Failed to check last selected tournament:", error);
         setHasLastSelectedTournament(false);
         setLastSelectedTournament(null);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -121,37 +123,44 @@ export default function ModulesPage() {
     module.name === "Commentators" ||
     module.name === "Sponsors";
 
-
+  if (isLoading) {
+    return (
+      <PageWrapper
+        title="Modules"
+        subtitle="Loading modules..."
+        contentClassName="max-w-7xl mx-auto"
+        loadingComponent={
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Array.from({ length: 6 }).map((_, index) => (
+              <SpotlightCard
+                key={index}
+                className="animate-pulse min-h-48"
+                loading={true}
+                module={{
+                  id: `loading-${index}`,
+                  name: "Loading...",
+                  description: "Loading module...",
+                  path: "",
+                  status: "available",
+                  color: "from-gray-500 to-gray-600",
+                  spotlightColor: "#6B7280",
+                  icon: "📦",
+                  category: "core"
+                }}
+                isHiddenBehindTournament={false}
+              />
+            ))}
+          </div>}
+      >
+        <div />
+      </PageWrapper>
+    );
+  }
 
   return (
     <PageWrapper
       title="Modules"
       subtitle={`Welcome back, ${user?.username || "User"}! Choose a module to get started.`}
-      actions={
-        isElectron ? (
-          <div className="flex items-center space-x-2">
-            <div className="text-right">
-              <div className="text-sm text-gray-400">
-                Mode:{" "}
-                <span
-                  className={
-                    useLocalData ? "text-green-400" : "text-blue-400"
-                  }
-                >
-                  {useLocalData ? "Local Data" : "Online"}
-                </span>
-              </div>
-            </div>
-            <button
-              onClick={() => router.push("/settings")}
-              className="p-2 bg-gray-800/50 hover:bg-gray-700/50 rounded-lg border border-gray-600/50 hover:border-gray-500/50 transition-colors"
-              title="Settings"
-            >
-              <Cog6ToothIcon className="w-5 h-5 text-gray-400 hover:text-gray-300" />
-            </button>
-          </div>
-        ) : undefined
-      }
       contentClassName="max-w-7xl mx-auto"
     >
       {/* Module Grid */}
@@ -161,52 +170,11 @@ export default function ModulesPage() {
             key={module.id}
             onClick={() => handleModuleClick(module)}
             className={`cursor-pointer p-6 ${module.status === "coming-soon" ? "opacity-50 cursor-not-allowed" : ""}`}
-            color={module.spotlightColor}
-          >
-            <div className="flex items-start justify-between mb-4">
-              <div
-                className={`w-12 h-12 bg-gradient-to-br ${module.color} rounded-lg flex items-center justify-center text-2xl`}
-              >
-                {module.icon}
-              </div>
-              <div className="flex items-center space-x-2">
-                {module.status === "beta" && (
-                  <span className="bg-yellow-600 text-yellow-100 px-2 py-1 rounded text-xs font-semibold">
-                    BETA
-                  </span>
-                )}
-                {module.status === "new" && (
-                  <span className="bg-green-600 text-green-100 px-2 py-1 rounded text-xs font-semibold">
-                    NEW
-                  </span>
-                )}
-                {module.status === "revamped" && (
-                  <span className="bg-purple-600 text-purple-100 px-2 py-1 rounded text-xs font-semibold">
-                    REVAMPED
-                  </span>
-                )}
-                {module.status === "coming-soon" && (
-                  <span className="bg-gray-600 text-gray-100 px-2 py-1 rounded text-xs font-semibold disabled">
-                    COMING SOON
-                  </span>
-                )}
-              </div>
-            </div>
-            <h3 className="text-xl font-bold text-white mb-2">
-              {isHiddenBehindTournament(module) && (
-                <div className="flex items-center space-x-2">
-                  <span className="text-gray-400 text-sm">
-                    Current Tournament:{" "}
-                    {lastSelectedTournament?.tournamentName}
-                  </span>
-                </div>
-              )}
-              {module.name}
-            </h3>
-            <p className="text-gray-300 text-sm leading-relaxed">
-              {module.description}
-            </p>
-          </SpotlightCard>
+            spotlightColor={module.spotlightColor}
+            module={module}
+            isHiddenBehindTournament={isHiddenBehindTournament(module)}
+            lastSelectedTournament={lastSelectedTournament || undefined}
+          />
         ))}
       </div>
     </PageWrapper>

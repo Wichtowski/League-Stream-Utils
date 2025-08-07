@@ -38,8 +38,27 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.invoke("copy-asset-file", sourcePath, fileName),
   saveCameraUpload: (fileBuffer, fileName) =>
     ipcRenderer.invoke("save-camera-upload", fileBuffer, fileName),
+  saveTeamLogo: (fileBuffer, fileName) =>
+    ipcRenderer.invoke("save-team-logo", fileBuffer, fileName),
+  saveTournamentLogo: (fileBuffer, fileName) =>
+    ipcRenderer.invoke("save-tournament-logo", fileBuffer, fileName),
+  saveSponsorLogo: (tournamentId, fileBuffer, fileName) =>
+    ipcRenderer.invoke("save-sponsor-logo", tournamentId, fileBuffer, fileName),
   getUserDataPath: () => ipcRenderer.invoke("get-user-data-path"),
-
+  getDatabasePath: () => ipcRenderer.invoke("get-database-path"),
+    getMongoDBStatus: () => ipcRenderer.invoke("get-mongodb-status"),
+  
+  // Database management
+  getDatabaseCollections: () => ipcRenderer.invoke("get-database-collections"),
+  getCollectionData: (collectionName, limit) => ipcRenderer.invoke("get-collection-data", collectionName, limit),
+  exportCollection: (collectionName) => ipcRenderer.invoke("export-collection", collectionName),
+  exportAllData: () => ipcRenderer.invoke("export-all-data"),
+  createDatabaseBackup: () => ipcRenderer.invoke("create-database-backup"),
+  getDatabaseBackups: () => ipcRenderer.invoke("get-database-backups"),
+  restoreBackup: (backupPath) => ipcRenderer.invoke("restore-backup", backupPath),
+  deleteBackup: (backupId) => ipcRenderer.invoke("delete-backup", backupId),
+  openDataDirectory: () => ipcRenderer.invoke("open-data-directory"),
+  
   // Asset caching system
   downloadAsset: (url, category, assetKey) =>
     ipcRenderer.invoke("download-asset", url, category, assetKey),

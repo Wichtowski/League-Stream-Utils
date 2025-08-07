@@ -146,6 +146,11 @@ body {
   }
 }
 
+button {
+  cursor: pointer;
+}
+
+
 /* Pick and Ban Animation Styles - Optimized with transform */
 .is-picking {
   animation: pulse-shadow 3s infinite;

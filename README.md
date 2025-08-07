@@ -56,7 +56,7 @@ League Stream Utils is a full-stack application that provides:
 ### Prerequisites
 
 - Node.js 18+ or Bun
-- MongoDB 4.4+
+- MongoDB (for local data mode)
 - Git
 
 ### Installation
@@ -77,7 +77,21 @@ League Stream Utils is a full-stack application that provides:
     npm install
 ```
 
-3. **Environment Setup**
+3. **Setup Local MongoDB (Recommended)**
+
+```bash
+    npm run setup
+```
+
+This will:
+- Check MongoDB installation
+- Start MongoDB container
+- Create admin user (admin/admin123456789)
+- Configure the application
+
+4. **Manual Setup (Alternative)**
+
+If you prefer to use an external MongoDB:
 
 ```bash
    cp env.example .env.local
@@ -94,7 +108,7 @@ ADMIN_EMAIL="admin@yourdomain.com"
 RIOT_API_KEY="your-riot-api-key"
 ```
 
-4. **Database Setup**
+Then create admin user:
 
 ```bash
     node scripts/create-admin.js
@@ -112,6 +126,27 @@ RIOT_API_KEY="your-riot-api-key"
 
 ```bash
    bun run electron-dev
+```
+
+### MongoDB Management
+
+The application includes local MongoDB management:
+
+```bash
+# Start MongoDB
+npm run mongodb:start
+
+# Stop MongoDB
+npm run mongodb:stop
+
+# Check status
+npm run mongodb:status
+
+# View logs
+npm run mongodb:logs
+
+# Reset data
+npm run mongodb:reset
 ```
 
 ## 📁 Basic Folder Structure

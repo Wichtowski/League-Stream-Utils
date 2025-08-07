@@ -82,7 +82,46 @@ export interface ElectronAPI {
     publicPath?: string;
     error?: string;
   }>;
+  saveTeamLogo: (
+    fileBuffer: Buffer,
+    fileName: string,
+  ) => Promise<{
+    success: boolean;
+    localPath?: string;
+    error?: string;
+  }>;
+  saveTournamentLogo: (
+    fileBuffer: Buffer,
+    fileName: string,
+  ) => Promise<{
+    success: boolean;
+    localPath?: string;
+    error?: string;
+  }>;
+  saveSponsorLogo: (
+    tournamentId: string,
+    fileBuffer: Buffer,
+    fileName: string,
+  ) => Promise<{
+    success: boolean;
+    localPath?: string;
+    error?: string;
+  }>;
   getUserDataPath: () => Promise<string>;
+  getDatabasePath: () => Promise<string>;
+  getMongoDBStatus: () => Promise<{ isRunning: boolean; port: number; pid?: number }>;
+  
+  // Database management
+  getDatabaseCollections: () => Promise<{ name: string; count: number; sample: unknown[] }[]>;
+  getCollectionData: (collectionName: string, limit?: number) => Promise<unknown[]>;
+  exportCollection: (collectionName: string) => Promise<string>;
+  exportAllData: () => Promise<string>;
+  createDatabaseBackup: () => Promise<{ id: string; timestamp: Date; collections: string[]; size: number; path: string }>;
+  getDatabaseBackups: () => Promise<{ id: string; timestamp: Date; collections: string[]; size: number; path: string }[]>;
+  restoreBackup: (backupPath: string) => Promise<void>;
+  deleteBackup: (backupId: string) => Promise<void>;
+  openDataDirectory: () => Promise<void>;
+  
   checkFileExists: (
     filePath: string,
   ) => Promise<{ success: boolean; exists?: boolean; error?: string }>;

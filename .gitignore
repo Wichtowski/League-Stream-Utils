@@ -1,5 +1,7 @@
 .env
 node_modules/
+dist
+dist-electron
 assets
 league-director-cuts
 league-broadcast-css

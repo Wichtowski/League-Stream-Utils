@@ -33,7 +33,7 @@ export function SessionCreator({
       <button
         onClick={onCreateSession}
         disabled={loading || !canCreateMoreSessions}
-        className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+        className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white px-6 py-3 rounded-lg font-medium transition-colors cursor-pointer"
       >
         {loading ? "Creating..." : "Create New Pick & Ban Session"}
       </button>

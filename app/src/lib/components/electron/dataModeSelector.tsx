@@ -82,11 +82,10 @@ export const ElectronDataModeSelector = () => {
                 connection required. You&apos;ll be automatically logged in as
                 admin with full access to all features.
               </p>
-              <div className="mt-2 p-2 bg-yellow-900/30 border border-yellow-600/50 rounded text-yellow-200 text-xs">
-                <strong>Note:</strong> When using the web app, data will still be fetched from online sources 
-                (similar to how image files work in pickban). Local data mode is currently only fully supported 
-                in the Electron desktop app.
-              </div>
+                <div className="mt-2 p-2 bg-green-900/30 border border-green-600/50 rounded text-green-200 text-xs">
+                  <strong>Note:</strong> Local data mode uses MongoDB Memory Server. 
+                  No system MongoDB installation required - the app will automatically start a local MongoDB instance.
+                </div>
               <div className="flex items-center space-x-4 mt-2 text-xs">
                 <span className="text-green-400">✓ No registration needed</span>
                 <span className="text-green-400">✓ Works offline</span>

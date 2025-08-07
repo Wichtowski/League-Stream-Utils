@@ -182,13 +182,14 @@ export default function TeamsPage() {
         { label: "Teams", href: "/modules/teams", isActive: true },
       ]}
       title="My Teams"
-      actions={
+      actions={teams.length > 0 ? (
         <button
           onClick={() => setShowCreateForm(true)}
-          className="cursor-pointer bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-lg"
-        >
-          Create Team
-        </button>
+            className="cursor-pointer bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-lg"
+          > 
+            Create Team
+          </button>
+        ) : null
       }
     >
       {showCreateForm && (

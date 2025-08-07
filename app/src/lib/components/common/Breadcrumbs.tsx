@@ -8,6 +8,7 @@ export interface BreadcrumbItem {
   label: string;
   href?: string;
   isActive?: boolean;
+  icon?: React.ReactNode;
 }
 
 interface BreadcrumbsProps {
@@ -35,12 +36,14 @@ export const Breadcrumbs: React.FC<BreadcrumbsProps> = ({
            {item.href && !item.isActive ? (
              <Link
                href={item.href}
-               className="text-gray-400 hover:text-white transition-colors text-lg"
+               className="text-gray-400 hover:text-white transition-colors text-lg flex items-center"
              >
+               {item.icon && <span className="mr-2">{item.icon}</span>}
                {item.label}
              </Link>
            ) : (
-             <span className={`text-lg ${item.isActive ? "text-white font-medium" : "text-gray-400"}`}>
+             <span className={`text-lg flex items-center ${item.isActive ? "text-white font-medium" : "text-gray-400"}`}>
+               {item.icon && <span className="mr-2">{item.icon}</span>}
                {item.label}
              </span>
            )}

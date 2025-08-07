@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { config } from "@lib/config";
+import { localMongoDBService } from "@lib/services/local-mongodb/local-mongodb-service";
 
 interface ConnectionState {
   isConnected: boolean;
@@ -34,7 +35,29 @@ class DatabaseConnection {
     }
 
     try {
-      const mongoUri = config.database.uri!;
+      // Check if we should use local MongoDB (Electron app)
+      const isElectron = process.env.NODE_ENV === 'development' && typeof window === 'undefined';
+      
+      let mongoUri: string;
+      
+      if (isElectron) {
+        // Use local MongoDB
+        console.log('🐳 Using local MongoDB...');
+        
+        // Check if MongoDB is running
+        const status = await localMongoDBService.getStatus();
+        
+        if (!status.isRunning) {
+          console.log('🚀 Starting local MongoDB...');
+          await localMongoDBService.start();
+          await localMongoDBService.waitForReady();
+        }
+        
+        mongoUri = localMongoDBService.getConnectionString();
+      } else {
+        // Use configured MongoDB URI (for web app)
+        mongoUri = config.database.uri!;
+      }
 
       this.connectionPromise = mongoose.connect(mongoUri, {
         bufferCommands: false,

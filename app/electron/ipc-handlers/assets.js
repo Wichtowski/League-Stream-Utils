@@ -61,6 +61,57 @@ function registerAssetHandlers(_mainWindow, assetsPath, assetCachePath) {
     }
   });
 
+  ipcMain.handle("save-team-logo", async (_event, fileBuffer, fileName) => {
+    try {
+      const teamsPath = path.join(assetsPath, "cache", "teams");
+      if (!fs.existsSync(teamsPath)) {
+        fs.mkdirSync(teamsPath, { recursive: true });
+      }
+      const destPath = path.join(teamsPath, fileName);
+      fs.writeFileSync(destPath, fileBuffer);
+      return {
+        success: true,
+        localPath: destPath,
+      };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle("save-tournament-logo", async (_event, fileBuffer, fileName) => {
+    try {
+      const tournamentsPath = path.join(assetsPath, "cache", "tournaments");
+      if (!fs.existsSync(tournamentsPath)) {
+        fs.mkdirSync(tournamentsPath, { recursive: true });
+      }
+      const destPath = path.join(tournamentsPath, fileName);
+      fs.writeFileSync(destPath, fileBuffer);
+      return {
+        success: true,
+        localPath: destPath,
+      };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle("save-sponsor-logo", async (_event, tournamentId, fileBuffer, fileName) => {
+    try {
+      const sponsorPath = path.join(assetsPath, "cache", "tournaments", tournamentId, "sponsors");
+      if (!fs.existsSync(sponsorPath)) {
+        fs.mkdirSync(sponsorPath, { recursive: true });
+      }
+      const destPath = path.join(sponsorPath, fileName);
+      fs.writeFileSync(destPath, fileBuffer);
+      return {
+        success: true,
+        localPath: destPath,
+      };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  });
+
   ipcMain.handle("download-asset", async (_event, url, category, assetKey) => {
     try {
       // For game UI assets, we want to use the assetKey as the full path structure

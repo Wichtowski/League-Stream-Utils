@@ -10,7 +10,6 @@ import { ChampionDownloadProgress } from "@lib/types/progress";
 import { assetCache } from "@lib/services/cache/asset";
 import { championCacheService } from "@lib/services/cache/champion";
 import { DownloadProgressModal } from "@lib/components/modal";
-import { BackButton } from "@/lib/components/common/buttons";
 import { PageWrapper } from "@lib/layout/PageWrapper";
 
 type Spell = {
@@ -243,7 +242,7 @@ export default function ChampAbilityPage() {
     <PageWrapper
       requireAuth={false}
       title="League of Legends Champion Spell Showcase"
-      actions={<BackButton to="/modules">Back to Modules</BackButton>}
+      breadcrumbs={[{ label: "Champion Abilities", href: "/modules/champ-ability" }]}
       contentClassName="flex flex-col items-center"
     >
       <div className="w-full max-w-7xl p-4 flex flex-col items-center">

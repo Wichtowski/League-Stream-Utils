@@ -9,6 +9,7 @@ import {
   ComputerDesktopIcon,
   CheckCircleIcon,
   VideoCameraIcon,
+  ServerIcon,
 } from "@heroicons/react/24/outline";
 import { useModal } from "@lib/contexts/ModalContext";
 import { riotAPI } from "@lib/services/riot/riot-api";
@@ -19,8 +20,11 @@ import {
 } from "@lib/services/brackets/tournament-templates";
 import { ElectronDataModeSelector } from "./dataModeSelector";
 import { OBSControl } from "./obs-control";
+import { LocalDatabaseManager } from "./LocalDatabaseManager";
 import { Button } from "@/lib/components/common/buttons/Button";
 import Link from "next/link";
+import { PageWrapper } from "../common";
+import { useElectron } from "@/lib/contexts/ElectronContext";
 
 interface RiotAPISettings {
   apiKey: string;
@@ -72,6 +76,7 @@ export const ElectronSettings = () => {
   const [integrityCheckResult, setIntegrityCheckResult] =
     useState<IntegrityCheckResult | null>(null);
   const [isCheckingIntegrity, setIsCheckingIntegrity] = useState(false);
+  const { useLocalData } = useElectron();
 
   const loadCacheStats = useCallback(async () => {
     try {
@@ -343,6 +348,7 @@ export const ElectronSettings = () => {
 
   const tabs = [
     { id: "data-mode", name: "Data Storage", icon: ComputerDesktopIcon },
+    { id: "database", name: "Database Manager", icon: ServerIcon },
     { id: "riot-api", name: "Riot API", icon: ShieldCheckIcon },
     {
       id: "templates",
@@ -429,22 +435,18 @@ export const ElectronSettings = () => {
   );
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-4">
-          <Cog6ToothIcon className="w-8 h-8 text-blue-600" />
-          <h1 className="text-3xl font-bold">Tournament Management Settings</h1>
-          {isElectron && (
-            <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">
-              Desktop App
-            </span>
-          )}
-        </div>
-        <p className="text-gray-600">
-          Configure Riot API integration, tournament templates for professional
-          esports production.
-        </p>
-      </div>
+    <PageWrapper
+    title="Tournament Management Settings"
+    subtitle="Configure Riot API integration, tournament templates for professional esports production."
+    actions={<span className={`${useLocalData ? "bg-green-600" : "bg-blue-600"} text-white text-xs font-medium px-2.5 py-0.5 rounded`}>
+      {useLocalData ? "Local" : "Online"} Mode
+    </span>}
+    className="max-w-6xl mx-auto"
+    breadcrumbs={[
+      { label: "Settings", href: "/settings", isActive: true, icon: <Cog6ToothIcon className="w-6 h-6" /> },
+    ]}
+    >
+    <div className="max-w-6xl mx-auto">
 
       {/* Tab Navigation */}
       <div className="border-b border-gray-200 mb-6">
@@ -775,8 +777,16 @@ export const ElectronSettings = () => {
         </div>
       )}
 
+      {/* Database Manager */}
+      {activeTab === "database" && (
+        <div className="space-y-6">
+          <LocalDatabaseManager />
+        </div>
+      )}
+
       {/* OBS Control */}
       {activeTab === "obs-control" && <OBSControl />}
     </div>
+    </PageWrapper>
   );
 };

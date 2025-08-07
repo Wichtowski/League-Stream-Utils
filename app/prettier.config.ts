@@ -9,6 +9,6 @@ export const config: Config = {
   singleQuote: true,
   bracketSpacing: true,
   arrowParens: "always",
-  endOfLine: "lf",
+  endOfLine: "crlf",
   ignorePath: ".prettierignore",
 };

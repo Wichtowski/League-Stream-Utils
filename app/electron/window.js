@@ -8,7 +8,9 @@ const __dirname = dirname(__filename);
 
 const isDev = process.env.NODE_ENV === "development";
 
-function createWindow(mainWindow) {
+let stopIntercept;
+
+async function createWindow(mainWindow, localhostUrl, createInterceptor) {
   // Create the browser window
   mainWindow.value = new BrowserWindow({
     width: 1400,
@@ -31,19 +33,13 @@ function createWindow(mainWindow) {
   mainWindow.value.setAutoHideMenuBar(true);
 
   // Load the Next.js app
-  const port = process.env.PORT || 2137;
-
-  // If running on Windows and connecting to WSL, use the WSL network IP
-  let hostname = "localhost";
-  if (process.platform === "win32" && process.env.WSL_HOST) {
-    hostname = process.env.WSL_HOST;
-  }
-
-  // Always use development server in development mode
-  const appUrl = `http://${hostname}:${port}/download/assets`;
-
+  const appUrl = localhostUrl + '/download/assets';
   console.log(`Loading Electron app from: ${appUrl}`);
-  console.log("Development mode: loading from Next.js development server");
+  
+  // ⬇ Next.js handler ⬇
+  stopIntercept = await createInterceptor({ session: mainWindow.value.webContents.session });
+  // ⬆ Next.js handler ⬆
+  
   mainWindow.value.loadURL(appUrl);
 
   // Show window when ready to prevent visual flash
@@ -79,7 +75,7 @@ function createWindow(mainWindow) {
   // Handle window closed
   mainWindow.value.on("closed", () => {
     mainWindow.value = null;
-    // Removed nextProcess.kill() logic as nextProcess is not used
+    stopIntercept?.();
   });
 
   // Handle external links

@@ -5,11 +5,10 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useNavigation } from "@lib/contexts/NavigationContext";
 import { useCameras } from "@lib/contexts/CamerasContext";
-import { AuthGuard } from "@lib/components/auth/AuthGuard";
-import { Breadcrumbs, LoadingSpinner } from "@lib/components/common";
 import type { CameraTeam } from "@lib/types/camera";
 import { Accordion, AccordionItem } from "@lib/components/common/Accordion";
 import { PageWrapper } from "@lib/layout/PageWrapper";
+import { LoadingSpinner } from "@/lib/components/common";
 
 export default function AllCamerasPage() {
   const router = useRouter();
@@ -221,14 +220,6 @@ export default function AllCamerasPage() {
        ]}
        title="All Cameras"
        subtitle={`${validTeams.length} team${validTeams.length !== 1 ? "s" : ""}`}
-       actions={
-         <button
-           onClick={() => router.push("/modules/cameras")}
-           className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors"
-         >
-           Setup
-         </button>
-       }
      >
        {/* Team Accordions */}
        <Accordion

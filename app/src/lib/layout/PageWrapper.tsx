@@ -6,10 +6,11 @@ import { BreadcrumbItem } from "../components/common/Breadcrumbs";
 interface PageWrapperProps {
   children: React.ReactNode;
   loadingMessage?: string;
+  loadingComponent?: React.ReactNode;
   breadcrumbs?: BreadcrumbItem[];
   title?: string;
   subtitle?: string;
-  actions?: React.ReactNode;
+  actions?: React.ReactNode | null | undefined;
   className?: string;
   contentClassName?: string;
   requireAuth?: boolean;
@@ -18,6 +19,7 @@ interface PageWrapperProps {
 export const PageWrapper: React.FC<PageWrapperProps> = ({
   children,
   loadingMessage,
+  loadingComponent,
   breadcrumbs,
   title,
   subtitle,
@@ -44,7 +46,7 @@ export const PageWrapper: React.FC<PageWrapperProps> = ({
   }
 
   return (
-    <AuthGuard loadingMessage={loadingMessage}>
+    <AuthGuard loadingComponent={loadingComponent} loadingMessage={loadingMessage}>
       {content}
     </AuthGuard>
   );

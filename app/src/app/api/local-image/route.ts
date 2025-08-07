@@ -4,6 +4,8 @@ import { resolve, extname, join } from "path";
 import { homedir } from "os";
 import type { Stats } from "fs";
 
+
+
 // In-memory cache for file stats and existence checks
 const fileCache = new Map<
   string,

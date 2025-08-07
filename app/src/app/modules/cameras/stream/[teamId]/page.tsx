@@ -3,11 +3,9 @@
 import React, { useEffect, useState, Suspense, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useNavigation } from "@lib/contexts/NavigationContext";
-import { AuthGuard } from "@lib/components/auth";
 import { useAuthenticatedFetch } from "@lib/hooks/useAuthenticatedFetch";
 import { CameraPlayer, CameraTeam } from "@lib/types";
 import Image from "next/image";
-import { Breadcrumbs } from "@/lib/components/common";
 import { PageWrapper } from "@lib/layout/PageWrapper";
 
 export default function TeamCameraStreamPage() {
@@ -261,35 +259,26 @@ export default function TeamCameraStreamPage() {
               </div>
             )}
 
-              {/* Player Name Overlay - Full width bottom centered */}
-              {currentPlayer && (
-                <div className="absolute bottom-0 left-0 right-0 z-10 bg-gradient-to-t from-black via-black/70 to-transparent py-8 px-4">
-                  <div className="text-center">
-                    <h2 className="text-4xl font-bold text-white drop-shadow-lg">
-                      {currentPlayer.inGameName ||
-                        currentPlayer.playerName ||
-                        "Unknown Player"}
-                    </h2>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Random Mode Indicator - Below Container */}
-            {randomMode && (
-              <div className="flex justify-center mt-4">
-                <div className="bg-red-600 text-white px-4 py-2 rounded-full text-sm font-medium animate-pulse">
-                  🔄 Random Mode Active
+            {/* Player Name Overlay - Full width bottom centered */}
+            {currentPlayer && (
+              <div className="absolute bottom-0 left-0 right-0 z-10 bg-gradient-to-t from-black via-black/70 to-transparent py-8 px-4">
+                <div className="text-center">
+                  <h2 className="text-4xl font-bold text-white drop-shadow-lg">
+                    {currentPlayer.inGameName ||
+                      currentPlayer.playerName ||
+                      "Unknown Player"}
+                  </h2>
                 </div>
               </div>
             )}
-            <div className="bottom-4 right-4 z-10 space-y-2">
-              {/* Player Controls */}
+
+            {/* Player Controls */}
+            <div className="absolute bottom-4 right-4 z-10 space-y-2">
               <div className="bg-black/70 text-white px-4 py-2 rounded-lg">
                 <div className="text-xs text-gray-400 mb-2">
                   Individual Players
                 </div>
-                <div className="flex flex-wrap gap-1 font-bold text-white ">
+                <div className="flex flex-wrap gap-1 font-bold text-white">
                   {players.map((player, index) => (
                     <button
                       key={`${player.inGameName || player.playerName || "player"}-${index}`}
@@ -308,6 +297,15 @@ export default function TeamCameraStreamPage() {
               </div>
             </div>
           </div>
+
+          {/* Random Mode Indicator - Below Container */}
+          {randomMode && (
+            <div className="flex justify-center mt-4">
+              <div className="bg-red-600 text-white px-4 py-2 rounded-full text-sm font-medium animate-pulse">
+                🔄 Random Mode Active
+              </div>
+            </div>
+          )}
         </Suspense>
       )}
     </PageWrapper>

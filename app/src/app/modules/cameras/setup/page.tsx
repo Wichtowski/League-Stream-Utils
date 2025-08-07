@@ -191,7 +191,7 @@ export default function CameraSetupListPage() {
             </h4>
             <p className="text-gray-400">
               Click on a team card above to configure stream URLs for that
-              team's players.
+              team&apos;s players.
             </p>
           </div>
           <div>

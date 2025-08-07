@@ -174,10 +174,6 @@ class StartupService {
     }
   }
 
-  isDownloadInProgress(): boolean {
-    return this.downloadInProgress;
-  }
-
   getInitializedStatus(): boolean {
     return this.isInitialized;
   }
