@@ -6,8 +6,8 @@ import { app } from 'electron';
 export class LocalDatabaseManager {
   constructor() {
     this.userDataPath = app.getPath('userData');
-    this.dataDirectory = path.join(this.userDataPath, 'mongodb-data');
-    this.backupsDirectory = path.join(this.userDataPath, 'mongodb-backups');
+    this.dataDirectory = path.join(this.userDataPath, 'cache', 'database');
+    this.backupsDirectory = path.join(this.userDataPath, 'cache', 'database', 'backups');
     
     // Ensure directories exist
     if (!fs.existsSync(this.dataDirectory)) {

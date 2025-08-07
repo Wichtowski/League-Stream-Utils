@@ -102,7 +102,7 @@ app.whenReady().then(async () => {
   // Initialize MongoDB if running in Electron
   try {
     console.log('🐳 Initializing local MongoDB...');
-    const { localMongoDBService } = await import('../src/lib/services/local-mongodb/local-mongodb-service.js');
+    const { localMongoDBService } = await import('./utils/local-mongodb-service.js');
     
     // Check if MongoDB is already running
     const status = await localMongoDBService.getStatus();

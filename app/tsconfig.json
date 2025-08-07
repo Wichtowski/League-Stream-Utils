@@ -23,7 +23,8 @@
       "@components/*": ["./src/lib/components/*"],
       "@lib/*": ["./src/lib/*"],
       "@schemas/*": ["./src/lib/database/schemas/*"],
-      "@auth/*": ["./src/auth/*"]
+      "@auth/*": ["./src/auth/*"],
+      "@electron/*": ["./electron/*"]
     }
   },
   "include": [

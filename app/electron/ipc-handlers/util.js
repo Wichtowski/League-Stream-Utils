@@ -73,7 +73,7 @@ function registerUtilHandlers() {
 
     ipcMain.handle("get-mongodb-status", async () => {
     try {
-              const { localMongoDBService } = await import('../../src/lib/services/local-mongodb/local-mongodb-service.js');
+              const { localMongoDBService } = await import('../utils/local-mongodb-service.js');
       return await localMongoDBService.getStatus();
     } catch (error) {
       console.error('Failed to get MongoDB status:', error);
@@ -84,7 +84,7 @@ function registerUtilHandlers() {
   // Database management handlers
   ipcMain.handle("get-database-collections", async () => {
     try {
-      const { localDatabaseManager } = await import('../../src/lib/services/local-mongodb/local-database-manager.js');
+      const { localDatabaseManager } = await import('../utils/local-database-manager.js');
       return await localDatabaseManager.getCollections();
     } catch (error) {
       console.error('Failed to get database collections:', error);
@@ -94,7 +94,7 @@ function registerUtilHandlers() {
 
   ipcMain.handle("get-collection-data", async (_event, collectionName, limit = 50) => {
     try {
-      const { localDatabaseManager } = await import('../../src/lib/services/local-mongodb/local-database-manager.js');
+      const { localDatabaseManager } = await import('../utils/local-database-manager.js');
       return await localDatabaseManager.getCollectionSample(collectionName, limit);
     } catch (error) {
       console.error('Failed to get collection data:', error);
@@ -104,7 +104,7 @@ function registerUtilHandlers() {
 
   ipcMain.handle("export-collection", async (_event, collectionName) => {
     try {
-      const { localDatabaseManager } = await import('../../src/lib/services/local-mongodb/local-database-manager.js');
+      const { localDatabaseManager } = await import('../utils/local-database-manager.js');
       return await localDatabaseManager.exportCollection(collectionName);
     } catch (error) {
       console.error('Failed to export collection:', error);
@@ -114,7 +114,7 @@ function registerUtilHandlers() {
 
   ipcMain.handle("export-all-data", async () => {
     try {
-      const { localDatabaseManager } = await import('../../src/lib/services/local-mongodb/local-database-manager.js');
+      const { localDatabaseManager } = await import('../utils/local-database-manager.js');
       return await localDatabaseManager.exportAllData();
     } catch (error) {
       console.error('Failed to export all data:', error);
@@ -124,7 +124,7 @@ function registerUtilHandlers() {
 
   ipcMain.handle("create-database-backup", async () => {
     try {
-      const { localDatabaseManager } = await import('../../src/lib/services/local-mongodb/local-database-manager.js');
+      const { localDatabaseManager } = await import('../utils/local-database-manager.js');
       return await localDatabaseManager.createBackup();
     } catch (error) {
       console.error('Failed to create database backup:', error);
@@ -134,7 +134,7 @@ function registerUtilHandlers() {
 
   ipcMain.handle("get-database-backups", async () => {
     try {
-      const { localDatabaseManager } = await import('../../src/lib/services/local-mongodb/local-database-manager.js');
+      const { localDatabaseManager } = await import('../utils/local-database-manager.js');
       return await localDatabaseManager.getBackups();
     } catch (error) {
       console.error('Failed to get database backups:', error);
@@ -144,7 +144,7 @@ function registerUtilHandlers() {
 
   ipcMain.handle("restore-backup", async (_event, backupPath) => {
     try {
-      const { localDatabaseManager } = await import('../../src/lib/services/local-mongodb/local-database-manager.js');
+      const { localDatabaseManager } = await import('../utils/local-database-manager.js');
       return await localDatabaseManager.restoreBackup(backupPath);
     } catch (error) {
       console.error('Failed to restore backup:', error);
@@ -154,7 +154,7 @@ function registerUtilHandlers() {
 
   ipcMain.handle("delete-backup", async (_event, backupId) => {
     try {
-      const { localDatabaseManager } = await import('../../src/lib/services/local-mongodb/local-database-manager.js');
+      const { localDatabaseManager } = await import('../utils/local-database-manager.js');
       return await localDatabaseManager.deleteBackup(backupId);
     } catch (error) {
       console.error('Failed to delete backup:', error);
@@ -164,7 +164,7 @@ function registerUtilHandlers() {
 
   ipcMain.handle("open-data-directory", async () => {
     try {
-      const { localDatabaseManager } = await import('../../src/lib/services/local-mongodb/local-database-manager.js');
+      const { localDatabaseManager } = await import('../utils/local-database-manager.js');
       const { shell } = await import('electron');
       const dataPath = localDatabaseManager.getDataDirectory();
       await shell.openPath(dataPath);

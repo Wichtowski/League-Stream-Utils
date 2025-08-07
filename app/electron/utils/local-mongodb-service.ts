@@ -1,4 +1,7 @@
 import { MongoMemoryServer } from 'mongodb-memory-server';
+import { app } from 'electron';
+import path from 'path';
+import fs from 'fs';
 
 export interface LocalMongoDBStatus {
   isRunning: boolean;
@@ -11,9 +14,16 @@ export class LocalMongoDBService {
   private port: number = 27017;
   private isStarting: boolean = false;
   private connectionString: string | null = null;
+  private dataDirectory: string;
 
   constructor() {
-    // No need to create data directory - mongodb-memory-server handles this
+    // Set up persistent data directory in %appdata%
+    this.dataDirectory = path.join(app.getPath('userData'), 'mongodb-data');
+    
+    // Ensure the data directory exists
+    if (!fs.existsSync(this.dataDirectory)) {
+      fs.mkdirSync(this.dataDirectory, { recursive: true });
+    }
   }
 
   async start(): Promise<void> {
@@ -24,19 +34,28 @@ export class LocalMongoDBService {
     this.isStarting = true;
 
     try {
-      console.log('🚀 Starting MongoDB Memory Server...');
+      console.log('🚀 Starting MongoDB Memory Server with persistent storage...');
+      console.log(`📁 Data directory: ${this.dataDirectory}`);
       
-      // Create and start the MongoDB memory server
+      // Create and start the MongoDB memory server with persistent storage
       this.mongoServer = await MongoMemoryServer.create({
         instance: {
           port: this.port,
-          dbName: 'league-stream-utils'
+          dbName: 'league-stream-utils',
+          storageEngine: 'wiredTiger',
+          args: [
+            '--dbpath', this.dataDirectory,
+            '--storageEngine', 'wiredTiger'
+          ]
+        },
+        binary: {
+          version: '7.0.0'
         }
       });
 
       // Get the connection string
       this.connectionString = this.mongoServer.getUri();
-      console.log('✅ MongoDB Memory Server started successfully');
+      console.log('✅ MongoDB Memory Server started successfully with persistent storage');
       
     } catch (error) {
       console.error('❌ Failed to start MongoDB Memory Server:', error);
@@ -80,6 +99,10 @@ export class LocalMongoDBService {
     return this.connectionString;
   }
 
+  getDataDirectory(): string {
+    return this.dataDirectory;
+  }
+
   async waitForReady(): Promise<void> {
     let attempts = 0;
     const maxAttempts = 30;
@@ -96,6 +119,20 @@ export class LocalMongoDBService {
 
     throw new Error('MongoDB Memory Server failed to start within 30 seconds');
   }
+
+  async clearData(): Promise<void> {
+    if (this.mongoServer) {
+      await this.stop();
+    }
+    
+    // Clear the data directory
+    if (fs.existsSync(this.dataDirectory)) {
+      fs.rmSync(this.dataDirectory, { recursive: true, force: true });
+      fs.mkdirSync(this.dataDirectory, { recursive: true });
+    }
+    
+    console.log('🗑️ MongoDB data cleared');
+  }
 }
 
-export const localMongoDBService = new LocalMongoDBService(); 
+export const localMongoDBService = new LocalMongoDBService();

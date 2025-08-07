@@ -8,6 +8,7 @@ import React, {
   useEffect,
 } from "react";
 import { assetDownloaderManager } from "@lib/services/cache/asset-downloader-manager";
+import { localDataMigrationService } from "@electron/utils/local-data-migration-service";
 
 interface ElectronContextType {
   isElectron: boolean;
@@ -141,6 +142,26 @@ export function ElectronProvider({ children }: { children: ReactNode }) {
           console.log("First time user, defaulting to local data mode");
           setUseLocalData(true);
           localStorage.setItem("electron-use-local-data", "true");
+        }
+
+        // Check for localStorage data migration if using local data mode
+        if (savedLocalDataMode === "true" || savedLocalDataMode === null) {
+          setTimeout(async () => {
+            try {
+              const migrationStatus = await localDataMigrationService.getMigrationStatus();
+              if (migrationStatus.hasLocalData && !migrationStatus.isMigrating) {
+                console.log("🔄 Found localStorage data, starting migration to MongoDB...");
+                const result = await localDataMigrationService.migrateFromLocalStorage();
+                if (result.success && result.migratedItems > 0) {
+                  console.log(`✅ Successfully migrated ${result.migratedItems} items to MongoDB`);
+                } else if (result.errors.length > 0) {
+                  console.warn("⚠️ Migration completed with errors:", result.errors);
+                }
+              }
+            } catch (error) {
+              console.error("❌ Migration check failed:", error);
+            }
+          }, 2000); // Delay to ensure app is fully loaded
         }
       } else {
         console.log("Not running in Electron environment");

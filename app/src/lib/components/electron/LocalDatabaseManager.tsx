@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useElectron } from "@lib/contexts/ElectronContext";
 import { Button } from "@lib/components/common/buttons/Button";
+import type { Document } from "mongodb";
 
 interface DatabaseBackup {
   id: string;
@@ -15,7 +16,7 @@ interface DatabaseBackup {
 interface CollectionData {
   name: string;
   count: number;
-  sample: any[];
+  sample: Document[];
 }
 
 export const LocalDatabaseManager = () => {
@@ -23,7 +24,7 @@ export const LocalDatabaseManager = () => {
   const [collections, setCollections] = useState<CollectionData[]>([]);
   const [backups, setBackups] = useState<DatabaseBackup[]>([]);
   const [selectedCollection, setSelectedCollection] = useState<string>("");
-  const [collectionData, setCollectionData] = useState<any[]>([]);
+  const [collectionData, setCollectionData] = useState<Document[]>([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
@@ -39,7 +40,7 @@ export const LocalDatabaseManager = () => {
       setLoading(true);
       if (window.electronAPI?.getDatabaseCollections) {
         const data = await window.electronAPI.getDatabaseCollections();
-        setCollections(data);
+        setCollections(data as CollectionData[]);
       }
     } catch (error) {
       console.error('Failed to load collections:', error);
@@ -65,7 +66,7 @@ export const LocalDatabaseManager = () => {
       setLoading(true);
       if (window.electronAPI?.getCollectionData) {
         const data = await window.electronAPI.getCollectionData(collectionName, 50);
-        setCollectionData(data);
+        setCollectionData(data as Document[]);
         setSelectedCollection(collectionName);
       }
     } catch (error) {
@@ -179,13 +180,13 @@ export const LocalDatabaseManager = () => {
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold">Local Database Manager</h2>
         <div className="flex space-x-2">
-          <Button onClick={openDataDirectory} variant="outline" size="sm">
+          <Button onClick={openDataDirectory} variant="secondary" size="sm">
             Open Data Directory
           </Button>
           <Button onClick={createBackup} disabled={loading} size="sm">
             Create Backup
           </Button>
-          <Button onClick={exportAllData} disabled={loading} variant="outline" size="sm">
+          <Button onClick={exportAllData} disabled={loading} variant="secondary" size="sm">
             Export All Data
           </Button>
         </div>
@@ -217,14 +218,14 @@ export const LocalDatabaseManager = () => {
                 <div className="flex space-x-2">
                   <Button 
                     onClick={() => loadCollectionData(collection.name)}
-                    variant="outline" 
+                    variant="secondary" 
                     size="sm"
                   >
                     View
                   </Button>
                   <Button 
                     onClick={() => exportCollection(collection.name)}
-                    variant="outline" 
+                    variant="secondary" 
                     size="sm"
                   >
                     Export
@@ -250,14 +251,14 @@ export const LocalDatabaseManager = () => {
                 <div className="flex space-x-2">
                   <Button 
                     onClick={() => restoreBackup(backup.path)}
-                    variant="outline" 
+                    variant="secondary" 
                     size="sm"
                   >
                     Restore
                   </Button>
                   <Button 
                     onClick={() => deleteBackup(backup.id)}
-                    variant="outline" 
+                    variant="secondary" 
                     size="sm"
                     className="text-red-400 hover:text-red-300"
                   >
@@ -280,7 +281,7 @@ export const LocalDatabaseManager = () => {
             <h3 className="text-lg font-medium">Data: {selectedCollection}</h3>
             <Button 
               onClick={() => setSelectedCollection("")}
-              variant="outline" 
+              variant="secondary" 
               size="sm"
             >
               Close

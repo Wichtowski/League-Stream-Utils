@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import { config } from "@lib/config";
-import { localMongoDBService } from "@lib/services/local-mongodb/local-mongodb-service";
+import { localMongoDBService } from "../../../electron/utils/local-mongodb-service";
 
 interface ConnectionState {
   isConnected: boolean;

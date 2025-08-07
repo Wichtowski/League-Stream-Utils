@@ -14,7 +14,7 @@
     "build": "bun run next build",
     "start": "bun run next start",
     "lint": "bun run next lint",
-    "format": "bun run prettier --write .",
+    "format": "bun run prettier --write .", 
     "create-admin": "node scripts/create-admin.js",
     "analyze-bundle": "node scripts/analyze-bundle.js",
     "electron": "cross-env NODE_ENV=development electron .",
