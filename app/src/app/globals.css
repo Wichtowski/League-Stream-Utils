@@ -1,270 +1,270 @@
-@import 'tailwindcss';
+@import "tailwindcss";
 
 :root {
-    --background: linear-gradient(330deg, #111827, #1e3a8a, #111827);
-    --foreground: #171717;
+  --background: linear-gradient(330deg, #111827, #1e3a8a, #111827);
+  --foreground: #171717;
 }
 
 @theme inline {
-    --color-background: var(--background);
-    --color-foreground: var(--foreground);
-    --font-sans: var(--font-geist-sans);
-    --font-mono: var(--font-geist-mono);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
 }
 
 @media (prefers-color-scheme: dark) {
-    :root {
-        --background: #0a0a0a;
-        --foreground: #ededed;
-    }
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
 }
 
 body {
-    /* background: rgba(0, 0, 0, 0); */
-    /* background: linear-gradient(330deg, #111827, #1e3a8a, #111827); */
-    color: var(--foreground);
-    font-family: Arial, Helvetica, sans-serif;
+  /* background: rgba(0, 0, 0, 0); */
+  /* background: linear-gradient(330deg, #111827, #1e3a8a, #111827); */
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
 }
 
 /* Custom Scrollbar Styling */
 /* Webkit browsers (Chrome, Safari, newer Edge) */
 ::-webkit-scrollbar {
-    width: 12px;
-    height: 12px;
+  width: 12px;
+  height: 12px;
 }
 
 ::-webkit-scrollbar-track {
-    background: #1f2937; /* gray-800 */
-    border-radius: 6px;
+  background: #1f2937; /* gray-800 */
+  border-radius: 6px;
 }
 
 ::-webkit-scrollbar-thumb {
-    background: linear-gradient(135deg, #374151, #4b5563); /* gray-700 to gray-600 */
-    border-radius: 6px;
-    border: 2px solid #1f2937; /* gray-800 */
-    transition: all 0.2s ease;
+  background: linear-gradient(135deg, #374151, #4b5563); /* gray-700 to gray-600 */
+  border-radius: 6px;
+  border: 2px solid #1f2937; /* gray-800 */
+  transition: all 0.2s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(135deg, #4b5563, #6b7280); /* gray-600 to gray-500 */
-    box-shadow: 0 0 8px rgba(14, 165, 233, 0.3); /* primary-500 with opacity */
+  background: linear-gradient(135deg, #4b5563, #6b7280); /* gray-600 to gray-500 */
+  box-shadow: 0 0 8px rgba(14, 165, 233, 0.3); /* primary-500 with opacity */
 }
 
 ::-webkit-scrollbar-thumb:active {
-    background: linear-gradient(135deg, #6b7280, #9ca3af); /* gray-500 to gray-400 */
-    box-shadow: 0 0 12px rgba(14, 165, 233, 0.5); /* primary-500 with opacity */
+  background: linear-gradient(135deg, #6b7280, #9ca3af); /* gray-500 to gray-400 */
+  box-shadow: 0 0 12px rgba(14, 165, 233, 0.5); /* primary-500 with opacity */
 }
 
 ::-webkit-scrollbar-corner {
-    background: #1f2937; /* gray-800 */
+  background: #1f2937; /* gray-800 */
 }
 
 /* Firefox */
 * {
-    scrollbar-width: thin;
-    scrollbar-color: #4b5563 #1f2937; /* thumb track */
+  scrollbar-width: thin;
+  scrollbar-color: #4b5563 #1f2937; /* thumb track */
 }
 
 /* Gaming-style scrollbar for specific containers */
 .scrollbar-gaming::-webkit-scrollbar {
-    width: 14px;
+  width: 14px;
 }
 
 .scrollbar-gaming::-webkit-scrollbar-track {
-    background: #111827; /* gray-900 */
-    border-radius: 8px;
-    border: 1px solid #374151; /* gray-700 */
+  background: #111827; /* gray-900 */
+  border-radius: 8px;
+  border: 1px solid #374151; /* gray-700 */
 }
 
 .scrollbar-gaming::-webkit-scrollbar-thumb {
-    background: linear-gradient(135deg, #0ea5e9, #0284c7); /* primary-500 to primary-600 */
-    border-radius: 8px;
-    border: 2px solid #111827; /* gray-900 */
-    box-shadow: 0 0 10px rgba(14, 165, 233, 0.4);
+  background: linear-gradient(135deg, #0ea5e9, #0284c7); /* primary-500 to primary-600 */
+  border-radius: 8px;
+  border: 2px solid #111827; /* gray-900 */
+  box-shadow: 0 0 10px rgba(14, 165, 233, 0.4);
 }
 
 .scrollbar-gaming::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(135deg, #38bdf8, #0ea5e9); /* primary-400 to primary-500 */
-    box-shadow: 0 0 15px rgba(14, 165, 233, 0.6);
-    transform: scale(1.05);
+  background: linear-gradient(135deg, #38bdf8, #0ea5e9); /* primary-400 to primary-500 */
+  box-shadow: 0 0 15px rgba(14, 165, 233, 0.6);
+  transform: scale(1.05);
 }
 
 /* Thin scrollbar variant */
 .scrollbar-thin::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+  width: 8px;
+  height: 8px;
 }
 
 .scrollbar-thin::-webkit-scrollbar-track {
-    background: #374151; /* gray-700 */
-    border-radius: 4px;
+  background: #374151; /* gray-700 */
+  border-radius: 4px;
 }
 
 .scrollbar-thin::-webkit-scrollbar-thumb {
-    background: #6b7280; /* gray-500 */
-    border-radius: 4px;
-    transition: background 0.2s ease;
+  background: #6b7280; /* gray-500 */
+  border-radius: 4px;
+  transition: background 0.2s ease;
 }
 
 .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-    background: #9ca3af; /* gray-400 */
+  background: #9ca3af; /* gray-400 */
 }
 
 /* Dark mode adjustments */
 @media (prefers-color-scheme: dark) {
-    ::-webkit-scrollbar-track {
-        background: #0a0a0a;
-    }
+  ::-webkit-scrollbar-track {
+    background: #0a0a0a;
+  }
 
-    ::-webkit-scrollbar-thumb {
-        background: linear-gradient(135deg, #262626, #404040);
-        border-color: #0a0a0a;
-    }
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #262626, #404040);
+    border-color: #0a0a0a;
+  }
 
-    ::-webkit-scrollbar-thumb:hover {
-        background: linear-gradient(135deg, #404040, #525252);
-    }
+  ::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #404040, #525252);
+  }
 }
 
 button {
-    cursor: pointer;
+  cursor: pointer;
 }
 
 /* Pick and Ban Animation Styles - Optimized with transform */
 .is-picking {
-    animation: pulse-shadow 3s infinite;
-    z-index: 10;
-    will-change: box-shadow;
+  animation: pulse-shadow 3s infinite;
+  z-index: 10;
+  will-change: box-shadow;
 }
 
 .is-picking-blue {
-    animation: pulse-shadow-blue 3s infinite;
-    z-index: 10;
-    background-color: rgba(59, 130, 246, 0.3) !important;
-    will-change: box-shadow;
+  animation: pulse-shadow-blue 3s infinite;
+  z-index: 10;
+  background-color: rgba(59, 130, 246, 0.3) !important;
+  will-change: box-shadow;
 }
 
 .is-picking-red {
-    animation: pulse-shadow-red 3s infinite;
-    z-index: 10;
-    background-color: rgba(239, 68, 68, 0.3) !important;
-    will-change: box-shadow;
+  animation: pulse-shadow-red 3s infinite;
+  z-index: 10;
+  background-color: rgba(239, 68, 68, 0.3) !important;
+  will-change: box-shadow;
 }
 
 @keyframes pulse-shadow {
-    0% {
-        box-shadow: inset rgba(59, 130, 246, 0.6) 0 0 60px 15px;
-    }
+  0% {
+    box-shadow: inset rgba(59, 130, 246, 0.6) 0 0 60px 15px;
+  }
 
-    50% {
-        box-shadow: inset rgba(59, 130, 246, 0.6) 0 0 60px -5px;
-    }
+  50% {
+    box-shadow: inset rgba(59, 130, 246, 0.6) 0 0 60px -5px;
+  }
 
-    100% {
-        box-shadow: inset rgba(59, 130, 246, 0.6) 0 0 60px 15px;
-    }
+  100% {
+    box-shadow: inset rgba(59, 130, 246, 0.6) 0 0 60px 15px;
+  }
 }
 
 @keyframes pulse-shadow-blue {
-    0% {
-        box-shadow: inset rgba(59, 130, 246, 1) 0 0 100px 30px;
-    }
+  0% {
+    box-shadow: inset rgba(59, 130, 246, 1) 0 0 100px 30px;
+  }
 
-    50% {
-        box-shadow: inset rgba(59, 130, 246, 1) 0 0 100px 5px;
-    }
+  50% {
+    box-shadow: inset rgba(59, 130, 246, 1) 0 0 100px 5px;
+  }
 
-    100% {
-        box-shadow: inset rgba(59, 130, 246, 1) 0 0 100px 30px;
-    }
+  100% {
+    box-shadow: inset rgba(59, 130, 246, 1) 0 0 100px 30px;
+  }
 }
 
 @keyframes pulse-shadow-red {
-    0% {
-        box-shadow: inset rgba(239, 68, 68, 1) 0 0 100px 30px;
-    }
+  0% {
+    box-shadow: inset rgba(239, 68, 68, 1) 0 0 100px 30px;
+  }
 
-    50% {
-        box-shadow: inset rgba(239, 68, 68, 1) 0 0 100px 5px;
-    }
+  50% {
+    box-shadow: inset rgba(239, 68, 68, 1) 0 0 100px 5px;
+  }
 
-    100% {
-        box-shadow: inset rgba(239, 68, 68, 1) 0 0 100px 30px;
-    }
+  100% {
+    box-shadow: inset rgba(239, 68, 68, 1) 0 0 100px 30px;
+  }
 }
 
 /* Player Slot Animation - Optimized with transform */
 @keyframes player-slot-enter {
-    0% {
-        transform: translateY(20px);
-        opacity: 0;
-    }
-    100% {
-        transform: translateY(0);
-        opacity: 1;
-    }
+  0% {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 .animate-player-slot {
-    animation: player-slot-enter 0.6s ease-out forwards;
+  animation: player-slot-enter 0.6s ease-out forwards;
 }
 
 /* Tournament Header Animation - Optimized with transform */
 @keyframes tournament-header-enter {
-    0% {
-        transform: scale(0.8);
-        opacity: 0;
-    }
-    100% {
-        transform: scale(1);
-        opacity: 1;
-    }
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 .animate-tournament-header {
-    animation: tournament-header-enter 0.8s ease-out 0.5s forwards;
-    opacity: 0;
+  animation: tournament-header-enter 0.8s ease-out 0.5s forwards;
+  opacity: 0;
 }
 
 /* Champ Select Layout Animation - Optimized with transform */
 @keyframes champ-select-layout-enter {
-    0% {
-        transform: translateY(200px);
-        opacity: 0;
-    }
-    100% {
-        transform: translateY(0);
-        opacity: 1;
-    }
+  0% {
+    transform: translateY(200px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 .animate-champ-select-layout {
-    animation: champ-select-layout-enter 0.8s ease-out forwards;
+  animation: champ-select-layout-enter 0.8s ease-out forwards;
 }
 
 /* Prefers reduced motion support */
 @media (prefers-reduced-motion: reduce) {
-    .animate-player-slot {
-        animation: none;
-        transform: translateY(0);
-        opacity: 1;
-    }
+  .animate-player-slot {
+    animation: none;
+    transform: translateY(0);
+    opacity: 1;
+  }
 
-    .animate-tournament-header {
-        animation: none;
-        transform: scale(1);
-        opacity: 1;
-    }
+  .animate-tournament-header {
+    animation: none;
+    transform: scale(1);
+    opacity: 1;
+  }
 
-    .animate-champ-select-layout {
-        animation: none;
-        transform: translateY(0);
-        opacity: 1;
-    }
+  .animate-champ-select-layout {
+    animation: none;
+    transform: translateY(0);
+    opacity: 1;
+  }
 
-    .is-picking,
-    .is-picking-blue,
-    .is-picking-red {
-        animation: none;
-    }
+  .is-picking,
+  .is-picking-blue,
+  .is-picking-red {
+    animation: none;
+  }
 }

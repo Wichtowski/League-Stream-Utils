@@ -1,338 +1,336 @@
-import { asyncStorage } from './asyncStorage';
+import { asyncStorage } from "./asyncStorage";
 
 interface StorageData {
-    data: unknown;
-    timestamp: number;
-    version: string;
-    checksum?: string;
+  data: unknown;
+  timestamp: number;
+  version: string;
+  checksum?: string;
 }
 
 interface StorageOptions {
-    ttl?: number;
-    enableChecksum?: boolean;
+  ttl?: number;
+  enableChecksum?: boolean;
 }
 
 class UniversalStorage {
-    private isElectron: boolean;
-    private useLocalData: boolean;
+  private isElectron: boolean;
+  private useLocalData: boolean;
 
-    constructor() {
-        this.isElectron = typeof window !== 'undefined' && !!window.electronAPI?.isElectron;
-        this.useLocalData = this.isElectron && localStorage.getItem('electron-use-local-data') === 'true';
+  constructor() {
+    this.isElectron = typeof window !== "undefined" && !!window.electronAPI?.isElectron;
+    this.useLocalData = this.isElectron && localStorage.getItem("electron-use-local-data") === "true";
 
-        // Perform cleanup on initialization to prevent quota issues
-        this.performInitialCleanup();
+    // Perform cleanup on initialization to prevent quota issues
+    this.performInitialCleanup();
+  }
+
+  private performInitialCleanup(): void {
+    if (typeof window === "undefined") return;
+
+    try {
+      // Clear old data first
+      this.clearOldLocalStorageData();
+
+      // Check localStorage usage
+      const usage = this.calculateLocalStorageUsage();
+      console.log(`localStorage usage: ${(usage.used / 1024 / 1024).toFixed(2)}MB`);
+
+      // If using more than 8MB, perform aggressive cleanup
+      if (usage.used > 8 * 1024 * 1024) {
+        console.log("localStorage usage high, performing cleanup");
+        this.aggressiveCleanup();
+      }
+    } catch (error) {
+      console.debug("Initial cleanup failed:", error);
+    }
+  }
+
+  private calculateLocalStorageUsage(): { used: number; available: number } {
+    let used = 0;
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key) {
+          const item = localStorage.getItem(key);
+          if (item) {
+            used += item.length;
+          }
+        }
+      }
+    } catch (error) {
+      console.debug("Failed to calculate localStorage usage:", error);
     }
 
-    private performInitialCleanup(): void {
-        if (typeof window === 'undefined') return;
+    // Estimate available space (localStorage limit is usually 5-10MB)
+    const estimated = 5 * 1024 * 1024; // 5MB conservative estimate
+    return { used, available: estimated - used };
+  }
+
+  private generateChecksum(data: unknown): string {
+    return btoa(JSON.stringify(data)).slice(0, 16);
+  }
+
+  private getStorageKey(key: string): string {
+    const prefix = this.isElectron && this.useLocalData ? "electron-local-" : "web-";
+    return `${prefix}${key}`;
+  }
+
+  private async setLocalStorageWithQuotaHandling(key: string, data: StorageData): Promise<void> {
+    const dataString = JSON.stringify(data);
+
+    // 2MB
+    if (dataString.length > 1024 * 1024 * 2) {
+      console.warn(
+        `Data too large for localStorage (${(dataString.length / 1024 / 1024).toFixed(2)}MB), skipping storage for key: ${key}`
+      );
+      return;
+    }
+
+    try {
+      await asyncStorage.set(key, data);
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "QuotaExceededError") {
+        console.warn("localStorage quota exceeded, attempting aggressive cleanup");
+        this.aggressiveCleanup();
 
         try {
-            // Clear old data first
-            this.clearOldLocalStorageData();
-
-            // Check localStorage usage
-            const usage = this.calculateLocalStorageUsage();
-            console.log(`localStorage usage: ${(usage.used / 1024 / 1024).toFixed(2)}MB`);
-
-            // If using more than 8MB, perform aggressive cleanup
-            if (usage.used > 8 * 1024 * 1024) {
-                console.log('localStorage usage high, performing cleanup');
-                this.aggressiveCleanup();
-            }
-        } catch (error) {
-            console.debug('Initial cleanup failed:', error);
+          await asyncStorage.set(key, data);
+        } catch (_retryError) {
+          console.warn("Failed to store data even after aggressive cleanup, trying minimal data");
+          const minimalData = {
+            data: data.data,
+            timestamp: data.timestamp,
+            version: data.version
+          };
+          try {
+            await asyncStorage.set(key, minimalData);
+          } catch (_finalError) {
+            console.error("Complete localStorage failure, disabling caching for this session");
+          }
         }
+      } else {
+        console.error("localStorage error:", error);
+      }
     }
+  }
 
-    private calculateLocalStorageUsage(): { used: number; available: number } {
-        let used = 0;
+  private clearOldLocalStorageData(): void {
+    const cutoffTime = Date.now() - 2 * 60 * 60 * 1000; // 2 hours ago (much shorter for development)
+    const keysToRemove: string[] = [];
+
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key?.startsWith("web-") || key?.startsWith("electron-local-")) {
         try {
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (key) {
-                    const item = localStorage.getItem(key);
-                    if (item) {
-                        used += item.length;
-                    }
-                }
+          const data = localStorage.getItem(key);
+          if (data) {
+            const parsed: StorageData = JSON.parse(data);
+            if (parsed.timestamp < cutoffTime) {
+              keysToRemove.push(key);
             }
-        } catch (error) {
-            console.debug('Failed to calculate localStorage usage:', error);
+          }
+        } catch {
+          keysToRemove.push(key);
         }
-
-        // Estimate available space (localStorage limit is usually 5-10MB)
-        const estimated = 5 * 1024 * 1024; // 5MB conservative estimate
-        return { used, available: estimated - used };
+      }
     }
 
-    private generateChecksum(data: unknown): string {
-        return btoa(JSON.stringify(data)).slice(0, 16);
-    }
+    keysToRemove.forEach((key) => {
+      try {
+        localStorage.removeItem(key);
+      } catch (error) {
+        console.debug("Failed to remove old storage item:", key, error);
+      }
+    });
 
-    private getStorageKey(key: string): string {
-        const prefix = this.isElectron && this.useLocalData ? 'electron-local-' : 'web-';
-        return `${prefix}${key}`;
-    }
+    console.log(`Cleared ${keysToRemove.length} old storage items`);
+  }
 
-    private async setLocalStorageWithQuotaHandling(key: string, data: StorageData): Promise<void> {
-        const dataString = JSON.stringify(data);
+  private aggressiveCleanup(): void {
+    const keysToRemove: string[] = [];
+    const itemSizes: Array<{ key: string; size: number; timestamp: number }> = [];
 
-        // 2MB
-        if (dataString.length > 1024 * 1024 * 2) {
-            console.warn(
-                `Data too large for localStorage (${(dataString.length / 1024 / 1024).toFixed(2)}MB), skipping storage for key: ${key}`
-            );
-            return;
-        }
-
+    // First, collect all our storage items with their sizes
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key?.startsWith("web-") || key?.startsWith("electron-local-")) {
         try {
-            await asyncStorage.set(key, data);
-        } catch (error) {
-            if (error instanceof DOMException && error.name === 'QuotaExceededError') {
-                console.warn('localStorage quota exceeded, attempting aggressive cleanup');
-                this.aggressiveCleanup();
-
-                try {
-                    await asyncStorage.set(key, data);
-                } catch (_retryError) {
-                    console.warn('Failed to store data even after aggressive cleanup, trying minimal data');
-                    const minimalData = {
-                        data: data.data,
-                        timestamp: data.timestamp,
-                        version: data.version
-                    };
-                    try {
-                        await asyncStorage.set(key, minimalData);
-                    } catch (_finalError) {
-                        console.error('Complete localStorage failure, disabling caching for this session');
-                    }
-                }
-            } else {
-                console.error('localStorage error:', error);
-            }
+          const data = localStorage.getItem(key);
+          if (data) {
+            const parsed: StorageData = JSON.parse(data);
+            itemSizes.push({
+              key,
+              size: data.length,
+              timestamp: parsed.timestamp
+            });
+          }
+        } catch {
+          // If we can't parse, it's corrupt data, remove it
+          keysToRemove.push(key);
         }
+      }
     }
 
-    private clearOldLocalStorageData(): void {
-        const cutoffTime = Date.now() - 2 * 60 * 60 * 1000; // 2 hours ago (much shorter for development)
-        const keysToRemove: string[] = [];
+    // Remove corrupt data first
+    keysToRemove.forEach((key) => {
+      try {
+        localStorage.removeItem(key);
+      } catch (error) {
+        console.debug("Failed to remove corrupt storage item:", key, error);
+      }
+    });
 
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (key?.startsWith('web-') || key?.startsWith('electron-local-')) {
-                try {
-                    const data = localStorage.getItem(key);
-                    if (data) {
-                        const parsed: StorageData = JSON.parse(data);
-                        if (parsed.timestamp < cutoffTime) {
-                            keysToRemove.push(key);
-                        }
-                    }
-                } catch {
-                    keysToRemove.push(key);
-                }
-            }
-        }
+    // Sort by size (largest first) then by age (oldest first)
+    itemSizes.sort((a, b) => {
+      const sizeDiff = b.size - a.size;
+      if (sizeDiff !== 0) return sizeDiff;
+      return a.timestamp - b.timestamp;
+    });
 
-        keysToRemove.forEach((key) => {
-            try {
-                localStorage.removeItem(key);
-            } catch (error) {
-                console.debug('Failed to remove old storage item:', key, error);
-            }
-        });
-
-        console.log(`Cleared ${keysToRemove.length} old storage items`);
+    // Remove up to 80% of storage items to ensure we have plenty of space
+    const itemsToRemove = Math.ceil(itemSizes.length * 0.8);
+    for (let i = 0; i < itemsToRemove && i < itemSizes.length; i++) {
+      try {
+        localStorage.removeItem(itemSizes[i].key);
+      } catch (error) {
+        console.debug("Failed to remove storage item during aggressive cleanup:", itemSizes[i].key, error);
+      }
     }
 
-    private aggressiveCleanup(): void {
-        const keysToRemove: string[] = [];
-        const itemSizes: Array<{ key: string; size: number; timestamp: number }> = [];
+    console.log(`Aggressive cleanup: removed ${keysToRemove.length} corrupt items and ${itemsToRemove} cached items`);
+  }
 
-        // First, collect all our storage items with their sizes
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (key?.startsWith('web-') || key?.startsWith('electron-local-')) {
-                try {
-                    const data = localStorage.getItem(key);
-                    if (data) {
-                        const parsed: StorageData = JSON.parse(data);
-                        itemSizes.push({
-                            key,
-                            size: data.length,
-                            timestamp: parsed.timestamp
-                        });
-                    }
-                } catch {
-                    // If we can't parse, it's corrupt data, remove it
-                    keysToRemove.push(key);
-                }
-            }
-        }
+  async set<T>(key: string, data: T, options: StorageOptions = {}): Promise<void> {
+    const storageData: StorageData = {
+      data,
+      timestamp: Date.now(),
+      version: "1.0.0",
+      ...(options.enableChecksum && { checksum: this.generateChecksum(data) })
+    };
 
-        // Remove corrupt data first
-        keysToRemove.forEach((key) => {
-            try {
-                localStorage.removeItem(key);
-            } catch (error) {
-                console.debug('Failed to remove corrupt storage item:', key, error);
-            }
-        });
+    const storageKey = this.getStorageKey(key);
 
-        // Sort by size (largest first) then by age (oldest first)
-        itemSizes.sort((a, b) => {
-            const sizeDiff = b.size - a.size;
-            if (sizeDiff !== 0) return sizeDiff;
-            return a.timestamp - b.timestamp;
-        });
+    if (this.isElectron && this.useLocalData && window.electronAPI?.storage?.set) {
+      try {
+        // Use Electron AppData storage
+        await window.electronAPI.storage.set(storageKey, storageData);
+      } catch (err) {
+        console.debug("Electron storage not available, falling back to localStorage:", err);
+        await this.setLocalStorageWithQuotaHandling(storageKey, storageData);
+      }
+    } else {
+      // Use async localStorage
+      await this.setLocalStorageWithQuotaHandling(storageKey, storageData);
+    }
+  }
 
-        // Remove up to 80% of storage items to ensure we have plenty of space
-        const itemsToRemove = Math.ceil(itemSizes.length * 0.8);
-        for (let i = 0; i < itemsToRemove && i < itemSizes.length; i++) {
-            try {
-                localStorage.removeItem(itemSizes[i].key);
-            } catch (error) {
-                console.debug('Failed to remove storage item during aggressive cleanup:', itemSizes[i].key, error);
-            }
-        }
+  async get<T>(key: string, options: StorageOptions = {}): Promise<T | null> {
+    const storageKey = this.getStorageKey(key);
+    let storageData: StorageData | null = null;
 
-        console.log(
-            `Aggressive cleanup: removed ${keysToRemove.length} corrupt items and ${itemsToRemove} cached items`
-        );
+    if (this.isElectron && this.useLocalData && window.electronAPI?.storage?.get) {
+      try {
+        // Use Electron AppData storage
+        const electronData = await window.electronAPI.storage.get(storageKey);
+        storageData = electronData as StorageData;
+      } catch (err) {
+        console.debug("Electron storage not available, falling back to localStorage:", err);
+        storageData = await asyncStorage.get<StorageData>(storageKey, options);
+      }
+    } else {
+      // Use async localStorage
+      storageData = await asyncStorage.get<StorageData>(storageKey, options);
     }
 
-    async set<T>(key: string, data: T, options: StorageOptions = {}): Promise<void> {
-        const storageData: StorageData = {
-            data,
-            timestamp: Date.now(),
-            version: '1.0.0',
-            ...(options.enableChecksum && { checksum: this.generateChecksum(data) })
-        };
+    if (!storageData) return null;
 
-        const storageKey = this.getStorageKey(key);
+    try {
+      // Check TTL if provided
+      if (options.ttl && Date.now() - storageData.timestamp > options.ttl) {
+        await this.remove(key);
+        return null;
+      }
 
-        if (this.isElectron && this.useLocalData && window.electronAPI?.storage?.set) {
-            try {
-                // Use Electron AppData storage
-                await window.electronAPI.storage.set(storageKey, storageData);
-            } catch (err) {
-                console.debug('Electron storage not available, falling back to localStorage:', err);
-                await this.setLocalStorageWithQuotaHandling(storageKey, storageData);
-            }
-        } else {
-            // Use async localStorage
-            await this.setLocalStorageWithQuotaHandling(storageKey, storageData);
+      // Check checksum if enabled
+      if (options.enableChecksum && storageData.checksum) {
+        const currentChecksum = this.generateChecksum(storageData.data);
+        if (currentChecksum !== storageData.checksum) {
+          await this.remove(key);
+          return null;
         }
+      }
+
+      return storageData.data as T;
+    } catch (error) {
+      console.error("Error parsing stored data:", error);
+      await this.remove(key);
+      return null;
+    }
+  }
+
+  async remove(key: string): Promise<void> {
+    const storageKey = this.getStorageKey(key);
+
+    if (this.isElectron && this.useLocalData && window.electronAPI?.storage?.remove) {
+      try {
+        await window.electronAPI.storage.remove(storageKey);
+      } catch (err) {
+        console.debug("Electron storage not available, falling back to localStorage:", err);
+        await asyncStorage.remove(storageKey);
+      }
+    } else {
+      await asyncStorage.remove(storageKey);
+    }
+  }
+
+  async clear(prefix?: string): Promise<void> {
+    if (this.isElectron && this.useLocalData && window.electronAPI?.storage?.clear) {
+      try {
+        await window.electronAPI.storage.clear(prefix);
+      } catch (err) {
+        console.debug("Electron storage not available, falling back to localStorage:", err);
+        this.clearLocalStorage(prefix);
+      }
+    } else {
+      this.clearLocalStorage(prefix);
+    }
+  }
+
+  private clearLocalStorage(prefix?: string): void {
+    const keysToRemove: string[] = [];
+    const storagePrefix = prefix || (this.isElectron && this.useLocalData ? "electron-local-" : "web-");
+
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key?.startsWith(storagePrefix)) {
+        keysToRemove.push(key);
+      }
     }
 
-    async get<T>(key: string, options: StorageOptions = {}): Promise<T | null> {
-        const storageKey = this.getStorageKey(key);
-        let storageData: StorageData | null = null;
+    keysToRemove.forEach((key) => {
+      try {
+        localStorage.removeItem(key);
+      } catch (error) {
+        console.debug("Failed to remove storage item:", key, error);
+      }
+    });
+  }
 
-        if (this.isElectron && this.useLocalData && window.electronAPI?.storage?.get) {
-            try {
-                // Use Electron AppData storage
-                const electronData = await window.electronAPI.storage.get(storageKey);
-                storageData = electronData as StorageData;
-            } catch (err) {
-                console.debug('Electron storage not available, falling back to localStorage:', err);
-                storageData = await asyncStorage.get<StorageData>(storageKey, options);
-            }
-        } else {
-            // Use async localStorage
-            storageData = await asyncStorage.get<StorageData>(storageKey, options);
-        }
+  async getTimestamp(key: string): Promise<number | null> {
+    const storageKey = this.getStorageKey(key);
 
-        if (!storageData) return null;
-
-        try {
-            // Check TTL if provided
-            if (options.ttl && Date.now() - storageData.timestamp > options.ttl) {
-                await this.remove(key);
-                return null;
-            }
-
-            // Check checksum if enabled
-            if (options.enableChecksum && storageData.checksum) {
-                const currentChecksum = this.generateChecksum(storageData.data);
-                if (currentChecksum !== storageData.checksum) {
-                    await this.remove(key);
-                    return null;
-                }
-            }
-
-            return storageData.data as T;
-        } catch (error) {
-            console.error('Error parsing stored data:', error);
-            await this.remove(key);
-            return null;
-        }
+    if (this.isElectron && this.useLocalData && window.electronAPI?.storage?.get) {
+      try {
+        const electronData = (await window.electronAPI.storage.get(storageKey)) as StorageData | null;
+        return electronData?.timestamp || null;
+      } catch (err) {
+        console.debug("Electron storage not available, falling back to localStorage:", err);
+        return await asyncStorage.getTimestamp(storageKey);
+      }
+    } else {
+      return await asyncStorage.getTimestamp(storageKey);
     }
-
-    async remove(key: string): Promise<void> {
-        const storageKey = this.getStorageKey(key);
-
-        if (this.isElectron && this.useLocalData && window.electronAPI?.storage?.remove) {
-            try {
-                await window.electronAPI.storage.remove(storageKey);
-            } catch (err) {
-                console.debug('Electron storage not available, falling back to localStorage:', err);
-                await asyncStorage.remove(storageKey);
-            }
-        } else {
-            await asyncStorage.remove(storageKey);
-        }
-    }
-
-    async clear(prefix?: string): Promise<void> {
-        if (this.isElectron && this.useLocalData && window.electronAPI?.storage?.clear) {
-            try {
-                await window.electronAPI.storage.clear(prefix);
-            } catch (err) {
-                console.debug('Electron storage not available, falling back to localStorage:', err);
-                this.clearLocalStorage(prefix);
-            }
-        } else {
-            this.clearLocalStorage(prefix);
-        }
-    }
-
-    private clearLocalStorage(prefix?: string): void {
-        const keysToRemove: string[] = [];
-        const storagePrefix = prefix || (this.isElectron && this.useLocalData ? 'electron-local-' : 'web-');
-
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (key?.startsWith(storagePrefix)) {
-                keysToRemove.push(key);
-            }
-        }
-
-        keysToRemove.forEach((key) => {
-            try {
-                localStorage.removeItem(key);
-            } catch (error) {
-                console.debug('Failed to remove storage item:', key, error);
-            }
-        });
-    }
-
-    async getTimestamp(key: string): Promise<number | null> {
-        const storageKey = this.getStorageKey(key);
-
-        if (this.isElectron && this.useLocalData && window.electronAPI?.storage?.get) {
-            try {
-                const electronData = (await window.electronAPI.storage.get(storageKey)) as StorageData | null;
-                return electronData?.timestamp || null;
-            } catch (err) {
-                console.debug('Electron storage not available, falling back to localStorage:', err);
-                return await asyncStorage.getTimestamp(storageKey);
-            }
-        } else {
-            return await asyncStorage.getTimestamp(storageKey);
-        }
-    }
+  }
 }
 
 export const storage = new UniversalStorage();

@@ -1,3 +1,3 @@
-import { SpotlightCard } from './SpotlightCard';
+import { SpotlightCard } from "./SpotlightCard";
 
 export { SpotlightCard };

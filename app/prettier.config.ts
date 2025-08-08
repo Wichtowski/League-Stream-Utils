@@ -3,10 +3,10 @@ import { type Config } from "prettier";
 const config: Config = {
   trailingComma: "none",
   printWidth: 120,
-  tabWidth: 4,
+  tabWidth: 2,
   useTabs: false,
   semi: true,
-  singleQuote: true,
+  singleQuote: false,
   bracketSpacing: true,
   arrowParens: "always",
   endOfLine: "crlf",

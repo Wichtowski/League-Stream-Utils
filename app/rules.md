@@ -9,19 +9,19 @@ This document outlines **best practices**, **coding conventions**, and **pattern
 ### 🧱 Project Structure
 
 - Use feature-based folder structure:
-    ```
-    /app
-      /[feature]
-        component.tsx
-        hook.ts
-        service.ts
-        types.ts
-    /components (reusable)
-    /lib (utilities, services)
-    /hooks (global hooks)
-    /styles
-    /types (global types)
-    ```
+  ```
+  /app
+    /[feature]
+      component.tsx
+      hook.ts
+      service.ts
+      types.ts
+  /components (reusable)
+  /lib (utilities, services)
+  /hooks (global hooks)
+  /styles
+  /types (global types)
+  ```
 - Co-locate feature-specific files together to minimize coupling.
 
 ### 🧾 File Naming Conventions
@@ -62,28 +62,28 @@ This document outlines **best practices**, **coding conventions**, and **pattern
 ## 🧹 DRY (Don’t Repeat Yourself)
 
 - 🔁 Identify duplicate logic and extract to:
-    - **Hooks**: for shared logic
-    - **Utils**: for pure functions
-    - **Components**: for UI reuse
+  - **Hooks**: for shared logic
+  - **Utils**: for pure functions
+  - **Components**: for UI reuse
 
 - Example:
 
-    ```ts
-    // ❌ Duplicated fetch logic
-    const fetchUser = async () => {
-        /* ... */
-    };
-    const fetchPost = async () => {
-        /* ... */
-    };
+  ```ts
+  // ❌ Duplicated fetch logic
+  const fetchUser = async () => {
+    /* ... */
+  };
+  const fetchPost = async () => {
+    /* ... */
+  };
 
-    // ✅ DRY - reuse API client
-    const apiClient = async (url: string) => {
-        /* ... */
-    };
-    const fetchUser = () => apiClient('/user');
-    const fetchPost = () => apiClient('/post');
-    ```
+  // ✅ DRY - reuse API client
+  const apiClient = async (url: string) => {
+    /* ... */
+  };
+  const fetchUser = () => apiClient("/user");
+  const fetchPost = () => apiClient("/post");
+  ```
 
 ---
 
@@ -100,14 +100,14 @@ This document outlines **best practices**, **coding conventions**, and **pattern
 
 - Use **props** explicitly typed:
 
-    ```tsx
-    type ButtonProps = {
-        label: string;
-        onClick: () => void;
-    };
+  ```tsx
+  type ButtonProps = {
+    label: string;
+    onClick: () => void;
+  };
 
-    const Button: React.FC<ButtonProps> = ({ label, onClick }) => <button onClick={onClick}>{label}</button>;
-    ```
+  const Button: React.FC<ButtonProps> = ({ label, onClick }) => <button onClick={onClick}>{label}</button>;
+  ```
 
 - Avoid unnecessary re-renders with `React.memo`, `useMemo`, and `useCallback`.
 
@@ -136,10 +136,10 @@ This document outlines **best practices**, **coding conventions**, and **pattern
 - Use ESLint + Prettier for code consistency.
 - Type-check on commit (`tsc --noEmit`).
 - Suggested packages:
-    - `eslint-config-next`
-    - `@typescript-eslint/eslint-plugin`
-    - `prettier`
-    - `zod` (for runtime validation)
+  - `eslint-config-next`
+  - `@typescript-eslint/eslint-plugin`
+  - `prettier`
+  - `zod` (for runtime validation)
 
 ---
 
@@ -148,7 +148,7 @@ This document outlines **best practices**, **coding conventions**, and **pattern
 ### 🔁 Reusable Fetch Hook (SWR)
 
 ```ts
-import useSWR from 'swr';
+import useSWR from "swr";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -161,13 +161,13 @@ export const useUser = (id: string) => useSWR(id ? `/api/user/${id}` : null, fet
 
 ```ts
 const apiClient = async <T>(url: string, options?: RequestInit): Promise<T> => {
-    const res = await fetch(url, options);
-    if (!res.ok) throw new Error('API Error');
-    return res.json();
+  const res = await fetch(url, options);
+  if (!res.ok) throw new Error("API Error");
+  return res.json();
 };
 
 // usage:
-const getUser = () => apiClient<User>('/api/user');
+const getUser = () => apiClient<User>("/api/user");
 ```
 
 ---
@@ -176,9 +176,9 @@ const getUser = () => apiClient<User>('/api/user');
 
 ```ts
 interface AuthContextType {
-    user: User | null;
-    login: (u: User) => void;
-    logout: () => void;
+  user: User | null;
+  login: (u: User) => void;
+  logout: () => void;
 }
 
 const AuthContext = React.createContext<AuthContextType | undefined>(undefined);
