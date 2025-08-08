@@ -1,63 +1,57 @@
-import type { assetDownloader } from "@lib/services/cache/asset-downloader";
+import type { assetDownloader } from '@lib/services/cache/asset-downloader';
 
 class AssetDownloaderManager {
-  private static instance: AssetDownloaderManager;
-  private downloader: typeof assetDownloader | null = null;
+    private static instance: AssetDownloaderManager;
+    private downloader: typeof assetDownloader | null = null;
 
-  private constructor() {}
+    private constructor() {}
 
-  static getInstance(): AssetDownloaderManager {
-    if (!AssetDownloaderManager.instance) {
-      AssetDownloaderManager.instance = new AssetDownloaderManager();
+    static getInstance(): AssetDownloaderManager {
+        if (!AssetDownloaderManager.instance) {
+            AssetDownloaderManager.instance = new AssetDownloaderManager();
+        }
+        return AssetDownloaderManager.instance;
     }
-    return AssetDownloaderManager.instance;
-  }
 
-  setDownloader(downloader: typeof assetDownloader): void {
-    this.downloader = downloader;
-  }
-
-  async pauseAllProcesses(): Promise<void> {
-    try {
-      // Pause the asset downloader if it exists
-      if (this.downloader) {
-        this.downloader.pauseDownload();
-      }
-
-      // Pause background processes via Electron API
-      if (
-        typeof window !== "undefined" &&
-        window.electronAPI?.pauseBackgroundProcesses
-      ) {
-        await window.electronAPI.pauseBackgroundProcesses();
-      }
-    } catch (error) {
-      console.warn("Failed to pause all processes:", error);
+    setDownloader(downloader: typeof assetDownloader): void {
+        this.downloader = downloader;
     }
-  }
 
-  async resumeAllProcesses(): Promise<void> {
-    try {
-      // Resume the asset downloader if it exists
-      if (this.downloader) {
-        this.downloader.resumeDownload();
-      }
+    async pauseAllProcesses(): Promise<void> {
+        try {
+            // Pause the asset downloader if it exists
+            if (this.downloader) {
+                this.downloader.pauseDownload();
+            }
 
-      // Resume background processes via Electron API
-      if (
-        typeof window !== "undefined" &&
-        window.electronAPI?.resumeBackgroundProcesses
-      ) {
-        await window.electronAPI.resumeBackgroundProcesses();
-      }
-    } catch (error) {
-      console.warn("Failed to resume all processes:", error);
+            // Pause background processes via Electron API
+            if (typeof window !== 'undefined' && window.electronAPI?.pauseBackgroundProcesses) {
+                await window.electronAPI.pauseBackgroundProcesses();
+            }
+        } catch (error) {
+            console.warn('Failed to pause all processes:', error);
+        }
     }
-  }
 
-  isPaused(): boolean {
-    return this.downloader?.isPaused() || false;
-  }
+    async resumeAllProcesses(): Promise<void> {
+        try {
+            // Resume the asset downloader if it exists
+            if (this.downloader) {
+                this.downloader.resumeDownload();
+            }
+
+            // Resume background processes via Electron API
+            if (typeof window !== 'undefined' && window.electronAPI?.resumeBackgroundProcesses) {
+                await window.electronAPI.resumeBackgroundProcesses();
+            }
+        } catch (error) {
+            console.warn('Failed to resume all processes:', error);
+        }
+    }
+
+    isPaused(): boolean {
+        return this.downloader?.isPaused() || false;
+    }
 }
 
 export const assetDownloaderManager = AssetDownloaderManager.getInstance();

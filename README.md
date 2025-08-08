@@ -22,15 +22,12 @@ League Stream Utils is a full-stack application that provides:
 - **React 19** - UI library with latest features
 - **TypeScript** - Type-safe JavaScript
 - **Tailwind CSS 4** - Utility-first CSS framework
-- **Heroicons** - Beautiful SVG icons
 
 ### Backend
 
 - **Node.js** - JavaScript runtime
 - **Next.js API Routes** - Server-side API endpoints
 - **MongoDB** - NoSQL database with Mongoose ODM
-- **JWT** - JSON Web Tokens for authentication
-- **bcryptjs** - Password hashing
 
 ### Desktop Application
 
@@ -49,7 +46,6 @@ League Stream Utils is a full-stack application that provides:
 - **Riot Games API** - League of Legends data
 - **League Client Update (LCU)** - Live game data
 - **OBS WebSocket** - Stream overlay integration
-- **Stripe** - Payment processing (optional)
 
 ## 🚀 Quick Start
 
@@ -68,33 +64,34 @@ League Stream Utils is a full-stack application that provides:
    cd League-Stream-Utils
 ```
 
-2. **Install dependencies**
+2 **Install dependencies**
 
 ```bash
-    cd app
-    bun install
-    # or
-    npm install
+cd app
+bun install
+# or
+npm install
 ```
 
-3. **Setup Local MongoDB (Recommended)**
+3 **Setup Local MongoDB (Recommended)**
 
 ```bash
-    npm run setup
+npm run setup
 ```
 
 This will:
+
 - Check MongoDB installation
 - Start MongoDB container
 - Create admin user (admin/admin123456789)
 - Configure the application
 
-4. **Manual Setup (Alternative)**
+4 **Manual Setup (Alternative)**
 
 If you prefer to use an external MongoDB:
 
 ```bash
-   cp env.example .env.local
+cp env.example .env.local
 ```
 
 Configure your environment variables:
@@ -111,21 +108,21 @@ RIOT_API_KEY="your-riot-api-key"
 Then create admin user:
 
 ```bash
-    node scripts/create-admin.js
+node scripts/create-admin.js
 ```
 
-5. **Start Development Server**
+5 **Start Development Server**
 
 ```bash
-   bun run dev
-   # or
-   npm run dev
+bun run dev
+# or
+npm run dev
 ```
 
-6. **Desktop App (Optional)**
+6 **Desktop App (Optional)**
 
 ```bash
-   bun run electron-dev
+bun run electron-dev
 ```
 
 ### MongoDB Management
@@ -183,17 +180,17 @@ We welcome contributions! Here's how you can help:
 ### 1. Fork the Repository
 
 ```bash
-    # Fork on GitHub, then clone your fork
-    git clone https://github.com/your-username/League-Stream-Utils.git
-    cd League-Stream-Utils
+# Fork on GitHub, then clone your fork
+git clone https://github.com/your-username/League-Stream-Utils.git
+cd League-Stream-Utils
 ```
 
 ### 2. Create a Feature Branch
 
 ```bash
-    git checkout -b feature/your-feature-name
-    # or
-    git checkout -b fix/your-bug-fix
+git checkout -b feature/your-feature-name
+# or
+git checkout -b fix/your-bug-fix
 ```
 
 ### 3. Make Your Changes
@@ -206,16 +203,16 @@ We welcome contributions! Here's how you can help:
 ### 4. Commit Your Changes
 
 ```bash
-    git add .
-    git commit -m "feat: add new tournament feature"
-    # or
-    git commit -m "fix: resolve pick/ban timer issue"
+git add .
+git commit -m "feat: add new tournament feature"
+# or
+git commit -m "fix: resolve pick/ban timer issue"
 ```
 
 ### 5. Push and Create a Pull Request
 
 ```bash
-    git push origin feature/your-feature-name
+git push origin feature/your-feature-name
 ```
 
 Then create a Pull Request on GitHub with:

@@ -5,3 +5,4 @@ prettier.config.ts
 /dist
 /build
 /public
+.env

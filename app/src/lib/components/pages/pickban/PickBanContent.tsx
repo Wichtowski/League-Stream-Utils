@@ -1,51 +1,49 @@
-"use client";
+'use client';
 
-import React from "react";
-import type { User, GameSession, SessionUrls } from "@lib/types";
-import { SessionCreator, SessionList } from "@lib/components/pages/home";
+import React from 'react';
+import type { User, GameSession, SessionUrls } from '@lib/types';
+import { SessionCreator, SessionList } from '@lib/components/pages/home';
 
 interface PickBanContentProps {
-  user: User;
-  sessions: GameSession[];
-  sessionsLoading: boolean;
-  onCreateSession: () => Promise<void>;
-  onDeleteSession: (sessionId: string) => Promise<void>;
-  loading: boolean;
-  error: string | null;
-  newSessionUrls: SessionUrls | null;
+    user: User;
+    sessions: GameSession[];
+    sessionsLoading: boolean;
+    onCreateSession: () => Promise<void>;
+    onDeleteSession: (sessionId: string) => Promise<void>;
+    loading: boolean;
+    error: string | null;
+    newSessionUrls: SessionUrls | null;
 }
 
 export function PickBanContent({
-  user,
-  sessions,
-  sessionsLoading,
-  onCreateSession,
-  onDeleteSession,
-  loading,
-  error,
-  newSessionUrls,
+    user,
+    sessions,
+    sessionsLoading,
+    onCreateSession,
+    onDeleteSession,
+    loading,
+    error,
+    newSessionUrls
 }: PickBanContentProps) {
-  return (
-    <>
-      {/* Error Display */}
-      {error && (
-        <div className="bg-red-600 text-white p-4 rounded mb-6">{error}</div>
-      )}
+    return (
+        <>
+            {/* Error Display */}
+            {error && <div className="bg-red-600 text-white p-4 rounded mb-6">{error}</div>}
 
-      {/* Content */}
-      <SessionCreator
-        user={user}
-        loading={loading}
-        onCreateSession={onCreateSession}
-        newSessionUrls={newSessionUrls}
-      />
+            {/* Content */}
+            <SessionCreator
+                user={user}
+                loading={loading}
+                onCreateSession={onCreateSession}
+                newSessionUrls={newSessionUrls}
+            />
 
-      <SessionList
-        sessions={sessions}
-        sessionsLoading={sessionsLoading}
-        isAdmin={user.isAdmin}
-        onDeleteSession={onDeleteSession}
-      />
-    </>
-  );
-} 
+            <SessionList
+                sessions={sessions}
+                sessionsLoading={sessionsLoading}
+                isAdmin={user.isAdmin}
+                onDeleteSession={onDeleteSession}
+            />
+        </>
+    );
+}

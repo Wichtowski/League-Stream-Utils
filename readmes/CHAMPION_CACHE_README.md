@@ -112,7 +112,7 @@ import { championCacheService } from '@lib/services/cache/champion';
 await championCacheService.initialize();
 
 // Download specific champion
-const champion = await championCacheService.downloadChampionData('Aatrox', '15.13.1');
+const champion = await championCacheService.downloadChampionData('Aatrox', '15.15.1');
 
 // Get cache statistics
 const stats = await championCacheService.getCacheStats();

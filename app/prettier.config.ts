@@ -1,6 +1,6 @@
 import { type Config } from "prettier";
 
-export const config: Config = {
+const config: Config = {
   trailingComma: "none",
   printWidth: 120,
   tabWidth: 4,
@@ -10,5 +10,7 @@ export const config: Config = {
   bracketSpacing: true,
   arrowParens: "always",
   endOfLine: "crlf",
-  ignorePath: ".prettierignore",
 };
+
+// eslint-disable-next-line import/no-default-export
+export default config;
