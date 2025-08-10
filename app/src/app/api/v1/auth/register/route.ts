@@ -8,7 +8,7 @@ import {
   getClientIP,
   hashPassword,
   updatePasswordHistory
-} from "@lib/utils/security/security";
+} from "@lib/services/common/security";
 import { logSecurityEvent } from "@lib/database/security";
 import { setSecurityHeaders } from "@lib/auth";
 import { config } from "@lib/config";

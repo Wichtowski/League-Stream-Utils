@@ -21,7 +21,7 @@ import {
 } from "@lib/contexts";
 import { NavigationGuard } from "@lib/components/navigation/NavigationGuard";
 import { ContextWrapper } from "@lib/components/navigation/ContextErrorBoundary";
-import { ChampionCacheInitializer } from "@lib/components/LCU/ChampionCacheInitializer";
+import { ChampionCacheInitializer } from "@/lib/components/system/LCU/ChampionCacheInitializer";
 import "./globals.css";
 
 const geistSans = Geist({

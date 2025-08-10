@@ -15,7 +15,7 @@ export function Footer() {
   const isAuthenticated = !!user;
 
   // Don't show footer on main/auth pages or when no module active
-  if (activeModule === null || pathname === "/") {
+  if (activeModule === null || pathname === "/" || pathname === "/download") {
     return null;
   }
 

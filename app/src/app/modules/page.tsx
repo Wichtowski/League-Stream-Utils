@@ -6,11 +6,11 @@ import { useNavigation } from "@lib/contexts/NavigationContext";
 import { useUser } from "@lib/contexts/AuthContext";
 import { useElectron } from "@lib/contexts/ElectronContext";
 import { useDownload } from "@lib/contexts/DownloadContext";
-import { AssetDownloadProgress } from "@lib/components/LCU";
+import { AssetDownloadProgress } from "@/lib/components/system/LCU";
 import { getVisibleModules, ModuleCard } from "@lib/navigation";
-import { tournamentStorage, LastSelectedTournament } from "@lib/utils/storage/tournament-storage";
+import { tournamentStorage, LastSelectedTournament } from "@lib/services/tournament";
 import { PageWrapper } from "@lib/layout/PageWrapper";
-import { SpotlightCard } from "@lib/components/pages/modules";
+import { SpotlightCard } from "@lib/components/features/modules/SpotlightCard";
 
 export default function ModulesPage() {
   const router = useRouter();

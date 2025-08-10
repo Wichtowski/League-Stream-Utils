@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { getDynamicMockData } from "@lib/mocks/dynamic-champselect";
 import { getChampions } from "@lib/champions";
-import { ChampSelectDisplay } from "@lib/components/pages/leagueclient/champselect/ChampSelectDisplay";
+import { ChampSelectDisplay } from "@lib/components/features/leagueclient/champselect/ChampSelectDisplay";
 import { Breadcrumbs } from "@lib/components/common/Breadcrumbs";
 
 const DemoPage: React.FC = () => {

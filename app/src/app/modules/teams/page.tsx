@@ -6,7 +6,7 @@ import type { Team, CreateTeamRequest } from "@lib/types";
 import { useNavigation, useUser, useTeams, useModal } from "@lib/contexts";
 import { LoadingSpinner } from "@lib/components/common";
 import { PageWrapper } from "@lib/layout/PageWrapper";
-import { TeamCreationForm, TeamCard } from "@lib/components/pages/teams";
+import { TeamCreationForm, TeamCard } from "@lib/components/features";
 
 export default function TeamsPage() {
   const user = useUser();

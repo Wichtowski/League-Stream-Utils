@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUserByUsername } from "@lib/database/user";
 import { verifyToken, setSecurityHeaders } from "@lib/auth";
-import { getClientIP } from "@lib/utils/security/security";
+import { getClientIP } from "@lib/services/common/security";
 import { logSecurityEvent } from "@lib/database/security";
 
 export async function GET(request: NextRequest) {

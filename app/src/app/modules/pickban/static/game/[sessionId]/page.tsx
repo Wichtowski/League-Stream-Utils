@@ -8,7 +8,7 @@ import { useAuth } from "@lib/contexts/AuthContext";
 import { useAuthenticatedFetch } from "@lib/hooks/useAuthenticatedFetch";
 import { getChampionById, getChampions } from "@lib/champions";
 import type { GameSession, Champion } from "@lib/types";
-import { API_BASE_URL } from "@lib/utils/constants";
+import { API_BASE_URL } from "@lib/services/common/constants";
 import Image from "next/image";
 import { useChampionHoverAnimation, useTurnSequence } from "@lib/hooks/useChampSelectData";
 import { PageWrapper } from "@lib/layout/PageWrapper";

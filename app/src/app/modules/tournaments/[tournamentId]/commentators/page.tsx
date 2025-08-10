@@ -6,7 +6,7 @@ import { useTournaments } from "@lib/contexts/TournamentsContext";
 import { useNavigation } from "@lib/contexts/NavigationContext";
 import { useModal } from "@lib/components/modal";
 import { LoadingSpinner } from "@lib/components/common";
-import { tournamentStorage, LastSelectedTournament } from "@lib/utils/storage/tournament-storage";
+import { tournamentStorage, LastSelectedTournament } from "@lib/services/tournament";
 import type { Tournament } from "@lib/types/tournament";
 import { PageWrapper } from "@lib/layout/PageWrapper";
 

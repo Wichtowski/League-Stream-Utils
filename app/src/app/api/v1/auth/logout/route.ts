@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyToken, invalidateSession, setSecurityHeaders } from "@lib/auth";
-import { getClientIP } from "@lib/utils/security/security";
+import { getClientIP } from "@lib/services/common/security";
 import { logSecurityEvent } from "@lib/database/security";
 
 export async function POST(request: NextRequest) {

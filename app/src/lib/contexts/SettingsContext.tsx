@@ -3,7 +3,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
 import { useAuthenticatedFetch } from "@lib/hooks/useAuthenticatedFetch";
 import { useAuth } from "./AuthContext";
-import { storage } from "@lib/utils/storage/storage";
+import { storage } from "@lib/services/common/UniversalStorage";
 
 interface AppSettings {
   theme: "light" | "dark" | "auto";

@@ -9,7 +9,7 @@ import { LoadingSpinner } from "@lib/components/common";
 import { PageWrapper } from "@lib/layout/PageWrapper";
 import type { Match } from "@lib/types/match";
 import type { Tournament } from "@lib/types/tournament";
-import { tournamentStorage, LastSelectedTournament } from "@lib/utils/storage/tournament-storage";
+import { tournamentStorage, LastSelectedTournament } from "@lib/services/tournament";
 
 export default function MatchesPage(): React.ReactElement {
   const router = useRouter();

@@ -3,7 +3,7 @@ import { getUserByUsername } from "@lib/database/user";
 import { AuthCredentials } from "@lib/types";
 import { config } from "@lib/config";
 import { generateTokens, createSession, setSecurityHeaders } from "@lib/auth";
-import { checkRateLimit, getClientIP, sanitizeInput, verifyPassword } from "@lib/utils/security/security";
+import { checkRateLimit, getClientIP, sanitizeInput, verifyPassword } from "@lib/services/common/security";
 import { recordLoginAttempt, isAccountLocked, clearLoginAttempts, logSecurityEvent } from "@lib/database/security";
 
 export async function POST(request: NextRequest): Promise<NextResponse> {

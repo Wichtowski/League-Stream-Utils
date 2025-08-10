@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { checkRequiredAssets, type AssetCheckResult } from "../utils/asset-checker";
+import { checkRequiredAssets, type AssetCheckResult } from "@/lib/services/assets/checker";
 import { useElectron } from "../contexts/ElectronContext";
 
 interface UseAssetCheckOptions {
@@ -53,7 +53,7 @@ export function useAssetCheck(options: UseAssetCheckOptions = {}): UseAssetCheck
       if (redirectIfMissing && !result.allAssetsPresent) {
         console.log("Missing assets detected:", result.missingCategories);
         console.log("Redirecting to download page...");
-        router.push("/download/assets");
+        router.push("/download");
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Unknown error checking assets";

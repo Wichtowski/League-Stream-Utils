@@ -27,7 +27,7 @@ const NavigationGuard = ({ children }: NavigationGuardProps) => {
     }
 
     // Define valid routes
-    const validRoutes = ["/", "/auth", "/modules", "/settings", "/debug-contexts", "/download/assets"];
+    const validRoutes = ["/", "/auth", "/modules", "/settings", "/debug-contexts", "/download"];
 
     // Check if current path starts with any valid route
     const isValidRoute = validRoutes.some((route) => {

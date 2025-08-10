@@ -5,7 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import { useNavigation } from "@lib/contexts/NavigationContext";
 import { AuthGuard } from "@lib/components/auth";
 import { useAuthenticatedFetch } from "@lib/hooks/useAuthenticatedFetch";
-import { CameraFeed, CameraNavigation, PlayerInfoHeader, CameraLayout } from "@lib/components/pages/cameras";
+import { CameraFeed, CameraNavigation, PlayerInfoHeader, CameraLayout } from "@lib/components/features";
 import type { CameraPlayer, CameraTeam } from "@lib/types";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 

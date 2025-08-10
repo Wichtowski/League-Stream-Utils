@@ -4,7 +4,7 @@ import { createContext, useContext, useState, useEffect, useCallback, ReactNode,
 import { useAuthenticatedFetch } from "@lib/hooks/useAuthenticatedFetch";
 import { useAuth } from "./AuthContext";
 import { useElectron } from "./ElectronContext";
-import { storage } from "@lib/utils/storage/storage";
+import { storage } from "@lib/services/common/UniversalStorage";
 import type { Team, CreateTeamRequest } from "@lib/types";
 
 interface TeamsContextType {

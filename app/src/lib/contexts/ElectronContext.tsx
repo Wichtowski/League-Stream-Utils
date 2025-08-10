@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, ReactNode, useState, useEffect } from "react";
-import { assetDownloaderManager } from "@lib/services/cache/asset-downloader-manager";
+import { assetDownloaderManager } from "@lib/services/assets";
 
 interface ElectronContextType {
   isElectron: boolean;
@@ -62,34 +62,33 @@ export function ElectronProvider({ children }: { children: ReactNode }) {
   const [electronAPI, setElectronAPI] = useState<typeof window.electronAPI | undefined>(undefined);
 
   useEffect(() => {
-    // Check cache first for faster initial load
+    // Use cache only when it says we're in Electron; otherwise verify live
     const cached = getElectronCache();
-    if (cached) {
-      setIsElectron(cached.isElectron);
-      if (cached.isElectron) {
-        setElectronAPI(window.electronAPI);
+    if (cached && cached.isElectron) {
+      setIsElectron(true);
+      setElectronAPI(window.electronAPI);
 
-        // Resume background processes after startup
-        assetDownloaderManager.resumeAllProcesses().catch((error) => {
-          console.warn("Failed to resume background processes:", error);
+      // Resume background processes after startup
+      assetDownloaderManager.resumeAllProcesses().catch(() => {
+        console.warn("Failed to resume background processes");
+      });
+
+      // Disable mode switching state after startup
+      if (window.electronAPI?.setModeSwitching) {
+        window.electronAPI.setModeSwitching(false).catch(() => {
+          console.warn("Failed to disable mode switching state");
         });
-
-        // Disable mode switching state after startup
-        if (window.electronAPI?.setModeSwitching) {
-          window.electronAPI.setModeSwitching(false).catch((error) => {
-            console.warn("Failed to disable mode switching state:", error);
-          });
-        }
-
-        // Load saved preference for local data mode
-        const savedLocalDataMode = localStorage.getItem("electron-use-local-data");
-        if (savedLocalDataMode !== null) {
-          setUseLocalData(savedLocalDataMode === "true");
-        } else {
-          setUseLocalData(true);
-          localStorage.setItem("electron-use-local-data", "true");
-        }
       }
+
+      // Load saved preference for local data mode
+      const savedLocalDataMode = localStorage.getItem("electron-use-local-data");
+      if (savedLocalDataMode !== null) {
+        setUseLocalData(savedLocalDataMode === "true");
+      } else {
+        setUseLocalData(true);
+        localStorage.setItem("electron-use-local-data", "true");
+      }
+
       setIsElectronLoading(false);
       return;
     }
@@ -105,14 +104,14 @@ export function ElectronProvider({ children }: { children: ReactNode }) {
         setElectronCache(true);
 
         // Resume background processes after startup
-        assetDownloaderManager.resumeAllProcesses().catch((error) => {
-          console.warn("Failed to resume background processes:", error);
+        assetDownloaderManager.resumeAllProcesses().catch(() => {
+          console.warn("Failed to resume background processes");
         });
 
         // Disable mode switching state after startup
         if (window.electronAPI?.setModeSwitching) {
-          window.electronAPI.setModeSwitching(false).catch((error) => {
-            console.warn("Failed to disable mode switching state:", error);
+          window.electronAPI.setModeSwitching(false).catch(() => {
+            console.warn("Failed to disable mode switching state");
           });
         }
 

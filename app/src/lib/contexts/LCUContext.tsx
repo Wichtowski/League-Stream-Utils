@@ -1,8 +1,8 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
-import { LCUConnector } from "@lib/services/LCU/lcu-connector";
-import { storage } from "@lib/utils/storage/storage";
+import { LCUConnector } from "@lib/services/external/LCU/connector";
+import { storage } from "@lib/services/common/UniversalStorage";
 import { usePathname } from "next/navigation";
 
 import type { ChampSelectSession } from "@lib/types";

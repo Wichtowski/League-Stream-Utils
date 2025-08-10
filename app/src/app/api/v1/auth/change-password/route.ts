@@ -10,7 +10,7 @@ import {
   isPasswordReused,
   updatePasswordHistory,
   getClientIP
-} from "@lib/utils/security/security";
+} from "@lib/services/common/security";
 import { logSecurityEvent } from "@lib/database/security";
 
 export const POST = withAuth(async (request: NextRequest, user: JWTPayload) => {

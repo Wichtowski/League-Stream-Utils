@@ -1,6 +1,6 @@
 import { Champion } from "./types";
-import { DDRAGON_CDN, DDRAGON_BASE_URL } from "@lib/utils/constants";
-import { championCacheService } from "./services/cache/champion";
+import { DDRAGON_CDN, DDRAGON_BASE_URL } from "@lib/services/common/constants";
+import { championCacheService } from "@lib/services/assets/champion";
 
 interface DataDragonChampion {
   id: string;

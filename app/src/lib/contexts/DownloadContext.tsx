@@ -1,9 +1,9 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
-import { assetDownloader, DownloadProgress } from "@lib/services/cache/asset-downloader";
-import { championCacheService } from "@lib/services/cache/champion";
-import { startupService } from "@lib/services/initialization/startup-service";
+import { assetDownloader, DownloadProgress } from "@lib/services/assets/downloader";
+import { championCacheService } from "@lib/services/assets";
+import { startupService } from "@lib/services/system";
 
 interface DownloadState {
   isDownloading: boolean;

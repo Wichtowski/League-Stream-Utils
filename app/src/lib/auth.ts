@@ -3,7 +3,7 @@ import jwt, { SignOptions } from "jsonwebtoken";
 import { canUserCreateSession, updateUserSessionCount } from "./database";
 import { JWTPayload, SessionData } from "./types/auth";
 import { config } from "@lib/config";
-import { checkRateLimit, getClientIP } from "./utils/security/security";
+import { checkRateLimit, getClientIP } from "@lib/services/common/security";
 import { logSecurityEvent } from "./database/security";
 
 const CSP_RULES = [

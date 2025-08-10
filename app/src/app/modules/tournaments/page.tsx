@@ -7,7 +7,7 @@ import { useNavigation } from "@lib/contexts/NavigationContext";
 import { useModal } from "@lib/components/modal";
 import { LoadingSpinner } from "@lib/components/common";
 import { PageWrapper } from "@lib/layout/PageWrapper";
-import { tournamentStorage } from "@lib/utils/storage/tournament-storage";
+import { tournamentStorage } from "@lib/services/tournament";
 
 export default function TournamentsPage() {
   const { tournaments, loading: tournamentsLoading, error } = useTournaments();

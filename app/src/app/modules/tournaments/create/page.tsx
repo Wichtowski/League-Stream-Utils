@@ -10,7 +10,7 @@ import { PageWrapper } from "@lib/layout/PageWrapper";
 // Dynamic imports for lazy loading
 const TournamentCreationForm = dynamic(
   () =>
-    import("@lib/components/pages/tournaments/TournamentCreationForm").then((mod) => ({
+    import("@lib/components/features/tournaments/TournamentCreationForm").then((mod) => ({
       default: mod.TournamentCreationForm
     })),
   {

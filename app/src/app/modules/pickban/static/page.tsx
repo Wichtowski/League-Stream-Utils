@@ -6,8 +6,8 @@ import { useNavigation } from "@lib/contexts/NavigationContext";
 import { useModal } from "@lib/contexts/ModalContext";
 import { useAuth } from "@lib/contexts/AuthContext";
 import { useAuthenticatedFetch } from "@lib/hooks/useAuthenticatedFetch";
-import { API_BASE_URL } from "@lib/utils/constants";
-import { PickBanContent } from "@lib/components/pages/pickban/PickBanContent";
+import { API_BASE_URL } from "@lib/services/common/constants";
+import { PickBanContent } from "@lib/components/features/pickban/PickBanContent";
 import { PageWrapper } from "@lib/layout/PageWrapper";
 
 export default function StaticPickBanPage() {

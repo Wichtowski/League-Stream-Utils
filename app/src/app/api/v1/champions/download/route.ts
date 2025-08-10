@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { championCacheService } from "@lib/services/cache/champion";
+import { championCacheService } from "@lib/services/assets/champion";
 
 export async function POST(request: NextRequest) {
   try {
