@@ -2,20 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@lib/auth";
 import { createTeam, getUserTeams, checkTeamAvailability } from "@lib/database/team";
 import type { CreateTeamRequest, PlayerRole } from "@lib/types";
-import { getTeamLogoUrl } from "@lib/services/common";
 
 // GET /api/v1/teams - Get user's teams
 export const GET = withAuth(async (req: NextRequest, user) => {
   try {
     const teams = await getUserTeams(user.userId);
 
-    // Add logoUrl to each team for easier frontend consumption
-    const teamsWithLogos = teams.map((team) => ({
-      ...team,
-      logoUrl: getTeamLogoUrl(team)
-    }));
-
-    return NextResponse.json({ teams: teamsWithLogos });
+    return NextResponse.json({ teams });
   } catch (error) {
     console.error("Error fetching teams:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

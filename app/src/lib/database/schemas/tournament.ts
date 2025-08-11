@@ -68,7 +68,11 @@ export const TeamSchema = new Schema({
 
   userId: { type: String, required: true },
   createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now }
+  updatedAt: { type: Date, default: Date.now },
+
+  // Standalone team fields
+  isStandalone: { type: Boolean, default: false },
+  tournamentId: { type: String, required: false }
 });
 
 export const TournamentSchema = new Schema({

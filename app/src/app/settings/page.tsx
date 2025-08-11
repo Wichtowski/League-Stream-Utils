@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@lib/contexts/AuthContext";
 import { useRouter } from "next/navigation";
-import { ElectronSettings } from "@lib/components/electron/settings";
+import { ElectronSettings } from "@lib/components/system/electron/settings";
 import { LoadingSpinner } from "@lib/components/common";
 import { PageWrapper } from "@lib/layout/PageWrapper";
 import { useNavigation } from "@lib/contexts/NavigationContext";

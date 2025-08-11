@@ -14,10 +14,12 @@ import { SettingsProvider } from "./SettingsContext";
 import { MockDataProvider } from "./MockDataContext";
 import { DownloadProvider } from "./DownloadContext";
 import { PredictionsProvider } from "./PredictionsContext";
+import { CurrentMatchProvider } from "./CurrentMatchContext";
 import { useUser } from "./AuthContext";
 import { useTeams } from "./TeamsContext";
 import { useModal } from "./ModalContext";
 import { useNavigation } from "./NavigationContext";
+import { useCurrentMatch } from "./CurrentMatchContext";
 
 export {
   NavigationProvider,
@@ -36,8 +38,10 @@ export {
   MockDataProvider,
   DownloadProvider,
   PredictionsProvider,
+  CurrentMatchProvider,
   useUser,
   useTeams,
   useModal,
-  useNavigation
+  useNavigation,
+  useCurrentMatch
 };

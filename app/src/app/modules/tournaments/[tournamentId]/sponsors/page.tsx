@@ -8,11 +8,11 @@ import { useModal } from "@lib/components/modal";
 import { LoadingSpinner } from "@lib/components/common";
 import { BackButton } from "@/lib/components/common/buttons";
 import { Tournament, Sponsorship, ImageStorage } from "@/lib/types/tournament";
-import { SponsorsGuidebook } from "@lib/components/pages/tournaments/sponsors/SponsorsGuidebook";
-import { OBSDisplayInfo } from "@lib/components/pages/tournaments/sponsors/OBSDisplayInfo";
-import { SponsorWindow } from "@lib/components/pages/tournaments/sponsors/SponsorWindow";
-import { SponsorForm } from "@lib/components/pages/tournaments/sponsors/SponsorForm";
-import { SponsorsList } from "@lib/components/pages/tournaments/sponsors/SponsorsList";
+import { SponsorsGuidebook } from "@lib/components/features/tournaments/sponsors/SponsorsGuidebook";
+import { OBSDisplayInfo } from "@lib/components/features/tournaments/sponsors/OBSDisplayInfo";
+import { SponsorWindow } from "@lib/components/features/tournaments/sponsors/SponsorWindow";
+import { SponsorForm } from "@lib/components/features/tournaments/sponsors/SponsorForm";
+import { SponsorsList } from "@lib/components/features/tournaments/sponsors/SponsorsList";
 import { PageWrapper } from "@lib/layout/PageWrapper";
 
 interface TournamentSponsorsPageProps {

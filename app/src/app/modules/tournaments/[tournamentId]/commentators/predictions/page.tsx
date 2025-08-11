@@ -33,14 +33,29 @@ const quickMatches: Match[] = [
   }
 ];
 
-export default function ComentatorPredictionsPage(): React.ReactElement {
+interface ComentatorPredictionsPageProps {
+  params: Promise<{
+    tournamentId: string;
+  }>;
+}
+
+export default function ComentatorPredictionsPage({ params }: ComentatorPredictionsPageProps): React.ReactElement {
   const user = useUser();
   const { tournaments, getBracket } = useTournaments();
   const [mode, setMode] = useState<"tournament" | "quick">();
   const [selectedTournament, setSelectedTournament] = useState<Tournament | null>(null);
+  const [tournamentId, setTournamentId] = useState<string>("");
   const [matches, setMatches] = useState<Match[]>([]);
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const [loadingMatches, setLoadingMatches] = useState(false);
+
+  useEffect(() => {
+    const resolveParams = async () => {
+      const resolvedParams = await params;
+      setTournamentId(resolvedParams.tournamentId);
+    };
+    resolveParams();
+  }, [params]);
 
   useEffect(() => {
     if (mode === "tournament" && selectedTournament) {
@@ -84,7 +99,11 @@ export default function ComentatorPredictionsPage(): React.ReactElement {
     return (
       <PageWrapper
         title="Comentator Predictions"
-        actions={<BackButton to="/modules">Back to Modules</BackButton>}
+        breadcrumbs={[
+          { label: "Tournaments", href: "/modules/tournaments" },
+          { label: selectedTournament?.name || "Loading...", href: `/modules/tournaments/${tournamentId}` },
+          { label: "Commentator Predictions", href: `/modules/tournaments/${tournamentId}/commentators/predictions`, isActive: true }
+        ]}
         contentClassName="max-w-xl mx-auto"
       >
         <div className="space-y-4">
@@ -197,5 +216,6 @@ export default function ComentatorPredictionsPage(): React.ReactElement {
     return <PageWrapper requireAuth={true}>{null}</PageWrapper>;
   }
 
+  // This should never be reached, but TypeScript requires it
   return <PageWrapper requireAuth={true}>{null}</PageWrapper>;
 }

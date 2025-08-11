@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { DownloadProgress } from "@/lib/services-old/cache/asset-downloader";
+import { DownloadProgress } from "@lib/services/assets/downloader";
 
 interface AssetDownloadProgressProps {
   progress: DownloadProgress;

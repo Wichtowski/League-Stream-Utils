@@ -82,12 +82,53 @@ export default function TeamsPage() {
   const handleVerifyAllPlayers = async (team: Team) => {
     setVerifyingAllTeams((prev) => new Set(prev).add(team.id));
     try {
+      // First verify all players
       const response = await verifyAllPlayers(team.id);
       if (response.success) {
-        await showAlert({
-          type: "success",
-          message: "Team verified successfully!"
-        });
+        // Check if we have enough verified players for auto-verification
+        const verifiedPlayerCount = [...team.players.main, ...team.players.substitutes].filter((p) => p.verified).length;
+        
+        if (verifiedPlayerCount >= 5) {
+          // Submit team verification for auto-approval
+          try {
+            const verificationResponse = await fetch(`/api/v1/teams/${team.id}/submit-verification`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${localStorage.getItem("token")}`
+              }
+            });
+
+            if (verificationResponse.ok) {
+              const verificationData = await verificationResponse.json();
+              await showAlert({
+                type: "success",
+                message: verificationData.status === "verified" 
+                  ? `Team verified successfully! (${verificationData.verifiedPlayerCount} players verified)`
+                  : `All players verified! Team verification submitted for review.`
+              });
+            } else {
+              console.warn("Team verification submission failed:", verificationResponse.status);
+              await showAlert({
+                type: "success",
+                message: `All players verified successfully! (${verifiedPlayerCount} verified)`
+              });
+            }
+          } catch (verificationError) {
+            console.warn("Team verification submission failed:", verificationError);
+            await showAlert({
+              type: "success",
+              message: `All players verified successfully! (${verifiedPlayerCount} verified)`
+            });
+          }
+        } else {
+          // Not enough players for auto-verification
+          await showAlert({
+            type: "success",
+            message: `All players verified successfully! (${verifiedPlayerCount} verified, need 5+ for team verification)`
+          });
+        }
+        
         refreshTeams();
       } else {
         console.error("Verification failed:", response.error);
@@ -186,22 +227,27 @@ export default function TeamsPage() {
             </button>
           </div>
         ) : (
-          teams
-            .filter((team) => team && team.name && team.tag && team.players && team.players.main)
-            .map((team) => (
-              <TeamCard
-                key={team.id}
-                team={team}
-                currentUserId={user?.id}
-                isAdmin={user?.isAdmin}
-                verifyingPlayers={verifyingPlayers}
-                verifyingAllTeams={verifyingAllTeams}
-                onEditTeam={(teamId) => router.push(`/modules/teams/${teamId}`)}
-                onVerifyPlayer={handleVerifyPlayer}
-                onVerifyAllPlayers={handleVerifyAllPlayers}
-                onAdminVerify={handleAdminVerify}
-              />
-            ))
+          (() => {
+            const validTeams = teams.filter((team) => team && team.name && team.tag && team.players && team.players.main);
+            const nonStandaloneTeams = validTeams.filter((team) => !team.isStandalone);
+
+            return nonStandaloneTeams.map((team) => {
+              return (
+                <TeamCard
+                  key={team.id}
+                  team={team}
+                  currentUserId={user?.id}
+                  isAdmin={user?.isAdmin}
+                  verifyingPlayers={verifyingPlayers}
+                  verifyingAllTeams={verifyingAllTeams}
+                  onEditTeam={(teamId) => router.push(`/modules/teams/${teamId}`)}
+                  onVerifyPlayer={handleVerifyPlayer}
+                  onVerifyAllPlayers={handleVerifyAllPlayers}
+                  onAdminVerify={handleAdminVerify}
+                />
+              );
+            });
+          })()
         )}
       </div>
     </PageWrapper>

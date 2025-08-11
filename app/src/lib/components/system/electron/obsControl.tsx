@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Button } from "../common/buttons/Button";
+import { Button } from "@lib/components/common/buttons";
 
 export const OBSControl: React.FC = () => {
   const [isConnected, setIsConnected] = useState(false);

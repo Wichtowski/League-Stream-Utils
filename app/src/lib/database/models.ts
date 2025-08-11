@@ -12,34 +12,46 @@ import {
   MatchSchema
 } from "./schemas";
 
-export const GameSessionModel = models.GameSession || model("GameSession", GameSessionSchema);
+// Lazy initialization function to ensure models are only created after connection
+const getModel = <T>(name: string, schema: Schema) => {
+  try {
+    // Check if we're in a browser environment and models might not be available
+    if (typeof window !== "undefined" && !models) {
+      return model<T>(name, schema);
+    }
+    return models[name] || model<T>(name, schema);
+  } catch (_error) {
+    // Fallback to creating a new model if accessing models fails
+    return model<T>(name, schema);
+  }
+};
 
-export const UserModel = models.User || model("User", UserSchema);
+export const GameSessionModel = getModel("GameSession", GameSessionSchema);
 
-export const CameraTeamModel = models.CameraTeam || model("CameraTeam", CameraTeamSchema);
+export const UserModel = getModel("User", UserSchema);
 
-export const TeamModel = models.Team || model("Team", TeamSchema);
+export const CameraTeamModel = getModel("CameraTeam", CameraTeamSchema);
 
-export const TournamentModel = models.Tournament || model("Tournament", TournamentSchema);
+export const TeamModel = getModel("Team", TeamSchema);
 
-export const BracketModel = models.Bracket || model("Bracket", BracketSchema);
+export const TournamentModel = getModel("Tournament", TournamentSchema);
 
-export const CameraSettingsModel = models.CameraSettings || model("CameraSettings", CameraSettingsSchema);
+export const BracketModel = getModel("Bracket", BracketSchema);
 
-export const ChampionModel =
-  models.Champion ||
-  model(
-    "Champion",
-    new Schema({
-      id: { type: Number, required: true, unique: true },
-      name: { type: String, required: true },
-      key: { type: String, required: true },
-      image: { type: String, required: true }
-    })
-  );
+export const CameraSettingsModel = getModel("CameraSettings", CameraSettingsSchema);
 
-export const LoginAttemptModel = models.LoginAttempt || model("LoginAttempt", LoginAttemptSchema);
+export const ChampionModel = getModel(
+  "Champion",
+  new Schema({
+    id: { type: Number, required: true, unique: true },
+    name: { type: String, required: true },
+    key: { type: String, required: true },
+    image: { type: String, required: true }
+  })
+);
 
-export const SecurityEventModel = models.SecurityEvent || model("SecurityEvent", SecurityEventSchema);
+export const LoginAttemptModel = getModel("LoginAttempt", LoginAttemptSchema);
 
-export const MatchModel = models.Match || model("Match", MatchSchema);
+export const SecurityEventModel = getModel("SecurityEvent", SecurityEventSchema);
+
+export const MatchModel = getModel("Match", MatchSchema);

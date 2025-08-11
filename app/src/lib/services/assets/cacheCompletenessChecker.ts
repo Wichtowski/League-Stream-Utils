@@ -1,5 +1,5 @@
 import { AssetValidator } from "./validator";
-import { DataDragonClient } from "../dataDragon/client";
+import { DataDragonClient } from "@lib/services/external/DataDragon/client";
 
 export interface CacheCompletenessResult {
   isComplete: boolean;

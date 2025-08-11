@@ -6,10 +6,11 @@ import { getTournamentById } from "@lib/database/tournament";
 // GET: get all matches for a tournament
 export const GET = withAuth(async (req: NextRequest) => {
   try {
-    const tournamentId = req.nextUrl.pathname.split("/")[5];
+    const tournamentId = req.nextUrl.pathname.split("/")[4];
 
     // Check if tournament exists
     const tournament = await getTournamentById(tournamentId);
+    
     if (!tournament) {
       return NextResponse.json({ error: "Tournament not found" }, { status: 404 });
     }

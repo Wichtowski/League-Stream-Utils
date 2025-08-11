@@ -85,14 +85,21 @@ export const TournamentEditor = ({
             onClick={() => router.push(`/modules/tournaments/${tournament.id}/sponsors`)}
             className={`${buttonStyle} bg-indigo-600 hover:bg-indigo-700`}
           >
-            Manage Sponsors
+            Sponsors
+          </button>
+
+          <button
+            onClick={() => router.push(`/modules/tournaments/${tournament.id}/matches`)}
+            className={`${buttonStyle} bg-red-600 hover:bg-red-700`}
+          >
+            Matches
           </button>
 
           <button
             onClick={() => router.push(`/modules/tournaments/${tournament.id}/standalone`)}
             className={`${buttonStyle} bg-orange-600 hover:bg-orange-700`}
           >
-            Manage Standalone Teams
+            Standalone Teams
           </button>
 
           {tournament.status === "draft" && (

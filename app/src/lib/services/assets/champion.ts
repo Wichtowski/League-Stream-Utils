@@ -738,11 +738,13 @@ class ChampionCacheService extends BaseCacheService<Champion> {
 
       console.log(`Found ${validCompletedSet.size} champions already completed on disk out of ${allChampionKeys.length} total`);
 
+      const ASSETS_PER_CHAMPION = 9;
+
       if (totalChampions === 0) {
         console.log("All champions are already cached!");
 
         // Report completion with asset count to match bootstrapper expectations
-        const totalAssets = totalExpected * 9;
+        const totalAssets = totalExpected * ASSETS_PER_CHAMPION;
         this.updateProgress({
           current: totalAssets,
           total: totalAssets,
@@ -756,6 +758,16 @@ class ChampionCacheService extends BaseCacheService<Champion> {
       }
 
       console.log(`Found ${totalChampions} missing champions to download`);
+
+      // Initial progress reflecting already cached champions
+      this.updateProgress({
+        current: Math.min(validCompletedSet.size, totalExpected) * ASSETS_PER_CHAMPION,
+        total: totalExpected * ASSETS_PER_CHAMPION,
+        itemName: "champions",
+        stage: "downloading",
+        assetType: "champion",
+        currentAsset: `${validCompletedSet.size}/${totalExpected}`
+      });
 
       // Download champions one by one for better progress tracking
       let downloadedCount = 0;
@@ -778,8 +790,14 @@ class ChampionCacheService extends BaseCacheService<Champion> {
             Array.from(validCompletedSet)
           );
 
-          // Don't update progress here - let individual asset downloads handle progress
-          // The champion service only manages champion completion, not individual asset progress
+          this.updateProgress({
+            current: Math.min(validCompletedSet.size, totalExpected) * ASSETS_PER_CHAMPION,
+            total: totalExpected * ASSETS_PER_CHAMPION,
+            itemName: championKey,
+            stage: "downloading",
+            assetType: "champion",
+            currentAsset: championKey
+          });
         } catch (error) {
           const errorMsg = `Failed to download ${championKey}: ${error}`;
           console.error(errorMsg);
@@ -788,17 +806,24 @@ class ChampionCacheService extends BaseCacheService<Champion> {
           // Increment count even if download failed to keep progress consistent
           downloadedCount++;
 
-          // Don't update progress for failed downloads either - let asset downloads handle it
+          this.updateProgress({
+            current: Math.min(validCompletedSet.size, totalExpected) * ASSETS_PER_CHAMPION,
+            total: totalExpected * ASSETS_PER_CHAMPION,
+            itemName: championKey,
+            stage: "downloading",
+            assetType: "champion",
+            currentAsset: championKey
+          });
         }
 
         // Small delay between champions to be nice to the API
         await new Promise((resolve) => setTimeout(resolve, 500));
       }
 
-      // Final progress update - only report completion
+      // Final progress update - report completion with asset-aligned totals
       this.updateProgress({
-        current: totalExpected,
-        total: totalExpected,
+        current: totalExpected * ASSETS_PER_CHAMPION,
+        total: totalExpected * ASSETS_PER_CHAMPION,
         itemName: `All ${totalExpected} champions complete`,
         stage: "complete",
         assetType: "champion",

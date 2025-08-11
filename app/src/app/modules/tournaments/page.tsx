@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useTournaments } from "@lib/contexts/TournamentsContext";
 import { useNavigation } from "@lib/contexts/NavigationContext";
 import { useModal } from "@lib/components/modal";
@@ -10,9 +11,11 @@ import { PageWrapper } from "@lib/layout/PageWrapper";
 import { tournamentStorage } from "@lib/services/tournament";
 
 export default function TournamentsPage() {
+  const router = useRouter();
   const { tournaments, loading: tournamentsLoading, error } = useTournaments();
   const { setActiveModule } = useNavigation();
   const { showAlert } = useModal();
+
 
   useEffect(() => {
     setActiveModule("tournaments");
@@ -109,6 +112,23 @@ export default function TournamentsPage() {
                     <span className="text-gray-400">Start:</span> {new Date(tournament.startDate).toLocaleDateString()}
                   </div>
                   {tournament.fearlessDraft && <div className="text-blue-400 text-xs">⚔️ Fearless Draft</div>}
+                </div>
+                <div className="flex justify-end items-center mt-2">
+                  <button
+                    onClick={async (e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      try { 
+                        await tournamentStorage.setLastSelectedTournament(tournament.id, tournament.name);
+                        router.push("/modules");
+                      } catch (error) {
+                        console.error("Failed to save last selected tournament:", error);
+                      }
+                    }}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs transition-colors duration-200"
+                  >
+                    Select as Current Tournament
+                  </button>
                 </div>
               </Link>
             ))}

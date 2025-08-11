@@ -15,6 +15,14 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
   const [logoPreview, setLogoPreview] = useState<string>("");
   const [formData, setFormData] = useState<Partial<CreateTeamRequest>>(createDefaultTeamRequest());
 
+  const clearLogo = () => {
+    setFormData({
+      ...formData,
+      logo: undefined
+    });
+    setLogoPreview("");
+  };
+
   const handleLogoUrlChange = (url: string) => {
     setFormData({
       ...formData,
@@ -126,7 +134,8 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
               type="text"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full bg-gray-700 rounded px-3 py-2"
+              className="w-full bg-gray-700 rounded px-3 py-2 text-white placeholder-gray-400"
+              placeholder="Enter team name"
               required
             />
           </div>
@@ -136,7 +145,8 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
               type="text"
               value={formData.tag}
               onChange={(e) => setFormData({ ...formData, tag: e.target.value })}
-              className="w-full bg-gray-700 rounded px-3 py-2"
+              className="w-full bg-gray-700 rounded px-3 py-2 text-white placeholder-gray-400"
+              placeholder="Enter team tag"
               maxLength={5}
               required
             />
@@ -147,7 +157,7 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
               type="text"
               value={formData.region}
               onChange={(e) => setFormData({ ...formData, region: e.target.value })}
-              className="w-full bg-gray-700 rounded px-3 py-2"
+              className="w-full bg-gray-700 rounded px-3 py-2 text-white placeholder-gray-400"
               placeholder="e.g., EUNE, EUW, NA"
               required
             />
@@ -157,7 +167,7 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
             <select
               value={formData.tier}
               onChange={(e) => setFormData({ ...formData, tier: e.target.value as TeamTier })}
-              className="w-full bg-gray-700 rounded px-3 py-2"
+              className="w-full bg-gray-700 rounded px-3 py-2 text-white"
             >
               <option value="amateur">Amateur</option>
               <option value="semi-pro">Semi-Professional</option>
@@ -176,7 +186,7 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
                 type="file"
                 accept="image/*"
                 onChange={(e) => e.target.files?.[0] && handleLogoFileChange(e.target.files[0])}
-                className="w-full bg-gray-700 rounded px-3 py-2 text-sm"
+                className="w-full bg-gray-700 rounded px-3 py-2 text-sm text-white file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-gray-600 file:text-white hover:file:bg-gray-500"
                 disabled={formData.logo?.type === "url" && !!formData.logo.url}
               />
               <p className="text-xs text-gray-400 mt-1">Max 5MB • PNG, JPG, WEBP</p>
@@ -187,7 +197,7 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
                 type="url"
                 value={formData.logo?.type === "url" ? formData.logo.url : ""}
                 onChange={(e) => handleLogoUrlChange(e.target.value)}
-                className="w-full bg-gray-700 rounded px-3 py-2"
+                className="w-full bg-gray-700 rounded px-3 py-2 text-white placeholder-gray-400"
                 placeholder="https://example.com/logo.png"
                 disabled={formData.logo?.type === "upload" && !!formData.logo.data}
               />
@@ -195,7 +205,15 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
           </div>
           {logoPreview && (
             <div className="mt-4 flex justify-center">
-              <div className="bg-gray-700 rounded-lg p-4">
+              <div className="bg-gray-700 rounded-lg p-4 relative">
+                <button
+                  type="button"
+                  onClick={clearLogo}
+                  className="absolute -top-2 -right-2 bg-red-600 hover:bg-red-700 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm"
+                  title="Remove logo"
+                >
+                  ×
+                </button>
                 <Image
                   src={logoPreview}
                   alt="Logo preview"
@@ -270,7 +288,7 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
                   placeholder="In-game name"
                   value={player.inGameName}
                   onChange={(e) => updatePlayer(index, "inGameName", e.target.value)}
-                  className="bg-gray-700 rounded px-3 py-2"
+                  className="bg-gray-700 rounded px-3 py-2 text-white placeholder-gray-400"
                   required
                 />
                 <input
@@ -278,7 +296,7 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
                   placeholder="Riot tag (e.g., #EUW)"
                   value={player.tag}
                   onChange={(e) => updatePlayer(index, "tag", e.target.value)}
-                  className="bg-gray-700 rounded px-3 py-2"
+                  className="bg-gray-700 rounded px-3 py-2 text-white placeholder-gray-400"
                   required
                 />
               </div>
@@ -304,7 +322,7 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
                 <select
                   value={player.role}
                   onChange={(e) => updateSubstitute(index, "role", e.target.value)}
-                  className="bg-gray-700 rounded px-3 py-2"
+                  className="bg-gray-700 rounded px-3 py-2 text-white"
                 >
                   <option value="TOP">TOP</option>
                   <option value="JUNGLE">JUNGLE</option>
@@ -317,14 +335,14 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
                   placeholder="In-game name"
                   value={player.inGameName}
                   onChange={(e) => updateSubstitute(index, "inGameName", e.target.value)}
-                  className="bg-gray-700 rounded px-3 py-2"
+                  className="bg-gray-700 rounded px-3 py-2 text-white placeholder-gray-400"
                 />
                 <input
                   type="text"
                   placeholder="Riot tag"
                   value={player.tag}
                   onChange={(e) => updateSubstitute(index, "tag", e.target.value)}
-                  className="bg-gray-700 rounded px-3 py-2"
+                  className="bg-gray-700 rounded px-3 py-2 text-white placeholder-gray-400"
                 />
                 <button
                   type="button"

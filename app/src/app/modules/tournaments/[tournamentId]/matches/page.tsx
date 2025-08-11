@@ -1,11 +1,15 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { useUser } from "@lib/contexts/AuthContext";
-import { BackButton } from "@lib/components/common/buttons";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import type { Match } from "@lib/types/match";
 import type { Tournament } from "@lib/types/tournament";
+import { useUser } from "@lib/contexts";
 import { PageWrapper } from "@lib/layout/PageWrapper";
+import { CurrentMatchStatus } from "@lib/components/features";
+import { LoadingSpinner } from "@lib/components/common";
+import { Button } from "@lib/components/common/buttons/Button";
+import { BackButton } from "@lib/components/common/buttons/BackButton";
 
 interface TournamentMatchesPageProps {
   params: Promise<{
@@ -15,6 +19,8 @@ interface TournamentMatchesPageProps {
 
 export default function TournamentMatchesPage({ params }: TournamentMatchesPageProps): React.ReactElement {
   const user = useUser();
+  const router = useRouter();
+  
   const [matches, setMatches] = useState<Match[]>([]);
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [loading, setLoading] = useState(true);
@@ -65,157 +71,132 @@ export default function TournamentMatchesPage({ params }: TournamentMatchesPageP
     return <PageWrapper requireAuth={true}>{null}</PageWrapper>;
   }
 
+  if (loading) {
+    return (
+      <PageWrapper>
+        <div className="min-h-screen p-6 max-w-6xl mx-auto">
+          <div className="text-center py-12">
+            <LoadingSpinner />
+            <div className="text-white mt-4">Loading tournament data...</div>
+          </div>
+        </div>
+      </PageWrapper>
+    );
+  }
+
+  if (error) {
+    return (
+      <PageWrapper>
+        <div className="min-h-screen p-6 max-w-6xl mx-auto">
+          <div className="text-center py-12">
+            <div className="text-red-400 text-lg mb-4">{error}</div>
+            <BackButton to="/modules/tournaments" />
+          </div>
+        </div>
+      </PageWrapper>
+    );
+  }
+
+  if (!tournament) {
+    return (
+      <PageWrapper>
+        <div className="min-h-screen p-6 max-w-6xl mx-auto">
+          <div className="text-center py-12">
+            <div className="text-red-400 text-lg mb-4">Tournament not found</div>
+            <BackButton to="/modules/tournaments" />
+          </div>
+        </div>
+      </PageWrapper>
+    );
+  }
+
+  const canCreateMatches = user.id === tournament.userId || user.isAdmin;
+
   return (
     <PageWrapper
-      title={tournament ? `${tournament.name} Matches` : "Tournament Matches"}
-      subtitle={tournament ? tournament.abbreviation : "Loading..."}
-      actions={<BackButton to="/modules/tournaments" />}
-      contentClassName="max-w-6xl mx-auto"
+      title="Matches"
+      subtitle={tournament.abbreviation}
+      breadcrumbs={[
+        { label: "Tournaments", href: "/modules/tournaments" },
+        { label: tournament.name, href: `/modules/tournaments/${tournamentId}` },
+        { label: "Matches", href: `/modules/tournaments/${tournamentId}/matches`, isActive: true }
+      ]}
     >
-      {error && (
-        <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-4 mb-6">
-          <p className="text-red-400">{error}</p>
-        </div>
-      )}
+      <div className="min-h-screen p-6 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Current Match Status */}
+          <div className="lg:col-span-1">
+            <CurrentMatchStatus />
+          </div>
 
-      {loading ? (
-        <div className="text-center py-12">
-          <div className="text-white">Loading matches...</div>
+          {/* Matches List */}
+          <div className="lg:col-span-2">
+            <div className="bg-gray-900 rounded-lg p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-white">Tournament Matches</h2>
+                {canCreateMatches && (
+                  <Button
+                    onClick={() => router.push(`/modules/tournaments/${tournamentId}/matches/create`)}
+                    size="sm"
+                  >
+                    Create Match
+                  </Button>
+                )}
+              </div>
+
+              {matches.length === 0 ? (
+                <div className="text-center py-8">
+                  <div className="text-gray-400 mb-3">No matches created yet</div>
+                  {canCreateMatches ? (
+                    <Button
+                      onClick={() => router.push(`/modules/tournaments/${tournamentId}/matches/create`)}
+                    >
+                      Create First Match
+                    </Button>
+                  ) : (
+                    <p className="text-sm text-gray-500">
+                      Contact the tournament organizer to create matches
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {matches.map((match) => (
+                    <div key={match.id} className="flex items-center justify-between p-3 bg-gray-800 rounded-md">
+                      <div className="flex-1">
+                        <div className="text-white font-medium">{match.name}</div>
+                        <div className="text-sm text-gray-400">
+                          {match.blueTeam.name} vs {match.redTeam.name}
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          {match.format} • {match.status}
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <span className={`px-2 py-1 rounded text-xs font-medium ${
+                          match.status === "in-progress" ? "bg-yellow-600 text-yellow-100" :
+                          match.status === "completed" ? "bg-green-600 text-green-100" :
+                          match.status === "cancelled" ? "bg-red-600 text-red-100" :
+                          "bg-gray-600 text-gray-100"
+                        }`}>
+                          {match.status}
+                        </span>
+                        <Button
+                          onClick={() => router.push(`/modules/tournaments/${tournamentId}/matches/${match.id}`)}
+                          size="sm"
+                          variant="secondary"
+                        >
+                          View
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
-      ) : matches.length === 0 ? (
-        <div className="text-center py-12">
-          <div className="text-gray-400 text-lg mb-4">No matches found for this tournament</div>
-          <p className="text-gray-500">Matches will appear here once they are created</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-          {matches.map((match) => (
-            <TournamentMatchCard key={match.id} match={match} tournament={tournament} />
-          ))}
-        </div>
-      )}
+      </div>
     </PageWrapper>
-  );
-}
-
-interface TournamentMatchCardProps {
-  match: Match;
-  tournament: Tournament | null;
-}
-
-function TournamentMatchCard({ match, tournament }: TournamentMatchCardProps): React.ReactElement {
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "scheduled":
-        return "text-yellow-400";
-      case "in-progress":
-        return "text-blue-400";
-      case "completed":
-        return "text-green-400";
-      case "cancelled":
-        return "text-red-400";
-      default:
-        return "text-gray-400";
-    }
-  };
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case "scheduled":
-        return "Scheduled";
-      case "in-progress":
-        return "In Progress";
-      case "completed":
-        return "Completed";
-      case "cancelled":
-        return "Cancelled";
-      default:
-        return status;
-    }
-  };
-
-  return (
-    <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 hover:border-blue-500 transition-all duration-200 shadow-lg">
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h3 className="text-xl font-semibold text-white">{match.name}</h3>
-          {match.roundName && <p className="text-gray-400 text-sm">{match.roundName}</p>}
-        </div>
-        <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(match.status)}`}>
-          {getStatusText(match.status)}
-        </span>
-      </div>
-
-      <div className="space-y-4">
-        {/* Teams */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-              <span className="text-white text-xs font-bold">{match.blueTeam.tag}</span>
-            </div>
-            <span className="text-white font-medium">{match.blueTeam.name}</span>
-          </div>
-          <div className="text-gray-400 text-sm">vs</div>
-          <div className="flex items-center space-x-3">
-            <span className="text-white font-medium">{match.redTeam.name}</span>
-            <div className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center">
-              <span className="text-white text-xs font-bold">{match.redTeam.tag}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Score */}
-        {match.status === "completed" && (
-          <div className="text-center">
-            <div className="text-2xl font-bold text-white">
-              {match.score.blue} - {match.score.red}
-            </div>
-            <div className="text-sm text-gray-400">
-              {match.winner === "blue" ? match.blueTeam.name : match.redTeam.name} wins
-            </div>
-          </div>
-        )}
-
-        {/* Match details */}
-        <div className="space-y-2 text-sm">
-          <div className="flex justify-between">
-            <span className="text-gray-400">Format:</span>
-            <span className="text-white">{match.format}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-400">Patch:</span>
-            <span className="text-white">{match.patchName}</span>
-          </div>
-          {match.scheduledTime && (
-            <div className="flex justify-between">
-              <span className="text-gray-400">Scheduled:</span>
-              <span className="text-white">{new Date(match.scheduledTime).toLocaleDateString()}</span>
-            </div>
-          )}
-          <div className="flex justify-between">
-            <span className="text-gray-400">Commentators:</span>
-            <span className="text-white">{match.commentators.length}</span>
-          </div>
-        </div>
-
-        {/* Actions */}
-        <div className="flex space-x-2 pt-4">
-          <button
-            onClick={() => (window.location.href = `/modules/tournaments/${tournament?.id}/matches/${match.id}`)}
-            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-          >
-            View Details
-          </button>
-          {match.status === "scheduled" && (
-            <button
-              onClick={() => (window.location.href = `/modules/tournaments/${tournament?.id}/matches/${match.id}/edit`)}
-              className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-            >
-              Edit
-            </button>
-          )}
-        </div>
-      </div>
-    </div>
   );
 }

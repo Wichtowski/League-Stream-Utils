@@ -8,7 +8,7 @@ import { useModal } from "@lib/components/modal";
 import { LoadingSpinner } from "@lib/components/common";
 import { PageWrapper } from "@lib/layout/PageWrapper";
 import { Tournament, TournamentStatus } from "@/lib/types";
-import { TournamentEditor } from "@lib/components/pages/tournaments/TournamentEditor";
+import { TournamentEditor } from "@lib/components/features/tournaments/TournamentEditor";
 
 interface TournamentDetailPageProps {
   params: Promise<{

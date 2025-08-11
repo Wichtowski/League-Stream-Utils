@@ -1,5 +1,5 @@
 import React from "react";
-import { DownloadProgress } from "@lib/types/progress";
+import { DownloadProgress } from "@lib/services/assets/downloader";
 
 interface DownloadProgressModalProps {
   isOpen: boolean;

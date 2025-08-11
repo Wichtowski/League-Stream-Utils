@@ -21,12 +21,28 @@ async function createWindow(mainWindow, localhostUrl, createInterceptor) {
       nodeIntegration: false,
       contextIsolation: true,
       enableRemoteModule: false,
-      preload: path.join(__dirname, "preload.js")
+      preload: path.join(__dirname, "preload.js"),
+      // Additional security settings
+      allowRunningInsecureContent: false,
+      experimentalFeatures: false,
+      webSecurity: true
     },
     icon: path.join(__dirname, "../public/favicon.ico"),
     titleBarStyle: "default",
-    show: false // Don't show until ready
+    show: false
   });
+
+  // Set CSP headers for development mode to avoid conflicts
+  if (isDev) {
+    mainWindow.value.webContents.session.webRequest.onHeadersReceived((details, callback) => {
+      callback({
+        responseHeaders: {
+          ...details.responseHeaders,
+          'Content-Security-Policy': ['default-src \'self\'; script-src \'self\' \'unsafe-inline\' \'unsafe-eval\'; style-src \'self\' \'unsafe-inline\'; img-src \'self\' data: https:; font-src \'self\'; connect-src \'self\' ws: wss: https://ddragon.leagueoflegends.com https://raw.communitydragon.org; frame-ancestors \'none\'; object-src \'none\'; base-uri \'self\'']
+        }
+      });
+    });
+  }
 
   // Hide the default menu bar
   mainWindow.value.setMenuBarVisibility(false);
@@ -37,7 +53,9 @@ async function createWindow(mainWindow, localhostUrl, createInterceptor) {
   console.log(`Loading Electron app from: ${appUrl}`);
 
   // ⬇ Next.js handler ⬇
-  stopIntercept = await createInterceptor({ session: mainWindow.value.webContents.session });
+  if (!isDev) {
+    stopIntercept = await createInterceptor({ session: mainWindow.value.webContents.session });
+  }
   // ⬆ Next.js handler ⬆
 
   mainWindow.value.loadURL(appUrl);

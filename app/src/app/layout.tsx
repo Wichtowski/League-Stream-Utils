@@ -17,7 +17,8 @@ import {
   SettingsProvider,
   MockDataProvider,
   DownloadProvider,
-  PredictionsProvider
+  PredictionsProvider,
+  CurrentMatchProvider
 } from "@lib/contexts";
 import { NavigationGuard } from "@lib/components/navigation/NavigationGuard";
 import { ContextWrapper } from "@lib/components/navigation/ContextErrorBoundary";
@@ -36,7 +37,11 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "League Stream Utils",
-  description: "Tournament stream management utilities"
+  description: "Tournament stream management utilities",
+  authors: [
+    { name: "League Stream Utils", url: "https://github.com/LeagueStreamUtils" },
+    { name: "Oskar Wichtowsky", url: "https://github.com/wichtowski" }
+  ]
 };
 
 export default function RootLayout({
@@ -63,6 +68,7 @@ export default function RootLayout({
             { name: "TournamentStats", provider: TournamentStatsProvider },
             { name: "Tournaments", provider: TournamentsProvider },
             { name: "Pickban", provider: PickbanProvider },
+            { name: "CurrentMatch", provider: CurrentMatchProvider },
             { name: "Navigation", provider: NavigationProvider },
             { name: "Modal", provider: ModalProvider }
           ]}

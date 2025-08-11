@@ -154,6 +154,9 @@ export interface CreateTeamRequest {
     discord?: string;
     website?: string;
   };
+  // Standalone team fields
+  isStandalone?: boolean;
+  tournamentId?: string;
 }
 
 export type UpdateTeamRequest = Partial<CreateTeamRequest> & {

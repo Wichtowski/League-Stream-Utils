@@ -54,7 +54,10 @@ export async function createTeam(userId: string, teamData: CreateTeamRequest): P
     socialMedia: teamData.socialMedia,
     userId,
     createdAt: new Date(),
-    updatedAt: new Date()
+    updatedAt: new Date(),
+    // Standalone team fields
+    isStandalone: teamData.isStandalone || false,
+    tournamentId: teamData.tournamentId
   });
 
   await newTeam.save();
@@ -171,6 +174,27 @@ export async function updateTeam(
   return team.toObject();
 }
 
+// Update team verification status
+export async function updateTeamVerification(
+  teamId: string,
+  userId: string,
+  verified: boolean
+): Promise<Team | null> {
+  await connectToDatabase();
+
+  // Find the team and verify ownership
+  const team = await TeamModel.findOne({ id: teamId, userId });
+  if (!team) {
+    return null;
+  }
+
+  team.verified = verified;
+  team.updatedAt = new Date();
+
+  await team.save();
+  return team.toObject();
+}
+
 // Delete team
 export async function deleteTeam(teamId: string, userId: string): Promise<boolean> {
   await connectToDatabase();
@@ -245,6 +269,88 @@ export async function verifyTeamPlayers(
   }
 
   team.updatedAt = new Date();
+  await team.save();
+  return team.toObject();
+}
+
+// Update player verification status
+export async function updatePlayerVerification(
+  teamId: string,
+  userId: string,
+  playerId: string,
+  verified: boolean
+): Promise<Team | null> {
+  await connectToDatabase();
+
+  // Find the team and verify ownership
+  const team = await TeamModel.findOne({ id: teamId, userId });
+  if (!team) {
+    return null;
+  }
+
+  // Update main players
+  team.players.main = team.players.main.map((player) => {
+    if (player.id === playerId) {
+      return {
+        ...player,
+        verified,
+        verifiedAt: verified ? new Date() : undefined,
+        updatedAt: new Date()
+      };
+    }
+    return player;
+  });
+
+  // Update substitute players
+  team.players.substitutes = team.players.substitutes.map((player) => {
+    if (player.id === playerId) {
+      return {
+        ...player,
+        verified,
+        verifiedAt: verified ? new Date() : undefined,
+        updatedAt: new Date()
+      };
+    }
+    return player;
+  });
+
+  team.updatedAt = new Date();
+  await team.save();
+  return team.toObject();
+}
+
+// Verify all players in a team
+export async function verifyAllTeamPlayers(
+  teamId: string,
+  userId: string
+): Promise<Team | null> {
+  await connectToDatabase();
+
+  // Find the team and verify ownership
+  const team = await TeamModel.findOne({ id: teamId, userId });
+  if (!team) {
+    return null;
+  }
+
+  const now = new Date();
+
+  // Verify all main players
+  team.players.main = team.players.main.map((player) => ({
+    ...player,
+    verified: true,
+    verifiedAt: now,
+    updatedAt: now
+  }));
+
+  // Verify all substitute players
+  team.players.substitutes = team.players.substitutes.map((player) => ({
+    ...player,
+    verified: true,
+    verifiedAt: now,
+    updatedAt: now
+  }));
+
+  team.updatedAt = now;
   await team.save();
   return team.toObject();
 }

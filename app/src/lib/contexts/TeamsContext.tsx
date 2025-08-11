@@ -41,6 +41,30 @@ const CACHE_KEY = "teams-data";
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 const SYNC_CHECK_INTERVAL = 30000; // 30 seconds
 
+// Type for teams without image data for localStorage storage
+type TeamWithoutImageData = Omit<Team, 'logo'> & {
+  logo: {
+    type: "upload";
+    size: number;
+    format: "png" | "jpg" | "webp";
+  } | {
+    type: "url";
+    url: string;
+    size?: number;
+    format?: "png" | "jpg" | "webp";
+  };
+};
+
+// Utility function to strip image data from teams for localStorage storage
+const stripTeamImageData = (teams: Team[]): TeamWithoutImageData[] => {
+  return teams.map(team => ({
+    ...team,
+    logo: team.logo.type === "upload" 
+      ? { type: "upload", size: team.logo.size, format: team.logo.format }
+      : team.logo
+  }));
+};
+
 // Simple electron storage helper to avoid blocking localStorage operations
 const electronStorage = {
   async get<T>(key: string): Promise<T | null> {
@@ -145,7 +169,7 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
         // Only update cache and state if data has changed
         if (dataChanged) {
           setTeams(fetchedTeams);
-          await storage.set(CACHE_KEY, fetchedTeams, { enableChecksum: true });
+          await storage.set(CACHE_KEY, stripTeamImageData(fetchedTeams), { enableChecksum: true });
           setLastFetch(Date.now());
         }
         return fetchedTeams;
@@ -352,12 +376,15 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
             socialMedia: teamData.socialMedia,
             userId: user?.id || "electron-admin",
             createdAt: new Date(),
-            updatedAt: new Date()
+            updatedAt: new Date(),
+            // Standalone team fields
+            isStandalone: teamData.isStandalone || false,
+            tournamentId: teamData.tournamentId
           };
 
           const updatedTeams = [newTeam, ...teams];
           setTeams(updatedTeams);
-          await electronStorage.set(CACHE_KEY, updatedTeams);
+          await electronStorage.set(CACHE_KEY, stripTeamImageData(updatedTeams));
           return { success: true, team: newTeam };
         }
 
@@ -374,7 +401,7 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
           const newTeam = data.team;
           const updatedTeams = [newTeam, ...teams];
           setTeams(updatedTeams);
-          await storage.set(CACHE_KEY, updatedTeams, { enableChecksum: true });
+          await storage.set(CACHE_KEY, stripTeamImageData(updatedTeams), { enableChecksum: true });
           return { success: true, team: newTeam };
         } else {
           return {
@@ -434,7 +461,7 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
             return team;
           });
           setTeams(updatedTeams);
-          await electronStorage.set(CACHE_KEY, updatedTeams);
+          await electronStorage.set(CACHE_KEY, stripTeamImageData(updatedTeams));
           const updatedTeam = updatedTeams.find((t) => t.id === teamId);
           return { success: true, team: updatedTeam };
         }
@@ -452,7 +479,7 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
           const updatedTeam = data.team;
           const updatedTeams = teams.map((team) => (team.id === teamId ? updatedTeam : team));
           setTeams(updatedTeams);
-          await storage.set(CACHE_KEY, updatedTeams, { enableChecksum: true });
+          await storage.set(CACHE_KEY, stripTeamImageData(updatedTeams), { enableChecksum: true });
           return { success: true, team: updatedTeam };
         } else {
           return {
@@ -475,7 +502,7 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
           // Delete team locally
           const updatedTeams = teams.filter((team) => team.id !== teamId);
           setTeams(updatedTeams);
-          await electronStorage.set(CACHE_KEY, updatedTeams);
+          await electronStorage.set(CACHE_KEY, stripTeamImageData(updatedTeams));
           return { success: true };
         }
 
@@ -487,7 +514,7 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
         if (response.ok) {
           const updatedTeams = teams.filter((team) => team.id !== teamId);
           setTeams(updatedTeams);
-          await storage.set(CACHE_KEY, updatedTeams, { enableChecksum: true });
+          await storage.set(CACHE_KEY, stripTeamImageData(updatedTeams), { enableChecksum: true });
           return { success: true };
         } else {
           const data = await response.json();
@@ -513,7 +540,7 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
             team.id === teamId ? { ...team, verified: true, updatedAt: new Date() } : team
           );
           setTeams(updatedTeams);
-          await electronStorage.set(CACHE_KEY, updatedTeams);
+          await electronStorage.set(CACHE_KEY, stripTeamImageData(updatedTeams));
           return { success: true };
         }
 
@@ -526,7 +553,7 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
           const data = await response.json();
           const updatedTeams = teams.map((team) => (team.id === teamId ? data.team : team));
           setTeams(updatedTeams);
-          await storage.set(CACHE_KEY, updatedTeams, { enableChecksum: true });
+          await storage.set(CACHE_KEY, stripTeamImageData(updatedTeams), { enableChecksum: true });
           return { success: true };
         } else {
           const data = await response.json();
@@ -587,7 +614,7 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
             return team;
           });
           setTeams(updatedTeams);
-          await electronStorage.set(CACHE_KEY, updatedTeams);
+          await electronStorage.set(CACHE_KEY, stripTeamImageData(updatedTeams));
           return { success: true };
         }
 
@@ -602,7 +629,7 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
           const data = await response.json();
           const updatedTeams = teams.map((team) => (team.id === teamId ? data.team : team));
           setTeams(updatedTeams);
-          await storage.set(CACHE_KEY, updatedTeams, { enableChecksum: true });
+          await storage.set(CACHE_KEY, stripTeamImageData(updatedTeams), { enableChecksum: true });
           return { success: true };
         } else {
           const data = await response.json();
@@ -651,7 +678,7 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
             return team;
           });
           setTeams(updatedTeams);
-          await electronStorage.set(CACHE_KEY, updatedTeams);
+          await electronStorage.set(CACHE_KEY, stripTeamImageData(updatedTeams));
           return { success: true };
         }
 
@@ -664,7 +691,7 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
           const data = await response.json();
           const updatedTeams = teams.map((team) => (team.id === teamId ? data.team : team));
           setTeams(updatedTeams);
-          await storage.set(CACHE_KEY, updatedTeams, { enableChecksum: true });
+          await storage.set(CACHE_KEY, stripTeamImageData(updatedTeams), { enableChecksum: true });
           return { success: true };
         } else {
           const data = await response.json();

@@ -11,6 +11,8 @@ import { OBSDisplayInfo } from "./sponsors/OBSDisplayInfo";
 import { SponsorWindow } from "./sponsors/SponsorWindow";
 import { SponsorForm } from "./sponsors/SponsorForm";
 import { SponsorsList } from "./sponsors/SponsorsList";
+import { MatchCreationForm } from "./MatchCreationForm";
+import { CurrentMatchStatus } from "./CurrentMatchStatus";
 
 export {
   MyTeamRegistration,
@@ -25,5 +27,7 @@ export {
   OBSDisplayInfo,
   SponsorWindow,
   SponsorForm,
-  SponsorsList
+  SponsorsList,
+  MatchCreationForm,
+  CurrentMatchStatus
 };

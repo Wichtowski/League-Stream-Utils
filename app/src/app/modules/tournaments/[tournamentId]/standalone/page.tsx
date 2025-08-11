@@ -7,7 +7,7 @@ import { useModal } from "@lib/components/modal";
 import { LoadingSpinner } from "@lib/components/common";
 import { PageWrapper } from "@lib/layout/PageWrapper";
 import { Tournament, Team, CreateTeamRequest } from "@/lib/types";
-import { TeamCreationForm } from "@lib/components/pages/teams/TeamCreationForm";
+import { TeamCreationForm } from "@lib/components/features/teams/TeamCreationForm";
 
 interface TournamentStandaloneTeamsPageProps {
   params: Promise<{
@@ -91,13 +91,20 @@ export default function TournamentStandaloneTeamsPage({ params }: TournamentStan
     async (teamData: CreateTeamRequest): Promise<void> => {
       setCreatingTeam(true);
       try {
+        // Add standalone team flags
+        const standaloneTeamData = {
+          ...teamData,
+          isStandalone: true,
+          tournamentId: tournamentId
+        };
+
         const response = await fetch("/api/v1/teams", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${localStorage.getItem("token")}`
           },
-          body: JSON.stringify(teamData)
+          body: JSON.stringify(standaloneTeamData)
         });
 
         const data = await response.json();
@@ -123,7 +130,7 @@ export default function TournamentStandaloneTeamsPage({ params }: TournamentStan
         setCreatingTeam(false);
       }
     },
-    [showAlert, fetchTeams]
+    [showAlert, fetchTeams, tournamentId]
   );
 
   const handleRegisterTeam = useCallback(async (): Promise<void> => {

@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { resolve } from "path";
 import { promises as fs } from "fs";
-import { itemsBlueprintDownloader } from "@lib/services/assets/downloaders/items-blueprint-downloader";
+import { itemsBlueprintDownloader } from "@lib/services/assets/item";
 import { itemCacheService } from "@lib/services/assets/item";
+import { DataDragonClient } from "@lib/services/external/DataDragon/client";
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
@@ -82,7 +83,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
       case "check-items-progress":
         try {
-          const version = await itemsBlueprintDownloader.getLatestVersion();
+          const version = await DataDragonClient.getLatestVersion();
           const progress = await itemsBlueprintDownloader.getDownloadProgress(version);
           const completeness = await itemCacheService.checkCacheCompleteness();
 

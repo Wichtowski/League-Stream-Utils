@@ -1,4 +1,3 @@
-/* eslint-disable-next-line @typescript-eslint/no-require-imports */
 import { ipcMain } from "electron";
 
 function registerLCUHandlers(lcuDataRef, useMockDataRef, broadcastLCUDataUpdate, broadcastMockDataToggle) {

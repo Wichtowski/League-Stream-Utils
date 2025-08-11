@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, use, useRef } from "react";
 import { getDynamicMockData } from "@lib/mocks/dynamic-champselect";
 import { getChampions } from "@lib/champions";
-import { ChampSelectDisplay } from "@lib/components/pages/leagueclient/champselect/ChampSelectDisplay";
+import { ChampSelectDisplay } from "@lib/components/features/leagueclient/champselect/ChampSelectDisplay";
 import type { GameState } from "@lib/types";
 
 export default function OBSView({ params }: { params: Promise<{ sessionId: string }> }) {

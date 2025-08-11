@@ -9,7 +9,60 @@ const nextConfig: NextConfig = {
   // Bundle splitting optimizations
   experimental: {
     // Enable better tree shaking
-    optimizePackageImports: ["@heroicons/react"]
+    optimizePackageImports: ["@heroicons/react"],
+    // CSS optimization
+    optimizeCss: true
+  },
+  // Content Security Policy headers (duplicated in auth.ts since data types missmatch)
+  async headers() {
+    const isDev = process.env.NODE_ENV === "development";
+    
+    // Skip CSP headers in development to avoid conflicts with dev tools
+    if (isDev) {
+      return [];
+    }
+    
+    return [
+      {
+        source: "/(.*)",
+        headers: [
+          {
+            key: "Content-Security-Policy",
+            value: [
+              "default-src 'self'",
+              "script-src 'self'",
+              "style-src 'self'",
+              "img-src 'self' data: https:",
+              "font-src 'self'",
+              "connect-src 'self' ws: wss: https://ddragon.leagueoflegends.com https://raw.communitydragon.org",
+              "frame-ancestors 'none'",
+              "object-src 'none'",
+              "base-uri 'self'"
+            ].join("; ")
+          },
+          {
+            key: "X-Content-Type-Options",
+            value: "nosniff"
+          },
+          {
+            key: "X-Frame-Options",
+            value: "DENY"
+          },
+          {
+            key: "X-XSS-Protection",
+            value: "1; mode=block"
+          },
+          {
+            key: "Referrer-Policy",
+            value: "strict-origin-when-cross-origin"
+          },
+          {
+            key: "Permissions-Policy",
+            value: "camera=(), microphone=(), geolocation=()"
+          }
+        ]
+      }
+    ];
   },
   images: {
     remotePatterns: [
@@ -19,7 +72,7 @@ const nextConfig: NextConfig = {
         pathname: "/cdn/**"
       }
     ],
-    domains: ["vdo.ninja", "via.placeholder.com"]
+    domains: ["vdo.ninja", "via.placeholder.com", "ddragon.leagueoflegends.com"]
   },
   // Webpack configuration for bundle splitting
   webpack: (config, { dev, isServer }) => {

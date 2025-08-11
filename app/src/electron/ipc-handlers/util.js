@@ -1,8 +1,6 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
 import { ipcMain, app } from "electron";
 import fs from "fs";
 import path from "path";
-/* eslint-enable @typescript-eslint/no-require-imports */
 
 // File operation lock to prevent concurrent access
 const fileLocks = new Map();
@@ -73,7 +71,7 @@ function registerUtilHandlers() {
 
   ipcMain.handle("get-mongodb-status", async () => {
     try {
-      const { localMongoDBService } = await import("../../src/lib/components/electron/local-mongodb-service.js");
+      const { localMongoDBService } = await import("../utils/local-mongodb-service.js");
       return await localMongoDBService.getStatus();
     } catch (error) {
       console.error("Failed to get MongoDB status:", error);

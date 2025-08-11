@@ -22,13 +22,7 @@ export const GET = withAuth(async (req: NextRequest, user: JWTPayload) => {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    // Add logoUrl for easier frontend consumption
-    const teamWithLogo = {
-      ...team,
-      logoUrl: getTeamLogoUrl(team)
-    };
-
-    return NextResponse.json({ team: teamWithLogo });
+    return NextResponse.json({ team });
   } catch (error) {
     console.error("Error fetching team:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

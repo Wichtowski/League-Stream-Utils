@@ -41,8 +41,8 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
               {title && <h1 className="text-3xl font-bold mb-2">{title}</h1>}
               {subtitle && <p className="text-gray-300">{subtitle}</p>}
             </div>
-            {isElectron && <SettingsCog />}
             {actions && <div className="flex items-center space-x-4">{actions}</div>}
+            {isElectron && <SettingsCog />}
           </div>
         )}
 

@@ -14,17 +14,31 @@ const __dirname = dirname(__filename);
 const isDev = process.env.NODE_ENV === "development";
 
 // ⬇ Next.js handler ⬇
-const appPath = app.getAppPath();
-const dir = isDev ? path.join(appPath, "src") : path.join(appPath, ".next", "standalone");
+const appRootDir = path.join(__dirname, "..", "..");
+const appPath = isDev ? appRootDir : app.getAppPath();
+console.log("App path:", appPath);
 
-const { createInterceptor, localhostUrl } = createHandler({
-  dev: isDev,
-  dir,
-  protocol,
-  debug: true,
-  turbo: true, // optional
-  port: 2137
-});
+let createInterceptor;
+let localhostUrl;
+
+if (isDev) {
+  // In dev, rely on the running Next dev server directly
+  localhostUrl = "http://localhost:2137";
+  createInterceptor = async () => () => {};
+} else {
+  // In prod, use next-electron-rsc to serve the built app
+  const dir = path.join(appPath, ".next", "standalone");
+  const handler = createHandler({
+    dev: false,
+    dir,
+    protocol,
+    debug: true,
+    turbo: true,
+    port: 2137
+  });
+  createInterceptor = handler.createInterceptor;
+  localhostUrl = handler.localhostUrl;
+}
 
 // Import modules using dynamic imports
 let createWindow,

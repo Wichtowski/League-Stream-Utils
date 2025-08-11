@@ -3,7 +3,7 @@
 import React from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useTeams } from "@lib/contexts/TeamsContext";
-import { TeamEditForm } from "@lib/components/pages/teams/TeamEditForm";
+import { TeamEditForm } from "@lib/components/features/teams/TeamEditForm";
 import { PageWrapper } from "@lib/layout/PageWrapper";
 
 const TeamEditPage: React.FC = () => {

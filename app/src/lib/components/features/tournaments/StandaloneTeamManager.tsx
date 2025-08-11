@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useModal } from "@lib/contexts/ModalContext";
 import type { Tournament, Team, CreateTeamRequest } from "@lib/types";
 import { OverlayLoader } from "@lib/components/common";
-import { TeamCreationForm } from "@lib/components/pages/teams/TeamCreationForm";
+import { TeamCreationForm } from "@lib/components/features/teams/TeamCreationForm";
 
 interface StandaloneTeamManagerProps {
   tournament: Tournament;

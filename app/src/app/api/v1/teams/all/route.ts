@@ -11,13 +11,7 @@ export const GET = withAuth(async (_req: NextRequest, _user: JWTPayload) => {
     // We could add additional permission checks here if needed in the future
     const teams = await getAllTeams();
 
-    // Add logoUrl to each team for easier frontend consumption
-    const teamsWithLogos = teams.map((team) => ({
-      ...team,
-      logoUrl: getTeamLogoUrl(team)
-    }));
-
-    return NextResponse.json({ teams: teamsWithLogos });
+    return NextResponse.json({ teams });
   } catch (error) {
     console.error("Error fetching all teams:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

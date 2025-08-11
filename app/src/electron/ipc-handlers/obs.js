@@ -1,7 +1,5 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
 import { ipcMain } from "electron";
 import WebSocket from "ws";
-/* eslint-enable @typescript-eslint/no-require-imports */
 
 class OBSClient {
   constructor(host = "localhost", port = 4455, password) {

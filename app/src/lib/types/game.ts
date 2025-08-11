@@ -67,6 +67,10 @@ export interface Team {
   createdAt: Date;
   updatedAt: Date;
 
+  // Standalone team fields
+  isStandalone?: boolean;
+  tournamentId?: string;
+
   // In-game draft fields (optional so tournament objects remain valid)
   side?: "blue" | "red";
   bans?: Champion[];

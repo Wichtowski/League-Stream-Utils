@@ -19,6 +19,7 @@ export interface DownloadProgress {
   total: number;
   currentAsset?: string;
   assetType?: string;
+  percentage?: number;
   message: string;
   errors: string[];
   downloadSpeed?: number;

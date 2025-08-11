@@ -1,6 +1,7 @@
 import { CameraFeed, CameraNavigation, PlayerInfoHeader, CameraLayout } from "./cameras";
 import { PickBanHub, UnauthenticatedLanding, SessionCreator, SessionList, SessionUrlDisplay } from "./home";
 import { TeamCard, TeamCreationForm, TeamEditForm } from "./teams";
+import { MatchCreationForm, CurrentMatchStatus } from "./tournaments";
 
 export {
   // Cameras
@@ -17,5 +18,8 @@ export {
   // Teams
   TeamCard,
   TeamCreationForm,
-  TeamEditForm
+  TeamEditForm,
+  // Tournaments
+  MatchCreationForm,
+  CurrentMatchStatus
 };
