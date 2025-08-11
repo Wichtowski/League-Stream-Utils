@@ -39,7 +39,7 @@ export const getChampionLoadingImage = (championId: number): string | null => {
   const ddragonMatch = champ.image.match(/\/cdn\/([^/]+)\/img\/champion\/([^.]+)\.png$/);
   if (ddragonMatch) {
     const [, version, key] = ddragonMatch;
-    const rel = `cache/game/${version}/champions/${key}/loading.jpg`;
+    const rel = `hosted/assets/game/${version}/champion/${key}/loading.png`;
     return resolveCachedPath(rel);
   }
 
