@@ -39,7 +39,7 @@ const TeamsContext = createContext<TeamsContextType | undefined>(undefined);
 
 const CACHE_KEY = "teams-data";
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
-const SYNC_CHECK_INTERVAL = 30000; // 30 seconds
+const _SYNC_CHECK_INTERVAL = 30000; // 30 seconds
 
 // Type for teams without image data for localStorage storage
 type TeamWithoutImageData = Omit<Team, 'logo'> & {
@@ -109,7 +109,7 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
   const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [lastFetch, setLastFetch] = useState<number>(0);
+  const [_lastFetch, setLastFetch] = useState<number>(0);
 
   // Check if we're in local data mode
   const isLocalDataMode = isElectron && useLocalData;
@@ -216,13 +216,10 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
           if (timestamp) {
             setLastFetch(timestamp);
           }
-          // Only fetch fresh data in background if cache is expired and teams is not empty
-          const now = Date.now();
-          if ((!timestamp || now - timestamp > CACHE_TTL) && cachedTeams && cachedTeams.length > 0) {
-            fetchTeamsFromAPI(false);
-          }
+          // REMOVED: Automatic background refresh was causing too many API calls
+          // Teams will only refresh when explicitly requested via refreshTeams()
         } else {
-          // No cache, fetch fresh data
+          // No cache, fetch fresh data only once
           const fetched = await fetchTeamsFromAPI(true);
           // If still empty after fetch, do not schedule further fetches
           if (!fetched || fetched.length === 0) {
@@ -243,7 +240,7 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
     }
   }, [user, isLocalDataMode, fetchTeamsFromAPI]);
 
-  const checkDataSync = useCallback(async (): Promise<void> => {
+  const _checkDataSync = useCallback(async (): Promise<void> => {
     // Skip sync checks in local data mode
     if (isLocalDataMode) return;
     // Do not sync if teams is empty
@@ -272,41 +269,30 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
   }, [isLocalDataMode, teams, fetchTeamsFromAPI, authenticatedFetch]);
 
   useEffect(() => {
-    if (!authLoading) {
-      // Use requestIdleCallback for better performance if available
-      if (typeof window !== "undefined" && "requestIdleCallback" in window) {
-        (window as unknown as Window).requestIdleCallback(
-          () => {
-            loadCachedData();
-          },
-          { timeout: 1000 }
-        );
-      } else {
-        // Fallback to setTimeout for immediate execution
-        setTimeout(() => {
-          loadCachedData();
-        }, 0);
-      }
+    if (!authLoading && user) {
+      // Only load data once when auth is ready and user is available
+      loadCachedData();
     }
-  }, [user, authLoading, loadCachedData]);
+  }, [user, authLoading]); // Removed loadCachedData from dependencies to prevent infinite loops
 
-  useEffect(() => {
-    // Only run sync interval if user is authenticated, not in local mode, and has teams
-    // Also check if we're on a teams-related page to avoid unnecessary background sync
-    if (!user || isLocalDataMode || authLoading || !teams || teams.length === 0) return;
+  // TEMPORARILY DISABLED: Background sync interval was causing too many API calls
+  // useEffect(() => {
+  //   // Only run sync interval if user is authenticated, not in local mode, and has teams
+  //   // Also check if we're on a teams-related page to avoid unnecessary background sync
+  //   if (!user || isLocalDataMode || authLoading || !teams || teams.length === 0) return;
 
-    // Check if we're on a teams-related page
-    const isTeamsPage =
-      window.location.pathname.includes("/modules/teams") || window.location.pathname.includes("/modules/tournaments");
+  //   // Check if we're on a teams-related page
+  //   const isTeamsPage =
+  //     window.location.pathname.includes("/modules/teams") || window.location.pathname.includes("/modules/tournaments");
 
-    if (!isTeamsPage) return;
+  //   if (!isTeamsPage) return;
 
-    const interval = setInterval(() => {
-      checkDataSync();
-    }, SYNC_CHECK_INTERVAL);
+  //   const interval = setInterval(() => {
+  //     checkDataSync();
+  //   }, SYNC_CHECK_INTERVAL);
 
-    return () => clearInterval(interval);
-  }, [user, lastFetch, isLocalDataMode, authLoading, teams, checkDataSync, authenticatedFetch, fetchTeamsFromAPI]);
+  //   return () => clearInterval(interval);
+  // }, [user, lastFetch, isLocalDataMode, authLoading, teams, checkDataSync, authenticatedFetch, fetchTeamsFromAPI]);
 
   const refreshTeams = useCallback(async (): Promise<void> => {
     if (isLocalDataMode) {

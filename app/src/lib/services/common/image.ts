@@ -3,27 +3,64 @@ import type { ImageStorage } from "@lib/types/tournament";
 import type { Team } from "@lib/types/game";
 
 /**
- * Convert ImageStorage object into a URL that can be used in <img src>. Handles:
+ * Convert ImageStorage object into a URL that can be used in <img src>. 
+ * Images are fetched from MongoDB database.
+ * Handles:
  *  - external URLs (type: 'url')
- *  - base64 uploads (type: 'upload' & data starts with data:)
- *  - uploaded filename references (type: 'upload' & data is a filename)
+ *  - database-stored images (type: 'upload' - fetches from MongoDB)
  */
-export const getImageUrl = (image: ImageStorage): string => {
+export const getImageUrl = async (image?: ImageStorage): Promise<string> => {
+  if (!image) {
+    return "";
+  }
+
   // External URL
   if (image.type === "url") {
-    return image.data!;
+    return image.url || "";
   }
 
-  // Uploaded file reference → already stored in /uploads
-  if (!image.data.startsWith("data:")) {
-    return `/uploads/${image.data}`;
+  // Database-stored image - fetch from MongoDB
+  if (image.type === "upload" && image.data) {
+    try {
+      // Fetch image data from MongoDB
+      const response = await fetch(`/api/v1/assets/ingame/${image.data}`);
+      if (response.ok) {
+        const blob = await response.blob();
+        return URL.createObjectURL(blob);
+      }
+    } catch (error) {
+      console.error('Failed to fetch image from database:', error);
+    }
   }
 
-  // Base64 string – return as-is (renderable by <img src>)
-  return image.data;
+  return "";
 };
 
-export const getTeamLogoUrl = (team: Team, fallbackUrl = "/assets/default-team-logo.png"): string => {
-  const logo = getImageUrl(team.logo);
-  return logo || fallbackUrl;
+/**
+ * Get team logo URL - uses the dedicated team logo endpoint
+ */
+export const getTeamLogoUrl = async (team: Team): Promise<string> => {
+  if (!team.logo) {
+    return "";
+  }
+
+  // External URL
+  if (team.logo.type === "url") {
+    return team.logo.url || "";
+  }
+
+  // Database-stored image - use the team logo endpoint
+  if (team.logo.type === "upload" && team.logo.data) {
+    try {
+      const response = await fetch(`/api/v1/teams/${team.id}/logo`);
+      if (response.ok) {
+          const blob = await response.blob();
+          return URL.createObjectURL(blob);
+        }
+    } catch (error) {
+      console.error(`Failed to fetch logo for team ${team.name}:`, error);
+    }
+  }
+
+  return "";
 };

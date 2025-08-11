@@ -96,7 +96,7 @@ class GameUIBlueprintDownloader extends BaseCacheService {
       const allAssets: Array<{ category: string; filename: string; assetKey: string }> = [];
       for (const [category, files] of Object.entries(assetCategories)) {
         for (const filename of files) {
-          const assetKey = `game/${version}/overlay/${category}/${filename}`;
+          const assetKey = `${version}/overlay/${category}/${filename}`;
           allAssets.push({ category, filename, assetKey });
         }
       }

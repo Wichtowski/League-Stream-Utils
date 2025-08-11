@@ -409,7 +409,7 @@ export class AssetDownloader {
 
   private addChampionTasks(championKey: string): void {
     const version = "15.15.1";
-    const championDir = `game/${version}/champions/${championKey}`;
+    const championDir = `assets/${version}/champions/${championKey}`;
 
     // Champion data (highest priority, smallest size)
     this.downloadQueue.push({

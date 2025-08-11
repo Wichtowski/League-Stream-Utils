@@ -100,10 +100,10 @@ export default function LeagueClientPickBanPage() {
       const [, version, key] = ddragonMatch;
       if (userDataPathCache) {
         const base = userDataPathCache.replace(/\\/g, "/");
-        const rel = `hosted/assets/game/${version}/champion/${key}/square.png`;
+        const rel = `${version}/champion/${key}/square.png`;
         return `file://${base}${rel}`;
       }
-      return `hosted/assets/game/${ddragonMatch[1]}/champion/${ddragonMatch[2]}/loading.png`;
+      return `${ddragonMatch[1]}/champion/${ddragonMatch[2]}/loading.png`;
     }
 
     return champion.image;

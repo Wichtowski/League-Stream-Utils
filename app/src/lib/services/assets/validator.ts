@@ -160,7 +160,7 @@ export class AssetValidator {
    * Generate asset key for specific asset types
    */
   static generateAssetKey(type: "champion" | "item" | "overlay" | "rune", version: string, ...parts: string[]): string {
-    return `game/${version}/${type}s/${parts.join("/")}`;
+    return `assets/${version}/${type}s/${parts.join("/")}`;
   }
 
   /**

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import Image from "next/image";
 import type { CreateTeamRequest, TeamTier } from "@lib/types";
 import { createDefaultTeamRequest } from "@lib/types";
@@ -14,6 +14,7 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
   const { showAlert } = useModal();
   const [logoPreview, setLogoPreview] = useState<string>("");
   const [formData, setFormData] = useState<Partial<CreateTeamRequest>>(createDefaultTeamRequest());
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const clearLogo = () => {
     setFormData({
@@ -21,6 +22,9 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
       logo: undefined
     });
     setLogoPreview("");
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
   const handleLogoUrlChange = (url: string) => {
@@ -188,6 +192,7 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
                 onChange={(e) => e.target.files?.[0] && handleLogoFileChange(e.target.files[0])}
                 className="w-full bg-gray-700 rounded px-3 py-2 text-sm text-white file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-gray-600 file:text-white hover:file:bg-gray-500"
                 disabled={formData.logo?.type === "url" && !!formData.logo.url}
+                ref={fileInputRef}
               />
               <p className="text-xs text-gray-400 mt-1">Max 5MB • PNG, JPG, WEBP</p>
             </div>
