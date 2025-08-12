@@ -16,14 +16,15 @@ export async function GET(): Promise<NextResponse> {
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
-  const session = await createGameSession();
+  const body = await request.json();
+  const session = await createGameSession(body.config);
 
   const baseUrl = request.nextUrl.origin;
-  const configUrl = `${baseUrl}/modules/pickban/static/config/${session.id}`;
-  const blueTeamUrl = `${baseUrl}/modules/pickban/static/game/${session.id}?team=blue`;
-  const redTeamUrl = `${baseUrl}/modules/pickban/static/game/${session.id}?team=red`;
-  const spectatorUrl = `${baseUrl}/modules/pickban/static/game/${session.id}`;
-  const obsUrl = `${baseUrl}/modules/pickban/static/obs/${session.id}`;
+  const configUrl = `${baseUrl}/modules/pickban/static/${session.id}/config`;
+  const blueTeamUrl = `${baseUrl}/modules/pickban/static/${session.id}/game?team=blue`;
+  const redTeamUrl = `${baseUrl}/modules/pickban/static/${session.id}/game?team=red`;
+  const spectatorUrl = `${baseUrl}/modules/pickban/static/${session.id}/game`;
+  const obsUrl = `${baseUrl}/modules/pickban/static/${session.id}/obs`;
 
   return NextResponse.json({
     sessionId: session.id,

@@ -349,3 +349,4 @@ export const MatchCreationForm = ({ tournament, bracketNodes, onMatchCreated }: 
     </div>
   );
 };
+

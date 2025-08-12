@@ -194,34 +194,85 @@ export function SessionList({
                         </div>
                       </div>
 
+                      {/* Session Password */}
+                      {session.password && (
+                        <div className="mb-2">
+                          <div className="text-sm text-gray-400">Password:</div>
+                          <div className="flex items-center gap-2">
+                            <code className="bg-gray-800 px-2 py-1 rounded text-yellow-400 font-mono text-sm">
+                              {session.password}
+                            </code>
+                            <button
+                              onClick={() => {
+                                navigator.clipboard.writeText(session.password!);
+                                // You could add a toast notification here
+                              }}
+                              className="text-blue-400 hover:text-blue-300 text-sm"
+                              title="Copy password"
+                            >
+                              Copy
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
                       {/* Action Buttons */}
                       <div className="flex gap-2 flex-wrap">
                         <Link
-                          href={`/modules/pickban/config/${session.id}`}
+                          href={`/modules/pickban/static/${session.id}/config`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="bg-amber-600 hover:bg-amber-700 text-white px-3 py-1 rounded text-sm transition-colors"
                         >
                           Config
                         </Link>
+                        
+                        {/* Real-time team access buttons for web sessions */}
+                        {session.type === "web" && (
+                          <>
+                            <Link
+                              href={`/modules/pickban/static/${session.id}/team/blue`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm transition-colors"
+                            >
+                              Blue Team (Real-time)
+                            </Link>
+                            <Link
+                              href={`/modules/pickban/static/${session.id}/team/red`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm transition-colors"
+                            >
+                              Red Team (Real-time)
+                            </Link>
+                          </>
+                        )}
+                        
+                        {/* Legacy buttons for non-web sessions */}
+                        {session.type !== "web" && (
+                          <>
+                            <Link
+                              href={`/modules/pickban/static/${session.id}/game?team=blue`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm transition-colors"
+                            >
+                              Blue Team
+                            </Link>
+                            <Link
+                              href={`/modules/pickban/static/${session.id}/game?team=red`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm transition-colors"
+                            >
+                              Red Team
+                            </Link>
+                          </>
+                        )}
+                        
                         <Link
-                          href={`/modules/pickban/game/${session.id}?team=blue`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm transition-colors"
-                        >
-                          Blue Team
-                        </Link>
-                        <Link
-                          href={`/modules/pickban/game/${session.id}?team=red`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm transition-colors"
-                        >
-                          Red Team
-                        </Link>
-                        <Link
-                          href={`/modules/pickban/game/${session.id}`}
+                          href={`/modules/pickban/static/${session.id}/game`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm transition-colors"
@@ -229,7 +280,7 @@ export function SessionList({
                           Spectator
                         </Link>
                         <Link
-                          href={`/modules/pickban/obs/${session.id}`}
+                          href={`/modules/pickban/static/${session.id}/obs`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded text-sm transition-colors"

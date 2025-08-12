@@ -92,10 +92,12 @@ export interface GameConfig {
   redTeamPrefix?: string;
   blueCoach?: Coach;
   redCoach?: Coach;
-  blueTeamLogo?: string;
-  redTeamLogo?: string;
+  // Store IDs instead of logo data to avoid duplication
+  blueTeamId?: string;
+  redTeamId?: string;
+  tournamentId?: string;
+  // Keep these for backward compatibility and manual entry
   tournamentName?: string;
-  tournamentLogo?: string;
 }
 
 export interface GameSession {
@@ -132,6 +134,17 @@ export interface GameSession {
       hoveredChampionId: number | null;
       actionType: "pick" | "ban" | null;
     };
+  };
+  // Real-time pick/ban fields
+  password?: string;
+  teamReadiness?: {
+    blue: boolean;
+    red: boolean;
+  };
+  sessionState?: "waiting" | "ready" | "in_progress" | "finished";
+  connectedTeams?: {
+    blue: boolean;
+    red: boolean;
   };
 }
 

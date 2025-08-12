@@ -1,276 +1,183 @@
-import { WebSocketServer, WebSocket } from "ws";
-import {
-  getGameSession,
-  banChampion,
-  pickChampion,
-  getGameState,
-  canTeamAct,
-  setTeamReady,
-  updateGameSession
-} from "@lib/game/game-logic";
-import type { WSMessage, TeamSide } from "@lib/types";
+import { NextRequest } from "next/server";
+import { getGameSession, updateGameSession } from "@lib/database";
+import { getChampionById } from "@lib/champions";
 
-interface ExtendedWebSocket extends WebSocket {
-  sessionId?: string;
-  teamSide?: TeamSide;
-}
+// WebSocket connections will be handled on the client side
+// This file provides helper functions for WebSocket operations
 
-// In-memory storage for WebSocket connections
-const connections = new Map<string, Set<ExtendedWebSocket>>();
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const sessionId = searchParams.get("sessionId");
+  const teamSide = searchParams.get("teamSide") as "blue" | "red";
 
-let wss: WebSocketServer | null = null;
-
-function initWebSocketServer() {
-  if (wss) return wss;
-
-  wss = new WebSocketServer({
-    port: 8080,
-    verifyClient: () => true
-  });
-
-  wss.on("connection", (ws) => {
-    console.log("New WebSocket connection");
-
-    ws.on("message", async (data) => {
-      try {
-        const message: WSMessage = JSON.parse(data.toString());
-        await handleWebSocketMessage(ws, message);
-      } catch (error) {
-        console.error("Error handling WebSocket message:", error);
-        ws.send(
-          JSON.stringify({
-            type: "error",
-            payload: { message: "Invalid message format" }
-          })
-        );
-      }
-    });
-
-    ws.on("close", () => {
-      console.log("WebSocket connection closed");
-      for (const [sessionId, sessionConnections] of connections.entries()) {
-        sessionConnections.delete(ws);
-        if (sessionConnections.size === 0) {
-          connections.delete(sessionId);
-        }
-      }
-    });
-  });
-
-  return wss;
-}
-
-async function handleWebSocketMessage(ws: ExtendedWebSocket, message: WSMessage) {
-  const { type, payload, sessionId, teamSide } = message;
-
-  if (!sessionId) {
-    ws.send(
-      JSON.stringify({
-        type: "error",
-        payload: { message: "Session ID required" }
-      })
-    );
-    return;
+  if (!sessionId || !teamSide) {
+    return new Response("Missing sessionId or teamSide", { status: 400 });
   }
 
+  // Check if session exists
   const session = await getGameSession(sessionId);
   if (!session) {
-    ws.send(
-      JSON.stringify({
-        type: "error",
-        payload: { message: "Session not found" }
-      })
-    );
-    return;
+    return new Response("Session not found", { status: 404 });
   }
 
-  switch (type) {
-    case "join":
-      await handleJoinSession(ws, sessionId, teamSide);
-      break;
-
-    case "ban":
-      if (!teamSide || !payload.championId) {
-        ws.send(
-          JSON.stringify({
-            type: "error",
-            payload: { message: "Team side and champion ID required for ban" }
-          })
-        );
-        return;
-      }
-
-      if (!canTeamAct(session, teamSide)) {
-        ws.send(
-          JSON.stringify({
-            type: "error",
-            payload: { message: "Not your turn" }
-          })
-        );
-        return;
-      }
-
-      if (await banChampion(session, payload.championId, teamSide)) {
-        await broadcastGameState(sessionId);
-      } else {
-        ws.send(
-          JSON.stringify({
-            type: "error",
-            payload: { message: "Invalid ban action" }
-          })
-        );
-      }
-      break;
-
-    case "pick":
-      if (!teamSide || !payload.championId) {
-        ws.send(
-          JSON.stringify({
-            type: "error",
-            payload: { message: "Team side and champion ID required for pick" }
-          })
-        );
-        return;
-      }
-
-      if (!canTeamAct(session, teamSide)) {
-        ws.send(
-          JSON.stringify({
-            type: "error",
-            payload: { message: "Not your turn" }
-          })
-        );
-        return;
-      }
-
-      if (await pickChampion(session, payload.championId, teamSide)) {
-        await broadcastGameState(sessionId);
-      } else {
-        ws.send(
-          JSON.stringify({
-            type: "error",
-            payload: { message: "Invalid pick action" }
-          })
-        );
-      }
-      break;
-
-    case "hover":
-      if (!teamSide || !payload.championId || !payload.actionType) {
-        ws.send(
-          JSON.stringify({
-            type: "error",
-            payload: {
-              message: "Team side, champion ID, and action type required for hover"
-            }
-          })
-        );
-        return;
-      }
-
-      // Update hover state in the session
-      if (!session.hoverState) {
-        session.hoverState = {};
-      }
-
-      session.hoverState[`${teamSide}Team`] = {
-        hoveredChampionId: payload.championId,
-        actionType: payload.actionType
-      };
-
-      // Save the session to persist hover state
-      await updateGameSession(sessionId, { hoverState: session.hoverState });
-
-      // Broadcast updated game state to all clients
-      await broadcastGameState(sessionId);
-      break;
-
-    case "ready":
-      if (!teamSide) {
-        ws.send(
-          JSON.stringify({
-            type: "error",
-            payload: { message: "Team side required for ready action" }
-          })
-        );
-        return;
-      }
-
-      const readyResult = await setTeamReady(session, teamSide, payload.ready || false);
-      if (readyResult) {
-        await broadcastGameState(sessionId);
-      } else {
-        ws.send(
-          JSON.stringify({
-            type: "error",
-            payload: { message: "Failed to set ready state" }
-          })
-        );
-      }
-      break;
-
-    default:
-      ws.send(
-        JSON.stringify({
-          type: "error",
-          payload: { message: "Unknown message type" }
-        })
-      );
-  }
-}
-
-async function handleJoinSession(ws: ExtendedWebSocket, sessionId: string, teamSide?: TeamSide) {
-  if (!connections.has(sessionId)) {
-    connections.set(sessionId, new Set());
-  }
-
-  connections.get(sessionId)!.add(ws);
-
-  // Store team info on the websocket
-  ws.sessionId = sessionId;
-  ws.teamSide = teamSide;
-
-  // Send current game state
-  const session = await getGameSession(sessionId);
-  if (session) {
-    ws.send(
-      JSON.stringify({
-        type: "gameState",
-        payload: getGameState(session)
-      })
-    );
-  }
-}
-
-async function broadcastGameState(sessionId: string) {
-  const session = await getGameSession(sessionId);
-  if (!session) return;
-
-  const gameState = getGameState(session);
-  const message = JSON.stringify({
-    type: "gameState",
-    payload: gameState
-  });
-
-  const sessionConnections = connections.get(sessionId);
-  if (sessionConnections) {
-    sessionConnections.forEach((ws) => {
-      if (ws.readyState === 1) {
-        // WebSocket.OPEN
-        ws.send(message);
-      }
-    });
-  }
-}
-
-export async function GET() {
-  // Initialize WebSocket server on first request
-  initWebSocketServer();
-
-  return new Response("WebSocket server running on port 8080", {
+  // For Next.js, we need to handle WebSocket differently
+  // This is a simplified version that works with API routes
+  return new Response("WebSocket endpoint - use client-side WebSocket connection", {
     status: 200,
     headers: {
       "Content-Type": "text/plain"
     }
   });
+}
+
+// Helper functions for WebSocket operations
+export async function handleTeamReady(sessionId: string, teamSide: "blue" | "red") {
+  const session = await getGameSession(sessionId);
+  if (!session) return;
+
+  const updatedReadiness = {
+    blue: session.teamReadiness?.blue || false,
+    red: session.teamReadiness?.red || false,
+    [teamSide]: true
+  };
+
+  await updateGameSession(sessionId, {
+    teamReadiness: updatedReadiness
+  });
+
+  // Check if both teams are ready
+  if (updatedReadiness.blue && updatedReadiness.red) {
+    await updateGameSession(sessionId, {
+      sessionState: "ready"
+    });
+  }
+
+  return { teamReadiness: updatedReadiness, bothReady: updatedReadiness.blue && updatedReadiness.red };
+}
+
+export async function handleBan(sessionId: string, teamSide: "blue" | "red", championId: number) {
+  const session = await getGameSession(sessionId);
+  if (!session) return null;
+
+  // Validate it's the team's turn
+  if (session.currentTeam !== teamSide) {
+    return null;
+  }
+
+  const champion = await getChampionById(championId);
+  if (!champion) return null;
+
+  // Add ban to team's bans
+  const updatedTeams = {
+    ...session.teams,
+    [teamSide]: {
+      ...session.teams[teamSide],
+      bans: [...(session.teams[teamSide].bans || []), champion]
+    }
+  };
+
+  // Advance to next turn
+  const nextTeam = teamSide === "blue" ? "red" : "blue";
+  const nextTurnNumber = session.turnNumber + 1;
+
+  await updateGameSession(sessionId, {
+    teams: updatedTeams,
+    currentTeam: nextTeam,
+    turnNumber: nextTurnNumber
+  });
+
+  return {
+    teamSide,
+    champion,
+    nextTeam,
+    turnNumber: nextTurnNumber,
+    teams: updatedTeams
+  };
+}
+
+export async function handlePick(sessionId: string, teamSide: "blue" | "red", championId: number) {
+  const session = await getGameSession(sessionId);
+  if (!session) return null;
+
+  // Validate it's the team's turn
+  if (session.currentTeam !== teamSide) {
+    return null;
+  }
+
+  const champion = await getChampionById(championId);
+  if (!champion) return null;
+
+  // Add pick to team's picks
+  const updatedTeams = {
+    ...session.teams,
+    [teamSide]: {
+      ...session.teams[teamSide],
+      picks: [...(session.teams[teamSide].picks || []), champion]
+    }
+  };
+
+  // Advance to next turn
+  const nextTeam = teamSide === "blue" ? "red" : "blue";
+  const nextTurnNumber = session.turnNumber + 1;
+
+  await updateGameSession(sessionId, {
+    teams: updatedTeams,
+    currentTeam: nextTeam,
+    turnNumber: nextTurnNumber
+  });
+
+  return {
+    teamSide,
+    champion,
+    nextTeam,
+    turnNumber: nextTurnNumber,
+    teams: updatedTeams
+  };
+}
+
+export async function handleHover(sessionId: string, teamSide: "blue" | "red", championId: number, actionType: "pick" | "ban") {
+  const session = await getGameSession(sessionId);
+  if (!session) return;
+
+  await updateGameSession(sessionId, {
+    hoverState: {
+      ...session.hoverState,
+      [`${teamSide}Team`]: {
+        hoveredChampionId: championId,
+        actionType
+      }
+    }
+  });
+
+  return {
+    teamSide,
+    championId,
+    actionType
+  };
+}
+
+export async function handleStartTimer(sessionId: string) {
+  const session = await getGameSession(sessionId);
+  if (!session) return;
+
+  await updateGameSession(sessionId, {
+    sessionState: "in_progress",
+    timer: {
+      ...session.timer,
+      isActive: true,
+      startedAt: new Date(),
+      remaining: 30, // 30 seconds for each action
+      totalTime: 30
+    }
+  });
+
+  return {
+    sessionState: "in_progress",
+    timer: {
+      remaining: 30,
+      totalTime: 30,
+      isActive: true,
+      startedAt: new Date()
+    }
+  };
 }

@@ -64,3 +64,20 @@ export const getTeamLogoUrl = async (team: Team): Promise<string> => {
 
   return "";
 };
+
+/**
+ * Get tournament logo URL - uses the dedicated tournament logo endpoint
+ */
+export const getTournamentLogoUrl = async (tournamentId: string): Promise<string> => {
+  try {
+    const response = await fetch(`/api/v1/tournaments/${tournamentId}/logo`);
+    if (response.ok) {
+      const blob = await response.blob();
+      return URL.createObjectURL(blob);
+    }
+  } catch (error) {
+    console.error(`Failed to fetch logo for tournament ${tournamentId}:`, error);
+  }
+
+  return "";
+};

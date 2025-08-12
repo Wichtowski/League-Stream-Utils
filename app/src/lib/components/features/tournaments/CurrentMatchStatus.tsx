@@ -91,3 +91,4 @@ export const CurrentMatchStatus = (): React.ReactElement => {
     </div>
   );
 };
+

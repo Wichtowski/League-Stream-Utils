@@ -8,6 +8,7 @@ import { useAuthenticatedFetch } from "@lib/hooks/useAuthenticatedFetch";
 import type { GameConfig, Team } from "@lib/types";
 import type { Tournament } from "@lib/types/tournament";
 import { PageWrapper } from "@lib/layout/PageWrapper";
+import { getTeamLogoUrl, getTournamentLogoUrl } from "@/lib/services/common/image";
 
 export default function ConfigPage() {
   const params = useParams();
@@ -25,9 +26,9 @@ export default function ConfigPage() {
     blueTeamName: "Blue Team",
     redTeamName: "Red Team",
     tournamentName: "",
-    tournamentLogo: "",
-    blueTeamLogo: "",
-    redTeamLogo: ""
+    blueTeamId: "",
+    redTeamId: "",
+    tournamentId: ""
   });
 
   const [loading, setLoading] = useState(false);
@@ -41,6 +42,34 @@ export default function ConfigPage() {
   const [selectedBlueTeam, setSelectedBlueTeam] = useState<Team | null>(null);
   const [selectedRedTeam, setSelectedRedTeam] = useState<Team | null>(null);
   const [loadingTournaments, setLoadingTournaments] = useState(false);
+  
+  const [blueTeamLogoUrl, setBlueTeamLogoUrl] = useState<string>("");
+  const [redTeamLogoUrl, setRedTeamLogoUrl] = useState<string>("");
+  const [tournamentLogoUrl, setTournamentLogoUrl] = useState<string>("");
+
+  useEffect(() => {
+    if (selectedBlueTeam) {
+      getTeamLogoUrl(selectedBlueTeam).then(setBlueTeamLogoUrl);
+    } else {
+      setBlueTeamLogoUrl("");
+    }
+  }, [selectedBlueTeam]);
+
+  useEffect(() => {
+    if (selectedRedTeam) {
+      getTeamLogoUrl(selectedRedTeam).then(setRedTeamLogoUrl);
+    } else {
+      setRedTeamLogoUrl("");
+    }
+  }, [selectedRedTeam]);
+
+  useEffect(() => {
+    if (selectedTournament) {
+      getTournamentLogoUrl(selectedTournament.id).then(setTournamentLogoUrl);
+    } else {
+      setTournamentLogoUrl("");
+    }
+  }, [selectedTournament]);
 
   const loadConfig = useCallback(async () => {
     try {
@@ -107,11 +136,11 @@ export default function ConfigPage() {
       setSelectedBlueTeam(null);
       setSelectedRedTeam(null);
 
-      // Update config with tournament info
+      // Update config with tournament info - save ID instead of logo data
       setConfig((prev) => ({
         ...prev,
+        tournamentId: tournament.id,
         tournamentName: tournament.name,
-        tournamentLogo: tournament.logo?.data || "",
         seriesType: tournament.matchFormat,
         isFearlessDraft: tournament.fearlessDraft
       }));
@@ -127,18 +156,18 @@ export default function ConfigPage() {
       setSelectedBlueTeam(team);
       setConfig((prev) => ({
         ...prev,
+        blueTeamId: team.id,
         blueTeamName: team.name,
         blueTeamPrefix: team.tag,
-        blueTeamLogo: team.logo?.data || "",
         blueCoach: team.staff?.coach ? { name: team.staff.coach.name } : undefined
       }));
     } else {
       setSelectedRedTeam(team);
       setConfig((prev) => ({
         ...prev,
+        redTeamId: team.id,
         redTeamName: team.name,
         redTeamPrefix: team.tag,
-        redTeamLogo: team.logo?.data || "",
         redCoach: team.staff?.coach ? { name: team.staff.coach.name } : undefined
       }));
     }
@@ -280,19 +309,14 @@ export default function ConfigPage() {
 
             <div className="md:col-span-2">
               <label className="block text-sm font-medium mb-2">Event Logo URL (Optional)</label>
-              <input
-                type="url"
-                value={config.tournamentLogo || ""}
-                onChange={(e) =>
-                  setConfig((prev) => ({
-                    ...prev,
-                    tournamentLogo: e.target.value
-                  }))
-                }
-                disabled={!!selectedTournament}
-                className="w-full px-3 py-2 bg-gray-700 rounded text-white border border-gray-600 focus:border-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                placeholder="https://example.com/event-logo.png"
-              />
+                             <input
+                 type="url"
+                 value={tournamentLogoUrl || ""}
+                 onChange={() => {}}
+                 disabled={!!selectedTournament}
+                 className="w-full px-3 py-2 bg-gray-700 rounded text-white border border-gray-600 focus:border-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                 placeholder="Tournament logo will be loaded automatically"
+               />
             </div>
           </div>
 
@@ -305,11 +329,11 @@ export default function ConfigPage() {
             </div>
           )}
 
-          {config.tournamentLogo && (
+          {config.tournamentId && (
             <div className="mt-4 text-center">
               <div className="inline-block bg-gray-700 rounded-lg p-4">
                 <Image
-                  src={config.tournamentLogo}
+                  src={tournamentLogoUrl}
                   alt="Event Logo Preview"
                   width={128}
                   height={64}
@@ -410,6 +434,7 @@ export default function ConfigPage() {
                         setSelectedBlueTeam(null);
                         setConfig((prev) => ({
                           ...prev,
+                          blueTeamId: "",
                           blueTeamName: "Blue Team",
                           blueTeamPrefix: "",
                           blueTeamLogo: "",
@@ -466,22 +491,23 @@ export default function ConfigPage() {
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium mb-2">Team Logo URL (Optional)</label>
-                <input
-                  type="url"
-                  value={config.blueTeamLogo || ""}
-                  onChange={(e) =>
-                    setConfig((prev) => ({
-                      ...prev,
-                      blueTeamLogo: e.target.value
-                    }))
-                  }
-                  disabled={!!selectedBlueTeam && !!selectedBlueTeam.logo?.data}
-                  className="w-full px-3 py-2 bg-gray-700 rounded text-white border border-gray-600 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                  placeholder="https://example.com/team-logo.png"
-                />
-              </div>
+                             {blueTeamLogoUrl && (
+                 <div>
+                   <label className="block text-sm font-medium mb-2">Team Logo</label>
+                   <div className="bg-blue-900/30 rounded-lg p-4 text-center">
+                     <Image
+                       src={blueTeamLogoUrl}
+                       alt="Blue Team Logo Preview"
+                       width={96}
+                       height={48}
+                       className="max-h-12 max-w-24 object-contain mx-auto"
+                       onError={(e) => {
+                         e.currentTarget.style.display = "none";
+                       }}
+                     />
+                   </div>
+                 </div>
+               )}
 
               <div>
                 <label className="block text-sm font-medium mb-2">Coach Name (Optional)</label>
@@ -500,22 +526,7 @@ export default function ConfigPage() {
                 />
               </div>
 
-              {config.blueTeamLogo && (
-                <div className="col-span-full">
-                  <div className="bg-blue-900/30 rounded-lg p-4 text-center">
-                    <Image
-                      src={config.blueTeamLogo}
-                      alt="Blue Team Logo Preview"
-                      width={96}
-                      height={48}
-                      className="max-h-12 max-w-24 object-contain mx-auto"
-                      onError={(e) => {
-                        e.currentTarget.style.display = "none";
-                      }}
-                    />
-                  </div>
-                </div>
-              )}
+              
             </div>
           </div>
 
@@ -537,9 +548,9 @@ export default function ConfigPage() {
                         setSelectedRedTeam(null);
                         setConfig((prev) => ({
                           ...prev,
+                          redTeamId: "",
                           redTeamName: "Red Team",
                           redTeamPrefix: "",
-                          redTeamLogo: "",
                           redCoach: undefined
                         }));
                       }
@@ -593,22 +604,7 @@ export default function ConfigPage() {
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium mb-2">Team Logo URL (Optional)</label>
-                <input
-                  type="url"
-                  value={config.redTeamLogo || ""}
-                  onChange={(e) =>
-                    setConfig((prev) => ({
-                      ...prev,
-                      redTeamLogo: e.target.value
-                    }))
-                  }
-                  disabled={!!selectedRedTeam && !!selectedRedTeam.logo?.data}
-                  className="w-full px-3 py-2 bg-gray-700 rounded text-white border border-gray-600 focus:border-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                  placeholder="https://example.com/team-logo.png"
-                />
-              </div>
+
 
               <div>
                 <label className="block text-sm font-medium mb-2">Coach Name (Optional)</label>
@@ -627,11 +623,11 @@ export default function ConfigPage() {
                 />
               </div>
 
-              {config.redTeamLogo && (
+              {redTeamLogoUrl && (
                 <div className="col-span-full">
                   <div className="bg-red-900/30 rounded-lg p-4 text-center">
                     <Image
-                      src={config.redTeamLogo}
+                      src={redTeamLogoUrl}
                       alt="Red Team Logo Preview"
                       width={96}
                       height={48}

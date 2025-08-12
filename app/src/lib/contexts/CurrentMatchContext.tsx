@@ -220,3 +220,4 @@ export function useCurrentMatch(): CurrentMatchContextType {
   }
   return context;
 }
+

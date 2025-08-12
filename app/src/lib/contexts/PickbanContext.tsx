@@ -201,6 +201,12 @@ export function PickbanProvider({ children }: { children: ReactNode }) {
         wsRef.current.close();
       }
 
+      // Skip WebSocket connection for static sessions
+      if (currentSession?.type === "static") {
+        console.log("Skipping WebSocket connection for static session");
+        return;
+      }
+
       const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
       const wsUrl = `${protocol}//${window.location.host}/api/v1/pickban/ws?sessionId=${sessionId}`;
 
@@ -358,7 +364,12 @@ export function PickbanProvider({ children }: { children: ReactNode }) {
           const data = await response.json();
           const session = data.session;
           setCurrentSession(session);
-          initializeWebSocket(sessionId);
+          
+          // Only initialize WebSocket for non-static sessions
+          if (session.type !== "static") {
+            initializeWebSocket(sessionId);
+          }
+          
           return { success: true };
         } else {
           const data = await response.json();

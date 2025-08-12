@@ -27,10 +27,12 @@ const GameConfigSchema = new mongoose.Schema({
   redTeamPrefix: String,
   blueCoach: CoachSchema,
   redCoach: CoachSchema,
-  blueTeamLogo: String,
-  redTeamLogo: String,
-  tournamentName: String,
-  tournamentLogo: String
+  // Store IDs instead of logo data to avoid duplication
+  blueTeamId: String,
+  redTeamId: String,
+  tournamentId: String,
+  // Keep these for backward compatibility and manual entry
+  tournamentName: String
 });
 
 const TimerSchema = new mongoose.Schema({
@@ -68,6 +70,21 @@ export const GameSessionSchema = new mongoose.Schema(
     seriesScore: {
       blue: { type: Number, default: 0 },
       red: { type: Number, default: 0 }
+    },
+    // Real-time pick/ban fields
+    password: { type: String },
+    teamReadiness: {
+      blue: { type: Boolean, default: false },
+      red: { type: Boolean, default: false }
+    },
+    sessionState: {
+      type: String,
+      enum: ["waiting", "ready", "in_progress", "finished"],
+      default: "waiting"
+    },
+    connectedTeams: {
+      blue: { type: Boolean, default: false },
+      red: { type: Boolean, default: false }
     }
   },
   {

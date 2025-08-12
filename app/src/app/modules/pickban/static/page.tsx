@@ -59,10 +59,10 @@ export default function StaticPickBanPage() {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          type: "static", // Mark as static session
+          type: "web", // Mark as web session for real-time pick/ban
           config: {
-            enableLCU: false, // Disable LCU for static sessions
-            mode: "manual"
+            enableLCU: false, // Disable LCU for web sessions
+            mode: "realtime"
           }
         })
       });

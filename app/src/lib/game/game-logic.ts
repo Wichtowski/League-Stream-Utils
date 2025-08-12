@@ -77,8 +77,19 @@ export async function createGameSession(config?: Partial<GameConfig>): Promise<G
     defaultConfig.totalGames = 5;
   }
 
+  // Generate a random 6-character password
+  const generatePassword = (): string => {
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    let result = "";
+    for (let i = 0; i < 6; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  };
+
   const session: GameSession = {
     id: sessionId,
+    type: "web",
     teams: {
       blue: {
         id: uuidv4(),
@@ -116,7 +127,18 @@ export async function createGameSession(config?: Partial<GameConfig>): Promise<G
     bothTeamsReady: false,
     config: defaultConfig,
     seriesScore: { blue: 0, red: 0 },
-    gameHistory: []
+    gameHistory: [],
+    // Real-time pick/ban fields
+    password: generatePassword(),
+    teamReadiness: {
+      blue: false,
+      red: false
+    },
+    sessionState: "waiting",
+    connectedTeams: {
+      blue: false,
+      red: false
+    }
   };
 
   const savedSession = await saveGameSession(session);
@@ -124,7 +146,25 @@ export async function createGameSession(config?: Partial<GameConfig>): Promise<G
 }
 
 export async function getGameSession(sessionId: string): Promise<GameSession | null> {
-  return await getGameSessionFromDB(sessionId);
+  const session = await getGameSessionFromDB(sessionId);
+  
+  // If session exists but doesn't have a password, generate one
+  if (session && !session.password && session.type === "web") {
+    const generatePassword = (): string => {
+      const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+      let result = "";
+      for (let i = 0; i < 6; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return result;
+    };
+    
+    const password = generatePassword();
+    const updatedSession = await updateGameSession(sessionId, { password });
+    return updatedSession;
+  }
+  
+  return session;
 }
 
 export async function updateGameSession(sessionId: string, updates: Partial<GameSession>): Promise<GameSession | null> {
