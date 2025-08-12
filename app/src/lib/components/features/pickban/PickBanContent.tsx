@@ -29,7 +29,7 @@ export function PickBanContent({
   return (
     <>
       {/* Error Display */}
-      {error && <div className="bg-red-600 text-white p-4 rounded mb-6">{error}</div>}
+      {error && <div className="bg-gray-700 text-gray-200 p-4 rounded mb-6 border border-gray-600">{error}</div>}
 
       {/* Content */}
       <SessionCreator user={user} loading={loading} onCreateSession={onCreateSession} newSessionUrls={newSessionUrls} />

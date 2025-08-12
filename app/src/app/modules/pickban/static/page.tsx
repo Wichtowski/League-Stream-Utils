@@ -17,27 +17,19 @@ export default function StaticPickBanPage() {
   const { authenticatedFetch } = useAuthenticatedFetch();
   const [sessions, setSessions] = useState<GameSession[]>([]);
   const [loading, setLoading] = useState(false);
-  const [sessionsLoading, setSessionsLoading] = useState(false);
-  const [newSessionUrls, setNewSessionUrls] = useState<SessionUrls | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [newSessionUrls, setNewSessionUrls] = useState<SessionUrls | null>(null);
 
   const fetchSessions = useCallback(async () => {
     try {
-      setSessionsLoading(true);
       const response = await authenticatedFetch(`${API_BASE_URL}/pickban/sessions`);
-
       if (response.ok) {
         const data = await response.json();
         setSessions(Array.isArray(data) ? data : []);
-      } else {
-        throw new Error("Failed to fetch sessions");
       }
     } catch (error) {
       setError("Failed to fetch sessions");
-      console.error(error);
       setSessions([]);
-    } finally {
-      setSessionsLoading(false);
     }
   }, [authenticatedFetch]);
 
@@ -48,35 +40,24 @@ export default function StaticPickBanPage() {
 
   const createSession = async () => {
     if (!authUser) return;
-
+    
     setLoading(true);
     setError(null);
-
+    
     try {
       const response = await authenticatedFetch(`${API_BASE_URL}/pickban/sessions`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          type: "web", // Mark as web session for real-time pick/ban
-          config: {
-            enableLCU: false, // Disable LCU for web sessions
-            mode: "realtime"
-          }
+          type: "web",
+          config: { enableLCU: false, mode: "realtime" }
         })
       });
 
       if (response.ok) {
         const data = await response.json();
-        setNewSessionUrls({
-          ...data.urls,
-          sessionId: data.sessionId
-        });
+        setNewSessionUrls({ ...data.urls, sessionId: data.sessionId });
         await fetchSessions();
-      } else {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to create session");
       }
     } catch (error) {
       setError(error instanceof Error ? error.message : "Failed to create session");
@@ -96,21 +77,13 @@ export default function StaticPickBanPage() {
       cancelText: "Cancel"
     });
 
-    if (!confirmed) {
-      return;
-    }
+    if (!confirmed) return;
 
     try {
       const response = await authenticatedFetch(`${API_BASE_URL}/pickban/sessions/${sessionId}`, {
         method: "DELETE"
       });
-
-      if (response.ok) {
-        await fetchSessions();
-      } else {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to delete session");
-      }
+      if (response.ok) await fetchSessions();
     } catch (error) {
       setError(error instanceof Error ? error.message : "Failed to delete session");
     }
@@ -127,8 +100,8 @@ export default function StaticPickBanPage() {
       {authUser && (
         <PickBanContent
           user={authUser}
-          sessions={sessions.filter((session) => session.type === "web" || !session.type)} // Show static or legacy sessions
-          sessionsLoading={sessionsLoading}
+          sessions={sessions.filter(session => session.type === "web" || !session.type)}
+          sessionsLoading={loading}
           onCreateSession={createSession}
           onDeleteSession={deleteSession}
           loading={loading}
