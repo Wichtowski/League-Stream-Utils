@@ -105,7 +105,7 @@ export function SessionList({
                 setSortOrder((prev) => (prev === "newest" ? "oldest" : "newest"));
                 setCurrentPage(1);
               }}
-              className="flex items-center gap-1 px-3 py-1 bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-lg transition-colors text-sm"
+              className="flex items-center gap-1 px-3 py-1 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors text-sm"
             >
               {sortOrder === "newest" ? (
                 <>
@@ -131,8 +131,8 @@ export function SessionList({
                 transition-all duration-300 ease-in-out
                 ${
                   selectedSessions.size > 0
-                    ? "bg-gray-600 hover:bg-gray-700 disabled:bg-gray-500 text-gray-200 opacity-100 scale-100 translate-x-0"
-                    : "bg-gray-600/0 text-transparent opacity-0 scale-95 translate-x-4 pointer-events-none"
+                    ? "bg-red-600 hover:bg-red-700 disabled:bg-red-800 text-white opacity-100 scale-100 translate-x-0"
+                    : "bg-red-600/0 text-transparent opacity-0 scale-95 translate-x-4 pointer-events-none"
                 }
               `}
             >
@@ -159,7 +159,7 @@ export function SessionList({
                   if (input) input.indeterminate = someCurrentPageSelected && !allCurrentPageSelected;
                 }}
                 onChange={(e) => handleSelectAll(e.target.checked)}
-                className="w-4 h-4 text-gray-400 bg-gray-700 border-gray-600 rounded focus:ring-gray-500"
+                className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500"
               />
               <label className="text-sm text-gray-300">Select all on this page ({paginatedSessions.length})</label>
             </div>
@@ -176,7 +176,7 @@ export function SessionList({
                       type="checkbox"
                       checked={selectedSessions.has(session.id)}
                       onChange={(e) => handleSessionSelect(session.id, e.target.checked)}
-                      className="mt-1 w-4 h-4 text-gray-400 bg-gray-700 border-gray-600 rounded focus:ring-gray-500"
+                      className="mt-1 w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500"
                     />
                   )}
 
@@ -199,7 +199,7 @@ export function SessionList({
                         <div className="mb-2">
                           <div className="text-sm text-gray-400">Password:</div>
                           <div className="flex items-center gap-2">
-                            <code className="bg-gray-800 px-2 py-1 rounded text-gray-300 font-mono text-sm">
+                            <code className="bg-gray-800 px-2 py-1 rounded text-yellow-400 font-mono text-sm">
                               {session.password}
                             </code>
                             <button
@@ -207,7 +207,7 @@ export function SessionList({
                                 navigator.clipboard.writeText(session.password!);
                                 // You could add a toast notification here
                               }}
-                              className="text-gray-400 hover:text-gray-300 text-sm"
+                              className="text-blue-400 hover:text-blue-300 text-sm"
                               title="Copy password"
                             >
                               Copy
@@ -222,7 +222,7 @@ export function SessionList({
                           href={`/modules/pickban/static/${session.id}/config`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="bg-gray-600 hover:bg-gray-700 text-gray-200 px-3 py-1 rounded text-sm transition-colors"
+                          className="bg-amber-600 hover:bg-amber-700 text-white px-3 py-1 rounded text-sm transition-colors"
                         >
                           Config
                         </Link>
@@ -234,7 +234,7 @@ export function SessionList({
                               href={`/modules/pickban/static/${session.id}/team/blue`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="bg-gray-600 hover:bg-gray-700 text-gray-200 px-3 py-1 rounded text-sm transition-colors"
+                              className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm transition-colors"
                             >
                               Blue Team (Real-time)
                             </Link>
@@ -242,7 +242,7 @@ export function SessionList({
                               href={`/modules/pickban/static/${session.id}/team/red`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="bg-gray-600 hover:bg-gray-700 text-gray-200 px-3 py-1 rounded text-sm transition-colors"
+                              className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm transition-colors"
                             >
                               Red Team (Real-time)
                             </Link>
@@ -256,7 +256,7 @@ export function SessionList({
                               href={`/modules/pickban/static/${session.id}/game?team=blue`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="bg-gray-600 hover:bg-gray-700 text-gray-200 px-3 py-1 rounded text-sm transition-colors"
+                              className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm transition-colors"
                             >
                               Blue Team
                             </Link>
@@ -264,7 +264,7 @@ export function SessionList({
                               href={`/modules/pickban/static/${session.id}/game?team=red`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="bg-gray-600 hover:bg-gray-700 text-gray-200 px-3 py-1 rounded text-sm transition-colors"
+                              className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm transition-colors"
                             >
                               Red Team
                             </Link>
@@ -275,7 +275,7 @@ export function SessionList({
                           href={`/modules/pickban/static/${session.id}/game`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="bg-gray-600 hover:bg-gray-700 text-gray-200 px-3 py-1 rounded text-sm transition-colors"
+                          className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm transition-colors"
                         >
                           Spectator
                         </Link>
@@ -283,14 +283,14 @@ export function SessionList({
                           href={`/modules/pickban/static/${session.id}/obs`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="bg-gray-600 hover:bg-gray-700 text-gray-200 px-3 py-1 rounded text-sm transition-colors"
+                          className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded text-sm transition-colors"
                         >
                           OBS
                         </Link>
                         {isAdmin && (
                           <button
                             onClick={() => onDeleteSession(session.id)}
-                            className="bg-gray-600 hover:bg-gray-700 text-gray-200 px-3 py-1 rounded text-sm transition-colors"
+                            className="bg-red-700 hover:bg-red-800 text-white px-3 py-1 rounded text-sm transition-colors"
                             title="Delete Session (Admin Only)"
                           >
                             Delete

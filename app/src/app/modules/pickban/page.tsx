@@ -93,7 +93,7 @@ export default function PickBanPage(): React.ReactElement {
           className={`${!isElectron ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-700 cursor-pointer hover:border-purple-500"} bg-gray-800 rounded-xl p-6 transition-colors border border-gray-700`}
           onClick={() => {
             if (isElectron) {
-              router.push("/modules/pickban/leagueclient");
+              router.push("/modules/leagueclient");
             }
           }}
         >

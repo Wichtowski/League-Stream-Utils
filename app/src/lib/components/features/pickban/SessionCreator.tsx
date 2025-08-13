@@ -17,7 +17,7 @@ export function SessionCreator({ user, loading, onCreateSession, newSessionUrls 
       <h2 className="text-2xl font-semibold mb-4">Create New Session</h2>
 
       {!canCreateMoreSessions && (
-        <div className="bg-gray-700 text-gray-200 p-4 rounded mb-4 border border-gray-600">
+        <div className="bg-amber-600 text-white p-4 rounded mb-4">
           You have reached your daily limit of 2 sessions. Limit resets at midnight.
         </div>
       )}
@@ -25,7 +25,7 @@ export function SessionCreator({ user, loading, onCreateSession, newSessionUrls 
       <button
         onClick={onCreateSession}
         disabled={loading || !canCreateMoreSessions}
-        className="bg-gray-600 hover:bg-gray-700 disabled:bg-gray-500 text-gray-200 px-6 py-3 rounded-lg font-medium transition-colors cursor-pointer"
+        className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white px-6 py-3 rounded-lg font-medium transition-colors cursor-pointer"
       >
         {loading ? "Creating..." : "Create New Pick & Ban Session"}
       </button>
