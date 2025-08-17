@@ -55,47 +55,68 @@ export const useLiveGameData = () => {
   const [isPolling, setIsPolling] = useState(false);
 
   const checkGameStatus = useCallback(async (): Promise<boolean> => {
-    if (!isElectron) {
-      return false;
-    }
-
     try {
-      // Connect directly to the Live Client Data API (only works in Electron)
-      const response = await fetch("https://127.0.0.1:2999/liveclientdata/allgamedata", {
+      console.log("useLiveGameData: Checking game status via proxy API...");
+      
+      // Use our proxy API endpoint to avoid CORS/CSP issues
+      const response = await fetch("/api/game", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
         },
       });
       
+      console.log("useLiveGameData: Proxy API response:", {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok
+      });
+      
       if (response.ok) {
+        console.log("useLiveGameData: Game is running, connection successful");
         return true;
       }
+      
+      console.log("useLiveGameData: Game status check failed with status:", response.status);
       return false;
-    } catch (_err) {
+    } catch (err) {
+      console.error("useLiveGameData: Error checking game status:", err);
+      
+      if (err instanceof Error) {
+        console.error("useLiveGameData: Error details:", {
+          name: err.name,
+          message: err.message,
+          stack: err.stack
+        });
+      }
       return false;
     }
-  }, [isElectron]);
+  }, []);
 
   const fetchGameData = useCallback(async (): Promise<void> => {
-    if (!isElectron) {
-      return;
-    }
-
     try {
-      // Connect directly to the Live Client Data API (only works in Electron)
-      const response = await fetch("https://127.0.0.1:2999/liveclientdata/allgamedata", {
+      console.log("useLiveGameData: Fetching game data via proxy API...");
+      
+      // Use our proxy API endpoint to avoid CORS/CSP issues
+      const response = await fetch("/api/game", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
         },
       });
 
+      console.log("useLiveGameData: Proxy API response:", {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok
+      });
+
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(`Proxy API error! status: ${response.status}`);
       }
 
       const rawData = await response.json();
+      console.log("useLiveGameData: Raw game data received:", rawData);
       
       // Transform the raw data into our structured format
       const transformedData: GameData = {
@@ -124,8 +145,11 @@ export const useLiveGameData = () => {
         },
       };
 
+      console.log("useLiveGameData: Transformed game data:", transformedData);
+
       // Process players
       if (rawData.allPlayers) {
+        console.log("useLiveGameData: Processing players:", rawData.allPlayers);
         rawData.allPlayers.forEach((player: any) => {
           const playerData: Player = {
             summonerName: player.summonerName || "Unknown",
@@ -158,6 +182,7 @@ export const useLiveGameData = () => {
 
       // Process objectives from events
       if (rawData.events) {
+        console.log("useLiveGameData: Processing events:", rawData.events);
         rawData.events.forEach((event: any) => {
           if (event.EventName === "DragonKill") {
             if (event.KillerTeam === "ORDER") {
@@ -181,34 +206,54 @@ export const useLiveGameData = () => {
         });
       }
 
+      console.log("useLiveGameData: Final transformed data:", transformedData);
       setGameData(transformedData);
       setError(null);
     } catch (err) {
+      console.error("useLiveGameData: Error fetching game data:", err);
+      
+      if (err instanceof Error) {
+        console.error("useLiveGameData: Error details:", {
+          name: err.name,
+          message: err.message,
+          stack: err.stack
+        });
+      }
       setError(err instanceof Error ? err.message : "Failed to fetch game data");
       setGameData(null);
     }
-  }, [isElectron]);
+  }, []);
 
-  const startPolling = useCallback(async (): Promise<void> => {
-    if (isPolling) return;
+  const startPolling = useCallback(async (): Promise<(() => void) | void> => {
+    if (isPolling) {
+      console.log("useLiveGameData: Polling already in progress, skipping");
+      return;
+    }
 
+    console.log("useLiveGameData: Starting polling process...");
     setIsPolling(true);
     
     // Check if game is running
+    console.log("useLiveGameData: Checking if game is running...");
     const gameRunning = await checkGameStatus();
     
     if (gameRunning) {
+      console.log("useLiveGameData: Game is running, starting data polling...");
       setIsConnected(true);
       setError(null);
       
       // Initial fetch
+      console.log("useLiveGameData: Performing initial data fetch...");
       await fetchGameData();
       
       // Start polling every 2 seconds
+      console.log("useLiveGameData: Setting up polling interval (2 seconds)...");
       const interval = setInterval(async () => {
+        console.log("useLiveGameData: Polling interval triggered, checking game status...");
         const stillRunning = await checkGameStatus();
         
         if (!stillRunning) {
+          console.log("useLiveGameData: Game no longer running, stopping polling...");
           setIsConnected(false);
           setGameData(null);
           clearInterval(interval);
@@ -216,15 +261,18 @@ export const useLiveGameData = () => {
           return;
         }
         
+        console.log("useLiveGameData: Game still running, fetching updated data...");
         await fetchGameData();
       }, 2000);
       
       // Cleanup function
       return () => {
+        console.log("useLiveGameData: Cleaning up polling interval...");
         clearInterval(interval);
         setIsPolling(false);
       };
     } else {
+      console.log("useLiveGameData: Game is not running, not starting polling");
       setIsConnected(false);
       setGameData(null);
       setIsPolling(false);
@@ -239,7 +287,10 @@ export const useLiveGameData = () => {
     let cleanup: (() => void) | undefined;
     
     const initPolling = async () => {
-      cleanup = await startPolling();
+      const result = await startPolling();
+      if (typeof result === 'function') {
+        cleanup = result;
+      }
     };
     
     initPolling();

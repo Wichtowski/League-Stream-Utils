@@ -24,7 +24,7 @@ export default function PickBanPage(): React.ReactElement {
 
   if (!authUser) {
     // Redirect to auth if not authenticated
-    router.replace("/auth");
+    router.replace("/login");
     return <PageLoader text="Redirecting to authentication..." />;
   }
 

@@ -1,4 +1,5 @@
-import { getChampionById } from "@lib/champions";
+import { getChampionById, getChampionByName, getChampionByKey } from "@lib/champions";
+import { getSummonerSpellByKey } from "@lib/summoner-spells";
 
 // Cache user data path for asset-cache resolution
 let userDataPathCache: string | null = null;
@@ -13,6 +14,39 @@ if (typeof window !== "undefined" && window.electronAPI?.getUserDataPath) {
     });
 }
 
+export const getSummonerSpellImageByName = (summonerSpellName: string): string => {
+  // Trim all spaces and add "Summoner" prefix
+  const trimmedName = summonerSpellName.trim().replace(/\s+/g, "");
+  const normalizedName = `Summoner${trimmedName}`;
+  
+  // Get the spell from memory cache
+  const spell = getSummonerSpellByKey(normalizedName);
+  
+  if (spell && spell.image) {
+    // If it's already a local cache path, use it directly
+    if (spell.image.startsWith("cache/")) {
+      return resolveCachedPath(spell.image);
+    }
+    
+    // Convert DataDragon URL to local cache path
+    const ddragonMatch = spell.image.match(/\/cdn\/([^/]+)\/img\/spell\/([^.]+)\.png$/);
+    if (ddragonMatch) {
+      const [, version, key] = ddragonMatch;
+      const localPath = `cache/assets/${version}/spells/${key}.png`;
+      return resolveCachedPath(localPath);
+    }
+    
+    // If already an http/https url return directly (fallback)
+    if (/^https?:\/\//.test(spell.image)) return spell.image;
+    
+    // Final fallback
+    return spell.image;
+  }
+  
+  // If no spell found, return default image
+  return "";
+};
+
 const resolveCachedPath = (relativePath: string): string => {
   if (typeof window !== "undefined" && window.electronAPI?.getUserDataPath) {
     if (userDataPathCache) {
@@ -25,9 +59,17 @@ const resolveCachedPath = (relativePath: string): string => {
   return `/api/local-image?path=${encodeURIComponent(relativePath)}`;
 };
 
-export const getChampionLoadingImage = (championId: number): string | null => {
+export const getChampionLoadingImage = (championId: number | string): string | null => {
   if (!championId) return null;
-  const champ = getChampionById(championId);
+  
+  let champ;
+  if (typeof championId === "number") {
+    champ = getChampionById(championId);
+  } else {
+    // Try to find by name first, then by key
+    champ = getChampionByName(championId) || getChampionByKey(championId);
+  }
+  
   if (!champ?.image) return null;
 
   // Resolve cached relative path (starts with 'cache/')
@@ -50,10 +92,18 @@ export const getChampionLoadingImage = (championId: number): string | null => {
   return champ.image;
 };
 
-export const getChampionSquareImage = (championId: number): string | null => {
-  if (!championId) return null;
-  const champ = getChampionById(championId);
-  if (!champ?.image) return null;
+export const getChampionSquareImage = (championId: number | string): string => {
+  if (!championId) return "";
+  
+  let champ;
+  if (typeof championId === "number") {
+    champ = getChampionById(championId);
+  } else {
+    // Try to find by name first, then by key
+    champ = getChampionByName(championId) || getChampionByKey(championId);
+  }
+  
+  if (!champ?.image) return "";
 
   // Resolve cached relative path (starts with 'cache/')
   if (champ.image.startsWith("cache/")) {
@@ -75,9 +125,17 @@ export const getChampionSquareImage = (championId: number): string | null => {
   return champ.image;
 };
 
-export const getChampionCenteredSplashImage = (championId: number): string | null => {
+export const getChampionCenteredSplashImage = (championId: number | string): string | null => {
   if (!championId) return null;
-  const champ = getChampionById(championId);
+  
+  let champ;
+  if (typeof championId === "number") {
+    champ = getChampionById(championId);
+  } else {
+    // Try to find by name first, then by key
+    champ = getChampionByName(championId) || getChampionByKey(championId);
+  }
+  
   if (!champ?.image) return null;
 
   // Resolve cached relative path (starts with 'cache/')

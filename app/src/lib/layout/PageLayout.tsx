@@ -11,6 +11,8 @@ interface PageLayoutProps {
   actions?: React.ReactNode;
   className?: string;
   contentClassName?: string;
+  loading?: boolean;
+  loadingChildren?: React.ReactNode;
 }
 
 export const PageLayout: React.FC<PageLayoutProps> = ({
@@ -20,9 +22,33 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
   subtitle,
   actions,
   className = "",
-  contentClassName = ""
+  contentClassName = "",
+  loading = false,
+  loadingChildren,
 }) => {
   const { isElectron } = useElectron();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen text-white">
+        <div className="container mx-auto px-6 py-8">
+          <div className="mb-4 flex justify-between items-center">
+            <Breadcrumbs items={[]} />
+          </div>
+          <div className="mb-8 flex items-center justify-between">
+            <div>
+              <div className="h-8 bg-gray-600 rounded animate-pulse blur-sm w-64"></div>
+            </div>
+            {actions && <div className="flex items-center space-x-4">{actions}</div>}
+            {isElectron && <SettingsCog />}
+          </div>
+          <div className="space-y-6">
+            {loadingChildren || children}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`min-h-screen text-white ${className}`}>

@@ -34,7 +34,7 @@ const nextConfig: NextConfig = {
               "style-src 'self'",
               "img-src 'self' data: https:",
               "font-src 'self'",
-              "connect-src 'self' ws: wss: https://ddragon.leagueoflegends.com https://raw.communitydragon.org",
+              "connect-src 'self' ws: wss: https://ddragon.leagueoflegends.com https://raw.communitydragon.org http://127.0.0.1:2999 https://127.0.0.1:2999",
               "frame-ancestors 'none'",
               "object-src 'none'",
               "base-uri 'self'"
@@ -72,7 +72,7 @@ const nextConfig: NextConfig = {
         pathname: "/cdn/**"
       }
     ],
-    domains: ["vdo.ninja", "via.placeholder.com", "ddragon.leagueoflegends.com"]
+    domains: ["vdo.ninja", "via.placeholder.com", "ddragon.leagueoflegends.com", "127.0.0.1"]
   },
   // Webpack configuration for bundle splitting
   webpack: (config, { dev, isServer }) => {

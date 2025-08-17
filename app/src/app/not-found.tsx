@@ -16,7 +16,7 @@ const NotFoundPage: React.FC = (): React.ReactElement => {
     if (user) {
       router.replace("/modules");
     } else {
-      router.replace("/auth");
+      router.replace("/login");
     }
   }, [authLoading, isElectronLoading, isElectron, user, router]);
 

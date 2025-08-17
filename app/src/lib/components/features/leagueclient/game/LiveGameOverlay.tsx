@@ -1,7 +1,10 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { useLiveGameData } from "@lib/hooks/useLiveGameData";
+import { LivePlayer } from "@lib/services/game/game-service";
+import Image from "next/image";
+import { getChampionSquareImage } from "@lib/components/features/leagueclient/common";
 
 export const LiveGameOverlay: React.FC = () => {
   const { gameData, isConnected, error } = useLiveGameData();
@@ -69,9 +72,9 @@ export const LiveGameOverlay: React.FC = () => {
           <div className="bg-blue-900/20 rounded-lg p-4">
             <h2 className="text-xl font-bold text-blue-400 mb-4">Blue Team</h2>
             <div className="space-y-3">
-              {gameData.blueTeam.players.map((player, index) => (
-                <PlayerCard key={index} player={player} team="blue" />
-              ))}
+                             {gameData.blueTeam.players.map((player, index: number) => (
+                 <PlayerCard key={index} player={player} team="blue" />
+               ))}
             </div>
           </div>
 
@@ -79,9 +82,9 @@ export const LiveGameOverlay: React.FC = () => {
           <div className="bg-red-900/20 rounded-lg p-4">
             <h2 className="text-xl font-bold text-red-400 mb-4">Red Team</h2>
             <div className="space-y-3">
-              {gameData.redTeam.players.map((player, index) => (
-                <PlayerCard key={index} player={player} team="red" />
-              ))}
+                             {gameData.redTeam.players.map((player, index: number) => (
+                 <PlayerCard key={index} player={player} team="red" />
+               ))}
             </div>
           </div>
         </div>
@@ -116,12 +119,13 @@ export const LiveGameOverlay: React.FC = () => {
 };
 
 interface PlayerCardProps {
-  player: any;
+  player: LivePlayer;
   team: "blue" | "red";
 }
 
 const PlayerCard: React.FC<PlayerCardProps> = ({ player, team }) => {
   const teamColor = team === "blue" ? "blue" : "red";
+  const championImage = getChampionSquareImage(player.championName);
   
   return (
     <div className={`bg-${teamColor}-800/30 rounded-lg p-3 border border-${teamColor}-600/50`}>
@@ -134,6 +138,9 @@ const PlayerCard: React.FC<PlayerCardProps> = ({ player, team }) => {
             <div>
               <h3 className="font-semibold text-white">{player.summonerName}</h3>
               <p className="text-sm text-gray-300">{player.championName}</p>
+               {championImage && (
+                 <Image src={championImage} alt={player.championName} width={32} height={32} />
+               )}
             </div>
             <div className="text-right">
               <div className="text-lg font-bold text-yellow-400">

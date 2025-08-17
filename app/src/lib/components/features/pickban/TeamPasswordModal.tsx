@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { useModal } from "@lib/contexts/ModalContext";
 
 interface TeamPasswordModalProps {
@@ -15,7 +14,6 @@ export function TeamPasswordModal({ sessionId, teamSide, onPasswordCorrect, onCa
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
   const { showAlert } = useModal();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -40,7 +38,7 @@ export function TeamPasswordModal({ sessionId, teamSide, onPasswordCorrect, onCa
       } else {
         setError("Session not found");
       }
-    } catch (error) {
+    } catch (_error) {
       setError("Failed to validate password");
     } finally {
       setLoading(false);

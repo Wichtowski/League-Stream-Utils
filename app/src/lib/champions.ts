@@ -247,6 +247,7 @@ export const getChampionById = (id: number): Champion | undefined => {
 
 export const getChampionByName = (name: string): Champion | undefined => {
   const champions = getChampionsCached();
+
   return champions.find((champ) => champ.name.toLowerCase() === name.toLowerCase());
 };
 

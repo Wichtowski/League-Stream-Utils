@@ -4,7 +4,7 @@ import { createContext, useContext, useState, useCallback, ReactNode, useMemo } 
 import { useAuthenticatedFetch } from "@lib/hooks/useAuthenticatedFetch";
 import { useElectron } from "./ElectronContext";
 import { storage } from "@lib/services/common/UniversalStorage";
-import type { Match } from "@lib/types";
+import type { Match } from "@lib/types/match";
 
 interface CurrentMatchContextType {
   // Current match data
@@ -38,7 +38,7 @@ export function CurrentMatchProvider({ children }: { children: ReactNode }) {
   const isLocalDataMode = isElectron && useLocalData;
 
   // Simple electron storage helper
-  const electronStorage = {
+  const electronStorage = useMemo(() => ({
     async get<T>(key: string): Promise<T | null> {
       if (typeof window !== "undefined" && window.electronAPI?.storage?.get) {
         try {
@@ -71,7 +71,7 @@ export function CurrentMatchProvider({ children }: { children: ReactNode }) {
         }
       }
     }
-  };
+  }), []);
 
   const setCurrentMatch = useCallback(
     async (match: Match | null): Promise<void> => {
@@ -116,7 +116,7 @@ export function CurrentMatchProvider({ children }: { children: ReactNode }) {
         setLoading(false);
       }
     },
-    [isLocalDataMode]
+    [isLocalDataMode, electronStorage]
   );
 
   const clearCurrentMatch = useCallback(async (): Promise<void> => {
@@ -150,7 +150,7 @@ export function CurrentMatchProvider({ children }: { children: ReactNode }) {
       console.error("Error getting current match:", err);
       return null;
     }
-  }, [isLocalDataMode]);
+  }, [isLocalDataMode, electronStorage]);
 
   const refreshCurrentMatch = useCallback(async (): Promise<void> => {
     try {
@@ -185,7 +185,7 @@ export function CurrentMatchProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false);
     }
-  }, [currentMatch?.id, authenticatedFetch, isLocalDataMode]);
+  }, [currentMatch?.id, authenticatedFetch, isLocalDataMode, electronStorage]);
 
   const value: CurrentMatchContextType = useMemo(
     () => ({

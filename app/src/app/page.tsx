@@ -14,7 +14,7 @@ export default function HomePage() {
             </div>
             <div className="flex space-x-4">
               <Link
-                href="/auth"
+                href="/login"
                 className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors"
               >
                 Login
@@ -40,7 +40,7 @@ export default function HomePage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
-              href="/auth"
+              href="/login"
               className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-lg text-lg font-semibold transition-colors"
             >
               Get Started
@@ -142,7 +142,7 @@ export default function HomePage() {
             Join tournament organizers who trust League Stream Utils for their esports events.
           </p>
           <Link
-            href="/auth"
+            href="/login"
             className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-lg text-lg font-semibold transition-colors inline-block"
           >
             Start Your Tournament

@@ -221,11 +221,23 @@ class AssetCounterService {
   }
 
   /**
-   * Count spell assets (placeholder for now)
+   * Count summoner spell assets
+   * Each spell has: 1 data.json + 1 icon.png = 2 assets per spell
    */
   private async countSpellAssets(): Promise<number> {
-    // Placeholder - spells not implemented yet
-    return 0;
+    try {
+      const version = await DataDragonClient.getLatestVersion();
+      const summonerData = await DataDragonClient.getSummonerSpells(version);
+      
+      // Count all summoner spells
+      const spellCount = Object.keys(summonerData.data).length;
+      
+      // Each spell has 1 icon
+      return spellCount;
+    } catch (error) {
+      console.warn("Failed to count summoner spell assets:", error);
+      return 0;
+    }
   }
 
   private getEmptyCounts(): AssetCounts {

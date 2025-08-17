@@ -49,7 +49,7 @@ export function Footer() {
               {/* Login */}
               {showBasicNav && (
                 <Link
-                  href="/auth"
+                  href="/login"
                   className={`px-4 py-2 text-white rounded-lg font-medium transition-all duration-200 shadow-lg ${
                     activeModule === "auth"
                       ? "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 shadow-purple-500/20"

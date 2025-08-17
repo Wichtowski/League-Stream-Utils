@@ -1,7 +1,7 @@
 import React from "react";
 import Image from "next/image";
 import { getChampionById } from "@lib/champions";
-import { getChampionSquareImage } from "./common";
+import { getChampionSquareImage } from "../common";
 import type { Champion } from "@lib/types";
 import { banPlaceholder } from "@lib/services/common/constants";
 

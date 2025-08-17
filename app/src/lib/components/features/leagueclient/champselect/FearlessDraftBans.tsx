@@ -1,6 +1,6 @@
 import React from "react";
 import Image from "next/image";
-import { getChampionSquareImage } from "./common";
+import { getChampionSquareImage } from "../common";
 import { ROLE_ICONS } from "@lib/services/common/constants";
 import { PlayerRole } from "@lib/types/common";
 

@@ -134,7 +134,7 @@ export function AuthProvider({ children }: { children: ReactNode }): React.React
     } finally {
       clearAuthData();
       if (typeof window !== "undefined") {
-        window.location.href = "/auth";
+        window.location.href = "/login";
       }
     }
   };
@@ -217,7 +217,17 @@ export function AuthProvider({ children }: { children: ReactNode }): React.React
 
   useEffect(() => {
     checkAuthCallback();
-  }, [checkAuthCallback]);
+    
+    // Safety timeout to ensure loading state doesn't hang indefinitely
+    const safetyTimeout = setTimeout(() => {
+      if (isLoading) {
+        console.warn("Auth check timeout, forcing completion");
+        setIsLoading(false);
+      }
+    }, 10000); // 10 second timeout
+
+    return () => clearTimeout(safetyTimeout);
+  }, [checkAuthCallback, isLoading]);
 
   const value = {
     user,

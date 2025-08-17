@@ -5,6 +5,7 @@ export * from './downloader-manager';
 export * from './integrity-checker';
 export * from './assetCache';
 export * from './base';
+export * from './summoner-spell';
 export * from './champion';
 export * from './item';
 export * from './migrator';

@@ -1,5 +1,6 @@
 import { TournamentCreationForm } from "./TournamentCreationForm";
 import { TournamentCard } from "./TournamentCard";
+import { TournamentPageCard } from "./TournamentPageCard";
 import { TournamentList } from "./TournamentList";
 import { TournamentEditor } from "./TournamentEditor";
 import { AdminTournamentManager } from "./AdminTournamentManager";
@@ -18,6 +19,7 @@ export {
   MyTeamRegistration,
   TournamentCreationForm,
   TournamentCard,
+  TournamentPageCard,
   TournamentList,
   TournamentEditor,
   AdminTournamentManager,

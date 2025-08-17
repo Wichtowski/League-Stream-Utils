@@ -146,6 +146,8 @@ export interface GameSession {
     blue: boolean;
     red: boolean;
   };
+  // Actions for pick/ban sessions
+  actions?: PickbanAction[];
 }
 
 export type TeamSide = "blue" | "red";

@@ -9,6 +9,7 @@ import { useAuthenticatedFetch } from "@lib/hooks/useAuthenticatedFetch";
 import { API_BASE_URL } from "@lib/services/common/constants";
 import { PickBanContent } from "@lib/components/features/pickban/PickBanContent";
 import { PageWrapper } from "@lib/layout/PageWrapper";
+import { LoadingSpinner } from "@/lib/components/common";
 
 export default function StaticPickBanPage() {
   const { setActiveModule } = useNavigation();
@@ -118,7 +119,8 @@ export default function StaticPickBanPage() {
 
   return (
     <PageWrapper
-      loadingMessage="Loading Static Pick & Ban..."
+      loading={true}
+      loadingChildren={<LoadingSpinner fullscreen text="Loading Static Pick & Ban..." />}
       breadcrumbs={[
         { label: "Pick & Ban", href: "/modules/pickban" },
         { label: "Static", isActive: true }
