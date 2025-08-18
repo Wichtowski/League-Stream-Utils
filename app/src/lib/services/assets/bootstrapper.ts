@@ -3,6 +3,7 @@ import { itemCacheService } from "./item";
 import { gameUIBlueprintDownloader } from "./game-ui";
 import { itemsBlueprintDownloader } from "./item";
 import { runesBlueprintDownloader } from "./runes";
+import { summonerSpellCacheService } from "./summoner-spell";
 import { assetCounterService, AssetCounts } from "./asset-counter";
 import { DownloadProgress } from "./base";
 
@@ -338,19 +339,68 @@ export const downloadAllAssets = async (onProgress?: (progress: BootstrapProgres
     }
   };
 
-  // Placeholder spell/rune tasks (no-op for now) -----------------------------
+  // Summoner spell download task -------------------------------------------------------
   const spellTask = async (): Promise<void> => {
     const tracker = categoryTrackers.get("spell")!;
-    tracker.stage = "complete";
-    tracker.currentAsset = "Spells not implemented";
+
+    summonerSpellCacheService.onProgress((p) => {
+      tracker.current = p.current;
+      tracker.total = p.total;
+      tracker.stage = p.stage;
+      tracker.currentAsset = p.currentAsset || p.itemName || "spell";
+      
+      // Update completed assets for overall progress
+      tracker.completedAssets = p.current;
+
+      onProgress?.({ 
+        ...p, 
+        category: "spell",
+        totalAssets: totalAssetCounts?.total,
+        overallProgress: totalAssetCounts ? {
+          completedAssets: tracker.completedAssets,
+          totalAssets: totalAssetCounts.total,
+          percentage: Math.round((tracker.completedAssets / totalAssetCounts.total) * 100)
+        } : undefined
+      });
+      updateOverallProgress();
+    });
+
+    tracker.stage = "checking";
+    tracker.currentAsset = "Checking summoner spells...";
     onProgress?.({
       current: 0,
-      total: 0,
-      itemName: "spells",
-      stage: "complete",
-      percentage: 100,
-      category: "spell"
+      total: tracker.total,
+      itemName: "summoner-spells",
+      stage: "checking",
+      percentage: 0,
+      category: "spell",
+      totalAssets: totalAssetCounts?.total,
+      overallProgress: totalAssetCounts ? {
+        completedAssets: 0,
+        totalAssets: totalAssetCounts.total,
+        percentage: 0
+      } : undefined
     });
+
+    try {
+      await summonerSpellCacheService.downloadAllSummonerSpellsOnStartup();
+      console.log("Summoner spells download completed successfully");
+
+      // Don't override the final progress - let the service report it
+    } catch (error) {
+      console.error("Error downloading summoner spells:", error);
+      tracker.stage = "error";
+      tracker.currentAsset = "Failed to download summoner spells";
+      onProgress?.({
+        current: 0,
+        total: 0,
+        itemName: "summoner-spells",
+        stage: "error",
+        percentage: 0,
+        category: "spell",
+        totalAssets: totalAssetCounts?.total
+      });
+    }
   };
 
   const runeTask = async (): Promise<void> => {

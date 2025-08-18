@@ -7,7 +7,7 @@ interface SessionPasswordModalProps {
   onCancel: () => void;
 }
 
-export const SessionPasswordModal = ({ sessionId, onPasswordCorrect, onCancel }: SessionPasswordModalProps) => {
+export const SessionPasswordModal = ({ sessionId: _sessionId, onPasswordCorrect, onCancel }: SessionPasswordModalProps) => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -26,7 +26,7 @@ export const SessionPasswordModal = ({ sessionId, onPasswordCorrect, onCancel }:
       } else {
         setError("Incorrect password");
       }
-    } catch (err) {
+    } catch (_err) {
       await showAlert({ type: "error", message: "Failed to verify password" });
     } finally {
       setLoading(false);

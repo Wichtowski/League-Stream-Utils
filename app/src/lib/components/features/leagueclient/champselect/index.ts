@@ -6,6 +6,6 @@ import { MatchInfo } from "./MatchInfo";
 import { TeamBans } from "./TeamBans";
 
 // Common utilities
-export { getChampionLoadingImage, getChampionSquareImage, getChampionName } from "./common";
+export { getChampionLoadingImage, getChampionSquareImage, getChampionName } from "../common";
 
 export { TournamentHeader, PlayerSlot, TeamSection, MockControlPanel, MatchInfo, TeamBans };

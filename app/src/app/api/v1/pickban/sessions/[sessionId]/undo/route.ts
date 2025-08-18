@@ -13,8 +13,7 @@ export const POST = withAuth(async (req: NextRequest, _user) => {
       return NextResponse.json({ error: "Session not found" }, { status: 404 });
     }
 
-    const sessionWithActions = session as any;
-    const actions = sessionWithActions.actions || [];
+    const actions = session.actions || [];
     if (actions.length === 0) {
       return NextResponse.json({ error: "No actions to undo" }, { status: 400 });
     }
@@ -32,14 +31,14 @@ export const POST = withAuth(async (req: NextRequest, _user) => {
 
     // Remove the action from team-specific data
     if (lastAction.type === "ban") {
-      const teamBans = updatedSession.teams[lastAction.team].bans;
-      const banIndex = teamBans.indexOf(lastAction.championId);
+      const teamBans = updatedSession.teams[lastAction.teamSide].bans;
+      const banIndex = teamBans.findIndex(champion => champion.id === lastAction.championId);
       if (banIndex > -1) {
         teamBans.splice(banIndex, 1);
       }
     } else if (lastAction.type === "pick") {
-      const teamPicks = updatedSession.teams[lastAction.team].picks;
-      const pickIndex = teamPicks.indexOf(lastAction.championId);
+      const teamPicks = updatedSession.teams[lastAction.teamSide].picks;
+      const pickIndex = teamPicks.findIndex(champion => champion.id === lastAction.championId);
       if (pickIndex > -1) {
         teamPicks.splice(pickIndex, 1);
       }

@@ -34,7 +34,7 @@ export default function TeamCameraSetupPage() {
 
     if (!authLoading) {
       if (!user && !(isElectron && useLocalData)) {
-        router.push("/auth");
+        router.push("/login");
         return;
       }
 

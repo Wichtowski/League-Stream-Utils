@@ -12,7 +12,7 @@ const CSP_RULES = [
   "style-src 'self'",
   "img-src 'self' data: https:",
   "font-src 'self'",
-  "connect-src 'self' ws: wss:",
+  "connect-src 'self' ws: wss: http://127.0.0.1:2999 https://127.0.0.1:2999",
   "frame-ancestors 'none'",
   "object-src 'none'",
   "base-uri 'self'"

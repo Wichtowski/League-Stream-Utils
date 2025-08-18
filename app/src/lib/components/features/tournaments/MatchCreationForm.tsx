@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
-import type { Match, CreateMatchRequest, BracketNode, Team, Tournament } from "@lib/types";
-import { useTeams, useModal, useCurrentMatch } from "@lib/contexts";
+import type { Team, Tournament } from "@lib/types";
+import { useTeams, useModal, useCurrentMatch } from   "@lib/contexts";
 import { Button } from "@lib/components/common/buttons/Button";
 import { LoadingSpinner } from "@lib/components/common";
+import { BracketNode } from "@lib/types/tournament";
+import { Match, CreateMatchRequest } from "@lib/types/match";
 
 interface MatchCreationFormProps {
   tournament: Tournament;
@@ -24,8 +25,7 @@ interface FormData {
   bracketNodeId?: string;
 }
 
-export const MatchCreationForm = ({ tournament, bracketNodes, onMatchCreated }: MatchCreationFormProps): JSX.Element => {
-  const router = useRouter();
+export const MatchCreationForm = ({ tournament, bracketNodes, onMatchCreated }: MatchCreationFormProps): React.ReactNode => {
   const { teams, loading: teamsLoading } = useTeams();
   const { showAlert, showConfirm } = useModal();
   const { setCurrentMatch } = useCurrentMatch();

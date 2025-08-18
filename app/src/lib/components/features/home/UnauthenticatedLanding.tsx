@@ -19,7 +19,7 @@ export function UnauthenticatedLanding() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Link
-              href="/auth"
+              href="/login"
               className="group bg-gradient-to-r from-blue-600/20 to-purple-600/20 hover:from-blue-600/30 hover:to-purple-600/30 border border-blue-500/50 hover:border-blue-400 rounded-xl p-8 transition-all duration-300 hover:scale-105 hover:shadow-blue-500/20 col-span-full"
             >
               <div className="w-12 h-12 bg-gradient-to-r from-blue-500/30 to-purple-500/30 rounded-lg flex items-center justify-center mx-auto mb-4 group-hover:from-blue-500/40 group-hover:to-purple-500/40 transition-colors">

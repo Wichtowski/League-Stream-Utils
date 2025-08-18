@@ -4,22 +4,18 @@ import React, { useEffect, useMemo } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@lib/contexts/AuthContext";
 import { useElectron } from "@lib/contexts/ElectronContext";
-import { LoadingSpinner, PageLayout } from "@lib/components/common";
-import { SettingsCog } from "../common/SettingsCog";
 
 interface AuthGuardProps {
   children: React.ReactNode;
   redirectTo?: string;
   requireAuth?: boolean;
-  loadingMessage?: string;
   loadingComponent?: React.ReactNode;
 }
 
 export const AuthGuard: React.FC<AuthGuardProps> = ({
   children,
-  redirectTo = "/auth",
+  redirectTo = "/login",
   requireAuth = true,
-  loadingMessage = "Checking authentication...",
   loadingComponent
 }) => {
   const { user, isLoading } = useAuth();
@@ -45,28 +41,16 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
   useEffect(() => {
     if (authState.shouldRedirect) {
       // Store the current path for returnTo functionality
-      if (typeof window !== "undefined" && pathname !== "/auth") {
+      if (typeof window !== "undefined" && pathname !== "/login") {
         sessionStorage.setItem("returnTo", pathname);
       }
-      router.replace(redirectTo);
+      // router.replace(redirectTo); // Commented out for debugging loading state
     }
   }, [authState.shouldRedirect, redirectTo, router, pathname]);
 
   // Show loading while checking auth or Electron status
   if (authState.shouldShowLoading) {
-    if (loadingComponent) {
-      return (
-        <PageLayout
-          title="Loading..."
-          subtitle="Please wait while we check your authentication..."
-          contentClassName="max-w-7xl mx-auto"
-          actions={<SettingsCog blured={true} />}
-        >
-          {loadingComponent}
-        </PageLayout>
-      );
-    }
-    return <LoadingSpinner fullscreen text={loadingMessage} />;
+    return loadingComponent;
   }
 
   // Don't render children if auth is required but user is not authenticated

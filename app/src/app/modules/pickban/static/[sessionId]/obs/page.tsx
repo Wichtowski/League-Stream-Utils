@@ -60,10 +60,11 @@ export default function OBSView({ params }: { params: Promise<{ sessionId: strin
 
   useEffect(() => {
     const cleanup = connectWebSocket();
+    const currentReconnectTimeout = reconnectTimeoutRef.current;
 
     return () => {
-      if (reconnectTimeoutRef.current) {
-        clearTimeout(reconnectTimeoutRef.current);
+      if (currentReconnectTimeout) {
+        clearTimeout(currentReconnectTimeout);
       }
       if (ws) {
         ws.close();
@@ -74,7 +75,7 @@ export default function OBSView({ params }: { params: Promise<{ sessionId: strin
         cleanup();
       }
     };
-  }, [resolvedParams.sessionId, connectWebSocket]);
+  }, [resolvedParams.sessionId, connectWebSocket, ws]);
 
   useEffect(() => {
     // Ensure champions cache is populated

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, use } from "react";
 import { useTeams, useModal, useUser } from "@lib/contexts";
 import { TeamEditForm } from "@lib/components/features/teams/TeamEditForm";
 import { PageWrapper } from "@lib/layout/PageWrapper";
@@ -8,13 +8,13 @@ import { TeamCard } from "@lib/components/features";
 import type { CreateTeamRequest, Team } from "@lib/types";
 
 interface TeamEditPageProps {
-  params: {
+  params: Promise<{
     teamId: string;
-  };
+  }>;
 }
 
 const TeamEditPage: React.FC<TeamEditPageProps> = ({params}: TeamEditPageProps) => {
-  const teamId = params.teamId;
+  const { teamId } = use(params);
   const { teams, updateTeam, verifyPlayer, verifyAllPlayers } = useTeams();
   const { showAlert, showConfirm } = useModal();
   const user = useUser();

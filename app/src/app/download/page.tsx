@@ -26,7 +26,7 @@ const categories = [
   "champion",
   "item",
   "game-ui",
-  // 'spell',
+  "spell",
   "rune"
 ];
 
@@ -196,7 +196,8 @@ export default function DownloadAssetsPage() {
         return "Champions";
       case "item":
         return "Items";
-      // case 'spell': return 'Spells';
+      case "spell":
+        return "Summoner Spells";
       case "rune":
         return "Runes";
       default:

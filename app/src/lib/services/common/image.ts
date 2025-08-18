@@ -1,6 +1,4 @@
-// Utility functions for handling image storage and team logos
 import type { ImageStorage } from "@lib/types/tournament";
-import type { Team } from "@lib/types/game";
 
 /**
  * Convert ImageStorage object into a URL that can be used in <img src>. 
@@ -39,27 +37,16 @@ export const getImageUrl = async (image?: ImageStorage): Promise<string> => {
 /**
  * Get team logo URL - uses the dedicated team logo endpoint
  */
-export const getTeamLogoUrl = async (team: Team): Promise<string> => {
-  if (!team.logo) {
-    return "";
-  }
-
-  // External URL
-  if (team.logo.type === "url") {
-    return team.logo.url || "";
-  }
-
+export const getTeamLogoUrl = async (teamId: string): Promise<string> => {
   // Database-stored image - use the team logo endpoint
-  if (team.logo.type === "upload" && team.logo.data) {
     try {
-      const response = await fetch(`/api/v1/teams/${team.id}/logo`);
+      const response = await fetch(`/api/v1/teams/${teamId}/logo`);
       if (response.ok) {
           const blob = await response.blob();
           return URL.createObjectURL(blob);
         }
     } catch (error) {
-      console.error(`Failed to fetch logo for team ${team.name}:`, error);
-    }
+    console.error(`Failed to fetch logo for team ${teamId}:`, error);
   }
 
   return "";

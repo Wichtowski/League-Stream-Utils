@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { useNavigation } from "@lib/contexts/NavigationContext";
-import { LiveGameOverlay } from "@lib/components/features/leagueclient/game/LiveGameOverlay";
+import { GameOverlay } from "@/lib/components/features/leagueclient/game";
 
 const LiveGamePage: React.FC = () => {
   const { setActiveModule } = useNavigation();
@@ -11,11 +11,7 @@ const LiveGamePage: React.FC = () => {
     setActiveModule(null);
   }, [setActiveModule]);
 
-  return (
-    <>
-      <LiveGameOverlay />
-    </>
-  );
+  return <GameOverlay />;
 };
 
 export default LiveGamePage;

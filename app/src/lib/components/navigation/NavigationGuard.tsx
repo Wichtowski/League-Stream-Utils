@@ -27,7 +27,7 @@ const NavigationGuard = ({ children }: NavigationGuardProps) => {
     }
 
     // Define valid routes
-    const validRoutes = ["/", "/auth", "/modules", "/settings", "/debug-contexts", "/download"];
+    const validRoutes = ["/", "/login", "/modules", "/settings", "/debug-contexts", "/download"];
 
     // Check if current path starts with any valid route
     const isValidRoute = validRoutes.some((route) => {
@@ -53,7 +53,7 @@ const NavigationGuard = ({ children }: NavigationGuardProps) => {
       router.replace("/modules");
     } else {
       // Redirect unauthenticated users to auth
-      router.replace("/auth");
+      router.replace("/login");
     }
   }, [pathname, router, user, authLoading, isElectron, isElectronLoading, useLocalData]);
 

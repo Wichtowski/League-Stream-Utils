@@ -3,10 +3,10 @@ import { getTeamById } from "@lib/database/team";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { teamId: string } }
+  { params }: { params: Promise<{ teamId: string }> }
 ): Promise<NextResponse> {
   try {
-    const { teamId } = params;
+    const { teamId } = await params;
 
     if (!teamId) {
       return NextResponse.json(

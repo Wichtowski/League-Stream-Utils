@@ -6,21 +6,21 @@ import { useNavigation } from "@lib/contexts/NavigationContext";
 import { useUser } from "@lib/contexts/AuthContext";
 import { useElectron } from "@lib/contexts/ElectronContext";
 import { useDownload } from "@lib/contexts/DownloadContext";
-import { AssetDownloadProgress } from "@/lib/components/system/LCU";
 import { getVisibleModules, ModuleCard } from "@lib/navigation";
 import { tournamentStorage, LastSelectedTournament } from "@lib/services/tournament";
 import { PageWrapper } from "@lib/layout/PageWrapper";
 import { SpotlightCard } from "@lib/components/features/modules/SpotlightCard";
+
 
 export default function ModulesPage() {
   const router = useRouter();
   const { setActiveModule } = useNavigation();
   const user = useUser();
   const { isElectron, useLocalData } = useElectron();
-  const { downloadState: downloadState, cancelDownload } = useDownload();
+  const { downloadState: downloadState } = useDownload();
   const [hasLastSelectedTournament, setHasLastSelectedTournament] = useState(false);
   const [lastSelectedTournament, setLastSelectedTournament] = useState<LastSelectedTournament | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setIsLoading] = useState(true);
 
   useEffect(() => {
     setActiveModule("modules");
@@ -77,11 +77,8 @@ export default function ModulesPage() {
     downloadState.progress.stage !== "complete" &&
     downloadState.progress.stage !== "error"
   ) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <AssetDownloadProgress progress={downloadState.progress} onCancel={cancelDownload} />
-      </div>
-    );
+    router.push("/downloads");
+    return null;
   }
 
   const handleModuleClick = (module: ModuleCard) => {
@@ -110,37 +107,34 @@ export default function ModulesPage() {
   const isHiddenBehindTournament = (module: ModuleCard) =>
     module.name === "Matches" || module.name === "Commentators" || module.name === "Sponsors";
 
-  if (isLoading) {
+  if (loading) {
     return (
       <PageWrapper
         title="Modules"
         subtitle="Loading modules..."
         contentClassName="max-w-7xl mx-auto"
-        loadingComponent={
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {Array.from({ length: 6 }).map((_, index) => (
-              <SpotlightCard
-                key={index}
-                className="animate-pulse min-h-48"
-                loading={true}
-                module={{
-                  id: `loading-${index}`,
-                  name: "Loading...",
-                  description: "Loading module...",
-                  path: "",
-                  status: "available",
-                  color: "from-gray-500 to-gray-600",
-                  spotlightColor: "#6B7280",
-                  icon: "📦",
-                  category: "core"
-                }}
-                isHiddenBehindTournament={false}
-              />
-            ))}
-          </div>
-        }
       >
-        <div />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {Array(6).fill(null).map((_, index) => (
+            <SpotlightCard
+              key={index}
+              module={{ 
+                id: `loading-${index}`, 
+                name: "Loading...", 
+                description: "Loading module...", 
+                path: "", 
+                status: "available", 
+                color: "from-gray-500 to-gray-600", 
+                spotlightColor: "#6B7280", 
+                icon: "📦", 
+                category: "core" 
+              }}
+              loading={true}
+              spotlightColor="#6B7280"
+              isHiddenBehindTournament={false}
+            />
+          ))}
+        </div>
       </PageWrapper>
     );
   }
@@ -148,10 +142,9 @@ export default function ModulesPage() {
   return (
     <PageWrapper
       title="Modules"
-      subtitle={`Welcome back, ${user?.username || "User"}! Choose a module to get started.`}
+      subtitle={`Welcome back, ${user?.username ? user.username.charAt(0).toUpperCase() + user.username.slice(1) : "User"}! Choose a module to get started.`}
       contentClassName="max-w-7xl mx-auto"
     >
-      {/* Module Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {visibleModules.map((module) => (
           <SpotlightCard

@@ -171,7 +171,7 @@ export function getVisibleModules({
   const showFullNav = isAuthenticated || isElectronLocal;
 
   return MODULES.filter((module) => {
-    if (module.id === "leagueclient") {
+    if (module.id.includes("leagueclient")) {
       return showLeagueClient;
     }
     if (module.id === "pickban") {
