@@ -11,9 +11,9 @@ async function testChampionsBlueprint() {
     console.log("✅ Champions blueprint downloaded successfully!");
 
     // Test downloading for specific version
-    console.log("\n2. Downloading champions blueprint for version 15.15.1...");
-    await championsBlueprintDownloader.downloadChampionsBlueprint("15.15.1");
-    console.log("✅ Champions blueprint for 15.15.1 downloaded successfully!");
+    console.log("\n2. Downloading champions blueprint for version 15.16.1...");
+    await championsBlueprintDownloader.downloadChampionsBlueprint("15.16.1");
+    console.log("✅ Champions blueprint for 15.16.1 downloaded successfully!");
 
     console.log("\n🎉 Champions blueprint test completed successfully!");
   } catch (error) {

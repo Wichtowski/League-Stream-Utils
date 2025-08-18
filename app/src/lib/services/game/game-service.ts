@@ -30,6 +30,8 @@ export interface LivePlayer {
   items: LiveItem[];
   level: number;
   gold: number;
+  health?: number;
+  maxHealth?: number;
   summonerSpells: {
     summonerSpellOne: SummonerSpell;
     summonerSpellTwo: SummonerSpell;
@@ -144,11 +146,13 @@ export class GameService {
         };
       }
 
-      const liveData: LiveGameData = await response.json();
-      
+      const riotData: import("@lib/types/live-client").RiotLiveClientData = await response.json();
+
+      const transformed: LiveGameData = transformRiotToLiveGameData(riotData);
+
       return {
         success: true,
-        data: liveData
+        data: transformed
       };
     } catch (error) {
       return {
@@ -197,3 +201,69 @@ export class GameService {
 
 // Export singleton instance
 export const gameService = new GameService();
+
+function transformRiotToLiveGameData(riot: import("@lib/types/live-client").RiotLiveClientData): LiveGameData {
+  const nowSeconds = Math.floor(Date.now() / 1000);
+  const gameTime = riot.gameData?.gameTime ?? 0;
+
+  const allPlayers: LivePlayer[] = (riot.allPlayers || []).map((p): LivePlayer => ({
+    summonerName: p.summonerName,
+    championName: p.championName,
+    team: p.team,
+    position: p.position,
+    scores: {
+      kills: p.scores?.kills ?? 0,
+      deaths: p.scores?.deaths ?? 0,
+      assists: p.scores?.assists ?? 0,
+      creepScore: p.scores?.creepScore ?? 0,
+      visionScore: p.scores?.wardScore ?? 0
+    },
+    items: (p.items || []).map((it) => ({
+      itemID: it.itemID ?? 0,
+      name: it.name ?? "",
+      count: it.count ?? 0,
+      price: 0
+    })),
+    level: p.level ?? 1,
+    gold: 0,
+    health: 0,
+    maxHealth: 1,
+    summonerSpells: {
+      summonerSpellOne: {
+        displayName: p.summonerSpells?.summonerSpellOne?.displayName ?? "",
+        rawDescription: p.summonerSpells?.summonerSpellOne?.rawDescription ?? ""
+      },
+      summonerSpellTwo: {
+        displayName: p.summonerSpells?.summonerSpellTwo?.displayName ?? "",
+        rawDescription: p.summonerSpells?.summonerSpellTwo?.rawDescription ?? ""
+      }
+    },
+    runes: {
+      keystone: p.runes?.keystone?.displayName ?? "",
+      primaryRuneTree: p.runes?.primaryRuneTree?.displayName ?? "",
+      secondaryRuneTree: p.runes?.secondaryRuneTree?.displayName ?? ""
+    }
+  }));
+
+  const activeName = riot.activePlayer?.summonerName;
+  const active = allPlayers.find((x) => x.summonerName === activeName);
+  if (active && riot.activePlayer?.championStats) {
+    active.health = riot.activePlayer.championStats.currentHealth ?? 0;
+    active.maxHealth = riot.activePlayer.championStats.maxHealth ?? 0;
+  }
+
+  return {
+    gameData: {
+      gameMode: riot.gameData?.gameMode ?? "",
+      mapName: riot.gameData?.mapName ?? "",
+      gameTime,
+      gameLength: gameTime,
+      gameStartTime: nowSeconds - Math.floor(gameTime)
+    },
+    allPlayers,
+    events: (riot.events?.Events || []).map((e) => ({
+      EventName: e.EventName,
+      EventTime: e.EventTime
+    }))
+  };
+}

@@ -77,7 +77,7 @@ export default function ModulesPage() {
     downloadState.progress.stage !== "complete" &&
     downloadState.progress.stage !== "error"
   ) {
-    router.push("/downloads");
+    router.push("/download");
     return null;
   }
 

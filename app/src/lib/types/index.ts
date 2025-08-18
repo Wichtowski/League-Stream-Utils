@@ -28,6 +28,17 @@ export type { GameState } from "./ui";
 export type { TournamentForm } from "./forms";
 export type { UserDocument, UserQueryResult } from "./database";
 export type { PlayerRole, GamePhase } from "./common";
+export type { Item } from "./item";
+export type {
+  RiotLiveClientData,
+  RiotActivePlayer,
+  RiotAllPlayer,
+  RiotGameEvent,
+  RiotEventsWrapper,
+  RiotGameDataMeta,
+  RiotAbility,
+  RiotAbilities
+} from "./live-client";
 export type {
   MatchFormat,
   TournamentFormat,

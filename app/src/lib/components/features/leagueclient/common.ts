@@ -1,5 +1,5 @@
 import { getChampionById, getChampionByName, getChampionByKey } from "@lib/champions";
-import { getSummonerSpellByKey } from "@lib/summoner-spells";
+import { getSummonerSpellById, getSummonerSpellsCached } from "@lib/summoner-spells";
 
 // Cache user data path for asset-cache resolution
 let userDataPathCache: string | null = null;
@@ -16,31 +16,39 @@ if (typeof window !== "undefined" && window.electronAPI?.getUserDataPath) {
 
 export const getSummonerSpellImageByName = (summonerSpellName: string): string => {
   // Trim all spaces and add "Summoner" prefix
-  const trimmedName = summonerSpellName.trim().replace(/\s+/g, "");
-  const normalizedName = `Summoner${trimmedName}`;
+  const original = (summonerSpellName || "").trim();
+  if (!original) return "";
+  const normalizedName = `Summoner${original.replace(/\s+/g, "")}`;
   
   // Get the spell from memory cache
-  const spell = getSummonerSpellByKey(normalizedName);
+  const spell = getSummonerSpellById(normalizedName);
   
   if (spell && spell.image) {
-    // If it's already a local cache path, use it directly
-    if (spell.image.startsWith("cache/")) {
-      return resolveCachedPath(spell.image);
+    // If it already points to our API, use it
+    if (spell.image.startsWith("/api/local-image")) return spell.image;
+    // If it's a cached/asset relative path, resolve via API
+    if (spell.image.startsWith("assets/") || spell.image.startsWith("cache/")) {
+      return `/api/local-image?path=${encodeURIComponent(
+        spell.image.startsWith("cache/") ? spell.image.replace(/^cache\//, "") : spell.image
+      )}`;
     }
-    
-    // Convert DataDragon URL to local cache path
-    const ddragonMatch = spell.image.match(/\/cdn\/([^/]+)\/img\/spell\/([^.]+)\.png$/);
-    if (ddragonMatch) {
-      const [, version, key] = ddragonMatch;
-      const localPath = `cache/assets/${version}/spells/${key}.png`;
-      return resolveCachedPath(localPath);
-    }
-    
-    // If already an http/https url return directly (fallback)
+    // If it's an http/https URL, return as-is
     if (/^https?:\/\//.test(spell.image)) return spell.image;
-    
-    // Final fallback
     return spell.image;
+  }
+  
+  // Fallback: match by display name
+  const all = getSummonerSpellsCached();
+  const byName = all.find((s) => s.name.toLowerCase() === original.toLowerCase());
+  if (byName?.image) {
+    if (byName.image.startsWith("/api/local-image")) return byName.image;
+    if (byName.image.startsWith("assets/") || byName.image.startsWith("cache/")) {
+      return `/api/local-image?path=${encodeURIComponent(
+        byName.image.startsWith("cache/") ? byName.image.replace(/^cache\//, "") : byName.image
+      )}`;
+    }
+    if (/^https?:\/\//.test(byName.image)) return byName.image;
+    return byName.image;
   }
   
   // If no spell found, return default image

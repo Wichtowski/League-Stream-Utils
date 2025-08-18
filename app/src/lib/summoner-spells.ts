@@ -1,27 +1,13 @@
 import { SummonerSpell } from "./types/summoner-spell";
 import { summonerSpellCacheService } from "./services/assets/summoner-spell";
-import { DDRAGON_CDN, DDRAGON_BASE_URL } from "@lib/services/common/constants";
+import { DDRAGON_CDN } from "@lib/services/common/constants";
+import { getLatestVersion as getLatestDdragonVersion, loadListFromLocal, saveListToLocal, clearLocal, toLocalImageUrl } from "@lib/services/common/unified-asset-cache";
 
-// Memory cache for quick access
-let memoryCache: SummonerSpell[] | null = null;
-let cacheTimestamp: number | null = null;
-const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+const getLatestVersion = async (): Promise<string> => {
+  return await getLatestDdragonVersion();
+};
 
-// Check if cache is valid
-function isCacheValid(timestamp: number): boolean {
-  return Date.now() - timestamp < CACHE_DURATION;
-}
-
-async function getLatestVersion(): Promise<string> {
-  try {
-    const response = await fetch(`${DDRAGON_BASE_URL}/api/versions.json`);
-    const versions = await response.json();
-    return versions[0];
-  } catch (error) {
-    console.error("Failed to fetch Data Dragon version:", error);
-    return "15.16.1"; // Fallback version
-  }
-}
+ 
 
 async function fetchSummonerSpellsFromAPI(): Promise<{
   spells: SummonerSpell[];
@@ -66,7 +52,7 @@ async function loadFromElectronCache(): Promise<{
     const spells = await summonerSpellCacheService.getAllSummonerSpells();
     if (spells.length > 0) {
       return {
-        spells,
+        spells: spells.map((s) => ({ ...s, image: toLocalImageUrl(s.image) })),
         timestamp: Date.now()
       };
     }
@@ -108,28 +94,16 @@ async function getSummonerSpellsFromComprehensiveCache(): Promise<SummonerSpell[
 
 // Basic cache logic (fallback)
 async function getSummonerSpellsFromBasicCache(): Promise<SummonerSpell[]> {
-  // Check memory cache first
-  if (memoryCache && cacheTimestamp && isCacheValid(cacheTimestamp)) {
-    return memoryCache;
-  }
-
   // Try Electron cache
   const electronCache = await loadFromElectronCache();
-  if (electronCache && isCacheValid(electronCache.timestamp)) {
-    memoryCache = electronCache.spells;
-    cacheTimestamp = electronCache.timestamp;
+  if (electronCache) {
     return electronCache.spells;
   }
 
   // Try DataDragon API
   try {
     const { spells } = await fetchSummonerSpellsFromAPI();
-      
-    // Update memory cache
-    memoryCache = spells;
-    cacheTimestamp = Date.now();
-      
-    return spells;
+    return spells.map((s) => ({ ...s, image: toLocalImageUrl(s.image) }));
   } catch (error) {
     console.error("Failed to fetch summoner spells from DataDragon:", error);
     return [];
@@ -138,27 +112,15 @@ async function getSummonerSpellsFromBasicCache(): Promise<SummonerSpell[]> {
 
 // Main cache logic
 async function getSummonerSpellsFromCache(): Promise<SummonerSpell[]> {
-  // Check memory cache first
-  if (memoryCache && cacheTimestamp && isCacheValid(cacheTimestamp)) {
-    return memoryCache;
-  }
-
   // Only try to fetch if we're in a browser environment
   if (typeof window !== "undefined") {
     try {
       const spells = await getSummonerSpellsFromComprehensiveCache();
-      
-      // Update memory cache
-      memoryCache = spells;
-      cacheTimestamp = Date.now();
-      
-      return spells;
+      return spells.map((s) => ({ ...s, image: toLocalImageUrl(s.image) }));
     } catch (error) {
       console.error("Error fetching summoner spells from comprehensive cache:", error);
-      // Return stale cache if available
-      if (memoryCache) return memoryCache;
-      
-      // Fallback to basic cache (DataDragon API)
+      const cached = loadListFromLocal<SummonerSpell>("summoner_spells");
+      if (cached?.data) return cached.data.map((s) => ({ ...s, image: toLocalImageUrl(s.image) }));
       return await getSummonerSpellsFromBasicCache();
     }
   }
@@ -170,15 +132,13 @@ async function getSummonerSpellsFromCache(): Promise<SummonerSpell[]> {
 // Public API
 export async function getSummonerSpells(): Promise<SummonerSpell[]> {
   const result = await getSummonerSpellsFromCache();
+  const version = await getLatestVersion();
+  saveListToLocal("summoner_spells", result, version);
   return result;
 }
 
 export async function refreshSummonerSpellsCache(): Promise<SummonerSpell[]> {
-  // Clear all caches
-  memoryCache = null;
-  cacheTimestamp = null;
-
-  // Clear comprehensive cache if available
+  clearLocal("summoner_spells");
   if (typeof window !== "undefined" && window.electronAPI) {
     try {
       await summonerSpellCacheService.clearCache();
@@ -191,18 +151,14 @@ export async function refreshSummonerSpellsCache(): Promise<SummonerSpell[]> {
 }
 
 export const getSummonerSpellsCached = (): SummonerSpell[] => {
-  return memoryCache || [];
+  const cached = loadListFromLocal<SummonerSpell>("summoner_spells");
+  return cached?.data?.map((s) => ({ ...s, image: toLocalImageUrl(s.image) })) || [];
 };
 
 export const getSummonerSpellByKey = (key: string): SummonerSpell | undefined => {
   const spells = getSummonerSpellsCached();
-  console.log("🔍 getSummonerSpellByKey looking for:", key, "in", spells.length, "spells");
-  
-  // Debug: log all available keys
-  console.log("🔍 Available keys:", spells.map(s => s.key));
-  
   const found = spells.find((spell) => spell.key === key);
-  console.log("🔍 Found spell:", found);
+  
   return found;
 };
 

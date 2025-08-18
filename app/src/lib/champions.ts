@@ -1,6 +1,7 @@
 import { Champion } from "./types";
-import { DDRAGON_CDN, DDRAGON_BASE_URL } from "@lib/services/common/constants";
+import { DDRAGON_CDN } from "@lib/services/common/constants";
 import { championCacheService } from "@lib/services/assets/champion";
+import { getLatestVersion as getLatestDdragonVersion, saveListToLocal, loadListFromLocal, clearLocal, toLocalImageUrl } from "@lib/services/common/unified-asset-cache";
 
 interface DataDragonChampion {
   id: string;
@@ -15,20 +16,8 @@ interface DataDragonResponse {
   data: { [key: string]: DataDragonChampion };
 }
 
-// Memory cache for quick access
-let memoryCache: Champion[] | null = null;
-let cacheTimestamp: number | null = null;
-const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
-
 async function getLatestVersion(): Promise<string> {
-  try {
-    const response = await fetch(`${DDRAGON_BASE_URL}/api/versions.json`);
-    const versions = await response.json();
-    return versions[0];
-  } catch (error) {
-    console.error("Failed to fetch Data Dragon version:", error);
-    return "15.15.1"; // Fallback version
-  }
+  return await getLatestDdragonVersion();
 }
 
 async function fetchChampionsFromAPI(): Promise<{
@@ -55,46 +44,10 @@ async function fetchChampionsFromAPI(): Promise<{
   return { champions, version };
 }
 
-// Check if cache is valid
-function isCacheValid(timestamp: number): boolean {
-  return Date.now() - timestamp < CACHE_DURATION;
-}
-
-// Browser localStorage cache
-function saveToLocalStorage(champions: Champion[], version: string): void {
-  if (typeof localStorage !== "undefined") {
-    try {
-      const cacheData = {
-        champions,
-        version,
-        timestamp: Date.now()
-      };
-      localStorage.setItem("champions_cache", JSON.stringify(cacheData));
-    } catch (error) {
-      console.warn("Failed to save champions to localStorage:", error);
-    }
-  }
-}
-
-function loadFromLocalStorage(): {
-  champions: Champion[];
-  version: string;
-  timestamp: number;
-} | null {
-  if (typeof localStorage === "undefined") return null;
-
-  try {
-    const cached = localStorage.getItem("champions_cache");
-    if (!cached) return null;
-
-    const data = JSON.parse(cached);
-    if (!data.champions || !data.timestamp) return null;
-
-    return data;
-  } catch (error) {
-    console.warn("Failed to load champions from localStorage:", error);
-    return null;
-  }
+function loadFromLocalStorage(): { champions: Champion[]; version: string; timestamp: number } | null {
+  const data = loadListFromLocal<Champion>("champions");
+  if (!data) return null;
+  return { champions: data.data, version: data.version, timestamp: data.timestamp };
 }
 
 // Electron file cache
@@ -135,91 +88,64 @@ async function loadFromElectronCache(): Promise<{
   }
 }
 
-// Enhanced champion caching system
 async function getChampionsFromComprehensiveCache(): Promise<Champion[]> {
   try {
-    // Try to use the new comprehensive caching system
-    return await championCacheService.getAllChampions();
+    const champs = await championCacheService.getAllChampions();
+    return champs.map((c) => ({
+      ...c,
+      image: toLocalImageUrl(c.image),
+      squareImg: c.squareImg ? toLocalImageUrl(c.squareImg) : c.squareImg,
+      splashCenteredImg: c.splashCenteredImg ? toLocalImageUrl(c.splashCenteredImg) : c.splashCenteredImg,
+      splashImg: c.splashImg ? toLocalImageUrl(c.splashImg) : c.splashImg,
+      loadingImg: c.loadingImg ? toLocalImageUrl(c.loadingImg) : c.loadingImg
+    }));
   } catch (error) {
     console.warn("Comprehensive champion cache failed, falling back to basic cache:", error);
     return await getChampionsFromBasicCache();
   }
 }
 
-// Basic cache logic (fallback)
 async function getChampionsFromBasicCache(): Promise<Champion[]> {
-  // Check memory cache first
-  if (memoryCache && cacheTimestamp && isCacheValid(cacheTimestamp)) {
-    return memoryCache;
-  }
-
-  // Try Electron cache
   const electronCache = await loadFromElectronCache();
-  if (electronCache && isCacheValid(electronCache.timestamp)) {
-    memoryCache = electronCache.champions;
-    cacheTimestamp = electronCache.timestamp;
-    return electronCache.champions;
+  if (electronCache) {
+    return electronCache.champions.map((c: Champion) => ({ ...c, image: toLocalImageUrl(c.image) }));
   }
 
-  // Try browser localStorage cache
-  const localCache = loadFromLocalStorage();
-  if (localCache && isCacheValid(localCache.timestamp)) {
-    memoryCache = localCache.champions;
-    cacheTimestamp = localCache.timestamp;
-    return localCache.champions;
+  const localCache: { champions: Champion[]; version: string; timestamp: number } | null = loadFromLocalStorage();
+  if (localCache) {
+    return localCache.champions.map((c: Champion) => ({ ...c, image: toLocalImageUrl(c.image) }));
   }
 
-  // Cache expired or doesn't exist, fetch from API
   try {
     const { champions, version } = await fetchChampionsFromAPI();
-
-    // Update all caches
-    memoryCache = champions;
-    cacheTimestamp = Date.now();
-
-    // Save to appropriate cache
-    saveToLocalStorage(champions, version);
+    saveListToLocal("champions", champions, version);
     await saveToElectronCache(champions, version);
-
-    return champions;
+    return champions.map((c: Champion) => ({ ...c, image: toLocalImageUrl(c.image) }));
   } catch (error) {
     console.error("Error fetching champions from API:", error);
-
-    // Try to return stale cache as fallback
-    if (electronCache) return electronCache.champions;
-    if (localCache) return localCache.champions;
-    if (memoryCache) return memoryCache;
-
-    throw error;
+    const fallback = loadFromLocalStorage();
+    if (fallback) return fallback.champions.map((c: Champion) => ({ ...c, image: toLocalImageUrl(c.image) }));
+    return [];
   }
 }
 
-// Main cache logic
 async function getChampionsFromCache(): Promise<Champion[]> {
-  // Check if we're in Electron environment and should use comprehensive caching
   if (typeof window !== "undefined" && window.electronAPI) {
     return await getChampionsFromComprehensiveCache();
   }
-
-  // Fallback to basic caching for web environment
   return await getChampionsFromBasicCache();
 }
 
 // Public API
 export async function getChampions(): Promise<Champion[]> {
-  return await getChampionsFromCache();
+  const result = await getChampionsFromCache();
+  const version = await getLatestVersion();
+  saveListToLocal("champions", result, version);
+  return result;
 }
 
 export async function refreshChampionsCache(): Promise<Champion[]> {
-  // Clear all caches
-  memoryCache = null;
-  cacheTimestamp = null;
-
-  if (typeof localStorage !== "undefined") {
-    localStorage.removeItem("champions_cache");
-  }
-
-  // Clear comprehensive cache if available
+  clearLocal("champions");
   if (typeof window !== "undefined" && window.electronAPI) {
     try {
       await championCacheService.clearCache();
@@ -227,12 +153,12 @@ export async function refreshChampionsCache(): Promise<Champion[]> {
       console.warn("Failed to clear comprehensive champion cache:", error);
     }
   }
-
   return await getChampionsFromCache();
 }
 
 export const getChampionsCached = (): Champion[] => {
-  return memoryCache || [];
+  const data = loadListFromLocal<Champion>("champions");
+  return data?.data?.map((c) => ({ ...c, image: toLocalImageUrl(c.image) })) || [];
 };
 
 export const getChampionByKey = (key: string): Champion | undefined => {
@@ -247,7 +173,6 @@ export const getChampionById = (id: number): Champion | undefined => {
 
 export const getChampionByName = (name: string): Champion | undefined => {
   const champions = getChampionsCached();
-
   return champions.find((champ) => champ.name.toLowerCase() === name.toLowerCase());
 };
 
@@ -255,7 +180,17 @@ export const getChampionByName = (name: string): Champion | undefined => {
 export async function getChampionByKeyEnhanced(key: string): Promise<Champion | null> {
   if (typeof window !== "undefined" && window.electronAPI) {
     try {
-      return await championCacheService.getChampionByKey(key);
+      const c = await championCacheService.getChampionByKey(key);
+      return c
+        ? {
+            ...c,
+            image: toLocalImageUrl(c.image),
+            squareImg: c.squareImg ? toLocalImageUrl(c.squareImg) : c.squareImg,
+            splashCenteredImg: c.splashCenteredImg ? toLocalImageUrl(c.splashCenteredImg) : c.splashCenteredImg,
+            splashImg: c.splashImg ? toLocalImageUrl(c.splashImg) : c.splashImg,
+            loadingImg: c.loadingImg ? toLocalImageUrl(c.loadingImg) : c.loadingImg
+          }
+        : null;
     } catch (error) {
       console.warn("Failed to get enhanced champion data:", error);
       return getChampionByKey(key) || null;
@@ -278,9 +213,4 @@ export async function getChampionCacheStats(): Promise<{
     }
   }
   return null;
-}
-
-// Initialize champions cache on module load (for server-side)
-if (typeof window === "undefined") {
-  getChampions().catch(console.error);
 }

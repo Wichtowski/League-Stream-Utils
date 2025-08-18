@@ -343,7 +343,7 @@ export class AssetDownloader {
     type: "champion" | "item" | "spell" | "rune" | "general",
     priority: number
   ): void {
-    const version = "15.15.1";
+    const version = "15.16.1";
 
     // Generate URL based on asset key
     const url = this.generateUrlFromAssetKey(assetKey, version);
@@ -408,7 +408,7 @@ export class AssetDownloader {
   }
 
   private addChampionTasks(championKey: string): void {
-    const version = "15.15.1";
+    const version = "15.16.1";
     const championDir = `assets/${version}/champions/${championKey}`;
 
     // Champion data (highest priority, smallest size)

@@ -14,11 +14,13 @@ const NotFoundPage: React.FC = (): React.ReactElement => {
     if (authLoading || isElectronLoading || isElectron) return;
 
     if (user) {
-      router.replace("/modules");
+      router.push("/modules");
     } else {
-      router.replace("/login");
+      router.push("/login");
     }
   }, [authLoading, isElectronLoading, isElectron, user, router]);
+
+  console.log("Not found page");
 
   return <div className="min-h-screen flex items-center justify-center text-white">Redirecting...</div>;
 };

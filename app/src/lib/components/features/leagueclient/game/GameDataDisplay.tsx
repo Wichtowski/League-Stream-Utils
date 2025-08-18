@@ -2,8 +2,10 @@ import React, { useEffect, useState } from "react";
 import type { LiveGameData, LivePlayer } from "@lib/services/game/game-service";
 import Image from "next/image";
 import { getChampionSquareImage, getSummonerSpellImageByName } from "@lib/components/features/leagueclient/common";
+import { getItemImage } from "@lib/items";
 import { getChampions } from "@lib/champions";
 import { getSummonerSpells } from "@lib/summoner-spells";
+import { getItems } from "@/lib/items";
 
 interface GameDataDisplayProps {
   gameData: LiveGameData;
@@ -12,23 +14,26 @@ interface GameDataDisplayProps {
 export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({ gameData }) => {
   const [championsLoaded, setChampionsLoaded] = useState(false);
   const [summonerSpellsLoaded, setSummonerSpellsLoaded] = useState(false);
+  const [itemsLoaded, setItemsLoaded] = useState(false);
 
   useEffect(() => {
     const loadAssets = async () => {
       try {
         await getChampions();
         await getSummonerSpells();
+        await getItems();
         setChampionsLoaded(true);
         setSummonerSpellsLoaded(true);
+        setItemsLoaded(true);
       } catch (error) {
         console.error("Failed to load assets:", error);
       }
     };
     
-    if (!championsLoaded || !summonerSpellsLoaded) {
+    if (!championsLoaded || !summonerSpellsLoaded || !itemsLoaded) {
       loadAssets();
     }
-  }, [championsLoaded, summonerSpellsLoaded]);
+  }, [championsLoaded, summonerSpellsLoaded, itemsLoaded]);
 
   const formatGameTime = (seconds: number): string => {
     const minutes = Math.floor(seconds / 60);
@@ -37,7 +42,7 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({ gameData }) =>
   };
 
   // Hide entire UI if no game data or assets not loaded
-  if (!gameData || !gameData.gameData || !gameData.allPlayers || !championsLoaded || !summonerSpellsLoaded) {
+  if (!gameData || !gameData.gameData || !gameData.allPlayers || !championsLoaded || !summonerSpellsLoaded || !itemsLoaded) {
     return null;
   }
 
@@ -104,7 +109,7 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({ gameData }) =>
 
           {/* Center - Game Info */}
           <div className="text-center">
-            <div className="text-3xl font-bold text-white mb-1">
+            <div className="text-3xl font-bold text-white mb-1 font-mono">
               {formatGameTime(gameData.gameData.gameTime)}
             </div>
             <div className="text-sm text-gray-400">
@@ -168,7 +173,7 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({ gameData }) =>
         </div>
       </div>
 
-      {/* Bottom Bar - Player Stats Table */}
+      {/* Bottom Bar - Player Stats Table
       <div className="absolute bottom-0 left-0 right-0 h-32 bg-gray-900/95 border-t-2 border-gray-600">
         <div className="h-full overflow-x-auto">
           <table className="w-full text-xs">
@@ -211,7 +216,7 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({ gameData }) =>
                     <div className="flex space-x-1 justify-center">
                       {player.items?.slice(0, 3).map((item, itemIndex) => (
                         <div key={itemIndex} className="w-5 h-5 bg-gray-700 rounded border border-gray-600 flex items-center justify-center">
-                          <span className="text-xs">⚔️</span>
+                          <Image src={getItemImage(item.itemID)} alt={item.name} width={20} height={20} />
                         </div>
                       ))}
                     </div>
@@ -224,7 +229,7 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({ gameData }) =>
             </tbody>
           </table>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 };
@@ -239,27 +244,10 @@ const PlayerCard: React.FC<PlayerCardProps> = ({ player, teamColor }) => {
     blue: "border-blue-500 bg-blue-900/30",
     red: "border-red-500 bg-red-900/30"
   };
-  const championImage = getChampionSquareImage(player.championName) || "/api/local-image?path=default/player.png";
-  const [summonerSpellOne, setSummonerSpellOne] = useState<string>("");
-  const [summonerSpellTwo, setSummonerSpellTwo] = useState<string>("");
-
-  useEffect(() => {
-    const loadSummonerSpells = () => {
-      try {
-        if (player.summonerSpells?.summonerSpellOne?.displayName) {
-          const spellOneImage = getSummonerSpellImageByName(player.summonerSpells.summonerSpellOne.displayName);
-          setSummonerSpellOne(spellOneImage);
-        }
-        if (player.summonerSpells?.summonerSpellTwo?.displayName) {
-          const spellTwoImage = getSummonerSpellImageByName(player.summonerSpells.summonerSpellTwo.displayName);
-          setSummonerSpellTwo(spellTwoImage);
-        }
-      } catch (error) {
-        console.warn("Failed to load summoner spell images:", error);
-      }
-    };
-    loadSummonerSpells();
-  }, [player.summonerSpells]);
+  const championImage = getChampionSquareImage(player.championName);
+  const summonerSpellOne = getSummonerSpellImageByName(player.summonerSpells?.summonerSpellOne?.displayName);
+  const summonerSpellTwo = getSummonerSpellImageByName(player.summonerSpells?.summonerSpellTwo?.displayName);
+  const healthPercentage = Math.max(0, Math.min(100, ((player.health ?? 0) / (player.maxHealth ?? 1)) * 100));
 
   return (
     <div className={`border rounded-lg p-3 ${colorClasses[teamColor]} hover:bg-opacity-50 transition-all`}>
@@ -279,13 +267,13 @@ const PlayerCard: React.FC<PlayerCardProps> = ({ player, teamColor }) => {
         </div>
         <div className="text-right">
           <div className="text-lg font-bold text-yellow-400">Lv.{player.level || 1}</div>
-          <div className="text-xs text-gray-400">{player.position || "Unknown"}</div>
+          <div className="text-xs text-gray-400">{player.position === "UTILITY" ? "SUPPORT" : player.position}</div>
         </div>
       </div>
       
       {/* Health Bar */}
       <div className="w-full bg-gray-700 rounded-full h-2 mb-2">
-        <div className="bg-red-500 h-2 rounded-full" style={{ width: '75%' }}></div>
+        <div className="bg-red-500 h-2 rounded-full" style={{ width: `${healthPercentage}%` }}></div>
       </div>
       
       {/* Summoner Spells */}
