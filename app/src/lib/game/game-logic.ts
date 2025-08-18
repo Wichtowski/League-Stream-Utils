@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
-import type { GameSession, Champion, GameConfig, WSMessage, GameState, PlayerRole, ImageStorage } from "@lib/types";
+import type { GameSession, Champion, GameConfig, WSMessage, GameState, PlayerRole } from "@lib/types";
 import { getChampionById, getChampions } from "@lib/champions";
 
 import {
@@ -12,7 +12,6 @@ import {
 } from "@lib/database";
 
 import type { Team } from "@lib/types";
-import { getTeamLogoUrl } from "@lib/services/common";
 
 // Pick and ban phase configuration - 22 turns total
 const PICK_BAN_ORDER = [
@@ -100,7 +99,7 @@ export async function createGameSession(config?: Partial<GameConfig>): Promise<G
         isReady: false,
         coach: defaultConfig.blueCoach,
         usedChampions: [],
-        logo: defaultConfig.blueTeamLogo as unknown as ImageStorage
+        logo: defaultConfig.blueTeamId as string
       },
       red: {
         id: uuidv4(),
@@ -111,7 +110,7 @@ export async function createGameSession(config?: Partial<GameConfig>): Promise<G
         isReady: false,
         coach: defaultConfig.redCoach,
         usedChampions: [],
-        logo: defaultConfig.redTeamLogo as unknown as ImageStorage
+        logo: defaultConfig.redTeamId as string
       }
     },
     phase: "config",
@@ -190,11 +189,11 @@ export async function updateGameConfig(sessionId: string, config: Partial<GameCo
     session.teams.red.name = config.redTeamName;
   }
 
-  if (config.blueTeamLogo !== undefined) {
-    session.teams.blue.logo = config.blueTeamLogo as unknown as ImageStorage;
+  if (config.blueTeamId !== undefined) {
+    session.teams.blue.logo = config.blueTeamId;
   }
-  if (config.redTeamLogo !== undefined) {
-    session.teams.red.logo = config.redTeamLogo as unknown as ImageStorage;
+  if (config.redTeamId !== undefined) {
+    session.teams.red.logo = config.redTeamId;
   }
 
   if (config.blueCoach) {
@@ -637,8 +636,8 @@ export async function createGameSessionFromTeams(
     redTeamName: redTeam.name,
     blueTeamPrefix: blueTeam.tag,
     redTeamPrefix: redTeam.tag,
-    blueTeamLogo: getTeamLogoUrl(blueTeam),
-    redTeamLogo: getTeamLogoUrl(redTeam)
+    blueTeamId: blueTeam.id,
+    redTeamId: redTeam.id
   });
 
   return session;

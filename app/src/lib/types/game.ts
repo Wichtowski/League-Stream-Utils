@@ -424,5 +424,5 @@ export interface SessionTeam {
   usedChampions: Champion[];
   prefix?: string;
   coach?: Coach;
-  logo: ImageStorage;
+  logo: ImageStorage | string;
 }
