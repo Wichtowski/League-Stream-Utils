@@ -2,9 +2,11 @@
 
 import { useCurrentMatch } from "@lib/contexts";
 import { Button } from "@lib/components/common/buttons/Button";
+import { useRouter } from "next/navigation";
 
 export const CurrentMatchStatus = (): React.ReactElement => {
   const { currentMatch, loading, clearCurrentMatch } = useCurrentMatch();
+  const router = useRouter();
 
   if (loading) {
     return (
@@ -25,17 +27,32 @@ export const CurrentMatchStatus = (): React.ReactElement => {
     );
   }
 
+  const handleGoToMatches = () => {
+    if (currentMatch.tournamentId) {
+      router.push(`/modules/tournaments/${currentMatch.tournamentId}/matches`);
+    }
+  };
+
   return (
     <div className="bg-gray-900 rounded-lg p-4">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-lg font-semibold text-white">Current Match</h3>
-        <Button
-          onClick={() => clearCurrentMatch()}
-          size="sm"
-          variant="secondary"
-        >
-          Clear
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            onClick={handleGoToMatches}
+            size="sm"
+            variant="secondary"
+          >
+            Change Match
+          </Button>
+          <Button
+            onClick={() => clearCurrentMatch()}
+            size="sm"
+            variant="secondary"
+          >
+            Clear
+          </Button>
+        </div>
       </div>
       
       <div className="space-y-3">
@@ -76,7 +93,7 @@ export const CurrentMatchStatus = (): React.ReactElement => {
           </span>
         </div>
         
-        {currentMatch.fearlessDraft && (
+        {currentMatch.isFearlessDraft && (
           <div className="text-center">
             <span className="text-blue-400 text-sm">⚔️ Fearless Draft</span>
           </div>

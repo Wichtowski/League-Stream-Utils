@@ -27,6 +27,21 @@ interface GameUIDownloadResult {
 
 class GameUIBlueprintDownloader extends BaseCacheService {
   private isDownloading = false;
+  private assetCategories = {
+    dragonpit: [
+      "infernal.png",
+      "ocean.png",
+      "hextech.png",
+      "chemtech.png",
+      "mountain.png",
+      "elder.png",
+      "cloud.png"
+    ],
+    default: ["player.png", "tournament.png"],
+    scoreboard: ["gold.png", "grubs.png", "tower.png"],
+    atakhan: ["atakhan_ruinous.png", "atakhan_voracious.png"],
+    baronpit: ["baron.png", "grubs.png", "herald.png"]
+  };
   private gameUIProgressCallback?: (progress: GameUIDownloadProgress) => void;
 
   // Abstract method implementations
@@ -74,27 +89,10 @@ class GameUIBlueprintDownloader extends BaseCacheService {
         message: "Scanning public assets..."
       });
 
-      // Define the known asset categories and their files
-      const assetCategories = {
-        dragonpit: [
-          "infernal.png",
-          "ocean.png",
-          "hextech.png",
-          "chemtech.png",
-          "mountain.png",
-          "elder.png",
-          "cloud.png"
-        ],
-        default: ["player.png"],
-        scoreboard: ["gold.png", "grubs.png", "tower.png"],
-        atakhan: ["atakhan_ruinous.png", "atakhan_voracious.png"],
-        baronpit: ["baron.png", "grubs.png", "herald.png"]
-      };
-
       // Calculate total count and build full asset list upfront
       const version = await this.getLatestVersion();
       const allAssets: Array<{ category: string; filename: string; assetKey: string }> = [];
-      for (const [category, files] of Object.entries(assetCategories)) {
+      for (const [category, files] of Object.entries(this.assetCategories)) {
         for (const filename of files) {
           const assetKey = `${version}/overlay/${category}/${filename}`;
           allAssets.push({ category, filename, assetKey });
@@ -137,7 +135,7 @@ class GameUIBlueprintDownloader extends BaseCacheService {
         message: `Processing ${totalCount - processedCount} remaining game UI assets...`
       });
 
-      for (const [category, files] of Object.entries(assetCategories)) {
+      for (const [category, files] of Object.entries(this.assetCategories)) {
         this.updateGameUIProgress({
           current: processedCount,
           total: totalCount,
@@ -370,25 +368,8 @@ class GameUIBlueprintDownloader extends BaseCacheService {
     totalCount: number;
   }> {
     try {
-      // Define the known asset categories and their files
-      const assetCategories = {
-        dragonpit: [
-          "infernal.png",
-          "ocean.png",
-          "hextech.png",
-          "chemtech.png",
-          "mountain.png",
-          "elder.png",
-          "cloud.png"
-        ],
-        default: ["player.png", "tournament.png"],
-        scoreboard: ["gold.png", "grubs.png", "tower.png"],
-        atakhan: ["atakhan_ruinous.png", "atakhan_voracious.png"],
-        baronpit: ["baron.png", "grubs.png", "herald.png"]
-      };
-
-      const categories = Object.keys(assetCategories);
-      const totalCount = Object.values(assetCategories).reduce((sum, files) => sum + files.length, 0);
+      const categories = Object.keys(this.assetCategories);
+      const totalCount = Object.values(this.assetCategories).reduce((sum, files) => sum + files.length, 0);
 
       return {
         hasAssets: totalCount > 0,

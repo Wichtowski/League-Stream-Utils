@@ -273,7 +273,7 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
       // Only load data once when auth is ready and user is available
       loadCachedData();
     }
-  }, [user, authLoading]); // Removed loadCachedData from dependencies to prevent infinite loops
+  }, [user, authLoading, loadCachedData]); // Removed loadCachedData from dependencies to prevent infinite loops
 
   // TEMPORARILY DISABLED: Background sync interval was causing too many API calls
   // useEffect(() => {

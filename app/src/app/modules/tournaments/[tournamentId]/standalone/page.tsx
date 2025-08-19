@@ -217,7 +217,7 @@ export default function TournamentStandaloneTeamsPage({ params }: TournamentStan
 
   if (loading || tournamentsLoading) {
     return (
-      <PageWrapper loadingMessage="Loading tournament...">
+      <PageWrapper>
         <LoadingSpinner fullscreen text="Loading tournament..." />
       </PageWrapper>
     );
@@ -226,7 +226,6 @@ export default function TournamentStandaloneTeamsPage({ params }: TournamentStan
   if (!tournament) {
     return (
       <PageWrapper
-        loadingMessage="Loading tournament..."
         title="Tournament Not Found"
         subtitle="The tournament you're looking for doesn't exist or you don't have access to it."
       >
@@ -241,7 +240,6 @@ export default function TournamentStandaloneTeamsPage({ params }: TournamentStan
 
   return (
     <PageWrapper
-      loadingMessage="Loading standalone teams..."
       breadcrumbs={[
         { label: "Tournaments", href: `/modules/tournaments` },
         { label: tournament.name, href: `/modules/tournaments/${tournamentId}` },

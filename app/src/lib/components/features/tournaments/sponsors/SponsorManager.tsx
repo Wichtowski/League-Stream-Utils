@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useModal } from "@lib/components/modal";
+import { useModal } from "@lib/contexts/ModalContext";
 import { LoadingSpinner } from "@lib/components/common";
 import type { Sponsorship, ImageStorage, Tournament } from "@lib/types";
 import Image from "next/image";

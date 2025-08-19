@@ -32,7 +32,7 @@ const nextConfig: NextConfig = {
               "default-src 'self'",
               "script-src 'self'",
               "style-src 'self'",
-              "img-src 'self' data: https:",
+              "img-src 'self' data: https: blob:",
               "font-src 'self'",
               "connect-src 'self' ws: wss: https://ddragon.leagueoflegends.com https://raw.communitydragon.org http://127.0.0.1:2999 https://127.0.0.1:2999 https://liquipedia.net",
               "frame-ancestors 'none'",

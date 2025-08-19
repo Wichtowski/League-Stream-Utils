@@ -69,7 +69,18 @@ export default function ModulesPage() {
     return modules;
   }, [user, isElectron, useLocalData, hasLastSelectedTournament]);
 
-  // Block access if downloads are in progress in Electron
+  useEffect(() => {
+    if (
+      isElectron &&
+      downloadState.progress &&
+      downloadState.isDownloading &&
+      downloadState.progress.stage !== "complete" &&
+      downloadState.progress.stage !== "error"
+    ) {
+      router.push("/download");
+    }
+  }, [isElectron, downloadState.progress, downloadState.isDownloading, router]);
+
   if (
     isElectron &&
     downloadState.progress &&
@@ -77,7 +88,6 @@ export default function ModulesPage() {
     downloadState.progress.stage !== "complete" &&
     downloadState.progress.stage !== "error"
   ) {
-    router.push("/download");
     return null;
   }
 

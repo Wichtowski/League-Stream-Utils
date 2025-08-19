@@ -832,7 +832,7 @@ class ChampionCacheService extends BaseCacheService<Champion> {
 
       // Clean up manifests after successful completion
       if (downloadedCount > 0) {
-        console.log("All champions downloaded successfully. Cleaning up manifests for fresh restart capability.");
+        console.log("All champions downloaded successfully");
         await this.cleanupManifestAfterSuccess();
       }
 

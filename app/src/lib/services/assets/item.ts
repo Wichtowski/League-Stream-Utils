@@ -408,7 +408,7 @@ class ItemCacheService extends BaseCacheService<ItemCacheData> {
       });
 
       // Clean up manifests after successful completion
-      console.log("All items downloaded successfully. Cleaning up manifests for fresh restart capability.");
+      console.log("All items downloaded successfully");
       await this.cleanupManifestAfterSuccess();
     } catch (error) {
       console.error("Error downloading items on startup:", error);

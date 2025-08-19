@@ -39,6 +39,8 @@ export async function GET(request: NextRequest) {
         username: decoded.username,
         isAdmin: true,
         email: "admin@system",
+        tokenType: "unlimited",
+        sessionId: "poweruser-session",
         sessionsCreatedToday: 0,
         lastSessionDate: new Date(),
         createdAt: new Date()

@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react";
 import { useUser } from "@lib/contexts/AuthContext";
 import { AuthGuard } from "@lib/components/auth/AuthGuard";
-import { BackButton } from "@lib/components/common/buttons";
 
 interface Match {
   id: string;
@@ -13,15 +12,15 @@ interface Match {
   tournament?: string;
 }
 
-interface ComentatorPredictionsMatchPageProps {
+interface CommentatorPredictionsMatchPageProps {
   params: Promise<{
     matchID: string;
   }>;
 }
 
-export default function ComentatorPredictionsMatchPage({
+export default function CommentatorPredictionsMatchPage({
   params
-}: ComentatorPredictionsMatchPageProps): React.ReactElement {
+}: CommentatorPredictionsMatchPageProps): React.ReactElement {
   const user = useUser();
   const [match, setMatch] = useState<Match | null>(null);
   const [loading, setLoading] = useState(true);
@@ -82,7 +81,6 @@ export default function ComentatorPredictionsMatchPage({
     return (
       <AuthGuard>
         <div className="min-h-screen p-6 max-w-6xl mx-auto">
-          <BackButton to="/modules/comentators/predictions" />
           <div className="text-center py-12">
             <div className="text-red-400 text-lg mb-4">Error loading match</div>
             <p className="text-gray-500">{error || "Match not found"}</p>
@@ -97,10 +95,9 @@ export default function ComentatorPredictionsMatchPage({
       <div className="min-h-screen p-6 max-w-6xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-white">Comentator Predictions</h1>
+            <h1 className="text-3xl font-bold text-white">Commentator Predictions</h1>
             <p className="text-gray-400 mt-2">{match.tournament ? `Tournament: ${match.tournament}` : "Quick Match"}</p>
           </div>
-          <BackButton to="/modules/comentators/predictions" />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -142,10 +139,10 @@ export default function ComentatorPredictionsMatchPage({
 
             {/* Predictions section */}
             <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-              <h3 className="text-xl font-semibold text-white mb-4">Comentator Predictions</h3>
+              <h3 className="text-xl font-semibold text-white mb-4">Commentator Predictions</h3>
               <div className="text-gray-400 text-center py-8">
                 <p>Prediction functionality coming soon...</p>
-                <p className="text-sm mt-2">Comentators will be able to make predictions for this match.</p>
+                <p className="text-sm mt-2">Commentators will be able to make predictions for this match.</p>
               </div>
             </div>
           </div>

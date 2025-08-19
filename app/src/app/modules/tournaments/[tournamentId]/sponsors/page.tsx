@@ -314,7 +314,7 @@ export default function TournamentSponsorsPage({ params }: TournamentSponsorsPag
 
   if (loading || tournamentsLoading) {
     return (
-      <PageWrapper loadingMessage="Loading tournament...">
+      <PageWrapper>
         <LoadingSpinner fullscreen text="Loading tournament..." />
       </PageWrapper>
     );
@@ -323,7 +323,6 @@ export default function TournamentSponsorsPage({ params }: TournamentSponsorsPag
   if (!tournament) {
     return (
       <PageWrapper
-        loadingMessage="Loading tournament..."
         title="Tournament Not Found"
         actions={
           <div className="flex gap-4">
@@ -341,7 +340,6 @@ export default function TournamentSponsorsPage({ params }: TournamentSponsorsPag
 
   return (
     <PageWrapper
-      loadingMessage="Loading sponsors..."
       breadcrumbs={[
         { label: "Tournaments", href: `/modules/tournaments` },
         { label: tournament.name, href: `/modules/tournaments/${tournamentId}` },

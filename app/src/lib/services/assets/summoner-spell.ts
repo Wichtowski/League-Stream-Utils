@@ -373,7 +373,7 @@ class SummonerSpellCacheService extends BaseCacheService<SummonerSpell> {
       });
 
       if (downloadedCount > 0) {
-        console.log("All summoner spells downloaded successfully. Cleaning up manifests for fresh restart capability.");
+        console.log("All summoner spells downloaded successfully");
         await this.cleanupManifestAfterSuccess();
       }
 

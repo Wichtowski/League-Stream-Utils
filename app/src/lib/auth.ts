@@ -126,18 +126,10 @@ export function withAuth(handler: (request: NextRequest, user: JWTPayload) => Pr
               expired: session ? session.expiresAt < new Date() : "no session"
             });
 
-            if (decoded.userId === "admin") {
-              const response = await handler(request, decoded);
-              return setSecurityHeaders(response);
-            }
-
             return setSecurityHeaders(NextResponse.json({ error: "Session expired" }, { status: 401 }));
           }
 
           session.lastUsedAt = new Date();
-        } else if (decoded.userId === "admin") {
-          const response = await handler(request, decoded);
-          return setSecurityHeaders(response);
         }
 
         const response = await handler(request, decoded);

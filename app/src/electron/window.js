@@ -38,7 +38,7 @@ async function createWindow(mainWindow, localhostUrl, createInterceptor) {
       callback({
         responseHeaders: {
           ...details.responseHeaders,
-          'Content-Security-Policy': ['default-src \'self\'; script-src \'self\' \'unsafe-inline\' \'unsafe-eval\'; style-src \'self\' \'unsafe-inline\'; img-src \'self\' data: https:; font-src \'self\'; connect-src \'self\' ws: wss: https://ddragon.leagueoflegends.com https://raw.communitydragon.org; frame-ancestors \'none\'; object-src \'none\'; base-uri \'self\'']
+          'Content-Security-Policy': ['default-src \'self\'; script-src \'self\' \'unsafe-inline\' \'unsafe-eval\'; style-src \'self\' \'unsafe-inline\'; img-src \'self\' data: https: blob:; font-src \'self\'; connect-src \'self\' ws: wss: https://ddragon.leagueoflegends.com https://raw.communitydragon.org; frame-ancestors \'none\'; object-src \'none\'; base-uri \'self\'']
         }
       });
     });

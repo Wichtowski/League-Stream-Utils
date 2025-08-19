@@ -15,10 +15,11 @@ export function useAuthenticatedFetch(): {
   authenticatedFetch: (url: string, options?: FetchOptions) => Promise<Response>;
 } {
   const { refreshToken } = useAuth();
-  const { user } = useAuth();
+
   const authenticatedFetch = useCallback(
     async (url: string, options: FetchOptions = {}): Promise<Response> => {
       const { skipAuth = false, ...fetchOptions } = options;
+
 
 
       try {
@@ -33,7 +34,8 @@ export function useAuthenticatedFetch(): {
 
         let response = await fetch(url, defaultOptions);
 
-        if (response.status === 401 && !skipAuth && !user?.isAdmin) {
+        // Try to refresh token on 401
+        if (response.status === 401 && !skipAuth) {
           const refreshed = await refreshToken();
           
           if (refreshed) {
@@ -46,7 +48,7 @@ export function useAuthenticatedFetch(): {
         throw error;
       }
     },
-    [refreshToken, user]
+    [refreshToken]
   );
 
   return { authenticatedFetch };
