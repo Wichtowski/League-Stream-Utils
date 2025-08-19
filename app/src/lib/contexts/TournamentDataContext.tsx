@@ -335,6 +335,7 @@ export function TournamentDataProvider({ children }: { children: ReactNode }) {
             defaultMatchTime: tournamentData.defaultMatchTime,
             streamUrl: tournamentData.streamUrl,
             broadcastLanguage: tournamentData.broadcastLanguage,
+            gameVersion: tournamentData.gameVersion,
             userId: user?.id || "electron-admin",
             createdAt: new Date(),
             updatedAt: new Date()

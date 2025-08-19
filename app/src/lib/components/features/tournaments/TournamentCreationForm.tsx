@@ -33,6 +33,7 @@ export const TournamentCreationForm = ({ onTournamentCreated, onCancel }: Tourna
     timezone: "UTC",
     matchDays: [""],
     defaultMatchTime: "19:00",
+    gameVersion: "",
     logo: {
       type: "url",
       url: "",
@@ -93,6 +94,7 @@ export const TournamentCreationForm = ({ onTournamentCreated, onCancel }: Tourna
           timezone: "UTC",
           matchDays: [],
           defaultMatchTime: "19:00",
+          gameVersion: "",
           logo: {
             type: "url",
             url: "",
@@ -121,6 +123,16 @@ export const TournamentCreationForm = ({ onTournamentCreated, onCancel }: Tourna
       <h2 className="text-xl font-bold mb-4">Create New Tournament</h2>
       <form onSubmit={handleCreateTournament} className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium mb-2">Game Version</label>
+            <input
+              type="text"
+              value={formData.gameVersion || ""}
+              onChange={(e) => setFormData({ ...formData, gameVersion: e.target.value })}
+              className="w-full bg-gray-700 rounded px-3 py-2"
+              placeholder="e.g., 14.12"
+            />
+          </div>
           <div>
             <label className="block text-sm font-medium mb-2">Tournament Name</label>
             <input

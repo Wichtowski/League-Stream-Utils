@@ -38,9 +38,10 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "League Stream Utils",
   description: "Tournament stream management utilities",
+  applicationName: "League Stream Utils",
+
   authors: [
-    { name: "League Stream Utils", url: "https://github.com/LeagueStreamUtils" },
-    { name: "Oskar Wichtowsky", url: "https://github.com/wichtowski" }
+    { name: "Oskar Wichtowski", url: "https://github.com/wichtowski" }
   ]
 };
 

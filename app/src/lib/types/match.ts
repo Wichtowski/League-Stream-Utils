@@ -88,6 +88,9 @@ export interface GameResult {
   id: string;
   gameNumber: number;
   winner: "blue" | "red";
+  // Side mapping for this game: which match team played on each side
+  blueSideTeamId: string; // should match Match.blueTeam.id
+  redSideTeamId: string;  // should match Match.redTeam.id
   duration: number; // in seconds
   blueTeam: {
     kills: number;

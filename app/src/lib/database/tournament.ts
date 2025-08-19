@@ -34,6 +34,7 @@ export async function createTournament(
     defaultMatchTime: tournamentData.defaultMatchTime,
     streamUrl: tournamentData.streamUrl,
     broadcastLanguage: tournamentData.broadcastLanguage,
+    gameVersion: tournamentData.gameVersion,
     sponsors: tournamentData.sponsors || [],
     userId,
     createdAt: new Date(),
@@ -104,6 +105,7 @@ export async function updateTournament(
   if (updates.defaultMatchTime) tournament.defaultMatchTime = updates.defaultMatchTime;
   if (updates.streamUrl !== undefined) tournament.streamUrl = updates.streamUrl;
   if (updates.broadcastLanguage !== undefined) tournament.broadcastLanguage = updates.broadcastLanguage;
+  if (updates.gameVersion !== undefined) tournament.gameVersion = updates.gameVersion;
 
   tournament.updatedAt = new Date();
   await tournament.save();

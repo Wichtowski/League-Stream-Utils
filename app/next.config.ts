@@ -34,7 +34,7 @@ const nextConfig: NextConfig = {
               "style-src 'self'",
               "img-src 'self' data: https:",
               "font-src 'self'",
-              "connect-src 'self' ws: wss: https://ddragon.leagueoflegends.com https://raw.communitydragon.org http://127.0.0.1:2999 https://127.0.0.1:2999",
+              "connect-src 'self' ws: wss: https://ddragon.leagueoflegends.com https://raw.communitydragon.org http://127.0.0.1:2999 https://127.0.0.1:2999 https://liquipedia.net",
               "frame-ancestors 'none'",
               "object-src 'none'",
               "base-uri 'self'"
@@ -70,9 +70,14 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "ddragon.leagueoflegends.com",
         pathname: "/cdn/**"
+      },
+      {
+        protocol: "https",
+        hostname: "liquipedia.net",
+        pathname: "/**"
       }
     ],
-    domains: ["vdo.ninja", "via.placeholder.com", "ddragon.leagueoflegends.com", "127.0.0.1"]
+    domains: ["vdo.ninja", "via.placeholder.com", "ddragon.leagueoflegends.com", "127.0.0.1", "liquipedia.net"]
   },
   // Webpack configuration for bundle splitting
   webpack: (config, { dev, isServer }) => {

@@ -381,7 +381,7 @@ class GameUIBlueprintDownloader extends BaseCacheService {
           "elder.png",
           "cloud.png"
         ],
-        default: ["player.png"],
+        default: ["player.png", "tournament.png"],
         scoreboard: ["gold.png", "grubs.png", "tower.png"],
         atakhan: ["atakhan_ruinous.png", "atakhan_voracious.png"],
         baronpit: ["baron.png", "grubs.png", "herald.png"]

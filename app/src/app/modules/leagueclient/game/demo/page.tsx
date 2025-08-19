@@ -1,12 +1,12 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import type { LiveGameData, GameEvent } from "@lib/services/game/game-service";
+import type { LiveGameData } from "@lib/services/game/game-service";
 import { GameDataDisplay } from "@/lib/components/features/leagueclient/game/GameDataDisplay";
 import { Breadcrumbs } from "@lib/components/common/Breadcrumbs";
 import { getChampions } from "@lib/champions";
 import { getSummonerSpells } from "@lib/summoner-spells";
-import { staticPlayersOrderMock, staticPlayersChaosMock, MockedEvents } from "@lib/mocks/game";
+import { staticPlayersOrderMock, staticPlayersChaosMock, MockedEvents, mockMatch, mockTournament } from "@lib/mocks/game";
 
 
 
@@ -45,24 +45,21 @@ const DemoGamePage: React.FC = () => {
 
   if (!mockData) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="text-white text-xl">Loading demo...</div>
-      </div>
+      <></>
     );
   }
 
   return (
     <>
-      <div className="mb-4 p-4">
-        <Breadcrumbs
-          items={[
-            { label: "League Client", href: "/modules/leagueclient" },
-            { label: "Game", href: "/modules/leagueclient/game" },
-            { label: "Demo", href: "/modules/leagueclient/game/demo", isActive: true }
-          ]}
-        />
-      </div>
-      <GameDataDisplay gameData={mockData} />
+      <GameDataDisplay gameData={mockData} match={mockMatch} tournament={mockTournament} />
+      <Breadcrumbs
+        className="absolute left-4 bottom-0 z-10"
+        items={[
+          { label: "League Client", href: "/modules/leagueclient" },
+          { label: "Game", href: "/modules/leagueclient/game" },
+          { label: "Demo", href: "/modules/leagueclient/game/demo", isActive: true }
+        ]}
+      />
     </>
   );
 };

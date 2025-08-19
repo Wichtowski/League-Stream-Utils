@@ -1,20 +1,52 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import type { LiveGameData, LivePlayer } from "@lib/services/game/game-service";
+import type { Match } from "@lib/types/match";
+import type { Tournament } from "@lib/types/tournament";
 import Image from "next/image";
-import { getChampionSquareImage, getSummonerSpellImageByName } from "@lib/components/features/leagueclient/common";
+import { motion } from "framer-motion";
+import { 
+  getChampionSquareImage,
+  getSummonerSpellImageByName,
+  // getOverlayAsset,
+  getDefaultAsset,
+  getDragonPitAsset,
+  getBaronPitAsset,
+  // getAtakhsanAsset,
+  getScoreboardAsset,
+  getAtakhanAsset
+} from "@lib/components/features/leagueclient/common";
 import { getItemImage } from "@lib/items";
 import { getChampions } from "@lib/champions";
 import { getSummonerSpells } from "@lib/summoner-spells";
 import { getItems } from "@/lib/items";
+import { bindLivePlayersToMatch, createFallbackLivePlayer, getRoleOrder } from "@/lib/services/game/live-binding";
+import { getLatestVersion } from "@/lib/services/common/unified-asset-cache";
+import { useImagePreload } from "@/lib/hooks/useImagePreload";
 
 interface GameDataDisplayProps {
   gameData: LiveGameData;
+  match: Match;
+  tournament: Tournament;
 }
 
-export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({ gameData }) => {
+export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({ gameData, match, tournament }) => {
   const [championsLoaded, setChampionsLoaded] = useState(false);
   const [summonerSpellsLoaded, setSummonerSpellsLoaded] = useState(false);
   const [itemsLoaded, setItemsLoaded] = useState(false);
+  const [gameVersion, setGameVersion] = useState<string>("");
+  const [goldIcon, setGoldIcon] = useState<string>("");
+  const [towerIcon, setTowerIcon] = useState<string>("");
+  const [_baronIcon, setBaronIcon] = useState<string>("");
+  const [_grubsIcon, setGrubsIcon] = useState<string>("");
+  const [_dragonIcons, setDragonIcons] = useState<string[]>([]);
+  const [tournamentLogo, setTournamentLogo] = useState<string>("");
+  const [orderLogo, setOrderLogo] = useState<string>("");
+  const [chaosLogo, setChaosLogo] = useState<string>("");
+  const [uiReady, setUiReady] = useState(false);
+  const initialPreloadDoneRef = useRef<boolean>(false);
+  const seenChampionNamesRef = useRef<Set<string>>(new Set());
+  const seenSpellNamesRef = useRef<Set<string>>(new Set());
+  const [initialPreloadUrls, setInitialPreloadUrls] = useState<string[]>([]);
 
   useEffect(() => {
     const loadAssets = async () => {
@@ -25,6 +57,27 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({ gameData }) =>
         setChampionsLoaded(true);
         setSummonerSpellsLoaded(true);
         setItemsLoaded(true);
+        const resolvedVersion = tournament.gameVersion ?? (await getLatestVersion());
+        setGameVersion(resolvedVersion);
+        setTournamentLogo(tournament.logo?.data || tournament.logo?.url || getDefaultAsset(resolvedVersion, "tournament.png"));
+        setOrderLogo(match.blueTeam.logo?.data || match.blueTeam.logo?.url || getDefaultAsset(resolvedVersion, "order.png"));
+        setChaosLogo(match.redTeam.logo?.data || match.redTeam.logo?.url || getDefaultAsset(resolvedVersion, "chaos.png"));
+        setGoldIcon(getScoreboardAsset(resolvedVersion, "gold.png"));
+        setTowerIcon(getScoreboardAsset(resolvedVersion, "tower.png"));
+        setBaronIcon(getBaronPitAsset(resolvedVersion, "baron.png"));
+        setBaronIcon(getBaronPitAsset(resolvedVersion, "grubs.png"));
+        setBaronIcon(getBaronPitAsset(resolvedVersion, "herald.png"));
+        setGrubsIcon(getAtakhanAsset(resolvedVersion, "atakhan_ruinous.png"));
+        setGrubsIcon(getAtakhanAsset(resolvedVersion, "atakhan_voracious.png"));
+        setDragonIcons([
+          getDragonPitAsset(resolvedVersion, "chemtech.png"),
+          getDragonPitAsset(resolvedVersion, "cloud.png"),
+          getDragonPitAsset(resolvedVersion, "elder.png"),
+          getDragonPitAsset(resolvedVersion, "hextech.png"),
+          getDragonPitAsset(resolvedVersion, "infernal.png"),
+          getDragonPitAsset(resolvedVersion, "mountain.png"),
+          getDragonPitAsset(resolvedVersion, "ocean.png"),
+        ]);
       } catch (error) {
         console.error("Failed to load assets:", error);
       }
@@ -33,7 +86,7 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({ gameData }) =>
     if (!championsLoaded || !summonerSpellsLoaded || !itemsLoaded) {
       loadAssets();
     }
-  }, [championsLoaded, summonerSpellsLoaded, itemsLoaded]);
+  }, [championsLoaded, summonerSpellsLoaded, itemsLoaded, tournament.gameVersion, gameVersion, tournament.logo, match.blueTeam.logo, match.redTeam.logo]);
 
   const formatGameTime = (seconds: number): string => {
     const minutes = Math.floor(seconds / 60);
@@ -41,13 +94,144 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({ gameData }) =>
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
-  // Hide entire UI if no game data or assets not loaded
-  if (!gameData || !gameData.gameData || !gameData.allPlayers || !championsLoaded || !summonerSpellsLoaded || !itemsLoaded) {
-    return null;
+  // Compute initial preload set once when base data and assets are ready
+  useEffect(() => {
+    const hasPlayers = !!gameData?.allPlayers?.length;
+    if (
+      !initialPreloadDoneRef.current &&
+      hasPlayers &&
+      championsLoaded &&
+      summonerSpellsLoaded &&
+      itemsLoaded &&
+      gameVersion &&
+      goldIcon &&
+      towerIcon
+    ) {
+      const urls: string[] = [];
+      // Static UI assets
+      const tLogo = tournament.logo?.data || tournament.logo?.url || getDefaultAsset(gameVersion, "tournament.png");
+      const oLogo = orderLogo;
+      const cLogo = chaosLogo;
+      if (goldIcon) urls.push(goldIcon);
+      if (towerIcon) urls.push(towerIcon);
+      if (tLogo) urls.push(tLogo);
+      if (oLogo) urls.push(oLogo);
+      if (cLogo) urls.push(cLogo);
+
+      // Champions and current spells
+      for (const p of gameData.allPlayers) {
+        if (!seenChampionNamesRef.current.has(p.championName)) {
+          const champ = getChampionSquareImage(p.championName);
+          if (champ) urls.push(champ);
+        }
+        const s1Name = p.summonerSpells?.summonerSpellOne?.displayName;
+        const s2Name = p.summonerSpells?.summonerSpellTwo?.displayName;
+        if (s1Name && !seenSpellNamesRef.current.has(s1Name)) {
+          const s1 = getSummonerSpellImageByName(s1Name);
+          if (s1) urls.push(s1);
+        }
+        if (s2Name && !seenSpellNamesRef.current.has(s2Name)) {
+          const s2 = getSummonerSpellImageByName(s2Name);
+          if (s2) urls.push(s2);
+        }
+      }
+
+      setInitialPreloadUrls(Array.from(new Set(urls)));
+    }
+  }, [
+    gameData?.allPlayers,
+    championsLoaded,
+    summonerSpellsLoaded,
+    itemsLoaded,
+    gameVersion,
+    goldIcon,
+    towerIcon,
+    tournament.logo,
+    orderLogo,
+    chaosLogo
+  ]);
+
+  // After initial preload completes, only preload incremental new spell icons (e.g., Spellbook)
+  const incrementalUrls = useMemo(() => {
+    if (!initialPreloadDoneRef.current || !gameData?.allPlayers?.length) return [] as string[];
+    const urls: string[] = [];
+    for (const p of gameData.allPlayers) {
+      const s1Name = p.summonerSpells?.summonerSpellOne?.displayName;
+      const s2Name = p.summonerSpells?.summonerSpellTwo?.displayName;
+      if (s1Name && !seenSpellNamesRef.current.has(s1Name)) {
+        const s1 = getSummonerSpellImageByName(s1Name);
+        if (s1) urls.push(s1);
+      }
+      if (s2Name && !seenSpellNamesRef.current.has(s2Name)) {
+        const s2 = getSummonerSpellImageByName(s2Name);
+        if (s2) urls.push(s2);
+      }
+    }
+    return Array.from(new Set(urls));
+  }, [gameData?.allPlayers]);
+
+  const { loaded: initialImagesLoaded } = useImagePreload(initialPreloadUrls);
+  useImagePreload(incrementalUrls);
+
+  useEffect(() => {
+    const allDataReady = !!(gameData && gameData.gameData && gameData.allPlayers);
+    if (
+      !initialPreloadDoneRef.current &&
+      initialPreloadUrls.length > 0 &&
+      initialImagesLoaded
+    ) {
+      // Mark initial batch as complete and record seen champions/spells
+      for (const p of gameData.allPlayers) {
+        seenChampionNamesRef.current.add(p.championName);
+        if (p.summonerSpells?.summonerSpellOne?.displayName) {
+          seenSpellNamesRef.current.add(p.summonerSpells.summonerSpellOne.displayName);
+        }
+        if (p.summonerSpells?.summonerSpellTwo?.displayName) {
+          seenSpellNamesRef.current.add(p.summonerSpells.summonerSpellTwo.displayName);
+        }
+      }
+      initialPreloadDoneRef.current = true;
+    }
+
+    if (
+      allDataReady &&
+      championsLoaded &&
+      summonerSpellsLoaded &&
+      itemsLoaded &&
+      initialPreloadDoneRef.current
+    ) {
+      setUiReady(true);
+    }
+  }, [
+    gameData,
+    championsLoaded,
+    summonerSpellsLoaded,
+    itemsLoaded,
+    initialPreloadUrls,
+    initialImagesLoaded
+  ]);
+
+  if (!uiReady) {
+    return (
+      <></>
+    );
   }
 
   const blueTeam = gameData.allPlayers.filter(player => player.team === "ORDER");
   const redTeam = gameData.allPlayers.filter(player => player.team === "CHAOS");
+
+  const orderGoldDiff = blueTeam.reduce((sum, player) => sum + (player.gold || 0), 0) - redTeam.reduce((sum, player) => sum + (player.gold || 0), 0);
+  const chaosGoldDiff = redTeam.reduce((sum, player) => sum + (player.gold || 0), 0) - blueTeam.reduce((sum, player) => sum + (player.gold || 0), 0);
+
+  const bound = bindLivePlayersToMatch(gameData.allPlayers, match);
+  const orderedBlue = getRoleOrder()
+    .map((role) => bound.blue.find((b) => b.resolvedRole === role))
+    .concat(bound.blue.filter((b) => b.livePlayer && !getRoleOrder().includes(b.resolvedRole)))
+    .filter(Boolean) as typeof bound.blue;
+  const orderedRed = getRoleOrder()
+    .map((role) => bound.red.find((b) => b.resolvedRole === role))
+    .concat(bound.red.filter((b) => b.livePlayer && !getRoleOrder().includes(b.resolvedRole)))
+    .filter(Boolean) as typeof bound.red;
 
   // Calculate team stats
   const blueTeamStats = {
@@ -75,105 +259,80 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({ gameData }) =>
   return (
     <div className="fixed inset-0 bg-black/80 text-white font-sans">
       {/* Top Bar - Team Scores & Game Info */}
-      <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-r from-blue-900/90 via-gray-900/90 to-red-900/90 border-b-2 border-gray-600">
+      <motion.div initial={{ y: -80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ type: "spring", stiffness: 140, damping: 18 }} className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-r from-blue-900/90 via-gray-900/90 to-red-900/90 border-b-2 border-gray-600">
         <div className="flex justify-between items-center h-full px-8">
           {/* Blue Team (Left) */}
-          <div className="flex items-center space-x-6">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-400">BLUE</div>
-              <div className="text-sm text-gray-300">Team</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-white">{blueTeamStats.kills}</div>
-              <div className="text-xs text-gray-400">Kills</div>
-            </div>
-            <div className="flex space-x-4 text-center">
-              <div>
-                <div className="text-lg font-bold text-yellow-400">{blueTeamStats.towers}</div>
-                <div className="text-xs text-gray-400">Towers</div>
-              </div>
-              <div>
-                <div className="text-lg font-bold text-orange-400">{blueTeamStats.dragons}</div>
-                <div className="text-xs text-gray-400">Dragons</div>
-              </div>
-              <div>
-                <div className="text-lg font-bold text-purple-400">{blueTeamStats.barons}</div>
-                <div className="text-xs text-gray-400">Barons</div>
-              </div>
-            </div>
-            <div className="text-center">
-              <div className="text-lg font-bold text-green-400">{(blueTeamStats.gold / 1000).toFixed(1)}K</div>
-              <div className="text-xs text-gray-400">Gold</div>
-            </div>
-          </div>
+            <TeamScoreDisplay
+              logo={orderLogo}
+              tag={match?.blueTeam?.tag || "BLUE"} 
+              kills={blueTeamStats.kills} 
+              towers={blueTeamStats.towers} 
+              towerIcon={towerIcon} 
+              goldDiff={orderGoldDiff} 
+              goldIcon={goldIcon} 
+              teamGold={blueTeamStats.gold}
+              reverse={true} />
 
           {/* Center - Game Info */}
           <div className="text-center">
+            <Image src={tournamentLogo} alt={`${tournament.name} logo`} width={128} height={128} />
             <div className="text-3xl font-bold text-white mb-1 font-mono">
               {formatGameTime(gameData.gameData.gameTime)}
-            </div>
-            <div className="text-sm text-gray-400">
-              {gameData.gameData.gameMode} - {gameData.gameData.mapName}
             </div>
           </div>
 
           {/* Red Team (Right) */}
-          <div className="flex items-center space-x-6">
-            <div className="text-center">
-              <div className="text-lg font-bold text-green-400">{(redTeamStats.gold / 1000).toFixed(1)}K</div>
-              <div className="text-xs text-gray-400">Gold</div>
-            </div>
-            <div className="flex space-x-4 text-center">
-              <div>
-                <div className="text-lg font-bold text-purple-400">{redTeamStats.barons}</div>
-                <div className="text-xs text-gray-400">Barons</div>
-              </div>
-              <div>
-                <div className="text-lg font-bold text-orange-400">{redTeamStats.dragons}</div>
-                <div className="text-xs text-gray-400">Dragons</div>
-              </div>
-              <div>
-                <div className="text-lg font-bold text-yellow-400">{redTeamStats.towers}</div>
-                <div className="text-xs text-gray-400">Towers</div>
-              </div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-white">{redTeamStats.kills}</div>
-              <div className="text-xs text-gray-400">Kills</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-red-400">RED</div>
-              <div className="text-sm text-gray-300">Team</div>
-            </div>
-          </div>
+            <TeamScoreDisplay 
+              logo={chaosLogo}
+              tag={match?.redTeam?.tag || "RED"}
+              kills={redTeamStats.kills}
+              towers={redTeamStats.towers}
+              towerIcon={towerIcon}
+              goldDiff={chaosGoldDiff}
+              goldIcon={goldIcon}
+              teamGold={redTeamStats.gold} />
         </div>
-      </div>
+      </motion.div>
 
       {/* Left Side Panel - Blue Team Players */}
-      <div className="absolute left-0 top-20 w-64 h-full bg-blue-900/20 border-r border-blue-600/50">
+      <motion.div initial={{ x: -80, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ type: "spring", stiffness: 140, damping: 18, delay: 0.1 }} className="absolute left-0 top-20 w-64 h-full">
         <div className="p-4">
-          <h3 className="text-lg font-bold text-blue-400 mb-4 text-center">BLUE TEAM</h3>
+          <h3 className="text-lg font-bold mb-4 text-center">{match?.blueTeam?.tag || "BLUE"}</h3>
           <div className="space-y-3">
-            {blueTeam.map((player, index) => (
-              <PlayerCard key={index} player={player} teamColor="blue" />
-            ))}
+            {orderedBlue.map((bp, index) => {
+              const fallback = bp.rosterPlayer ? createFallbackLivePlayer(bp.rosterPlayer, "ORDER") : null;
+              const p = bp.livePlayer || fallback;
+              if (!p) return null;
+              return (
+                <motion.div key={index} initial={{ x: -40, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ type: "spring", stiffness: 160, damping: 20, delay: 0.15 + index * 0.05 }}>
+                  <PlayerCard player={p} teamColor="blue" />
+                </motion.div>
+              );
+            })}
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Right Side Panel - Red Team Players */}
-      <div className="absolute right-0 top-20 w-64 h-full bg-red-900/20 border-l border-red-600/50">
+      <motion.div initial={{ x: 80, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ type: "spring", stiffness: 140, damping: 18, delay: 0.1 }} className="absolute right-0 top-20 w-64 h-full">
         <div className="p-4">
-          <h3 className="text-lg font-bold text-red-400 mb-4 text-center">RED TEAM</h3>
+          <h3 className="text-lg font-bold mb-4 text-center">{match?.redTeam?.name || "RED"}</h3>
           <div className="space-y-3">
-            {redTeam.map((player, index) => (
-              <PlayerCard key={index} player={player} teamColor="red" />
-            ))}
+            {orderedRed.map((bp, index) => {
+              const fallback = bp.rosterPlayer ? createFallbackLivePlayer(bp.rosterPlayer, "CHAOS") : null;
+              const p = bp.livePlayer || fallback;
+              if (!p) return null;
+              return (
+                <motion.div key={index} initial={{ x: 40, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ type: "spring", stiffness: 160, damping: 20, delay: 0.15 + index * 0.05 }}>
+                  <PlayerCard player={p} teamColor="red" />
+                </motion.div>
+              );
+            })}
           </div>
         </div>
-      </div>
+      </motion.div>
 
-      {/* Bottom Bar - Player Stats Table
+      {/* Bottom Bar - Player Stats Table */}
       <div className="absolute bottom-0 left-0 right-0 h-32 bg-gray-900/95 border-t-2 border-gray-600">
         <div className="h-full overflow-x-auto">
           <table className="w-full text-xs">
@@ -229,9 +388,58 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({ gameData }) =>
             </tbody>
           </table>
         </div>
-      </div> */}
+      </div>
     </div>
   );
+};
+
+interface TeamScoreDisplayProps extends GoldDisplayProps {
+  logo: string;
+  tag: string;
+  kills: number;
+  towers: number;
+  towerIcon: string;
+  reverse?: boolean;
+}
+  
+const TeamScoreDisplay: React.FC<TeamScoreDisplayProps> = ({ logo, tag, kills, towers, towerIcon, goldDiff, goldIcon, teamGold, reverse = false }) => {
+  return (
+    <div className={`flex items-center gap-12 ${reverse ? "flex-row-reverse" : "flex-row"}`}>
+      <div className="text-center">
+        <div className="text-5xl font-bold text-white font-mono">{kills}</div>
+      </div>
+      <GoldDisplay goldDiff={goldDiff} goldIcon={goldIcon} teamGold={teamGold} />
+      <div className="flex flex-row space-x-4 text-center">
+        <div className="flex flex-col items-center ">
+          <Image src={towerIcon} alt="Tower" width={16} height={16} />
+          <div className="text-lg font-bold text-yellow-400">{towers}</div>
+        </div>
+      </div>
+      <div className="text-center">
+        <Image src={logo} alt="Team Logo" width={48} height={48} />
+        <div className={`text-xl font-bold`}>{tag}</div>
+      </div>
+    </div>
+  )
+}
+
+
+interface GoldDisplayProps {
+  goldDiff: number;
+  goldIcon: string;
+  teamGold: number;
+}
+
+const GoldDisplay: React.FC<GoldDisplayProps> = ({ goldDiff, goldIcon, teamGold }) => {
+  return (
+    <div className="text-center flex flex-row items-center space-x-2">
+      <Image src={goldIcon} alt="Gold" width={48} height={48} />
+      <div className="text-lg font-bold text-green-400 flex flex-col items-center">
+        <div className="text-lg font-bold text-green-400">{(teamGold / 1000).toFixed(1)}K</div>
+        {goldDiff > 2000 && <div className="text-xs text-green-400">+{(goldDiff / 1000).toFixed(1)}K</div>}
+      </div>
+    </div>
+  )
 };
 
 interface PlayerCardProps {
@@ -250,48 +458,42 @@ const PlayerCard: React.FC<PlayerCardProps> = ({ player, teamColor }) => {
   const healthPercentage = Math.max(0, Math.min(100, ((player.health ?? 0) / (player.maxHealth ?? 1)) * 100));
 
   return (
-    <div className={`border rounded-lg p-3 ${colorClasses[teamColor]} hover:bg-opacity-50 transition-all`}>
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center space-x-2">
-          <Image 
-            src={championImage} 
-            alt={player.championName} 
-            width={32} 
-            height={32} 
+    <div className={`border rounded-md p-1 ${colorClasses[teamColor]} transition-all`}>
+      <div className="flex items-center">
+        <div className="relative mr-1">
+          <Image
+            src={championImage}
+            alt={player.championName}
+            width={28}
+            height={28}
             className="rounded"
           />
-          <div>
-            <div className="font-medium text-white text-sm">{player.summonerName || "Unknown"}</div>
-            <div className="text-xs text-gray-300">{player.championName || "Unknown"}</div>
+          <div className="absolute -bottom-1 -left-1 bg-yellow-500 text-black text-[10px] leading-none px-1 rounded">
+            {player.level || 1}
           </div>
         </div>
-        <div className="text-right">
-          <div className="text-lg font-bold text-yellow-400">Lv.{player.level || 1}</div>
-          <div className="text-xs text-gray-400">{player.position === "UTILITY" ? "SUPPORT" : player.position}</div>
+        <div className="flex items-center flex-1 min-w-0">
+          <div className="flex flex-col space-y-0.5 mr-1">
+            <div className="w-4 h-4 bg-gray-700 rounded border border-gray-600 flex items-center justify-center">
+              <Image src={summonerSpellOne} alt={player.summonerSpells?.summonerSpellOne?.displayName} width={12} height={12} />
+            </div>
+            <div className="w-4 h-4 bg-gray-700 rounded border border-gray-600 flex items-center justify-center">
+              <Image src={summonerSpellTwo} alt={player.summonerSpells?.summonerSpellTwo?.displayName} width={12} height={12} />
+            </div>
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-[10px] font-medium text-white truncate">{player.summonerName || "Unknown"}</div>
+            <div className="text-[9px] text-gray-300 truncate">{player.championName || "Unknown"}</div>
+            <div className="w-full bg-gray-700 rounded h-1 mt-0.5">
+              <div className="bg-red-500 h-1 rounded" style={{ width: `${healthPercentage}%` }}></div>
+            </div>
+          </div>
+          <div className="ml-1 text-right">
+            <div className="text-[10px] font-bold text-white">
+              {(player.scores?.kills || 0)}/{(player.scores?.deaths || 0)}/{(player.scores?.assists || 0)}
+            </div>
+          </div>
         </div>
-      </div>
-      
-      {/* Health Bar */}
-      <div className="w-full bg-gray-700 rounded-full h-2 mb-2">
-        <div className="bg-red-500 h-2 rounded-full" style={{ width: `${healthPercentage}%` }}></div>
-      </div>
-      
-      {/* Summoner Spells */}
-       <div className="flex space-x-1 mb-2">
-         <div className="w-6 h-6 bg-gray-700 rounded border border-gray-600 flex items-center justify-center">
-           <Image src={summonerSpellOne} alt={player.summonerSpells?.summonerSpellOne?.displayName} width={24} height={24} />
-         </div>
-         <div className="w-6 h-6 bg-gray-700 rounded border border-gray-600 flex items-center justify-center">
-           <Image src={summonerSpellTwo} alt={player.summonerSpells?.summonerSpellTwo?.displayName} width={24} height={24} />
-         </div>
-       </div>
-      
-      {/* KDA */}
-      <div className="text-center">
-        <div className="text-sm font-bold text-white">
-          {player.scores?.kills || 0}/{player.scores?.deaths || 0}/{player.scores?.assists || 0}
-        </div>
-        <div className="text-xs text-gray-400">KDA</div>
       </div>
     </div>
   );

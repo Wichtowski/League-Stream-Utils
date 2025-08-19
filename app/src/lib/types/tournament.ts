@@ -20,7 +20,7 @@ export type ImageStorage =
   | {
       type: "upload";
       data: string; // base64 string
-      size: number;
+      size: number; // size in bytes
       format: "png" | "jpg" | "webp";
       url?: never;
     }
@@ -67,7 +67,7 @@ export interface Tournament {
   registrationOpen: boolean;
   prizePool?: number;
   fearlessDraft: boolean;
-
+  gameVersion?: string;
   // Visual
   logo: ImageStorage;
 
@@ -124,6 +124,7 @@ export interface CreateTournamentRequest {
   defaultMatchTime: string;
   streamUrl?: string;
   broadcastLanguage?: string;
+  gameVersion?: string;
   sponsors?: Sponsorship[];
 }
 

@@ -172,3 +172,34 @@ export const getChampionName = (championId: number): string => {
   if (!champ?.name) return `Champion ${championId}`;
   return champ.name;
 };
+
+export const getOverlayAsset = (version: string, asset: string): string => {
+  return getAsset(version, "overlay", asset);
+}
+
+export const getDefaultAsset = (version: string, asset: string): string => {
+  return getAsset(version, "default", asset);
+}
+type DragonPitAsset = "chemtech.png" | "cloud.png" | "elder.png" | "hextech.png" | "infernal.png" | "mountain.png" | "ocean.png";
+export const getDragonPitAsset = (version: string, asset: DragonPitAsset): string => {
+  return getAsset(version, "dragonpit", asset);
+}
+
+type BaronPitAsset = "baron.png" | "grubs.png" | "herald.png";
+export const getBaronPitAsset = (version: string, asset: BaronPitAsset): string => {
+  return getAsset(version, "baronpit", asset);
+}
+
+type AtakhanAsset = "atakhan_ruinous.png" | "atakhan_voracious.png";
+export const getAtakhanAsset = (version: string, asset: AtakhanAsset): string => {
+  return getAsset(version, "atakhan", asset);
+}
+
+type ScoreboardAsset = "gold.png" | "tower.png" | "grubs.png";
+export const getScoreboardAsset = (version: string, asset: ScoreboardAsset): string => {
+  return getAsset(version, "scoreboard", asset);
+}
+
+const getAsset = (version: string, type: string, asset: string): string => {
+  return `/api/local-image?path=${encodeURIComponent(`assets/${version}/overlay/${type}/${asset}`)}`;
+}
