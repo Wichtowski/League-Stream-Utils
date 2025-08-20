@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getUserByUsername } from "@lib/database/user";
 import { AuthCredentials } from "@lib/types";
 import { config } from "@lib/config";
-import { generateTokens, createSession, setSecurityHeaders } from "@/lib/auth/utils";
+import { generateTokens, createSession, setSecurityHeaders } from "@/lib/auth";
 import { checkRateLimit, getClientIP, sanitizeInput, verifyPassword } from "@lib/services/common/security";
 import { recordLoginAttempt, isAccountLocked, clearLoginAttempts, logSecurityEvent } from "@lib/database/security";
 

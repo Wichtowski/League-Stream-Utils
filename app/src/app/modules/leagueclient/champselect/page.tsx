@@ -134,9 +134,7 @@ const ChampSelectOverlayPage: React.FC = () => {
     <>
       <div className="fixed top-4 left-4 z-50 bg-green-900/90 backdrop-blur-sm border border-green-600 rounded-lg p-3 text-white">
         <div className="text-sm font-medium mb-2">✅ Connected to League Client</div>
-        <div className="text-xs text-green-200">
-          Showing real champion select data
-        </div>
+        <div className="text-xs text-green-200">Showing real champion select data</div>
       </div>
       <ChampSelectDisplay data={data} isOverlay={true} />
     </>

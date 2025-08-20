@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { withAuth } from "@/lib/auth/utils";
+import { withAuth } from "@/lib/auth";
 import { connectToDatabase } from "@lib/database/connection";
 import { CameraSettingsModel } from "@lib/database/models";
 import { getUserTeams } from "@lib/database/team";
@@ -16,7 +16,7 @@ export const GET = withAuth(async (req: NextRequest, user: JWTPayload) => {
   try {
     await connectToDatabase();
 
-    let settings;
+    let settings: { userId: string; teams?: CameraTeam[]; createdAt?: Date; updatedAt?: Date } | null;
 
     const url = new URL(req.url);
     const teamId = url.searchParams.get("teamId");
@@ -25,12 +25,17 @@ export const GET = withAuth(async (req: NextRequest, user: JWTPayload) => {
     if (user.isAdmin) {
       // Admins can see all camera settings
       if (userId) {
-        settings = await CameraSettingsModel.findOne({ userId });
+        settings = (await CameraSettingsModel.findOne({ userId }).lean()) as {
+          userId: string;
+          teams?: CameraTeam[];
+          createdAt?: Date;
+          updatedAt?: Date;
+        } | null;
       } else {
         // Get all camera settings and merge them for admin view
-        const allSettings = await CameraSettingsModel.find({});
+        const allSettings = await CameraSettingsModel.find({}).lean();
         // Merge all teams from all users into one response
-        const allTeams = allSettings.flatMap((s) => s.teams || []);
+        const allTeams = allSettings.flatMap((s) => (s as { teams?: CameraTeam[] }).teams || []);
         settings = {
           userId: "admin",
           teams: allTeams,
@@ -39,7 +44,12 @@ export const GET = withAuth(async (req: NextRequest, user: JWTPayload) => {
         };
       }
     } else {
-      settings = await CameraSettingsModel.findOne({ userId: user.userId });
+      settings = (await CameraSettingsModel.findOne({ userId: user.userId }).lean()) as {
+        userId: string;
+        teams?: CameraTeam[];
+        createdAt?: Date;
+        updatedAt?: Date;
+      } | null;
     }
 
     if (!settings) {

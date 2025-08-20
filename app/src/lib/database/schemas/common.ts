@@ -3,9 +3,10 @@ import { Schema } from "mongoose";
 export const ImageStorageSchema = new Schema(
   {
     type: { type: String, enum: ["upload", "url"], required: true },
-    data: { type: String, required: true },
-    size: { type: Number, required: true },
-    format: { type: String, enum: ["png", "jpg", "webp"], required: true }
+    data: { type: String, required: false },
+    url: { type: String, required: false },
+    size: { type: Number, required: false },
+    format: { type: String, enum: ["png", "jpg", "webp"], required: false }
   },
   { _id: false }
 );
@@ -20,7 +21,7 @@ export const PlayerSchema = new Schema(
       enum: ["TOP", "JUNGLE", "MID", "ADC", "SUPPORT"],
       required: true
     },
-    profileImage: { type: String },
+    profileImage: { type: String, required: false },
     puuid: { type: String },
     firstName: { type: String },
     lastName: { type: String },

@@ -11,7 +11,6 @@ import { tournamentStorage, LastSelectedTournament } from "@lib/services/tournam
 import { PageWrapper } from "@lib/layout/PageWrapper";
 import { SpotlightCard } from "@/lib/components/modules/SpotlightCard";
 
-
 export default function ModulesPage() {
   const router = useRouter();
   const { setActiveModule } = useNavigation();
@@ -119,31 +118,29 @@ export default function ModulesPage() {
 
   if (loading) {
     return (
-      <PageWrapper
-        title="Modules"
-        subtitle="Loading modules..."
-        contentClassName="max-w-7xl mx-auto"
-      >
+      <PageWrapper title="Modules" subtitle="Loading modules..." contentClassName="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {Array(6).fill(null).map((_, index) => (
-            <SpotlightCard
-              key={index}
-              module={{ 
-                id: `loading-${index}`, 
-                name: "Loading...", 
-                description: "Loading module...", 
-                path: "", 
-                status: "available", 
-                color: "from-gray-500 to-gray-600", 
-                spotlightColor: "#6B7280", 
-                icon: "📦", 
-                category: "core" 
-              }}
-              loading={true}
-              spotlightColor="#6B7280"
-              isHiddenBehindTournament={false}
-            />
-          ))}
+          {Array(6)
+            .fill(null)
+            .map((_, index) => (
+              <SpotlightCard
+                key={index}
+                module={{
+                  id: `loading-${index}`,
+                  name: "Loading...",
+                  description: "Loading module...",
+                  path: "",
+                  status: "available",
+                  color: "from-gray-500 to-gray-600",
+                  spotlightColor: "#6B7280",
+                  icon: "📦",
+                  category: "core"
+                }}
+                loading={true}
+                spotlightColor="#6B7280"
+                isHiddenBehindTournament={false}
+              />
+            ))}
         </div>
       </PageWrapper>
     );

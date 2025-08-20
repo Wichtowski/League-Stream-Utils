@@ -57,7 +57,9 @@ export class RunesBlueprintDownloader extends BaseCacheService<CommunityDragonRu
       );
       const totalRunes = validRunes.length;
 
-      console.log(`Found ${totalRunes} existing runes, ${validRunes.length - totalRunes} missing out of ${validRunes.length} total`);
+      console.log(
+        `Found ${totalRunes} existing runes, ${validRunes.length - totalRunes} missing out of ${validRunes.length} total`
+      );
 
       // Check category progress instead of individual file checks (use League version for runes too)
       const categoryProgress = await this.getCategoryProgress("runes", version);

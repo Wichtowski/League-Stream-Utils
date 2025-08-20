@@ -168,7 +168,7 @@ export class DataDragonClient {
   static async getRunes(version?: string): Promise<RuneReforged[]> {
     const actualVersion = version || (await this.getLatestVersion());
     const url = `${DDRAGON_CDN}/${actualVersion}/data/en_US/runesReforged.json`;
-    
+
     const response = await fetch(url, {
       headers: {
         "User-Agent": "League-Stream-Utils/1.0.0"

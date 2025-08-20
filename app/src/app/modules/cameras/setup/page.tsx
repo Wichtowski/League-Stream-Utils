@@ -27,20 +27,20 @@ export default function CameraSetupListPage() {
     const cameraTeam = cameraTeams.find((ct: CameraTeam) => ct.teamId === team.id);
     // Merge all players (main + subs)
     const allPlayers = [
-      ...team.players.main.map((player) => {
+      ...team.players.main.map((player: CameraPlayer) => {
         const cameraPlayer = cameraTeam?.players.find(
           (cp: CameraPlayer) =>
-            (cp.playerId && cp.playerId === player.id) || (cp.inGameName && cp.inGameName === player.inGameName)
+            (cp.playerId && cp.playerId === player.playerId) || (cp.inGameName && cp.inGameName === player.inGameName)
         );
         return {
           ...player,
           cameraUrl: cameraPlayer?.url || null
         };
       }),
-      ...team.players.substitutes.map((player) => {
+      ...team.players.substitutes.map((player: CameraPlayer) => {
         const cameraPlayer = cameraTeam?.players.find(
           (cp: CameraPlayer) =>
-            (cp.playerId && cp.playerId === player.id) || (cp.inGameName && cp.inGameName === player.inGameName)
+            (cp.playerId && cp.playerId === player.playerId) || (cp.inGameName && cp.inGameName === player.inGameName)
         );
         return {
           ...player,
@@ -99,7 +99,7 @@ export default function CameraSetupListPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {mergedTeams.map((team, idx) => {
-            const configuredCount = team.allPlayers.filter((p) => p.cameraUrl && p.cameraUrl.trim() !== "").length;
+            const configuredCount = team.allPlayers.filter((p: CameraPlayer) => p.url && p.url.trim() !== "").length;
             return (
               <div
                 key={team.id || idx}

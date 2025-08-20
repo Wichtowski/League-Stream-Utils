@@ -10,25 +10,35 @@ export const HelpSection = (): React.ReactElement => {
         <div className="space-y-4">
           <div>
             <h4 className="font-medium text-gray-300 mb-2">Twitch Streams:</h4>
-            <code className="block bg-gray-700 p-2 rounded text-green-400 text-xs">https://player.twitch.tv/?channel=CHANNEL_NAME&parent=localhost</code>
+            <code className="block bg-gray-700 p-2 rounded text-green-400 text-xs">
+              https://player.twitch.tv/?channel=CHANNEL_NAME&parent=localhost
+            </code>
           </div>
           <div>
             <h4 className="font-medium text-gray-300 mb-2">YouTube Streams:</h4>
-            <code className="block bg-gray-700 p-2 rounded text-green-400 text-xs">https://www.youtube.com/embed/VIDEO_ID</code>
+            <code className="block bg-gray-700 p-2 rounded text-green-400 text-xs">
+              https://www.youtube.com/embed/VIDEO_ID
+            </code>
           </div>
           <div>
             <h4 className="font-medium text-gray-300 mb-2">OBS Studio:</h4>
-            <code className="block bg-gray-700 p-2 rounded text-green-400 text-xs">rtmp://your-server.com/live/stream_key</code>
+            <code className="block bg-gray-700 p-2 rounded text-green-400 text-xs">
+              rtmp://your-server.com/live/stream_key
+            </code>
           </div>
           <div>
             <h4 className="font-medium text-gray-300 mb-2">Direct Video:</h4>
-            <code className="block bg-gray-700 p-2 rounded text-green-400 text-xs">https://example.com/stream.m3u8</code>
+            <code className="block bg-gray-700 p-2 rounded text-green-400 text-xs">
+              https://example.com/stream.m3u8
+            </code>
           </div>
         </div>
         <div className="space-y-4">
           <div className="bg-red-600/10 border border-red-600/30 rounded-lg p-4">
             <h4 className="font-medium text-red-400 mb-2 flex items-center gap-2">🏆 Tournament Delay Setup</h4>
-            <p className="text-sm text-gray-300 mb-3">For competitive integrity, set up delayed streams when not using official spectator mode:</p>
+            <p className="text-sm text-gray-300 mb-3">
+              For competitive integrity, set up delayed streams when not using official spectator mode:
+            </p>
             <div className="space-y-2 text-xs text-gray-400">
               <div>
                 <strong className="text-gray-300">OBS Studio:</strong>
@@ -61,5 +71,3 @@ export const HelpSection = (): React.ReactElement => {
     </div>
   );
 };
-
-

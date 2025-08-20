@@ -104,7 +104,11 @@ export default function ComentatorPredictionsPage({ params }: ComentatorPredicti
         breadcrumbs={[
           { label: "Tournaments", href: "/modules/tournaments" },
           { label: selectedTournamentName, href: `/modules/tournaments/${tournamentId}` },
-          { label: "Commentator Predictions", href: `/modules/tournaments/${tournamentId}/commentators/predictions`, isActive: true }
+          {
+            label: "Commentator Predictions",
+            href: `/modules/tournaments/${tournamentId}/commentators/predictions`,
+            isActive: true
+          }
         ]}
         contentClassName="max-w-xl mx-auto"
       >
@@ -134,7 +138,11 @@ export default function ComentatorPredictionsPage({ params }: ComentatorPredicti
           { label: "Tournaments", href: "/modules/tournaments" },
           { label: selectedTournamentName, href: `/modules/tournaments/${tournamentId}` },
           { label: "Commentators", href: `/modules/tournaments/${tournamentId}/commentators` },
-          { label: "Predictions", href: `/modules/tournaments/${tournamentId}/commentators/predictions`, isActive: true }
+          {
+            label: "Predictions",
+            href: `/modules/tournaments/${tournamentId}/commentators/predictions`,
+            isActive: true
+          }
         ]}
         contentClassName="max-w-xl mx-auto"
       >
@@ -174,7 +182,11 @@ export default function ComentatorPredictionsPage({ params }: ComentatorPredicti
           { label: "Tournaments", href: "/modules/tournaments" },
           { label: selectedTournamentName, href: `/modules/tournaments/${tournamentId}` },
           { label: "Commentator", href: `/modules/tournaments/${tournamentId}/commentators/` },
-          { label: "Predictions", href: `/modules/tournaments/${tournamentId}/commentators/predictions`, isActive: true }
+          {
+            label: "Predictions",
+            href: `/modules/tournaments/${tournamentId}/commentators/predictions`,
+            isActive: true
+          }
         ]}
         contentClassName="max-w-xl mx-auto"
       >

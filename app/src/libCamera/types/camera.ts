@@ -8,7 +8,7 @@ export interface CameraPlayer {
   role?: string;
   teamName?: string;
   teamLogo?: string;
-};
+}
 
 export interface CameraTeam {
   teamId: string;
@@ -16,7 +16,7 @@ export interface CameraTeam {
   teamLogo?: string;
   players: CameraPlayer[];
   teamStreamUrl?: string;
-};
+}
 
 export interface CameraSettings {
   userId: string;
@@ -24,4 +24,4 @@ export interface CameraSettings {
   globalTournamentMode?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
-};
+}

@@ -1,7 +1,7 @@
 import type { ImageStorage } from "@lib/types/tournament";
 
 /**
- * Convert ImageStorage object into a URL that can be used in <img src>. 
+ * Convert ImageStorage object into a URL that can be used in <img src>.
  * Images are fetched from MongoDB database.
  * Handles:
  *  - external URLs (type: 'url')
@@ -27,7 +27,7 @@ export const getImageUrl = async (image?: ImageStorage): Promise<string> => {
         return URL.createObjectURL(blob);
       }
     } catch (error) {
-      console.error('Failed to fetch image from database:', error);
+      console.error("Failed to fetch image from database:", error);
     }
   }
 
@@ -39,13 +39,13 @@ export const getImageUrl = async (image?: ImageStorage): Promise<string> => {
  */
 export const getTeamLogoUrl = async (teamId: string): Promise<string> => {
   // Database-stored image - use the team logo endpoint
-    try {
-      const response = await fetch(`/api/v1/teams/${teamId}/logo`);
-      if (response.ok) {
-          const blob = await response.blob();
-          return URL.createObjectURL(blob);
-        }
-    } catch (error) {
+  try {
+    const response = await fetch(`/api/v1/teams/${teamId}/logo`);
+    if (response.ok) {
+      const blob = await response.blob();
+      return URL.createObjectURL(blob);
+    }
+  } catch (error) {
     console.error(`Failed to fetch logo for team ${teamId}:`, error);
   }
 

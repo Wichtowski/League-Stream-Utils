@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { withAuth } from "@/lib/auth/utils";
+import { withAuth } from "@/lib/auth";
 import { verifyAllTeamPlayers, getTeamById } from "@lib/database/team";
 import { connectToDatabase } from "@lib/database/connection";
 import { TeamModel } from "@lib/database/models";
@@ -13,7 +13,16 @@ export const POST = withAuth(async (req: NextRequest, user: JWTPayload) => {
     const pathParts = url.pathname.split("/");
     const teamId = pathParts[4]; // /api/v1/teams/[teamId]/verify-all -> index 4
 
-    console.log("Verify all players - URL:", url.pathname, "TeamId:", teamId, "User:", user.userId, "IsAdmin:", user.isAdmin);
+    console.log(
+      "Verify all players - URL:",
+      url.pathname,
+      "TeamId:",
+      teamId,
+      "User:",
+      user.userId,
+      "IsAdmin:",
+      user.isAdmin
+    );
 
     // First check if the team exists
     const team = await getTeamById(teamId);
@@ -33,7 +42,7 @@ export const POST = withAuth(async (req: NextRequest, user: JWTPayload) => {
     // If user is admin, use direct database update
     if (user.isAdmin) {
       await connectToDatabase();
-      
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const updatedTeam = await (TeamModel as any).findOne({ id: teamId });
       if (!updatedTeam) {
@@ -59,21 +68,22 @@ export const POST = withAuth(async (req: NextRequest, user: JWTPayload) => {
       }));
 
       updatedTeam.updatedAt = now;
-      
+
       // Auto-verify team if 5+ players are verified
       const verifiedPlayerCount = updatedTeam.players.main.length + updatedTeam.players.substitutes.length;
       if (verifiedPlayerCount >= 5) {
         updatedTeam.verified = true;
         updatedTeam.verificationSubmittedAt = now;
       }
-      
+
       await updatedTeam.save();
-      
+
       const finalTeam = await getTeamById(teamId);
       return NextResponse.json({
-        message: verifiedPlayerCount >= 5 
-          ? `All players verified and team auto-verified! (${verifiedPlayerCount} players)`
-          : `All players verified successfully by admin`,
+        message:
+          verifiedPlayerCount >= 5
+            ? `All players verified and team auto-verified! (${verifiedPlayerCount} players)`
+            : `All players verified successfully by admin`,
         team: finalTeam,
         teamVerified: updatedTeam.verified,
         verifiedPlayerCount
@@ -98,7 +108,7 @@ export const POST = withAuth(async (req: NextRequest, user: JWTPayload) => {
           teamModel.verificationSubmittedAt = new Date();
           teamModel.updatedAt = new Date();
           await teamModel.save();
-          
+
           // Get updated team data
           const finalTeam = await getTeamById(teamId);
           return NextResponse.json({
@@ -145,20 +155,20 @@ export const GET = withAuth(async (req: NextRequest, user: JWTPayload) => {
       teamVerified: team.verified,
       verificationSubmittedAt: team.verificationSubmittedAt,
       playersVerified: {
-        main: team.players.main.map((p) => ({
+        main: team.players.main.map((p: Player) => ({
           id: p.id,
           inGameName: p.inGameName,
           verified: p.verified,
           verifiedAt: p.verifiedAt
         })),
-        substitutes: team.players.substitutes.map((p) => ({
+        substitutes: team.players.substitutes.map((p: Player) => ({
           id: p.id,
           inGameName: p.inGameName,
           verified: p.verified,
           verifiedAt: p.verifiedAt
         }))
       },
-      allPlayersVerified: [...team.players.main, ...team.players.substitutes].every((p) => p.verified)
+      allPlayersVerified: [...team.players.main, ...team.players.substitutes].every((p: Player) => p.verified)
     };
 
     return NextResponse.json({ team: verificationStatus });

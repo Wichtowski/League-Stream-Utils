@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { withAuth } from "@/lib/auth/utils";
+import { withAuth } from "@/lib/auth";
 import { getTournamentById } from "@lib/database/tournament";
 import { BracketGenerator } from "@lib/services/tournament";
 import { connectToDatabase } from "@lib/database/connection";
@@ -14,8 +14,8 @@ async function saveBracket(bracket: BracketStructure): Promise<void> {
 
 async function getBracket(tournamentId: string): Promise<BracketStructure | null> {
   await connectToDatabase();
-  const bracket = await BracketModel.findOne({ tournamentId });
-  return bracket ? bracket.toObject() : null;
+  const bracket = await BracketModel.findOne({ tournamentId }).lean();
+  return bracket as BracketStructure | null;
 }
 
 export const GET = withAuth(async (req: NextRequest, user: JWTPayload) => {

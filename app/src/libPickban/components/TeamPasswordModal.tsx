@@ -25,10 +25,10 @@ export function TeamPasswordModal({ sessionId, teamSide, onPasswordCorrect, onCa
       // For now, we'll validate the password on the client side
       // In a real implementation, you'd validate against the session
       const response = await fetch(`/api/v1/pickban/sessions/${sessionId}`);
-      
+
       if (response.ok) {
         const session = await response.json();
-        
+
         if (session.password === password) {
           onPasswordCorrect();
           await showAlert({ type: "success", message: "Password correct! Joining session..." });
@@ -49,12 +49,8 @@ export function TeamPasswordModal({ sessionId, teamSide, onPasswordCorrect, onCa
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-gray-800 rounded-lg p-8 max-w-md w-full mx-4">
         <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold text-white mb-2">
-            Join {teamSide === "blue" ? "Blue" : "Red"} Team
-          </h2>
-          <p className="text-gray-400">
-            Enter the session password to join the pick/ban phase
-          </p>
+          <h2 className="text-2xl font-bold text-white mb-2">Join {teamSide === "blue" ? "Blue" : "Red"} Team</h2>
+          <p className="text-gray-400">Enter the session password to join the pick/ban phase</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -100,12 +96,9 @@ export function TeamPasswordModal({ sessionId, teamSide, onPasswordCorrect, onCa
         </form>
 
         <div className="mt-4 text-center">
-          <p className="text-xs text-gray-500">
-            Session ID: {sessionId.slice(-8)}
-          </p>
+          <p className="text-xs text-gray-500">Session ID: {sessionId.slice(-8)}</p>
         </div>
       </div>
     </div>
   );
 }
-

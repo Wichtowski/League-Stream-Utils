@@ -5,8 +5,15 @@ import { useTournaments } from "@/libTournament/contexts/TournamentsContext";
 import { useNavigation } from "@lib/contexts/NavigationContext";
 import { useModal } from "@lib/contexts/ModalContext";
 import { LoadingSpinner } from "@lib/components/common";
-import { Tournament, Sponsorship, ImageStorage } from "@lib/types/tournament";
-import { OBSDisplayInfo, SponsorWindow, SponsorForm, SponsorGuidebook, SponsorList } from "@libTournament/components/sponsors";
+import { Tournament, Sponsorship } from "@lib/types/tournament";
+import { ImageStorage } from "@lib/types/common";
+import {
+  OBSDisplayInfo,
+  SponsorWindow,
+  SponsorForm,
+  SponsorGuidebook,
+  SponsorList
+} from "@libTournament/components/sponsors";
 import { PageWrapper } from "@lib/layout";
 
 interface TournamentSponsorsPageProps {

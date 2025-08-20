@@ -7,7 +7,10 @@ interface UseImagePreloadReturn {
 }
 
 export function useImagePreload(urls: string[]): UseImagePreloadReturn {
-  const uniqueUrls = useMemo(() => Array.from(new Set((urls || []).filter((u) => typeof u === "string" && u.length > 0))), [urls]);
+  const uniqueUrls = useMemo(
+    () => Array.from(new Set((urls || []).filter((u) => typeof u === "string" && u.length > 0))),
+    [urls]
+  );
   const [completed, setCompleted] = useState(0);
   const totalRef = useRef<number>(uniqueUrls.length);
   const settledRef = useRef<Set<string>>(new Set());
@@ -51,5 +54,3 @@ export function useImagePreload(urls: string[]): UseImagePreloadReturn {
 
   return { loaded, total, completed };
 }
-
-

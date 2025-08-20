@@ -34,5 +34,3 @@ export const PlayerStreamCard = ({ player, onChange }: PlayerStreamCardProps): R
     </div>
   );
 };
-
-

@@ -39,14 +39,14 @@ export default function TournamentsPage() {
 
   if (tournamentsLoading && tournaments.length === 0) {
     return (
-      <PageWrapper 
+      <PageWrapper
         loading={tournamentsLoading}
         title="My Tournaments"
         breadcrumbs={[{ label: "Tournaments", href: "/modules/tournaments" }]}
       >
-        <GridLoader 
-          config="tournaments" 
-          rows={3} 
+        <GridLoader
+          config="tournaments"
+          rows={3}
           component={TournamentPageCard}
           componentProps={{ tournament: placeholderTournament, loading: true }}
           placeholderData={Array(3).fill(placeholderTournament)}

@@ -7,7 +7,11 @@ interface SessionPasswordModalProps {
   onCancel: () => void;
 }
 
-export const SessionPasswordModal = ({ sessionId: _sessionId, onPasswordCorrect, onCancel }: SessionPasswordModalProps) => {
+export const SessionPasswordModal = ({
+  sessionId: _sessionId,
+  onPasswordCorrect,
+  onCancel
+}: SessionPasswordModalProps) => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -37,10 +41,8 @@ export const SessionPasswordModal = ({ sessionId: _sessionId, onPasswordCorrect,
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-gray-800 rounded-lg w-full max-w-md p-6">
         <h2 className="text-2xl font-bold mb-4">Session Password Required</h2>
-        <p className="text-gray-400 mb-6">
-          This session is password protected. Please enter the password to continue.
-        </p>
-        
+        <p className="text-gray-400 mb-6">This session is password protected. Please enter the password to continue.</p>
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label htmlFor="password" className="block text-sm font-medium mb-2">
@@ -57,11 +59,9 @@ export const SessionPasswordModal = ({ sessionId: _sessionId, onPasswordCorrect,
               required
             />
           </div>
-          
-          {error && (
-            <div className="text-red-500 text-sm">{error}</div>
-          )}
-          
+
+          {error && <div className="text-red-500 text-sm">{error}</div>}
+
           <div className="flex gap-3">
             <button
               type="button"

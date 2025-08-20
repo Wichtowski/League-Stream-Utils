@@ -1,4 +1,9 @@
-import { SummonerSpell, DataDragonSummonerSpell, DataDragonSummonerResponse, SummonerSpellCacheData } from "../../types/summoner-spell";
+import {
+  SummonerSpell,
+  DataDragonSummonerSpell,
+  DataDragonSummonerResponse,
+  SummonerSpellCacheData
+} from "../../types/summoner-spell";
 import { DDRAGON_CDN } from "@lib/services/common/constants";
 import { BaseCacheService } from "@lib/services/assets/base";
 
@@ -27,11 +32,11 @@ class SummonerSpellCacheService extends BaseCacheService<SummonerSpell> {
     }
 
     const summonerData: DataDragonSummonerResponse = await response.json();
-    
+
     // Cache the data and version
     this.summonerDataCache = summonerData;
     this.summonerDataVersion = version;
-    
+
     return summonerData;
   }
 
@@ -84,10 +89,7 @@ class SummonerSpellCacheService extends BaseCacheService<SummonerSpell> {
     return cacheData;
   }
 
-  private async downloadSummonerSpellImage(
-    spell: DataDragonSummonerSpell,
-    version: string
-  ): Promise<string> {
+  private async downloadSummonerSpellImage(spell: DataDragonSummonerSpell, version: string): Promise<string> {
     const imageUrl = `${DDRAGON_CDN}/${version}/img/spell/${spell.image.full}`;
     // Store all images in a flat structure: {version}/summoner-spells/{imageName}
     const imagePath = `${version}/summoner-spells/${spell.image.full}`;
@@ -100,21 +102,10 @@ class SummonerSpellCacheService extends BaseCacheService<SummonerSpell> {
     return imagePath;
   }
 
-  private async saveSummonerSpellData(
-    spellKey: string,
-    version: string,
-    _data: SummonerSpellCacheData
-  ): Promise<void> {
+  private async saveSummonerSpellData(spellKey: string, version: string, _data: SummonerSpellCacheData): Promise<void> {
     // Don't save individual spell data to manifest - rely on category manifest system
     // Individual spell data is already tracked in the category progress
-    await this.updateCategoryProgress(
-      "summoner-spells",
-      version,
-      spellKey,
-      1,
-      1,
-      [spellKey]
-    );
+    await this.updateCategoryProgress("summoner-spells", version, spellKey, 1, 1, [spellKey]);
   }
 
   async getAllSummonerSpells(suppressProgress = false): Promise<SummonerSpell[]> {
@@ -193,7 +184,7 @@ class SummonerSpellCacheService extends BaseCacheService<SummonerSpell> {
       }
 
       const cacheData = await this.downloadSummonerSpellData(key, version);
-      
+
       return {
         id: cacheData.id,
         name: cacheData.name,
@@ -233,7 +224,7 @@ class SummonerSpellCacheService extends BaseCacheService<SummonerSpell> {
       for (const spellKey of allSpellKeys) {
         const dataKey = `summoner-spell-${version}-${spellKey}-data`;
         const manifestResult = await window.electronAPI.loadCategoryManifest("summoner-spells");
-        
+
         if (manifestResult.success && manifestResult.data) {
           const manifest = manifestResult.data;
           if (!manifest[dataKey]) {
@@ -279,14 +270,16 @@ class SummonerSpellCacheService extends BaseCacheService<SummonerSpell> {
       const errors: string[] = [];
 
       const validCompletedSet = new Set<string>();
-      
+
       for (const spellKey of allSpellKeys) {
         if (!missingSpellKeys.includes(spellKey)) {
           validCompletedSet.add(spellKey);
         }
       }
 
-      console.log(`Found ${validCompletedSet.size} summoner spells already completed on disk out of ${allSpellKeys.length} total`);
+      console.log(
+        `Found ${validCompletedSet.size} summoner spells already completed on disk out of ${allSpellKeys.length} total`
+      );
 
       const ASSETS_PER_SPELL = 2;
 
@@ -401,14 +394,7 @@ class SummonerSpellCacheService extends BaseCacheService<SummonerSpell> {
       }
 
       const version = await this.getLatestVersion();
-      await this.updateCategoryProgress(
-        "summoner-spells",
-        version,
-        "cleanup",
-        this.version ? 1 : 0,
-        1,
-        []
-      );
+      await this.updateCategoryProgress("summoner-spells", version, "cleanup", this.version ? 1 : 0, 1, []);
     } catch (error) {
       console.error("Failed to cleanup manifest:", error);
     }

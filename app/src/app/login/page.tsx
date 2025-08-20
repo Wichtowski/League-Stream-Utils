@@ -78,7 +78,7 @@ export default function AuthPage() {
       >
         <></>
       </PageWrapper>
-    )
+    );
   }
 
   if (user) {
@@ -86,11 +86,7 @@ export default function AuthPage() {
   }
 
   return (
-    <PageWrapper
-      contentClassName="max-w-md mx-auto mt-10"
-      actions={<SettingsCog />}
-      requireAuth={false}
-    >
+    <PageWrapper contentClassName="max-w-md mx-auto mt-10" actions={<SettingsCog />} requireAuth={false}>
       {/* Electron Mode Indicator */}
       {isElectron && (
         <div className="absolute top-6 right-6 flex items-center space-x-4 z-10">

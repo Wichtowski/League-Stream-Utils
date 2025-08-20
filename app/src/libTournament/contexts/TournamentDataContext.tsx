@@ -333,7 +333,6 @@ export function TournamentDataProvider({ children }: { children: ReactNode }) {
             timezone: tournamentData.timezone,
             matchDays: tournamentData.matchDays,
             defaultMatchTime: tournamentData.defaultMatchTime,
-            streamUrl: tournamentData.streamUrl,
             broadcastLanguage: tournamentData.broadcastLanguage,
             gameVersion: tournamentData.gameVersion,
             userId: user?.id || "electron-admin",

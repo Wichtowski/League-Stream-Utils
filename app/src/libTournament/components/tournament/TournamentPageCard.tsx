@@ -24,7 +24,7 @@ export const TournamentPageCard = ({ tournament, loading = false }: TournamentPa
   const handleSelectAsCurrent = async (e: React.MouseEvent): Promise<void> => {
     e.preventDefault();
     e.stopPropagation();
-    try { 
+    try {
       await tournamentStorage.setLastSelectedTournament(tournament.id, tournament.name);
       router.push("/modules");
     } catch (error) {
@@ -35,7 +35,7 @@ export const TournamentPageCard = ({ tournament, loading = false }: TournamentPa
   return (
     <Link
       href={`/modules/tournaments/${tournament.id}`}
-      className={`bg-gray-800 hover:bg-blue-700 text-white rounded-xl p-6 border border-gray-700 hover:border-blue-500 transition-all duration-200 shadow-lg text-left block ${loading ? 'blur-sm' : ''}`}
+      className={`bg-gray-800 hover:bg-blue-700 text-white rounded-xl p-6 border border-gray-700 hover:border-blue-500 transition-all duration-200 shadow-lg text-left block ${loading ? "blur-sm" : ""}`}
       onClick={handleCardClick}
     >
       <div className="flex justify-between items-start mb-4">
@@ -61,12 +61,10 @@ export const TournamentPageCard = ({ tournament, loading = false }: TournamentPa
       </div>
       <div className="space-y-2 text-sm">
         <div>
-          <span className="text-gray-400">Format:</span> {tournament.matchFormat} •{" "}
-          {tournament.tournamentFormat}
+          <span className="text-gray-400">Format:</span> {tournament.matchFormat} • {tournament.tournamentFormat}
         </div>
         <div>
-          <span className="text-gray-400">Teams:</span> {tournament.registeredTeams.length} /{" "}
-          {tournament.maxTeams}
+          <span className="text-gray-400">Teams:</span> {tournament.registeredTeams.length} / {tournament.maxTeams}
         </div>
         <div>
           <span className="text-gray-400">Start:</span> {new Date(tournament.startDate).toLocaleDateString()}

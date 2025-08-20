@@ -1,5 +1,5 @@
 import { Player } from "./game";
-import { PlayerRole } from "./common";
+import { PlayerRole, ImageStorage, TeamColors } from "./common";
 
 export type MatchFormat = "BO1" | "BO3" | "BO5";
 export type TournamentFormat = "Ladder" | "Swiss into Ladder" | "Round Robin into Ladder" | "Groups";
@@ -15,22 +15,6 @@ export interface PhaseMatchFormats {
 }
 export type TournamentStatus = "draft" | "registration" | "ongoing" | "completed" | "cancelled";
 export type TeamTier = "amateur" | "semi-pro" | "professional";
-
-export type ImageStorage =
-  | {
-      type: "upload";
-      data: string; // base64 string
-      size: number; // size in bytes
-      format: "png" | "jpg" | "webp";
-      url?: never;
-    }
-  | {
-      type: "url";
-      url: string; // external or CDN url
-      size?: number;
-      format?: "png" | "jpg" | "webp";
-      data?: never;
-    };
 
 export interface TournamentTemplate {
   id: string;
@@ -91,7 +75,6 @@ export interface Tournament {
   defaultMatchTime: string; // '19:00'
 
   // Broadcasting
-  streamUrl?: string;
   broadcastLanguage?: string;
 
   // Sponsors
@@ -126,12 +109,6 @@ export interface CreateTournamentRequest {
   broadcastLanguage?: string;
   gameVersion?: string;
   sponsors?: Sponsorship[];
-}
-
-export interface TeamColors {
-  primary: string;
-  secondary: string;
-  accent: string;
 }
 
 export interface CreateTeamRequest {

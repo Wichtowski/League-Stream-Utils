@@ -30,7 +30,7 @@ class AssetCounterService {
   }
 
   private updateProgress(progress: AssetCountProgress): void {
-    this.progressCallbacks.forEach(callback => callback(progress));
+    this.progressCallbacks.forEach((callback) => callback(progress));
   }
 
   /**
@@ -44,7 +44,7 @@ class AssetCounterService {
     if (this.isCounting) {
       // Wait for current counting to complete
       while (this.isCounting) {
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
       }
       return this.cachedCounts || this.getEmptyCounts();
     }
@@ -99,12 +99,13 @@ class AssetCounterService {
       counts.spells = await this.countSpellAssets();
 
       // Calculate total
-      counts.total = (counts.champions || 0) + 
-                    (counts.items || 0) + 
-                    (counts.gameUI || 0) + 
-                    (counts.runes || 0) + 
-                    (counts.spells || 0);
-      
+      counts.total =
+        (counts.champions || 0) +
+        (counts.items || 0) +
+        (counts.gameUI || 0) +
+        (counts.runes || 0) +
+        (counts.spells || 0);
+
       this.cachedCounts = counts as AssetCounts;
 
       this.updateProgress({
@@ -134,10 +135,10 @@ class AssetCounterService {
       const championsResponse = await DataDragonClient.getChampions(version);
       const allChampionKeys = Object.keys(championsResponse.data);
       const championCount = allChampionKeys.length;
-      
+
       const ASSETS_PER_CHAMPION = 9;
       const totalChampionAssets = championCount * ASSETS_PER_CHAMPION;
-      
+
       return totalChampionAssets;
     } catch (error) {
       console.error("Failed to count champion assets:", error);
@@ -147,7 +148,7 @@ class AssetCounterService {
   }
 
   /**
-   * Count item assets  
+   * Count item assets
    * Each item has: 1 data.json + 1 icon.png = 2 assets per item
    */
   private async countItemAssets(): Promise<number> {
@@ -155,7 +156,7 @@ class AssetCounterService {
       const version = await DataDragonClient.getLatestVersion();
       const itemsData = await DataDragonClient.getItems(version);
       const itemCount = Object.keys(itemsData.data).length;
-      
+
       // Each item has 2 assets:
       // - 1 data.json file (shared across all items)
       // - 1 icon.png file
@@ -175,7 +176,7 @@ class AssetCounterService {
     // Known game UI assets based on the asset categories
     const gameUIAssets = [
       "dragonpit/infernal.png",
-      "dragonpit/ocean.png", 
+      "dragonpit/ocean.png",
       "dragonpit/hextech.png",
       "dragonpit/chemtech.png",
       "dragonpit/mountain.png",
@@ -183,7 +184,7 @@ class AssetCounterService {
       "dragonpit/cloud.png",
       "default/player.png",
       "scoreboard/gold.png",
-      "scoreboard/grubs.png", 
+      "scoreboard/grubs.png",
       "scoreboard/tower.png",
       "atakhan/atakhan_ruinous.png",
       "atakhan/atakhan_voracious.png",
@@ -191,7 +192,7 @@ class AssetCounterService {
       "baronpit/grubs.png",
       "baronpit/herald.png"
     ];
-    
+
     return gameUIAssets.length;
   }
 
@@ -203,7 +204,7 @@ class AssetCounterService {
     try {
       const version = await DataDragonClient.getLatestVersion();
       const runesData = await DataDragonClient.getRunes(version);
-      
+
       // Count all runes across all trees
       let runeCount = 0;
       for (const tree of runesData) {
@@ -211,7 +212,7 @@ class AssetCounterService {
           runeCount += slot.runes.length;
         }
       }
-      
+
       // Each rune has 1 icon
       return runeCount;
     } catch (error) {
@@ -228,10 +229,10 @@ class AssetCounterService {
     try {
       const version = await DataDragonClient.getLatestVersion();
       const summonerData = await DataDragonClient.getSummonerSpells(version);
-      
+
       // Count all summoner spells
       const spellCount = Object.keys(summonerData.data).length;
-      
+
       // Each spell has 1 icon
       return spellCount;
     } catch (error) {
@@ -267,5 +268,3 @@ class AssetCounterService {
 }
 
 export const assetCounterService = new AssetCounterService();
-
-

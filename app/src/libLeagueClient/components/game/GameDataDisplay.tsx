@@ -6,7 +6,7 @@ import type { Match } from "@lib/types/match";
 import type { Tournament } from "@lib/types/tournament";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { 
+import {
   getChampionSquareImage,
   getSummonerSpellImageByName,
   // getOverlayAsset,
@@ -61,9 +61,15 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({ gameData, matc
         setItemsLoaded(true);
         const resolvedVersion = tournament.gameVersion ?? (await getLatestVersion());
         setGameVersion(resolvedVersion);
-        setTournamentLogo(tournament.logo?.data || tournament.logo?.url || getDefaultAsset(resolvedVersion, "tournament.png"));
-        setOrderLogo(match.blueTeam.logo?.data || match.blueTeam.logo?.url || getDefaultAsset(resolvedVersion, "order.png"));
-        setChaosLogo(match.redTeam.logo?.data || match.redTeam.logo?.url || getDefaultAsset(resolvedVersion, "chaos.png"));
+        setTournamentLogo(
+          tournament.logo?.data || tournament.logo?.url || getDefaultAsset(resolvedVersion, "tournament.png")
+        );
+        setOrderLogo(
+          match.blueTeam.logo?.data || match.blueTeam.logo?.url || getDefaultAsset(resolvedVersion, "order.png")
+        );
+        setChaosLogo(
+          match.redTeam.logo?.data || match.redTeam.logo?.url || getDefaultAsset(resolvedVersion, "chaos.png")
+        );
         setGoldIcon(getScoreboardAsset(resolvedVersion, "gold.png"));
         setTowerIcon(getScoreboardAsset(resolvedVersion, "tower.png"));
         setBaronIcon(getBaronPitAsset(resolvedVersion, "baron.png"));
@@ -78,22 +84,31 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({ gameData, matc
           getDragonPitAsset(resolvedVersion, "hextech.png"),
           getDragonPitAsset(resolvedVersion, "infernal.png"),
           getDragonPitAsset(resolvedVersion, "mountain.png"),
-          getDragonPitAsset(resolvedVersion, "ocean.png"),
+          getDragonPitAsset(resolvedVersion, "ocean.png")
         ]);
       } catch (error) {
         console.error("Failed to load assets:", error);
       }
     };
-    
+
     if (!championsLoaded || !summonerSpellsLoaded || !itemsLoaded) {
       loadAssets();
     }
-  }, [championsLoaded, summonerSpellsLoaded, itemsLoaded, tournament.gameVersion, gameVersion, tournament.logo, match.blueTeam.logo, match.redTeam.logo]);
+  }, [
+    championsLoaded,
+    summonerSpellsLoaded,
+    itemsLoaded,
+    tournament.gameVersion,
+    gameVersion,
+    tournament.logo,
+    match.blueTeam.logo,
+    match.redTeam.logo
+  ]);
 
   const formatGameTime = (seconds: number): string => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = Math.floor(seconds % 60);
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
   };
 
   // Compute initial preload set once when base data and assets are ready
@@ -177,11 +192,7 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({ gameData, matc
 
   useEffect(() => {
     const allDataReady = !!(gameData && gameData.gameData && gameData.allPlayers);
-    if (
-      !initialPreloadDoneRef.current &&
-      initialPreloadUrls.length > 0 &&
-      initialImagesLoaded
-    ) {
+    if (!initialPreloadDoneRef.current && initialPreloadUrls.length > 0 && initialImagesLoaded) {
       // Mark initial batch as complete and record seen champions/spells
       for (const p of gameData.allPlayers) {
         seenChampionNamesRef.current.add(p.championName);
@@ -195,35 +206,24 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({ gameData, matc
       initialPreloadDoneRef.current = true;
     }
 
-    if (
-      allDataReady &&
-      championsLoaded &&
-      summonerSpellsLoaded &&
-      itemsLoaded &&
-      initialPreloadDoneRef.current
-    ) {
+    if (allDataReady && championsLoaded && summonerSpellsLoaded && itemsLoaded && initialPreloadDoneRef.current) {
       setUiReady(true);
     }
-  }, [
-    gameData,
-    championsLoaded,
-    summonerSpellsLoaded,
-    itemsLoaded,
-    initialPreloadUrls,
-    initialImagesLoaded
-  ]);
+  }, [gameData, championsLoaded, summonerSpellsLoaded, itemsLoaded, initialPreloadUrls, initialImagesLoaded]);
 
   if (!uiReady) {
-    return (
-      <></>
-    );
+    return <></>;
   }
 
-  const blueTeam = gameData.allPlayers.filter(player => player.team === "ORDER");
-  const redTeam = gameData.allPlayers.filter(player => player.team === "CHAOS");
+  const blueTeam = gameData.allPlayers.filter((player) => player.team === "ORDER");
+  const redTeam = gameData.allPlayers.filter((player) => player.team === "CHAOS");
 
-  const orderGoldDiff = blueTeam.reduce((sum, player) => sum + (player.gold || 0), 0) - redTeam.reduce((sum, player) => sum + (player.gold || 0), 0);
-  const chaosGoldDiff = redTeam.reduce((sum, player) => sum + (player.gold || 0), 0) - blueTeam.reduce((sum, player) => sum + (player.gold || 0), 0);
+  const orderGoldDiff =
+    blueTeam.reduce((sum, player) => sum + (player.gold || 0), 0) -
+    redTeam.reduce((sum, player) => sum + (player.gold || 0), 0);
+  const chaosGoldDiff =
+    redTeam.reduce((sum, player) => sum + (player.gold || 0), 0) -
+    blueTeam.reduce((sum, player) => sum + (player.gold || 0), 0);
 
   const bound = bindLivePlayersToMatch(gameData.allPlayers, match);
   const orderedBlue = getRoleOrder()
@@ -261,19 +261,25 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({ gameData, matc
   return (
     <div className="fixed inset-0 bg-black/80 text-white font-sans">
       {/* Top Bar - Team Scores & Game Info */}
-      <motion.div initial={{ y: -80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ type: "spring", stiffness: 140, damping: 18 }} className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-r from-blue-900/90 via-gray-900/90 to-red-900/90 border-b-2 border-gray-600">
+      <motion.div
+        initial={{ y: -80, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ type: "spring", stiffness: 140, damping: 18 }}
+        className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-r from-blue-900/90 via-gray-900/90 to-red-900/90 border-b-2 border-gray-600"
+      >
         <div className="flex justify-between items-center h-full px-8">
           {/* Blue Team (Left) */}
-            <TeamScoreDisplay
-              logo={orderLogo}
-              tag={match?.blueTeam?.tag || "BLUE"} 
-              kills={blueTeamStats.kills} 
-              towers={blueTeamStats.towers} 
-              towerIcon={towerIcon} 
-              goldDiff={orderGoldDiff} 
-              goldIcon={goldIcon} 
-              teamGold={blueTeamStats.gold}
-              reverse={true} />
+          <TeamScoreDisplay
+            logo={orderLogo}
+            tag={match?.blueTeam?.tag || "BLUE"}
+            kills={blueTeamStats.kills}
+            towers={blueTeamStats.towers}
+            towerIcon={towerIcon}
+            goldDiff={orderGoldDiff}
+            goldIcon={goldIcon}
+            teamGold={blueTeamStats.gold}
+            reverse={true}
+          />
 
           {/* Center - Game Info */}
           <div className="text-center">
@@ -284,20 +290,26 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({ gameData, matc
           </div>
 
           {/* Red Team (Right) */}
-            <TeamScoreDisplay 
-              logo={chaosLogo}
-              tag={match?.redTeam?.tag || "RED"}
-              kills={redTeamStats.kills}
-              towers={redTeamStats.towers}
-              towerIcon={towerIcon}
-              goldDiff={chaosGoldDiff}
-              goldIcon={goldIcon}
-              teamGold={redTeamStats.gold} />
+          <TeamScoreDisplay
+            logo={chaosLogo}
+            tag={match?.redTeam?.tag || "RED"}
+            kills={redTeamStats.kills}
+            towers={redTeamStats.towers}
+            towerIcon={towerIcon}
+            goldDiff={chaosGoldDiff}
+            goldIcon={goldIcon}
+            teamGold={redTeamStats.gold}
+          />
         </div>
       </motion.div>
 
       {/* Left Side Panel - Blue Team Players */}
-      <motion.div initial={{ x: -80, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ type: "spring", stiffness: 140, damping: 18, delay: 0.1 }} className="absolute left-0 top-20 w-64 h-full">
+      <motion.div
+        initial={{ x: -80, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ type: "spring", stiffness: 140, damping: 18, delay: 0.1 }}
+        className="absolute left-0 top-20 w-64 h-full"
+      >
         <div className="p-4">
           <h3 className="text-lg font-bold mb-4 text-center">{match?.blueTeam?.tag || "BLUE"}</h3>
           <div className="space-y-3">
@@ -306,7 +318,12 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({ gameData, matc
               const p = bp.livePlayer || fallback;
               if (!p) return null;
               return (
-                <motion.div key={index} initial={{ x: -40, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ type: "spring", stiffness: 160, damping: 20, delay: 0.15 + index * 0.05 }}>
+                <motion.div
+                  key={index}
+                  initial={{ x: -40, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  transition={{ type: "spring", stiffness: 160, damping: 20, delay: 0.15 + index * 0.05 }}
+                >
                   <PlayerCard player={p} teamColor="blue" />
                 </motion.div>
               );
@@ -316,7 +333,12 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({ gameData, matc
       </motion.div>
 
       {/* Right Side Panel - Red Team Players */}
-      <motion.div initial={{ x: 80, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ type: "spring", stiffness: 140, damping: 18, delay: 0.1 }} className="absolute right-0 top-20 w-64 h-full">
+      <motion.div
+        initial={{ x: 80, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ type: "spring", stiffness: 140, damping: 18, delay: 0.1 }}
+        className="absolute right-0 top-20 w-64 h-full"
+      >
         <div className="p-4">
           <h3 className="text-lg font-bold mb-4 text-center">{match?.redTeam?.name || "RED"}</h3>
           <div className="space-y-3">
@@ -325,7 +347,12 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({ gameData, matc
               const p = bp.livePlayer || fallback;
               if (!p) return null;
               return (
-                <motion.div key={index} initial={{ x: 40, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ type: "spring", stiffness: 160, damping: 20, delay: 0.15 + index * 0.05 }}>
+                <motion.div
+                  key={index}
+                  initial={{ x: 40, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  transition={{ type: "spring", stiffness: 160, damping: 20, delay: 0.15 + index * 0.05 }}
+                >
                   <PlayerCard player={p} teamColor="red" />
                 </motion.div>
               );
@@ -353,11 +380,11 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({ gameData, matc
                 <tr key={index} className="border-b border-gray-700/50 hover:bg-gray-800/50">
                   <td className="px-2 py-1">
                     <div className="flex items-center space-x-2">
-                      <Image 
-                        src={getChampionSquareImage(player.championName) || "/api/local-image?path=default/player.png"} 
-                        alt={player.championName} 
-                        width={24} 
-                        height={24} 
+                      <Image
+                        src={getChampionSquareImage(player.championName) || "/api/local-image?path=default/player.png"}
+                        alt={player.championName}
+                        width={24}
+                        height={24}
                         className="rounded"
                       />
                       <div>
@@ -376,14 +403,19 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({ gameData, matc
                   <td className="px-2 py-1">
                     <div className="flex space-x-1 justify-center">
                       {player.items?.slice(0, 3).map((item, itemIndex) => (
-                        <div key={itemIndex} className="w-5 h-5 bg-gray-700 rounded border border-gray-600 flex items-center justify-center">
+                        <div
+                          key={itemIndex}
+                          className="w-5 h-5 bg-gray-700 rounded border border-gray-600 flex items-center justify-center"
+                        >
                           <Image src={getItemImage(item.itemID)} alt={item.name} width={20} height={20} />
                         </div>
                       ))}
                     </div>
                   </td>
                   <td className="px-2 py-1 text-center">
-                    <div className={`w-3 h-3 rounded-full mx-auto ${player.team === "ORDER" ? "bg-blue-500" : "bg-red-500"}`}></div>
+                    <div
+                      className={`w-3 h-3 rounded-full mx-auto ${player.team === "ORDER" ? "bg-blue-500" : "bg-red-500"}`}
+                    ></div>
                   </td>
                 </tr>
               ))}
@@ -394,6 +426,3 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({ gameData, matc
     </div>
   );
 };
-
-
-

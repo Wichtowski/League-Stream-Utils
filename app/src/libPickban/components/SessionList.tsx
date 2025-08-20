@@ -225,7 +225,7 @@ export function SessionList({
                         >
                           Config
                         </Link>
-                        
+
                         {/* Real-time team access buttons for web sessions */}
                         {session.type === "web" && (
                           <>
@@ -247,7 +247,7 @@ export function SessionList({
                             </Link>
                           </>
                         )}
-                        
+
                         {/* Legacy buttons for non-web sessions */}
                         {session.type !== "web" && (
                           <>
@@ -269,7 +269,7 @@ export function SessionList({
                             </Link>
                           </>
                         )}
-                        
+
                         <Link
                           href={`/modules/pickban/static/${session.id}/game`}
                           target="_blank"

@@ -33,5 +33,5 @@ export const tournamentStorage = {
     // Check if the data is not too old (e.g., 30 days)
     const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
     return lastSelected.timestamp > thirtyDaysAgo;
-  },
+  }
 };

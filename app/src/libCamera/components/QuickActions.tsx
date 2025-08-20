@@ -30,5 +30,3 @@ export const QuickActions = ({ teamId }: QuickActionsProps): React.ReactElement 
     </div>
   );
 };
-
-

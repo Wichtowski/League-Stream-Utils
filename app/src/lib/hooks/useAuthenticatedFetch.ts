@@ -20,8 +20,6 @@ export function useAuthenticatedFetch(): {
     async (url: string, options: FetchOptions = {}): Promise<Response> => {
       const { skipAuth = false, ...fetchOptions } = options;
 
-
-
       try {
         const defaultOptions: RequestInit = {
           credentials: "include",

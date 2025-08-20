@@ -18,7 +18,7 @@ interface TournamentMatchesPageProps {
 export default function TournamentMatchesPage({ params }: TournamentMatchesPageProps): React.ReactElement {
   const user = useUser();
   const router = useRouter();
-  
+
   const [matches, setMatches] = useState<Match[]>([]);
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [loading, setLoading] = useState(true);
@@ -146,10 +146,7 @@ export default function TournamentMatchesPage({ params }: TournamentMatchesPageP
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold text-white">Tournament Matches</h2>
                 {canCreateMatches && (
-                  <Button
-                    onClick={() => router.push(`/modules/tournaments/${tournamentId}/matches/create`)}
-                    size="sm"
-                  >
+                  <Button onClick={() => router.push(`/modules/tournaments/${tournamentId}/matches/create`)} size="sm">
                     Create Match
                   </Button>
                 )}
@@ -159,15 +156,11 @@ export default function TournamentMatchesPage({ params }: TournamentMatchesPageP
                 <div className="text-center py-8">
                   <div className="text-gray-400 mb-3">No matches created yet</div>
                   {canCreateMatches ? (
-                    <Button
-                      onClick={() => router.push(`/modules/tournaments/${tournamentId}/matches/create`)}
-                    >
+                    <Button onClick={() => router.push(`/modules/tournaments/${tournamentId}/matches/create`)}>
                       Create First Match
                     </Button>
                   ) : (
-                    <p className="text-sm text-gray-500">
-                      Contact the tournament organizer to create matches
-                    </p>
+                    <p className="text-sm text-gray-500">Contact the tournament organizer to create matches</p>
                   )}
                 </div>
               ) : (
@@ -184,12 +177,17 @@ export default function TournamentMatchesPage({ params }: TournamentMatchesPageP
                         </div>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <span className={`px-2 py-1 rounded text-xs font-medium ${
-                          match.status === "in-progress" ? "bg-yellow-600 text-yellow-100" :
-                          match.status === "completed" ? "bg-green-600 text-green-100" :
-                          match.status === "cancelled" ? "bg-red-600 text-red-100" :
-                          "bg-gray-600 text-gray-100"
-                        }`}>
+                        <span
+                          className={`px-2 py-1 rounded text-xs font-medium ${
+                            match.status === "in-progress"
+                              ? "bg-yellow-600 text-yellow-100"
+                              : match.status === "completed"
+                                ? "bg-green-600 text-green-100"
+                                : match.status === "cancelled"
+                                  ? "bg-red-600 text-red-100"
+                                  : "bg-gray-600 text-gray-100"
+                          }`}
+                        >
                           {match.status}
                         </span>
                         <Button

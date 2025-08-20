@@ -36,10 +36,11 @@ export const UserModel = getModel("User", UserSchema);
 
 export const CameraTeamModel = getModel("CameraTeam", CameraTeamSchema);
 
-type TeamDoc = InferSchemaType<typeof TeamSchema>;
+export type TeamDoc = InferSchemaType<typeof TeamSchema>;
 export const TeamModel = getModel<TeamDoc>("Team", TeamSchema);
 
-export const TournamentModel = getModel("Tournament", TournamentSchema);
+export type TournamentDoc = InferSchemaType<typeof TournamentSchema>;
+export const TournamentModel = getModel<TournamentDoc>("Tournament", TournamentSchema);
 
 export const BracketModel = getModel("Bracket", BracketSchema);
 

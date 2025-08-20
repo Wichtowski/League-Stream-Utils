@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import type { Team, Tournament } from "@lib/types";
-import { useTeams, useModal, useCurrentMatch } from   "@lib/contexts";
+import { useTeams, useModal, useCurrentMatch } from "@lib/contexts";
 import { Button, LoadingSpinner } from "@lib/components/common";
 import { BracketNode } from "@lib/types/tournament";
 import { Match, CreateMatchRequest } from "@lib/types/match";
@@ -24,7 +24,11 @@ interface FormData {
   bracketNodeId?: string;
 }
 
-export const MatchCreationForm = ({ tournament, bracketNodes, onMatchCreated }: MatchCreationFormProps): React.ReactNode => {
+export const MatchCreationForm = ({
+  tournament,
+  bracketNodes,
+  onMatchCreated
+}: MatchCreationFormProps): React.ReactNode => {
   const { teams, loading: teamsLoading } = useTeams();
   const { showAlert, showConfirm } = useModal();
   const { setCurrentMatch } = useCurrentMatch();
@@ -46,23 +50,19 @@ export const MatchCreationForm = ({ tournament, bracketNodes, onMatchCreated }: 
   // Filter teams based on tournament registration
   useEffect(() => {
     if (teams.length > 0) {
-      const tournamentTeams = teams.filter(team => 
-        tournament.selectedTeams.includes(team.id) || 
-        tournament.registeredTeams.includes(team.id)
+      const tournamentTeams = teams.filter(
+        (team) => tournament.selectedTeams.includes(team.id) || tournament.registeredTeams.includes(team.id)
       );
       setAvailableTeams(tournamentTeams);
     }
   }, [teams, tournament.selectedTeams, tournament.registeredTeams]);
 
   // Filter available bracket nodes
-  const availableBracketNodes = bracketNodes?.filter(node => 
-    node.status === "pending" && 
-    node.team1 && 
-    node.team2
-  ) || [];
+  const availableBracketNodes =
+    bracketNodes?.filter((node) => node.status === "pending" && node.team1 && node.team2) || [];
 
   const handleInputChange = (field: keyof FormData, value: string | boolean) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleCreateMatch = useCallback(async (): Promise<void> => {
@@ -131,7 +131,7 @@ export const MatchCreationForm = ({ tournament, bracketNodes, onMatchCreated }: 
         }
 
         onMatchCreated?.(newMatch);
-        
+
         // Reset form
         setFormData({
           name: "",
@@ -158,36 +158,39 @@ export const MatchCreationForm = ({ tournament, bracketNodes, onMatchCreated }: 
     }
   }, [formData, tournament, onMatchCreated, showAlert, showConfirm, setCurrentMatch]);
 
-  const handleCreateFromBracket = useCallback(async (node: BracketNode): Promise<void> => {
-    if (!node.team1 || !node.team2) {
-      await showAlert({
-        type: "error",
-        message: "Bracket node must have both teams assigned"
-      });
-      return;
-    }
+  const handleCreateFromBracket = useCallback(
+    async (node: BracketNode): Promise<void> => {
+      if (!node.team1 || !node.team2) {
+        await showAlert({
+          type: "error",
+          message: "Bracket node must have both teams assigned"
+        });
+        return;
+      }
 
-    const blueTeam = availableTeams.find(t => t.id === node.team1);
-    const redTeam = availableTeams.find(t => t.id === node.team2);
+      const blueTeam = availableTeams.find((t) => t.id === node.team1);
+      const redTeam = availableTeams.find((t) => t.id === node.team2);
 
-    if (!blueTeam || !redTeam) {
-      await showAlert({
-        type: "error",
-        message: "One or both teams not found"
-      });
-      return;
-    }
+      if (!blueTeam || !redTeam) {
+        await showAlert({
+          type: "error",
+          message: "One or both teams not found"
+        });
+        return;
+      }
 
-    const matchName = `Round ${node.round} - ${blueTeam.name} vs ${redTeam.name}`;
-    
-    setFormData(prev => ({
-      ...prev,
-      name: matchName,
-      blueTeamId: node.team1!,
-      redTeamId: node.team2!,
-      bracketNodeId: node.id
-    }));
-  }, [availableTeams, showAlert]);
+      const matchName = `Round ${node.round} - ${blueTeam.name} vs ${redTeam.name}`;
+
+      setFormData((prev) => ({
+        ...prev,
+        name: matchName,
+        blueTeamId: node.team1!,
+        redTeamId: node.team2!,
+        bracketNodeId: node.id
+      }));
+    },
+    [availableTeams, showAlert]
+  );
 
   if (teamsLoading) {
     return <LoadingSpinner />;
@@ -197,12 +200,10 @@ export const MatchCreationForm = ({ tournament, bracketNodes, onMatchCreated }: 
     <div className="space-y-6">
       <div className="bg-gray-900 rounded-lg p-6">
         <h3 className="text-lg font-semibold text-white mb-4">Create New Match</h3>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Match Name
-            </label>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Match Name</label>
             <input
               type="text"
               value={formData.name}
@@ -213,9 +214,7 @@ export const MatchCreationForm = ({ tournament, bracketNodes, onMatchCreated }: 
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Format
-            </label>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Format</label>
             <select
               value={formData.format}
               onChange={(e) => handleInputChange("format", e.target.value as "BO1" | "BO3" | "BO5")}
@@ -228,16 +227,14 @@ export const MatchCreationForm = ({ tournament, bracketNodes, onMatchCreated }: 
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Blue Team
-            </label>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Blue Team</label>
             <select
               value={formData.blueTeamId}
               onChange={(e) => handleInputChange("blueTeamId", e.target.value)}
               className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">Select Blue Team</option>
-              {availableTeams.map(team => (
+              {availableTeams.map((team) => (
                 <option key={team.id} value={team.id}>
                   {team.name}
                 </option>
@@ -246,16 +243,14 @@ export const MatchCreationForm = ({ tournament, bracketNodes, onMatchCreated }: 
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Red Team
-            </label>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Red Team</label>
             <select
               value={formData.redTeamId}
               onChange={(e) => handleInputChange("redTeamId", e.target.value)}
               className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">Select Red Team</option>
-              {availableTeams.map(team => (
+              {availableTeams.map((team) => (
                 <option key={team.id} value={team.id}>
                   {team.name}
                 </option>
@@ -264,9 +259,7 @@ export const MatchCreationForm = ({ tournament, bracketNodes, onMatchCreated }: 
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Patch
-            </label>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Patch</label>
             <input
               type="text"
               value={formData.patchName}
@@ -277,9 +270,7 @@ export const MatchCreationForm = ({ tournament, bracketNodes, onMatchCreated }: 
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Scheduled Time
-            </label>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Scheduled Time</label>
             <input
               type="datetime-local"
               value={formData.scheduledTime}
@@ -316,10 +307,10 @@ export const MatchCreationForm = ({ tournament, bracketNodes, onMatchCreated }: 
         <div className="bg-gray-900 rounded-lg p-6">
           <h3 className="text-lg font-semibold text-white mb-4">Create from Bracket</h3>
           <div className="space-y-3">
-            {availableBracketNodes.map(node => {
-              const blueTeam = availableTeams.find(t => t.id === node.team1);
-              const redTeam = availableTeams.find(t => t.id === node.team2);
-              
+            {availableBracketNodes.map((node) => {
+              const blueTeam = availableTeams.find((t) => t.id === node.team1);
+              const redTeam = availableTeams.find((t) => t.id === node.team2);
+
               if (!blueTeam || !redTeam) return null;
 
               return (
@@ -332,11 +323,7 @@ export const MatchCreationForm = ({ tournament, bracketNodes, onMatchCreated }: 
                       <span className="text-red-400 font-medium">{redTeam.name}</span>
                     </div>
                   </div>
-                  <Button
-                    onClick={() => handleCreateFromBracket(node)}
-                    size="sm"
-                    variant="secondary"
-                  >
+                  <Button onClick={() => handleCreateFromBracket(node)} size="sm" variant="secondary">
                     Create Match
                   </Button>
                 </div>
@@ -348,4 +335,3 @@ export const MatchCreationForm = ({ tournament, bracketNodes, onMatchCreated }: 
     </div>
   );
 };
-

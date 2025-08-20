@@ -11,13 +11,13 @@ export async function GET(_request: NextRequest) {
         path: "/liveclientdata/allgamedata",
         method: "GET",
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "application/json"
         },
         rejectUnauthorized: false, // Ignore SSL certificate verification issues
         agent: new https.Agent({
           rejectUnauthorized: false,
           minVersion: "TLSv1.2", // Support TLS 1.2 and above (including 1.3)
-          maxVersion: "TLSv1.3"  // Allow up to TLS 1.3
+          maxVersion: "TLSv1.3" // Allow up to TLS 1.3
         })
       };
 
@@ -46,19 +46,19 @@ export async function GET(_request: NextRequest) {
     if (response.statusCode && response.statusCode >= 200 && response.statusCode < 400) {
       try {
         const gameData = JSON.parse(response.data);
-        
+
         // Return the game data with CORS headers
         return NextResponse.json(gameData, {
           headers: {
             "Access-Control-Allow-Origin": "*",
             "Access-Control-Allow-Methods": "GET, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type",
-          },
+            "Access-Control-Allow-Headers": "Content-Type"
+          }
         });
       } catch (parseError) {
         console.error("Game API: Failed to parse JSON response:", parseError);
         return NextResponse.json(
-          { 
+          {
             error: "Invalid JSON response from Live Client Data API",
             details: "The API returned data that couldn't be parsed as JSON"
           },
@@ -67,7 +67,7 @@ export async function GET(_request: NextRequest) {
       }
     } else {
       return NextResponse.json(
-        { 
+        {
           error: "Live Client Data API error",
           status: response.statusCode,
           details: "The API returned an error status code"
@@ -75,10 +75,9 @@ export async function GET(_request: NextRequest) {
         { status: response.statusCode || 500 }
       );
     }
-    
   } catch (error) {
     return NextResponse.json(
-      { 
+      {
         error: "Live Client Data API is not running",
         details: error instanceof Error ? error.message : "Unknown error"
       },
@@ -94,7 +93,7 @@ export async function OPTIONS() {
     headers: {
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "GET, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type",
-    },
+      "Access-Control-Allow-Headers": "Content-Type"
+    }
   });
 }

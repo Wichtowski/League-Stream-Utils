@@ -97,31 +97,34 @@ export function AuthProvider({ children }: { children: ReactNode }): React.React
     }
   }, [clearAuthData]);
 
-  const login = useCallback(async (username: string, password: string): Promise<{ success: boolean; message?: string }> => {
-    try {
-      const response = await fetch("/api/v1/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        credentials: "include",
-        body: JSON.stringify({ username, password })
-      });
+  const login = useCallback(
+    async (username: string, password: string): Promise<{ success: boolean; message?: string }> => {
+      try {
+        const response = await fetch("/api/v1/auth/login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          credentials: "include",
+          body: JSON.stringify({ username, password })
+        });
 
-      const data = await response.json();
+        const data = await response.json();
 
-      if (response.ok) {
-        setUser(data.user);
-        setAuthCache(data.user);
-        return { success: true };
-      } else {
-        return { success: false, message: data.error || "Login failed" };
+        if (response.ok) {
+          setUser(data.user);
+          setAuthCache(data.user);
+          return { success: true };
+        } else {
+          return { success: false, message: data.error || "Login failed" };
+        }
+      } catch (error) {
+        console.error("Login error:", error);
+        return { success: false, message: "Network error occurred" };
       }
-    } catch (error) {
-      console.error("Login error:", error);
-      return { success: false, message: "Network error occurred" };
-    }
-  }, []);
+    },
+    []
+  );
 
   const logout = useCallback(async (): Promise<void> => {
     try {
@@ -217,7 +220,7 @@ export function AuthProvider({ children }: { children: ReactNode }): React.React
 
   useEffect(() => {
     checkAuthCallback();
-    
+
     // Safety timeout to ensure loading state doesn't hang indefinitely
     const safetyTimeout = setTimeout(() => {
       if (isLoading) {

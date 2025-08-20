@@ -3,9 +3,9 @@ import { ChampionSchema, CoachSchema } from "./common";
 
 // Team Schema for pickban
 const TeamSchema = new mongoose.Schema({
-  id: { type: String, required: true },
-  name: { type: String, required: true },
-  side: { type: String, enum: ["blue", "red"], required: true },
+  id: { type: String, required: false },
+  name: { type: String, required: false },
+  side: { type: String, enum: ["blue", "red"], required: false },
   bans: [ChampionSchema],
   picks: [ChampionSchema],
   currentPick: ChampionSchema,
@@ -20,8 +20,8 @@ const GameConfigSchema = new mongoose.Schema({
   currentGame: { type: Number, default: 1 },
   totalGames: { type: Number, default: 1 },
   isFearlessDraft: { type: Boolean, default: false },
-  patchName: { type: String, required: true },
-  blueTeamName: String,
+  patchName: { type: String, required: false },
+  blueTeam: String,
   redTeamName: String,
   blueTeamPrefix: String,
   redTeamPrefix: String,
@@ -44,15 +44,15 @@ const TimerSchema = new mongoose.Schema({
 
 export const GameSessionSchema = new mongoose.Schema(
   {
-    id: { type: String, required: true, unique: true },
+    id: { type: String, required: false, unique: true },
     type: {
       type: String,
       enum: ["static", "lcu", "tournament", "web"],
       default: "web"
     },
     teams: {
-      blue: { type: TeamSchema, required: true },
-      red: { type: TeamSchema, required: true }
+      blue: { type: TeamSchema, required: false },
+      red: { type: TeamSchema, required: false }
     },
     phase: {
       type: String,
@@ -65,7 +65,7 @@ export const GameSessionSchema = new mongoose.Schema(
     lastActivity: { type: Date, default: Date.now },
     timer: { type: TimerSchema, default: () => ({}) },
     bothTeamsReady: { type: Boolean, default: false },
-    config: { type: GameConfigSchema, required: true },
+    config: { type: GameConfigSchema, required: false },
     gameHistory: [{ type: mongoose.Schema.Types.ObjectId, ref: "GameSession" }],
     seriesScore: {
       blue: { type: Number, default: 0 },

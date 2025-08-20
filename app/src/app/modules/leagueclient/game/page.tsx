@@ -10,11 +10,7 @@ import { Tournament, Match } from "@lib/types";
 
 const LiveGamePage: React.FC = () => {
   const { setActiveModule } = useNavigation();
-  const {
-    gameData,
-    isConnected,
-    isLoading
-  } = useGameData();
+  const { gameData, isConnected, isLoading } = useGameData();
   const [currentMatch, setCurrentMatch] = useState<Match | null>(null);
   const [currentTournament, setCurrentTournament] = useState<Tournament | null>(null);
   // Show nothing if loading, not connected, or no game data
@@ -25,19 +21,18 @@ const LiveGamePage: React.FC = () => {
       const lastSelectedMatch = await matchStorage.getLastSelectedMatch();
       if (lastSelectedTournament?.tournamentId) {
         const tournament = await fetch(`/api/v1/tournaments/${lastSelectedTournament.tournamentId}`);
-        const tournamentData = await tournament.json() as Tournament;
+        const tournamentData = (await tournament.json()) as Tournament;
         setCurrentTournament(tournamentData);
       }
       if (lastSelectedMatch?.matchId) {
         const match = await fetch(`/api/v1/matches/${lastSelectedMatch.matchId}`);
-        const matchData = await match.json() as Match;
+        const matchData = (await match.json()) as Match;
         setCurrentMatch(matchData);
       }
     };
     init();
   }, [setActiveModule]);
-  
-  
+
   if (isLoading || !isConnected || !gameData || !currentMatch || !currentTournament) {
     return null;
   }

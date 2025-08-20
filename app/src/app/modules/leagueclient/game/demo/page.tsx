@@ -1,14 +1,18 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import { LiveGameData } from "@libLeagueClient/types/LivePlayer";
+import { LiveGameData } from "@libLeagueClient/types";
 import { GameDataDisplay } from "@libLeagueClient/components/game/GameDataDisplay";
 import { Breadcrumbs } from "@lib/components/common";
 import { getChampions } from "@lib/champions";
 import { getSummonerSpells } from "@lib/summoner-spells";
-import { staticPlayersOrderMock, staticPlayersChaosMock, MockedEvents, mockMatch, mockTournament } from "@lib/mocks/game";
-
-
+import {
+  staticPlayersOrderMock,
+  staticPlayersChaosMock,
+  MockedEvents,
+  mockMatch,
+  mockTournament
+} from "@lib/mocks/game";
 
 const makeLiveGameData = (elapsedSeconds: number): LiveGameData => {
   return {
@@ -19,7 +23,7 @@ const makeLiveGameData = (elapsedSeconds: number): LiveGameData => {
       gameLength: elapsedSeconds,
       gameStartTime: Math.floor(Date.now() / 1000) - elapsedSeconds
     },
-    allPlayers: [ ...staticPlayersOrderMock, ...staticPlayersChaosMock ],
+    allPlayers: [...staticPlayersOrderMock, ...staticPlayersChaosMock],
     events: MockedEvents
   };
 };
@@ -44,9 +48,7 @@ const DemoGamePage: React.FC = () => {
   }, [startTime]);
 
   if (!mockData) {
-    return (
-      <></>
-    );
+    return <></>;
   }
 
   return (
@@ -65,5 +67,3 @@ const DemoGamePage: React.FC = () => {
 };
 
 export default DemoGamePage;
-
-

@@ -15,12 +15,7 @@ export function Footer() {
   const isAuthenticated = !!user;
 
   // Don't show footer on main/auth pages or when no module active
-  if (
-    activeModule === null ||
-    pathname === "/" ||
-    pathname === "/download" ||
-    pathname.includes("/leagueclient")
-  ) {
+  if (activeModule === null || pathname === "/" || pathname === "/download" || pathname.includes("/leagueclient")) {
     return null;
   }
 

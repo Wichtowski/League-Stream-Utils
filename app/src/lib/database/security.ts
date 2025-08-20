@@ -3,6 +3,11 @@ import { LoginAttemptModel, SecurityEventModel } from "./models";
 import { config } from "@lib/config";
 import { LoginAttempt, SecurityEvent } from "@lib/types/security";
 
+function transformToSecurityEvent(doc: { _id?: unknown; __v?: number; [key: string]: unknown }): SecurityEvent {
+  const { _id, __v, ...event } = doc;
+  return event as unknown as SecurityEvent;
+}
+
 export async function recordLoginAttempt(attempt: LoginAttempt): Promise<void> {
   await connectToDatabase();
 
@@ -65,12 +70,5 @@ export async function getSecurityEvents(userId?: string, limit: number = 100): P
 
   const results = await SecurityEventModel.find(query).sort({ timestamp: -1 }).limit(limit).lean();
 
-  return results.map((doc) => ({
-    timestamp: doc.timestamp,
-    event: doc.event,
-    userId: doc.userId,
-    ip: doc.ip,
-    userAgent: doc.userAgent,
-    details: doc.details || {}
-  }));
+  return results.map(transformToSecurityEvent);
 }

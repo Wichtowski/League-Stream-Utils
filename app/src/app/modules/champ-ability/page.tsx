@@ -6,7 +6,7 @@ import type { Champion } from "@lib/types/game";
 import Image from "next/image";
 import { DDRAGON_CDN } from "@lib/services/common/constants";
 import { getChampions, getChampionCacheStats } from "@lib/champions";
-import { ChampionDownloadProgress } from "@lib/types/progress";
+import type { DownloadProgress } from "@lib/services/assets/downloader";
 import { assetCache } from "@lib/services/assets/assetCache";
 import { championCacheService } from "@lib/services/assets/champion";
 import { DownloadProgressModal } from "@lib/components/common/modal";
@@ -74,13 +74,14 @@ export default function ChampAbilityPage() {
   const [cacheStats, setCacheStats] = useState<CacheStats | null>(null);
 
   // Download progress state
-  const [downloadProgress, setDownloadProgress] = useState<ChampionDownloadProgress>({
+  const [downloadProgress, setDownloadProgress] = useState<DownloadProgress>({
+    stage: "checking",
     current: 0,
     total: 0,
-    itemName: "",
-    championName: "",
-    stage: "champion-data",
-    percentage: 0
+    message: "",
+    errors: [],
+    activeConnections: 0,
+    queueLength: 0
   });
   const [showProgressModal, setShowProgressModal] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
@@ -127,7 +128,18 @@ export default function ChampAbilityPage() {
       championCacheService.onProgress((progress) => {
         // Filter to only show main champion download progress, not internal sub-operations
         if (progress.assetType === "champion" || !progress.assetType) {
-          setDownloadProgress(progress);
+          setDownloadProgress({
+            stage: progress.stage === "complete" ? "complete" : "downloading",
+            current: progress.current,
+            total: progress.total,
+            currentAsset: progress.currentAsset,
+            assetType: progress.assetType,
+            percentage: progress.percentage,
+            message: `Downloading ${progress.current}/${progress.total} champions`,
+            errors: [],
+            activeConnections: 1,
+            queueLength: 0
+          });
         }
       });
 

@@ -28,15 +28,7 @@ interface GameUIDownloadResult {
 class GameUIBlueprintDownloader extends BaseCacheService {
   private isDownloading = false;
   private assetCategories = {
-    dragonpit: [
-      "infernal.png",
-      "ocean.png",
-      "hextech.png",
-      "chemtech.png",
-      "mountain.png",
-      "elder.png",
-      "cloud.png"
-    ],
+    dragonpit: ["infernal.png", "ocean.png", "hextech.png", "chemtech.png", "mountain.png", "elder.png", "cloud.png"],
     default: ["player.png", "tournament.png"],
     scoreboard: ["gold.png", "grubs.png", "tower.png"],
     atakhan: ["atakhan_ruinous.png", "atakhan_voracious.png"],
@@ -193,7 +185,9 @@ class GameUIBlueprintDownloader extends BaseCacheService {
 
       // Clean up manifests after successful completion
       if (processedCount > 0 && errors.length === 0) {
-        console.log(`Found ${processedCount} existing game UI assets, ${totalCount - processedCount} missing out of ${totalCount} total`);
+        console.log(
+          `Found ${processedCount} existing game UI assets, ${totalCount - processedCount} missing out of ${totalCount} total`
+        );
         await this.cleanupManifestAfterSuccess();
       }
 

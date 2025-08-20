@@ -48,11 +48,11 @@ export default function CreateTeamPage() {
 
   return (
     <PageWrapper
-        title="Create Team"
-        breadcrumbs={[
-            { label: "Teams", href: "/modules/teams" },
-            { label: "Create Team", href: "/modules/teams/create", isActive: true }
-        ]}
+      title="Create Team"
+      breadcrumbs={[
+        { label: "Teams", href: "/modules/teams" },
+        { label: "Create Team", href: "/modules/teams/create", isActive: true }
+      ]}
     >
       <TeamCreationForm onSubmit={handleCreateTeam} isCreating={creating} onCancel={handleCancel} />
     </PageWrapper>

@@ -29,20 +29,20 @@ export default function CamerasPage() {
       name: team.name,
       logo: team.logo,
       players: {
-        main: team.players.main.map((player) => {
+        main: team.players.main.map((player: CameraPlayer) => {
           const cameraPlayer = cameraTeam?.players.find(
             (cp: CameraPlayer) =>
-              (cp.playerId && cp.playerId === player.id) || (cp.inGameName && cp.inGameName === player.inGameName)
+              (cp.playerId && cp.playerId === player.playerId) || (cp.inGameName && cp.inGameName === player.inGameName)
           );
           return {
             ...player,
             cameraUrl: cameraPlayer?.url || null
           };
         }),
-        substitutes: team.players.substitutes.map((player) => {
+        substitutes: team.players.substitutes.map((player: CameraPlayer) => {
           const cameraPlayer = cameraTeam?.players.find(
             (cp: CameraPlayer) =>
-              (cp.playerId && cp.playerId === player.id) || (cp.inGameName && cp.inGameName === player.inGameName)
+              (cp.playerId && cp.playerId === player.playerId) || (cp.inGameName && cp.inGameName === player.inGameName)
           );
           return {
             ...player,
@@ -119,20 +119,20 @@ export default function CamerasPage() {
                 {team.players.substitutes.length > 0 && (
                   <div className="text-sm text-gray-400 mb-2">
                     <span className="font-semibold">Subs:</span>{" "}
-                    {team.players.substitutes.map((p) => p.inGameName).join(", ")}
+                    {team.players.substitutes.map((p: CameraPlayer) => p.inGameName).join(", ")}
                   </div>
                 )}
                 <div className="mt-2">
                   <span className="font-semibold text-xs text-gray-400">Camera Status:</span>
                   <ul className="text-xs mt-1">
-                    {team.players.main.map((p) => (
-                      <li key={p.id} className={p.cameraUrl ? "text-green-400" : "text-yellow-400"}>
-                        {p.inGameName} {p.cameraUrl ? "• Configured" : "• Not Configured"}
+                    {team.players.main.map((p: CameraPlayer) => (
+                      <li key={p.playerId} className={p.url ? "text-green-400" : "text-yellow-400"}>
+                        {p.inGameName} {p.url ? "• Configured" : "• Not Configured"}
                       </li>
                     ))}
-                    {team.players.substitutes.map((p) => (
-                      <li key={p.id} className={p.cameraUrl ? "text-green-400" : "text-yellow-400"}>
-                        {p.inGameName} (Sub) {p.cameraUrl ? "• Configured" : "• Not Configured"}
+                    {team.players.substitutes.map((p: CameraPlayer) => (
+                      <li key={p.playerId} className={p.url ? "text-green-400" : "text-yellow-400"}>
+                        {p.inGameName} (Sub) {p.url ? "• Configured" : "• Not Configured"}
                       </li>
                     ))}
                   </ul>

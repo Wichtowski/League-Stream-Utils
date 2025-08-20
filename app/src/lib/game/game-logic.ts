@@ -146,7 +146,7 @@ export async function createGameSession(config?: Partial<GameConfig>): Promise<G
 
 export async function getGameSession(sessionId: string): Promise<GameSession | null> {
   const session = await getGameSessionFromDB(sessionId);
-  
+
   // If session exists but doesn't have a password, generate one
   if (session && !session.password && session.type === "web") {
     const generatePassword = (): string => {
@@ -157,12 +157,12 @@ export async function getGameSession(sessionId: string): Promise<GameSession | n
       }
       return result;
     };
-    
+
     const password = generatePassword();
     const updatedSession = await updateGameSession(sessionId, { password });
     return updatedSession;
   }
-  
+
   return session;
 }
 

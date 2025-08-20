@@ -24,7 +24,7 @@ export const TeamListCard: React.FC<TeamListCardProps> = ({ team }) => {
         const logoSrc = await getTeamLogoUrl(team.id);
         setLogoSrc(logoSrc);
       } catch (error) {
-        console.error('Failed to load team logo:', error);
+        console.error("Failed to load team logo:", error);
       }
     };
     getTeamLogo();
@@ -38,47 +38,35 @@ export const TeamListCard: React.FC<TeamListCardProps> = ({ team }) => {
       <div className="flex flex-col items-center text-center space-y-4">
         {/* Team Logo */}
         <div className="relative">
-            <div className="w-20 h-20 rounded-xl overflow-hidden bg-gray-700">
-              {logoSrc ? (
-                <Image
-                  src={logoSrc}
-                  alt={`${team?.name} logo`}
-                  width={80}
-                  height={80}
-                  className="w-full h-full object-cover"
-                  onError={() => {
-                    console.warn(`Failed to load logo for team ${team.name}`);
-                  }}
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
-                </div>
-              )}
-            </div>
+          <div className="w-20 h-20 rounded-xl overflow-hidden bg-gray-700">
+            {logoSrc ? (
+              <Image
+                src={logoSrc}
+                alt={`${team?.name} logo`}
+                width={80}
+                height={80}
+                className="w-full h-full object-cover"
+                onError={() => {
+                  console.warn(`Failed to load logo for team ${team.name}`);
+                }}
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs"></div>
+            )}
+          </div>
         </div>
 
         {/* Team Info */}
         <div className="space-y-2">
-          <h3 className="text-lg font-semibold text-gray-100 group-hover:text-white transition-colors">
-            {team.name}
-          </h3>
+          <h3 className="text-lg font-semibold text-gray-100 group-hover:text-white transition-colors">{team.name}</h3>
           <div className="space-y-1">
             <p className="text-sm text-gray-400">
               {team.tag} • {team.region}
             </p>
             <div className="flex items-center justify-center space-x-1">
-              <div 
-                className="w-3 h-3 rounded-full" 
-                style={{ backgroundColor: team.colors?.primary || '#6B7280' }}
-              />
-              <div 
-                className="w-3 h-3 rounded-full" 
-                style={{ backgroundColor: team.colors?.secondary || '#4B5563' }}
-              />
-              <div 
-                className="w-3 h-3 rounded-full" 
-                style={{ backgroundColor: team.colors?.accent || '#9CA3AF' }}
-              />
+              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: team.colors?.primary || "#6B7280" }} />
+              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: team.colors?.secondary || "#4B5563" }} />
+              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: team.colors?.accent || "#9CA3AF" }} />
             </div>
           </div>
         </div>
@@ -86,4 +74,3 @@ export const TeamListCard: React.FC<TeamListCardProps> = ({ team }) => {
     </div>
   );
 };
-

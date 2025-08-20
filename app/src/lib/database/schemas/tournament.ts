@@ -1,79 +1,6 @@
 import { Schema } from "mongoose";
-import { ImageStorageSchema, PlayerSchema, StaffSchema } from "./common";
-import { Player } from "@lib/types/game";
-
-// Sponsor schema
-export const SponsorSchema = new Schema(
-  {
-    id: { type: String, required: true },
-    name: { type: String, required: true },
-    logo: { type: ImageStorageSchema, required: true },
-    website: { type: String },
-    tier: {
-      type: String,
-      enum: ["title", "presenting", "official", "partner"],
-      required: true
-    },
-    displayPriority: { type: Number, default: 0 },
-    showName: { type: Boolean, default: true },
-    namePosition: { type: String, enum: ["left", "right"], default: "right" },
-    fillContainer: { type: Boolean, default: false }
-  },
-  { _id: false }
-);
-
-export const TeamSchema = new Schema({
-  id: { type: String, required: true, unique: true },
-  name: { type: String, required: true },
-  tag: { type: String, required: true },
-  logo: { type: ImageStorageSchema, required: true },
-
-  colors: {
-    primary: { type: String, required: true },
-    secondary: { type: String, required: true },
-    accent: { type: String, required: true }
-  },
-
-  players: {
-    main: {
-      type: [PlayerSchema],
-      required: true,
-      validate: [(val: Player[]) => val.length === 5, "Main roster must have exactly 5 players"]
-    },
-    substitutes: { type: [PlayerSchema], default: [] }
-  },
-
-  staff: {
-    coach: { type: StaffSchema },
-    analyst: { type: StaffSchema },
-    manager: { type: StaffSchema }
-  },
-
-  region: { type: String, required: true },
-  tier: {
-    type: String,
-    enum: ["amateur", "semi-pro", "professional"],
-    required: true
-  },
-  founded: { type: Date, default: Date.now },
-
-  verified: { type: Boolean, default: false },
-  verificationSubmittedAt: { type: Date },
-
-  socialMedia: {
-    twitter: { type: String },
-    discord: { type: String },
-    website: { type: String }
-  },
-
-  userId: { type: String, required: true },
-  createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now },
-
-  // Standalone team fields
-  isStandalone: { type: Boolean, default: false },
-  tournamentId: { type: String, required: false }
-});
+import { ImageStorageSchema } from "./common";
+import { SponsorSchema } from "./sponsors";
 
 export const TournamentSchema = new Schema({
   id: { type: String, required: true, unique: true },
@@ -131,7 +58,6 @@ export const TournamentSchema = new Schema({
   matchDays: [{ type: String }],
   defaultMatchTime: { type: String, required: true },
 
-  streamUrl: { type: String },
   broadcastLanguage: { type: String },
   gameVersion: { type: String },
 
@@ -142,11 +68,6 @@ export const TournamentSchema = new Schema({
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 });
-
-TeamSchema.index({ userId: 1 });
-TeamSchema.index({ name: 1 });
-TeamSchema.index({ tag: 1 });
-TeamSchema.index({ "players.main.puuid": 1 });
 
 TournamentSchema.index({ userId: 1 });
 TournamentSchema.index({ status: 1 });

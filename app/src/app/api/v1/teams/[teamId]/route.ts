@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { withAuth } from "@/lib/auth/utils";
+import { withAuth } from "@/lib/auth";
 import { getTeamById, updateTeam, deleteTeam, checkTeamAvailability } from "@lib/database/team";
 import type { CreateTeamRequest, PlayerRole } from "@lib/types";
 import type { JWTPayload } from "@lib/types/auth";

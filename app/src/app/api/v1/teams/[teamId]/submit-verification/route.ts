@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { withAuth } from "@/lib/auth/utils";
+import { withAuth } from "@/lib/auth";
 import { getTeamById } from "@lib/database/team";
 import { connectToDatabase } from "@lib/database/connection";
 import { TeamModel } from "@lib/database/models";
 import type { JWTPayload } from "@lib/types/auth";
+import { Player } from "@lib/types/game";
 
 export const POST = withAuth(async (req: NextRequest, user: JWTPayload) => {
   try {
@@ -18,31 +19,39 @@ export const POST = withAuth(async (req: NextRequest, user: JWTPayload) => {
       return NextResponse.json({ error: "Team not found" }, { status: 404 });
     }
 
-
     // Check if user is team owner or admin
     if (!user.isAdmin && team.userId !== user.userId) {
       console.log("User not authorized to submit verification for this team");
-      return NextResponse.json({ error: "Forbidden - You can only submit verification for your own teams" }, { status: 403 });
+      return NextResponse.json(
+        { error: "Forbidden - You can only submit verification for your own teams" },
+        { status: 403 }
+      );
     }
 
     // Check if team is already verified
     if (team.verified) {
-      return NextResponse.json({ 
-        error: "Team is already verified",
-        team 
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          error: "Team is already verified",
+          team
+        },
+        { status: 400 }
+      );
     }
 
     // Check if enough players are verified for team verification (need 5+)
-    const verifiedPlayerCount = [...team.players.main, ...team.players.substitutes].filter((p) => p.verified).length;
-    
+    const verifiedPlayerCount = [...team.players.main, ...team.players.substitutes].filter((p: Player) => p.verified).length;
+
     if (verifiedPlayerCount < 5) {
-      return NextResponse.json({ 
-        error: "Need at least 5 verified players to submit team verification",
-        playersVerified: verifiedPlayerCount,
-        totalPlayers: team.players.main.length + team.players.substitutes.length,
-        required: 5
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          error: "Need at least 5 verified players to submit team verification",
+          playersVerified: verifiedPlayerCount,
+          totalPlayers: team.players.main.length + team.players.substitutes.length,
+          required: 5
+        },
+        { status: 400 }
+      );
     }
 
     await connectToDatabase();
@@ -59,7 +68,7 @@ export const POST = withAuth(async (req: NextRequest, user: JWTPayload) => {
       updatedTeam.verificationSubmittedAt = new Date();
       updatedTeam.updatedAt = new Date();
       await updatedTeam.save();
-      
+
       const finalTeam = await getTeamById(teamId);
 
       return NextResponse.json({
@@ -73,7 +82,7 @@ export const POST = withAuth(async (req: NextRequest, user: JWTPayload) => {
       updatedTeam.verificationSubmittedAt = new Date();
       updatedTeam.updatedAt = new Date();
       await updatedTeam.save();
-      
+
       const finalTeam = await getTeamById(teamId);
 
       return NextResponse.json({
@@ -83,7 +92,6 @@ export const POST = withAuth(async (req: NextRequest, user: JWTPayload) => {
         verifiedPlayerCount
       });
     }
-
   } catch (error) {
     console.error("Error submitting team verification:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
@@ -110,16 +118,15 @@ export const GET = withAuth(async (req: NextRequest, user: JWTPayload) => {
     const verificationStatus = {
       teamVerified: team.verified,
       verificationSubmittedAt: team.verificationSubmittedAt,
-      canSubmit: !team.verified && 
-                 [...team.players.main, ...team.players.substitutes].every((p) => p.verified),
+      canSubmit: !team.verified && [...team.players.main, ...team.players.substitutes].every((p) => p.verified),
       playersVerified: {
-        main: team.players.main.map((p) => ({
+        main: team.players.main.map((p: Player) => ({
           id: p.id,
           inGameName: p.inGameName,
           verified: p.verified,
           verifiedAt: p.verifiedAt
         })),
-        substitutes: team.players.substitutes.map((p) => ({
+        substitutes: team.players.substitutes.map((p: Player) => ({
           id: p.id,
           inGameName: p.inGameName,
           verified: p.verified,

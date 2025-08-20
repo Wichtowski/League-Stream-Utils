@@ -42,26 +42,26 @@ const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 const _SYNC_CHECK_INTERVAL = 30000; // 30 seconds
 
 // Type for teams without image data for localStorage storage
-type TeamWithoutImageData = Omit<Team, 'logo'> & {
-  logo: {
-    type: "upload";
-    size: number;
-    format: "png" | "jpg" | "webp";
-  } | {
-    type: "url";
-    url: string;
-    size?: number;
-    format?: "png" | "jpg" | "webp";
-  };
+type TeamWithoutImageData = Omit<Team, "logo"> & {
+  logo:
+    | {
+        type: "upload";
+        size: number;
+        format: "png" | "jpg" | "webp";
+      }
+    | {
+        type: "url";
+        url: string;
+        size?: number;
+        format?: "png" | "jpg" | "webp";
+      };
 };
 
 // Utility function to strip image data from teams for localStorage storage
 const stripTeamImageData = (teams: Team[]): TeamWithoutImageData[] => {
-  return teams.map(team => ({
+  return teams.map((team) => ({
     ...team,
-    logo: team.logo.type === "upload" 
-      ? { type: "upload", size: team.logo.size, format: team.logo.format }
-      : team.logo
+    logo: team.logo.type === "upload" ? { type: "upload", size: team.logo.size, format: team.logo.format } : team.logo
   }));
 };
 

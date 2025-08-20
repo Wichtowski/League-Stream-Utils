@@ -99,7 +99,7 @@ const hostedPath = path.join(userDataPath, "hosted");
 const databasePath = path.join(userDataPath, "database");
 const championsPath = (version) => {
   return path.join(userDataPath, "hosted", version, "champions");
-}
+};
 // Ensure directories exist
 [hostedPath, databasePath].forEach((dir) => {
   if (!fs.existsSync(dir)) {

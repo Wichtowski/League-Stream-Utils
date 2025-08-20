@@ -2,6 +2,7 @@ import { v4 as uuidv4 } from "uuid";
 import { connectToDatabase } from "./connection";
 import { UserModel } from "./models";
 import type { User as UserType, UserRegistration, UserQueryResult } from "@lib/types";
+import { transformDoc } from "./transformDoc";
 
 export async function createUser(userData: UserRegistration & { passwordHistory?: string[] }): Promise<UserType> {
   await connectToDatabase();
@@ -19,7 +20,7 @@ export async function createUser(userData: UserRegistration & { passwordHistory?
 
   await newUser.save();
 
-  return newUser;
+  return transformDoc(newUser);
 }
 
 export async function getUserByUsername(username: string): Promise<UserQueryResult> {

@@ -19,10 +19,10 @@ export const getSummonerSpellImageByName = (summonerSpellName: string): string =
   const original = (summonerSpellName || "").trim();
   if (!original) return "";
   const normalizedName = `Summoner${original.replace(/\s+/g, "")}`;
-  
+
   // Get the spell from memory cache
   const spell = getSummonerSpellById(normalizedName);
-  
+
   if (spell && spell.image) {
     // If it already points to our API, use it
     if (spell.image.startsWith("/api/local-image")) return spell.image;
@@ -36,7 +36,7 @@ export const getSummonerSpellImageByName = (summonerSpellName: string): string =
     if (/^https?:\/\//.test(spell.image)) return spell.image;
     return spell.image;
   }
-  
+
   // Fallback: match by display name
   const all = getSummonerSpellsCached();
   const byName = all.find((s) => s.name.toLowerCase() === original.toLowerCase());
@@ -50,7 +50,7 @@ export const getSummonerSpellImageByName = (summonerSpellName: string): string =
     if (/^https?:\/\//.test(byName.image)) return byName.image;
     return byName.image;
   }
-  
+
   // If no spell found, return default image
   return "";
 };
@@ -69,7 +69,7 @@ const resolveCachedPath = (relativePath: string): string => {
 
 export const getChampionLoadingImage = (championId: number | string): string | null => {
   if (!championId) return null;
-  
+
   let champ;
   if (typeof championId === "number") {
     champ = getChampionById(championId);
@@ -77,7 +77,7 @@ export const getChampionLoadingImage = (championId: number | string): string | n
     // Try to find by name first, then by key
     champ = getChampionByName(championId) || getChampionByKey(championId);
   }
-  
+
   if (!champ?.image) return null;
 
   // Resolve cached relative path (starts with 'cache/')
@@ -102,7 +102,7 @@ export const getChampionLoadingImage = (championId: number | string): string | n
 
 export const getChampionSquareImage = (championId: number | string): string => {
   if (!championId) return "";
-  
+
   let champ;
   if (typeof championId === "number") {
     champ = getChampionById(championId);
@@ -110,7 +110,7 @@ export const getChampionSquareImage = (championId: number | string): string => {
     // Try to find by name first, then by key
     champ = getChampionByName(championId) || getChampionByKey(championId);
   }
-  
+
   if (!champ?.image) return "";
 
   // Resolve cached relative path (starts with 'cache/')
@@ -135,7 +135,7 @@ export const getChampionSquareImage = (championId: number | string): string => {
 
 export const getChampionCenteredSplashImage = (championId: number | string): string | null => {
   if (!championId) return null;
-  
+
   let champ;
   if (typeof championId === "number") {
     champ = getChampionById(championId);
@@ -143,7 +143,7 @@ export const getChampionCenteredSplashImage = (championId: number | string): str
     // Try to find by name first, then by key
     champ = getChampionByName(championId) || getChampionByKey(championId);
   }
-  
+
   if (!champ?.image) return null;
 
   // Resolve cached relative path (starts with 'cache/')
@@ -175,31 +175,38 @@ export const getChampionName = (championId: number): string => {
 
 export const getOverlayAsset = (version: string, asset: string): string => {
   return getAsset(version, "overlay", asset);
-}
+};
 
 export const getDefaultAsset = (version: string, asset: string): string => {
   return getAsset(version, "default", asset);
-}
-type DragonPitAsset = "chemtech.png" | "cloud.png" | "elder.png" | "hextech.png" | "infernal.png" | "mountain.png" | "ocean.png";
+};
+type DragonPitAsset =
+  | "chemtech.png"
+  | "cloud.png"
+  | "elder.png"
+  | "hextech.png"
+  | "infernal.png"
+  | "mountain.png"
+  | "ocean.png";
 export const getDragonPitAsset = (version: string, asset: DragonPitAsset): string => {
   return getAsset(version, "dragonpit", asset);
-}
+};
 
 type BaronPitAsset = "baron.png" | "grubs.png" | "herald.png";
 export const getBaronPitAsset = (version: string, asset: BaronPitAsset): string => {
   return getAsset(version, "baronpit", asset);
-}
+};
 
 type AtakhanAsset = "atakhan_ruinous.png" | "atakhan_voracious.png";
 export const getAtakhanAsset = (version: string, asset: AtakhanAsset): string => {
   return getAsset(version, "atakhan", asset);
-}
+};
 
 type ScoreboardAsset = "gold.png" | "tower.png" | "grubs.png";
 export const getScoreboardAsset = (version: string, asset: ScoreboardAsset): string => {
   return getAsset(version, "scoreboard", asset);
-}
+};
 
 const getAsset = (version: string, type: string, asset: string): string => {
   return `/api/local-image?path=${encodeURIComponent(`assets/${version}/overlay/${type}/${asset}`)}`;
-}
+};

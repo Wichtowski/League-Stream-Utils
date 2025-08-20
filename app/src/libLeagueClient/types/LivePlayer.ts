@@ -1,5 +1,3 @@
-
-
 export interface SummonerSpell {
   displayName: string;
   rawDescription: string;
@@ -39,4 +37,3 @@ export interface LiveItem {
   count: number;
   price: number;
 }
-

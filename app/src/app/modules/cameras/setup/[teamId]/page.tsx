@@ -9,7 +9,14 @@ import { useElectron } from "@/libElectron/contexts/ElectronContext";
 import { useAuthenticatedFetch } from "@lib/hooks/useAuthenticatedFetch";
 import { useTeams } from "@/libTeam/contexts/TeamsContext";
 import { CameraPlayer, CameraTeam } from "@libCamera/types/camera";
-import { TeamSetupHeader, ProgressBar, TeamStreamSection, PlayerStreamCard, QuickActions, HelpSection } from "@libCamera/components";
+import {
+  TeamSetupHeader,
+  ProgressBar,
+  TeamStreamSection,
+  PlayerStreamCard,
+  QuickActions,
+  HelpSection
+} from "@libCamera/components";
 
 export default function TeamCameraSetupPage() {
   const router = useRouter();
@@ -67,7 +74,6 @@ export default function TeamCameraSetupPage() {
                 teamName: fullTeam.name,
                 teamLogo: fullTeam.logo?.data,
                 players: allPlayers,
-                teamStreamUrl: foundTeam?.teamStreamUrl || ""
               });
             } else {
               router.push("/modules/cameras/setup");

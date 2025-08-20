@@ -58,31 +58,31 @@ export const useLiveGameData = () => {
   const checkGameStatus = useCallback(async (): Promise<boolean> => {
     try {
       console.log("useLiveGameData: Checking game status via proxy API...");
-      
+
       // Use our proxy API endpoint to avoid CORS/CSP issues
       const response = await fetch("/api/game", {
         method: "GET",
         headers: {
-          "Content-Type": "application/json",
-        },
+          "Content-Type": "application/json"
+        }
       });
-      
+
       console.log("useLiveGameData: Proxy API response:", {
         status: response.status,
         statusText: response.statusText,
         ok: response.ok
       });
-      
+
       if (response.ok) {
         console.log("useLiveGameData: Game is running, connection successful");
         return true;
       }
-      
+
       console.log("useLiveGameData: Game status check failed with status:", response.status);
       return false;
     } catch (err) {
       console.error("useLiveGameData: Error checking game status:", err);
-      
+
       if (err instanceof Error) {
         console.error("useLiveGameData: Error details:", {
           name: err.name,
@@ -97,13 +97,13 @@ export const useLiveGameData = () => {
   const fetchGameData = useCallback(async (): Promise<void> => {
     try {
       console.log("useLiveGameData: Fetching game data via proxy API...");
-      
+
       // Use our proxy API endpoint to avoid CORS/CSP issues
       const response = await fetch("/api/game", {
         method: "GET",
         headers: {
-          "Content-Type": "application/json",
-        },
+          "Content-Type": "application/json"
+        }
       });
 
       console.log("useLiveGameData: Proxy API response:", {
@@ -118,7 +118,7 @@ export const useLiveGameData = () => {
 
       const rawData = await response.json();
       console.log("useLiveGameData: Raw game data received:", rawData);
-      
+
       // Transform the raw data into our structured format
       const transformedData: GameData = {
         gameMode: rawData.gameData?.gameMode || "Unknown",
@@ -131,8 +131,8 @@ export const useLiveGameData = () => {
             baron: 0,
             tower: 0,
             inhibitor: 0,
-            herald: 0,
-          },
+            herald: 0
+          }
         },
         redTeam: {
           players: [],
@@ -141,9 +141,9 @@ export const useLiveGameData = () => {
             baron: 0,
             tower: 0,
             inhibitor: 0,
-            herald: 0,
-          },
-        },
+            herald: 0
+          }
+        }
       };
 
       console.log("useLiveGameData: Transformed game data:", transformedData);
@@ -162,15 +162,15 @@ export const useLiveGameData = () => {
               deaths: player.scores?.deaths || 0,
               assists: player.scores?.assists || 0,
               creepScore: player.scores?.creepScore || 0,
-              visionScore: player.scores?.visionScore || 0,
+              visionScore: player.scores?.visionScore || 0
             },
             items: (player.items || []).map((item: LiveItem) => ({
               itemID: item.itemID || 0,
               name: item.name || "Unknown",
-              count: item.count || 1,
+              count: item.count || 1
             })),
             level: player.level || 1,
-            gold: player.gold || 0,
+            gold: player.gold || 0
           };
 
           if (player.team === "ORDER") {
@@ -212,7 +212,7 @@ export const useLiveGameData = () => {
       setError(null);
     } catch (err) {
       console.error("useLiveGameData: Error fetching game data:", err);
-      
+
       if (err instanceof Error) {
         console.error("useLiveGameData: Error details:", {
           name: err.name,
@@ -233,26 +233,26 @@ export const useLiveGameData = () => {
 
     console.log("useLiveGameData: Starting polling process...");
     setIsPolling(true);
-    
+
     // Check if game is running
     console.log("useLiveGameData: Checking if game is running...");
     const gameRunning = await checkGameStatus();
-    
+
     if (gameRunning) {
       console.log("useLiveGameData: Game is running, starting data polling...");
       setIsConnected(true);
       setError(null);
-      
+
       // Initial fetch
       console.log("useLiveGameData: Performing initial data fetch...");
       await fetchGameData();
-      
+
       // Start polling every 2 seconds
       console.log("useLiveGameData: Setting up polling interval (2 seconds)...");
       const interval = setInterval(async () => {
         console.log("useLiveGameData: Polling interval triggered, checking game status...");
         const stillRunning = await checkGameStatus();
-        
+
         if (!stillRunning) {
           console.log("useLiveGameData: Game no longer running, stopping polling...");
           setIsConnected(false);
@@ -261,11 +261,11 @@ export const useLiveGameData = () => {
           setIsPolling(false);
           return;
         }
-        
+
         console.log("useLiveGameData: Game still running, fetching updated data...");
         await fetchGameData();
       }, 2000);
-      
+
       // Cleanup function
       return () => {
         console.log("useLiveGameData: Cleaning up polling interval...");
@@ -286,16 +286,16 @@ export const useLiveGameData = () => {
     }
 
     let cleanup: (() => void) | undefined;
-    
+
     const initPolling = async () => {
       const result = await startPolling();
-      if (typeof result === 'function') {
+      if (typeof result === "function") {
         cleanup = result;
       }
     };
-    
+
     initPolling();
-    
+
     return () => {
       if (cleanup) cleanup();
     };
@@ -312,6 +312,6 @@ export const useLiveGameData = () => {
     gameData,
     isConnected,
     error,
-    refreshData,
+    refreshData
   };
 };

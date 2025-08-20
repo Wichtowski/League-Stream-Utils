@@ -19,9 +19,11 @@ export const ProgressBar = ({ completed, total }: ProgressBarProps): React.React
         </span>
       </div>
       <div className="w-full bg-gray-700 rounded-full h-3">
-        <div className="bg-blue-500 h-3 rounded-full transition-all duration-300" style={{ width: `${percentage}%` }}></div>
+        <div
+          className="bg-blue-500 h-3 rounded-full transition-all duration-300"
+          style={{ width: `${percentage}%` }}
+        ></div>
       </div>
     </div>
   );
 };
-

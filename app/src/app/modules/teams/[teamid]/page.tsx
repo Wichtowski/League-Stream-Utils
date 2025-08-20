@@ -12,7 +12,7 @@ interface TeamEditPageProps {
   }>;
 }
 
-const TeamEditPage: React.FC<TeamEditPageProps> = ({params}: TeamEditPageProps) => {
+const TeamEditPage: React.FC<TeamEditPageProps> = ({ params }: TeamEditPageProps) => {
   const { teamId } = use(params);
   const { teams, updateTeam, verifyPlayer, verifyAllPlayers } = useTeams();
   const { showAlert, showConfirm } = useModal();
@@ -65,8 +65,10 @@ const TeamEditPage: React.FC<TeamEditPageProps> = ({params}: TeamEditPageProps) 
       const response = await verifyAllPlayers(team.id);
       if (response.success) {
         // Check if we have enough verified players for auto-verification
-        const verifiedPlayerCount = [...team.players.main, ...team.players.substitutes].filter((p) => p.verified).length;
-        
+        const verifiedPlayerCount = [...team.players.main, ...team.players.substitutes].filter(
+          (p) => p.verified
+        ).length;
+
         if (verifiedPlayerCount >= 5) {
           // Submit team verification for auto-approval
           try {
@@ -82,9 +84,10 @@ const TeamEditPage: React.FC<TeamEditPageProps> = ({params}: TeamEditPageProps) 
               const verificationData = await verificationResponse.json();
               await showAlert({
                 type: "success",
-                message: verificationData.status === "verified" 
-                  ? `Team verified successfully! (${verificationData.verifiedPlayerCount} players verified)`
-                  : `All players verified! Team verification submitted for review.`
+                message:
+                  verificationData.status === "verified"
+                    ? `Team verified successfully! (${verificationData.verifiedPlayerCount} players verified)`
+                    : `All players verified! Team verification submitted for review.`
               });
             } else {
               console.warn("Team verification submission failed:", verificationResponse.status);
@@ -107,7 +110,6 @@ const TeamEditPage: React.FC<TeamEditPageProps> = ({params}: TeamEditPageProps) 
             message: `All players verified successfully! (${verifiedPlayerCount} verified, need 5+ for team verification)`
           });
         }
-        
       } else {
         console.error("Verification failed:", response.error);
         await showAlert({
@@ -196,11 +198,7 @@ const TeamEditPage: React.FC<TeamEditPageProps> = ({params}: TeamEditPageProps) 
       }
     >
       {showEditForm ? (
-        <TeamEditForm
-          team={team}
-          onSave={handleSaveTeam}
-          onCancel={handleCancelEdit}
-        />
+        <TeamEditForm team={team} onSave={handleSaveTeam} onCancel={handleCancelEdit} />
       ) : (
         <TeamCard
           team={team}

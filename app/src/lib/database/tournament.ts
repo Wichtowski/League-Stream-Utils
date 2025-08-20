@@ -1,12 +1,13 @@
 import { v4 as uuidv4 } from "uuid";
 import { connectToDatabase } from "./connection";
-import { TournamentModel } from "./models";
+import { TournamentDoc, TournamentModel } from "./models";
 import type { Tournament as TournamentType, CreateTournamentRequest } from "@lib/types";
+import { transformDoc } from "./transformDoc";
 
-export async function createTournament(
+export const createTournament = async (
   userId: string,
   tournamentData: CreateTournamentRequest
-): Promise<TournamentType> {
+) => {
   await connectToDatabase();
 
   const tournamentDoc: TournamentType = {
@@ -32,7 +33,6 @@ export async function createTournament(
     timezone: tournamentData.timezone,
     matchDays: tournamentData.matchDays || [],
     defaultMatchTime: tournamentData.defaultMatchTime,
-    streamUrl: tournamentData.streamUrl,
     broadcastLanguage: tournamentData.broadcastLanguage,
     gameVersion: tournamentData.gameVersion,
     sponsors: tournamentData.sponsors || [],
@@ -48,7 +48,7 @@ export async function createTournament(
   const newTournament = new TournamentModel(tournamentDoc);
 
   await newTournament.save();
-  return newTournament.toObject();
+  return transformDoc<TournamentDoc, TournamentType>(newTournament);
 }
 
 export async function getUserTournaments(userId: string): Promise<TournamentType[]> {
@@ -56,26 +56,26 @@ export async function getUserTournaments(userId: string): Promise<TournamentType
   const tournaments = await TournamentModel.find({ userId }).sort({
     createdAt: -1
   });
-  return tournaments.map((tournament) => tournament.toObject());
+  return tournaments.map((tournament) => transformDoc<TournamentDoc, TournamentType>(tournament));
 }
 
 export async function getAllTournaments(): Promise<TournamentType[]> {
   await connectToDatabase();
   const tournaments = await TournamentModel.find({}).sort({ createdAt: -1 });
-  return tournaments.map((tournament) => tournament.toObject());
+  return tournaments.map((tournament) => transformDoc<TournamentDoc, TournamentType>(tournament));
 }
 
 export async function getTournamentById(tournamentId: string): Promise<TournamentType | null> {
   await connectToDatabase();
   const tournament = await TournamentModel.findOne({ id: tournamentId });
-  return tournament ? tournament.toObject() : null;
+  return tournament ? transformDoc<TournamentDoc, TournamentType>(tournament) : null;
 }
 
-export async function updateTournament(
+export const updateTournament = async (
   tournamentId: string,
   userId: string,
   updates: Partial<CreateTournamentRequest>
-): Promise<TournamentType | null> {
+): Promise<TournamentType | null> => {
   await connectToDatabase();
 
   const tournament = await TournamentModel.findOne({
@@ -103,26 +103,25 @@ export async function updateTournament(
   if (updates.timezone) tournament.timezone = updates.timezone;
   if (updates.matchDays) tournament.matchDays = updates.matchDays;
   if (updates.defaultMatchTime) tournament.defaultMatchTime = updates.defaultMatchTime;
-  if (updates.streamUrl !== undefined) tournament.streamUrl = updates.streamUrl;
   if (updates.broadcastLanguage !== undefined) tournament.broadcastLanguage = updates.broadcastLanguage;
   if (updates.gameVersion !== undefined) tournament.gameVersion = updates.gameVersion;
 
   tournament.updatedAt = new Date();
   await tournament.save();
-  return tournament.toObject();
+  return transformDoc<TournamentDoc, TournamentType>(tournament);
 }
 
-export async function deleteTournament(tournamentId: string, userId: string): Promise<boolean> {
+export const deleteTournament = async (tournamentId: string, userId: string): Promise<boolean> => {
   await connectToDatabase();
   const result = await TournamentModel.deleteOne({ id: tournamentId, userId });
   return result.deletedCount > 0;
 }
 
-export async function updateTournamentStatus(
+export const updateTournamentStatus = async (
   tournamentId: string,
   userId: string,
   status: TournamentType["status"]
-): Promise<TournamentType | null> {
+): Promise<TournamentType | null> => {
   await connectToDatabase();
 
   const tournament = await TournamentModel.findOne({
@@ -136,7 +135,7 @@ export async function updateTournamentStatus(
   tournament.status = status;
   tournament.updatedAt = new Date();
   await tournament.save();
-  return tournament.toObject();
+  return transformDoc<TournamentDoc, TournamentType>(tournament);
 }
 
 export async function registerTeamForTournament(
@@ -162,19 +161,19 @@ export async function registerTeamForTournament(
   }
 
   if (tournament.registeredTeams.includes(teamId)) {
-    return tournament.toObject();
+    return transformDoc<TournamentDoc, TournamentType>(tournament);
   }
 
   tournament.registeredTeams.push(teamId);
   tournament.updatedAt = new Date();
   await tournament.save();
-  return tournament.toObject();
+  return transformDoc<TournamentDoc, TournamentType>(tournament);
 }
 
-export async function unregisterTeamFromTournament(
+export const unregisterTeamFromTournament = async (
   tournamentId: string,
   teamId: string
-): Promise<TournamentType | null> {
+): Promise<TournamentType | null> => {
   await connectToDatabase();
 
   const tournament = await TournamentModel.findOne({ id: tournamentId });
@@ -185,10 +184,10 @@ export async function unregisterTeamFromTournament(
   tournament.registeredTeams = tournament.registeredTeams.filter((id: string) => id !== teamId);
   tournament.updatedAt = new Date();
   await tournament.save();
-  return tournament.toObject();
+  return transformDoc<TournamentDoc, TournamentType>(tournament);
 }
 
-export async function getPublicTournaments(limit: number = 20, offset: number = 0): Promise<TournamentType[]> {
+export const getPublicTournaments = async (limit: number = 20, offset: number = 0): Promise<TournamentType[]> => {
   await connectToDatabase();
   const tournaments = await TournamentModel.find({
     status: { $in: ["registration", "ongoing"] }
@@ -197,10 +196,10 @@ export async function getPublicTournaments(limit: number = 20, offset: number = 
     .limit(limit)
     .skip(offset);
 
-  return tournaments.map((tournament) => tournament.toObject());
+  return tournaments.map((tournament) => transformDoc<TournamentDoc, TournamentType>(tournament));
 }
 
-export async function searchTournaments(query: string, limit: number = 20): Promise<TournamentType[]> {
+export const searchTournaments = async (query: string, limit: number = 20): Promise<TournamentType[]> => {
   await connectToDatabase();
 
   const searchRegex = new RegExp(query, "i");
@@ -211,15 +210,15 @@ export async function searchTournaments(query: string, limit: number = 20): Prom
     .sort({ createdAt: -1 })
     .limit(limit);
 
-  return tournaments.map((tournament) => tournament.toObject());
+  return tournaments.map((tournament) => transformDoc<TournamentDoc, TournamentType>(tournament));
 }
 
-export async function getTournamentStats(tournamentId: string): Promise<{
+export const getTournamentStats = async (tournamentId: string): Promise<{
   registeredTeams: number;
   maxTeams: number;
   daysUntilStart: number;
   daysUntilRegistrationDeadline: number | null;
-} | null> {
+} | null> => {
   await connectToDatabase();
 
   const tournament = await TournamentModel.findOne({ id: tournamentId });
@@ -242,11 +241,11 @@ export async function getTournamentStats(tournamentId: string): Promise<{
   };
 }
 
-export async function checkTournamentAvailability(
+export const checkTournamentAvailability = async (
   name: string,
   abbreviation: string,
   excludeTournamentId?: string
-): Promise<{ nameAvailable: boolean; abbreviationAvailable: boolean }> {
+): Promise<{ nameAvailable: boolean; abbreviationAvailable: boolean }> => {
   await connectToDatabase();
 
   const query = excludeTournamentId ? { id: { $ne: excludeTournamentId } } : {};
@@ -262,16 +261,16 @@ export async function checkTournamentAvailability(
   };
 }
 
-export async function getTournament(tournamentId: string): Promise<TournamentType | null> {
+export const getTournament = async (tournamentId: string): Promise<TournamentType | null> => {
   await connectToDatabase();
   const tournament = await TournamentModel.findOne({ id: tournamentId });
-  return tournament ? tournament.toObject() : null;
+  return tournament ? transformDoc<TournamentDoc, TournamentType>(tournament) : null;
 }
 
-export async function updateTournamentFields(
+export const updateTournamentFields = async (
   tournamentId: string,
   updates: Partial<TournamentType>
-): Promise<{ success: boolean; error?: string }> {
+): Promise<{ success: boolean; error?: string }> => {
   try {
     await connectToDatabase();
 

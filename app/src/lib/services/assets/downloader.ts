@@ -182,7 +182,7 @@ export class AssetDownloader {
 
       // Get expected total asset count first for accurate progress
       const expectedAssetCounts = await assetCounterService.getTotalAssetCounts();
-      
+
       this.updateProgress({
         stage: "checking",
         message: `Found ${expectedAssetCounts.total} total assets. Checking data integrity...`

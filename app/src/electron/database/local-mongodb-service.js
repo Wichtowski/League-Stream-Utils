@@ -30,7 +30,6 @@ export class LocalMongoDBService {
       // For now, just log that we would start MongoDB
       // In a real implementation, you would use mongodb-runner or similar
       this.mongoProcess = { pid: 12345 }; // Mock process
-
     } catch (error) {
       console.error("Failed to start local MongoDB:", error);
       throw error;
