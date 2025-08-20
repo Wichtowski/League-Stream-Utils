@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { useTournaments } from "@lib/contexts/TournamentsContext";
+import { useTournaments } from "@/libTournament/contexts/TournamentsContext";
 import { useNavigation } from "@lib/contexts/NavigationContext";
-import { useModal } from "@lib/components/modal";
+import { useModal } from "@lib/contexts/ModalContext";
 import { LoadingSpinner } from "@lib/components/common";
-import { PageWrapper } from "@lib/layout/PageWrapper";
-import { Tournament, Team, CreateTeamRequest } from "@/lib/types";
-import { TeamCreationForm } from "@lib/components/features/teams/TeamCreationForm";
+import { PageWrapper } from "@lib/layout";
+import { Tournament, Team, CreateTeamRequest } from "@lib/types";
+import { TeamCreationForm } from "@/libTeam/components/TeamCreationForm";
 
 interface TournamentStandaloneTeamsPageProps {
   params: Promise<{

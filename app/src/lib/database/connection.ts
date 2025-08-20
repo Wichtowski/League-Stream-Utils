@@ -61,7 +61,6 @@ class DatabaseConnection {
 
   public async connect(): Promise<typeof mongoose> {
     if (connection.isConnected && mongooseInstance.connection.readyState === 1) {
-      console.log("🔗 Database already connected, reusing connection");
       return mongooseInstance;
     }
 
@@ -142,10 +141,7 @@ const dbConnection = DatabaseConnection.getInstance();
 
 export async function connectToDatabase(): Promise<typeof mongoose> {
   const result = await dbConnection.connect();
-  
-  const info = dbConnection.getConnectionInfo();
-  console.log("🔍 Database connection info:", info);
-  
+    
   return result;
 }
 

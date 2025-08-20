@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@lib/contexts/AuthContext";
-import { useElectron } from "@lib/contexts/ElectronContext";
+import { useElectron } from "@/libElectron/contexts/ElectronContext";
 
 interface NavigationGuardProps {
   children: React.ReactNode;

@@ -4,12 +4,12 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useNavigation } from "@lib/contexts/NavigationContext";
 import { useUser } from "@lib/contexts/AuthContext";
-import { useElectron } from "@lib/contexts/ElectronContext";
+import { useElectron } from "@/libElectron/contexts/ElectronContext";
 import { useDownload } from "@lib/contexts/DownloadContext";
 import { getVisibleModules, ModuleCard } from "@lib/navigation";
 import { tournamentStorage, LastSelectedTournament } from "@lib/services/tournament";
 import { PageWrapper } from "@lib/layout/PageWrapper";
-import { SpotlightCard } from "@lib/components/features/modules/SpotlightCard";
+import { SpotlightCard } from "@/lib/components/modules/SpotlightCard";
 
 
 export default function ModulesPage() {

@@ -10,7 +10,7 @@ import {
   updatePasswordHistory
 } from "@lib/services/common/security";
 import { logSecurityEvent } from "@lib/database/security";
-import { setSecurityHeaders } from "@lib/auth";
+import { setSecurityHeaders } from "@/lib/auth/utils";
 import { config } from "@lib/config";
 
 export async function POST(request: NextRequest) {

@@ -4,11 +4,11 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useNavigation } from "@lib/contexts/NavigationContext";
-import { useCameras } from "@lib/contexts/CamerasContext";
-import type { CameraTeam } from "@lib/types/camera";
+import { useCameras } from "@/libCamera/context/CamerasContext";
+import { CameraTeam } from "@libCamera/types/camera";
 import { Accordion, AccordionItem } from "@lib/components/common/Accordion";
 import { PageWrapper } from "@lib/layout/PageWrapper";
-import { LoadingSpinner } from "@/lib/components/common";
+import { LoadingSpinner } from "@lib/components/common";
 
 export default function AllCamerasPage() {
   const router = useRouter();
@@ -53,7 +53,7 @@ export default function AllCamerasPage() {
 
   if (teamsLoading) {
     return (
-      <PageWrapper loadingMessage="Loading cameras...">
+      <PageWrapper>
         <LoadingSpinner fullscreen text="Loading cameras..." />
       </PageWrapper>
     );
@@ -62,7 +62,6 @@ export default function AllCamerasPage() {
   if (!teams.length) {
     return (
       <PageWrapper
-        loadingMessage="Loading cameras..."
         breadcrumbs={[
           { label: "Cameras", href: "/modules/cameras" },
           { label: "All Cameras", isActive: true }
@@ -171,7 +170,6 @@ export default function AllCamerasPage() {
 
   return (
     <PageWrapper
-      loadingMessage="Loading cameras..."
       breadcrumbs={[
         { label: "Cameras", href: "/modules/cameras" },
         { label: "All Cameras", isActive: true }

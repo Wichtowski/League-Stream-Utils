@@ -20,8 +20,14 @@
     ],
     "paths": {
       "@/*": ["./src/*"],
-      "@components/*": ["./src/lib/components/*"],
       "@lib/*": ["./src/lib/*"],
+      "@libCamera/*": ["./src/libCamera/*"],
+      "@libLeagueClient/*": ["./src/libLeagueClient/*"],
+      "@libPickban/*": ["./src/libPickban/*"],
+      "@libTournament/*": ["./src/libTournament/*"],
+      "@libTeam/*": ["./src/libTeam/*"],
+      "@libElectron/*": ["./src/libElectron/*"],
+      "@components/*": ["./src/lib/components/*"],
       "@schemas/*": ["./src/lib/database/schemas/*"],
       "@auth/*": ["./src/auth/*"],
       "@electron/*": ["./electron/*"]

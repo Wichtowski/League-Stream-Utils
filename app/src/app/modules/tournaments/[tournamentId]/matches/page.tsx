@@ -5,11 +5,9 @@ import { useRouter } from "next/navigation";
 import type { Match } from "@lib/types/match";
 import type { Tournament } from "@lib/types/tournament";
 import { useUser } from "@lib/contexts";
-import { PageWrapper } from "@lib/layout/PageWrapper";
-import { CurrentMatchStatus } from "@lib/components/features";
-import { LoadingSpinner } from "@lib/components/common";
-import { Button } from "@lib/components/common/buttons/Button";
-import { BackButton } from "@lib/components/common/buttons/BackButton";
+import { PageWrapper } from "@lib/layout";
+import { CurrentMatchStatus } from "@libTournament/components";
+import { LoadingSpinner, Button } from "@lib/components/common";
 
 interface TournamentMatchesPageProps {
   params: Promise<{
@@ -73,7 +71,12 @@ export default function TournamentMatchesPage({ params }: TournamentMatchesPageP
 
   if (loading) {
     return (
-      <PageWrapper>
+      <PageWrapper
+        breadcrumbs={[
+          { label: "Tournaments", href: "/modules/tournaments" },
+          { label: "Matches", href: `/modules/tournaments/${tournamentId}/matches`, isActive: true }
+        ]}
+      >
         <div className="min-h-screen p-6 max-w-6xl mx-auto">
           <div className="text-center py-12">
             <LoadingSpinner />
@@ -86,11 +89,15 @@ export default function TournamentMatchesPage({ params }: TournamentMatchesPageP
 
   if (error) {
     return (
-      <PageWrapper>
+      <PageWrapper
+        breadcrumbs={[
+          { label: "Tournaments", href: "/modules/tournaments" },
+          { label: "Matches", href: `/modules/tournaments/${tournamentId}/matches`, isActive: true }
+        ]}
+      >
         <div className="min-h-screen p-6 max-w-6xl mx-auto">
           <div className="text-center py-12">
             <div className="text-red-400 text-lg mb-4">{error}</div>
-            <BackButton to="/modules/tournaments" />
           </div>
         </div>
       </PageWrapper>
@@ -99,11 +106,15 @@ export default function TournamentMatchesPage({ params }: TournamentMatchesPageP
 
   if (!tournament) {
     return (
-      <PageWrapper>
+      <PageWrapper
+        breadcrumbs={[
+          { label: "Tournaments", href: "/modules/tournaments" },
+          { label: "Matches", href: `/modules/tournaments/${tournamentId}/matches`, isActive: true }
+        ]}
+      >
         <div className="min-h-screen p-6 max-w-6xl mx-auto">
           <div className="text-center py-12">
             <div className="text-red-400 text-lg mb-4">Tournament not found</div>
-            <BackButton to="/modules/tournaments" />
           </div>
         </div>
       </PageWrapper>

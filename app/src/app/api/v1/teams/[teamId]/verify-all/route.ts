@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { withAuth } from "@lib/auth";
+import { withAuth } from "@/lib/auth/utils";
 import { verifyAllTeamPlayers, getTeamById } from "@lib/database/team";
 import { connectToDatabase } from "@lib/database/connection";
 import { TeamModel } from "@lib/database/models";
 import type { JWTPayload } from "@lib/types/auth";
-import { Player } from "@/lib/types/game";
+import { Player } from "@lib/types/game";
 
 // POST /api/v1/teams/[teamId]/verify-all - Verify all players on a team
 export const POST = withAuth(async (req: NextRequest, user: JWTPayload) => {

@@ -1,6 +1,6 @@
 import { BaseCacheService, BlueprintDownloaderConfig } from "./base";
 import { DDRAGON_CDN } from "@lib/services/common/constants";
-import { DataDragonClient } from "@/lib/services/external/DataDragon/client";
+import { DataDragonClient } from "@lib/services/external/DataDragon/client";
 import path from "path";
 
 interface DataDragonItem {

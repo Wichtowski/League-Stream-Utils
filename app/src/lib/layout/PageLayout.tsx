@@ -1,7 +1,6 @@
 import React from "react";
-import { Breadcrumbs, BreadcrumbItem } from "@lib/components/common/Breadcrumbs";
-import { SettingsCog } from "@lib/components/common/SettingsCog";
-import { useElectron } from "@lib/contexts/ElectronContext";
+import { Breadcrumbs, BreadcrumbItem, SettingsCog } from "@lib/components/common";
+import { useElectron } from "@/libElectron/contexts/ElectronContext";
 
 interface PageLayoutProps {
   children: React.ReactNode;

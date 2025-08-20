@@ -14,7 +14,7 @@ interface FetchResult<T> {
 export function useAuthenticatedFetch(): {
   authenticatedFetch: (url: string, options?: FetchOptions) => Promise<Response>;
 } {
-  const { refreshToken } = useAuth();
+  const { refreshToken, logout } = useAuth();
 
   const authenticatedFetch = useCallback(
     async (url: string, options: FetchOptions = {}): Promise<Response> => {
@@ -37,9 +37,14 @@ export function useAuthenticatedFetch(): {
         // Try to refresh token on 401
         if (response.status === 401 && !skipAuth) {
           const refreshed = await refreshToken();
-          
+
           if (refreshed) {
             response = await fetch(url, defaultOptions);
+          }
+
+          // If refresh failed or the retried request is still unauthorized, force logout
+          if (!refreshed || response.status === 401) {
+            await logout();
           }
         }
 
@@ -48,7 +53,7 @@ export function useAuthenticatedFetch(): {
         throw error;
       }
     },
-    [refreshToken]
+    [refreshToken, logout]
   );
 
   return { authenticatedFetch };

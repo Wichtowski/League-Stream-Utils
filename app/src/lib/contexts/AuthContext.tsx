@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from "react";
 import { User } from "@lib/types/auth";
-import { useElectron } from "./ElectronContext";
+import { useElectron } from "../../libElectron/contexts/ElectronContext";
 
 interface AuthContextType {
   user: User | null;
@@ -97,7 +97,7 @@ export function AuthProvider({ children }: { children: ReactNode }): React.React
     }
   }, [clearAuthData]);
 
-  const login = async (username: string, password: string): Promise<{ success: boolean; message?: string }> => {
+  const login = useCallback(async (username: string, password: string): Promise<{ success: boolean; message?: string }> => {
     try {
       const response = await fetch("/api/v1/auth/login", {
         method: "POST",
@@ -121,9 +121,9 @@ export function AuthProvider({ children }: { children: ReactNode }): React.React
       console.error("Login error:", error);
       return { success: false, message: "Network error occurred" };
     }
-  };
+  }, []);
 
-  const logout = async () => {
+  const logout = useCallback(async (): Promise<void> => {
     try {
       await fetch("/api/v1/auth/logout", {
         method: "POST",
@@ -137,7 +137,7 @@ export function AuthProvider({ children }: { children: ReactNode }): React.React
         window.location.href = "/login";
       }
     }
-  };
+  }, [clearAuthData]);
 
   const checkAuthCallback = useCallback(async () => {
     // Prevent multiple simultaneous auth checks

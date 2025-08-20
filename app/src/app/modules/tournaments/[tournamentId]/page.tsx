@@ -2,13 +2,13 @@
 
 import { useEffect, useState, Suspense } from "react";
 import { useRouter } from "next/navigation";
-import { useTournaments } from "@lib/contexts/TournamentsContext";
+import { useTournaments } from "@/libTournament/contexts/TournamentsContext";
 import { useNavigation } from "@lib/contexts/NavigationContext";
-import { useModal } from "@lib/components/modal";
+import { useModal } from "@lib/contexts/ModalContext";
 import { LoadingSpinner } from "@lib/components/common";
-import { PageWrapper } from "@lib/layout/PageWrapper";
-import { Tournament, TournamentStatus } from "@/lib/types";
-import { TournamentEditor } from "@lib/components/features/tournaments/TournamentEditor";
+import { PageWrapper } from "@lib/layout";
+import { Tournament, TournamentStatus } from "@lib/types";
+import { TournamentEditor } from "@/libTournament/components/tournament/TournamentEditor";
 
 interface TournamentDetailPageProps {
   params: Promise<{
@@ -83,7 +83,7 @@ export default function TournamentDetailPage({ params }: TournamentDetailPagePro
 
   if (tournamentsLoading || !tournament) {
     return (
-      <PageWrapper loadingMessage="Loading tournament...">
+      <PageWrapper>
         <LoadingSpinner fullscreen text="Loading tournament..." />
       </PageWrapper>
     );
@@ -91,7 +91,6 @@ export default function TournamentDetailPage({ params }: TournamentDetailPagePro
 
   return (
     <PageWrapper
-      loadingMessage="Loading tournament..."
       breadcrumbs={[
         { label: "Tournaments", href: `/modules/tournaments` },
         { label: tournament.name, href: `/modules/tournaments/${tournamentId}`, isActive: true }

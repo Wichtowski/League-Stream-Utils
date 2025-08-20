@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
-import { useElectron } from "@lib/contexts/ElectronContext";
+import { useElectron } from "@/libElectron/contexts/ElectronContext";
+import { GameEvent, LiveItem, LivePlayer } from "@libLeagueClient/types";
 
 interface PlayerScores {
   kills: number;
@@ -150,7 +151,7 @@ export const useLiveGameData = () => {
       // Process players
       if (rawData.allPlayers) {
         console.log("useLiveGameData: Processing players:", rawData.allPlayers);
-        rawData.allPlayers.forEach((player: any) => {
+        rawData.allPlayers.forEach((player: LivePlayer) => {
           const playerData: Player = {
             summonerName: player.summonerName || "Unknown",
             championName: player.championName || "Unknown",
@@ -163,7 +164,7 @@ export const useLiveGameData = () => {
               creepScore: player.scores?.creepScore || 0,
               visionScore: player.scores?.visionScore || 0,
             },
-            items: (player.items || []).map((item: any) => ({
+            items: (player.items || []).map((item: LiveItem) => ({
               itemID: item.itemID || 0,
               name: item.name || "Unknown",
               count: item.count || 1,
@@ -183,7 +184,7 @@ export const useLiveGameData = () => {
       // Process objectives from events
       if (rawData.events) {
         console.log("useLiveGameData: Processing events:", rawData.events);
-        rawData.events.forEach((event: any) => {
+        rawData.events.forEach((event: GameEvent) => {
           if (event.EventName === "DragonKill") {
             if (event.KillerTeam === "ORDER") {
               transformedData.blueTeam.objectives.dragon++;

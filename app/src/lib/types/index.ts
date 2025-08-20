@@ -61,7 +61,7 @@ export type {
   Sponsorship
 } from "./tournament";
 export { createDefaultTeamRequest } from "./tournament";
-export type { CameraPlayer, CameraTeam } from "./camera";
+export type { CameraPlayer, CameraTeam } from "../../libCamera/types/camera";
 export type {
   ModalVariant,
   ConfirmVariant,

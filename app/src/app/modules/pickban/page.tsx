@@ -2,11 +2,11 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useElectron } from "@lib/contexts/ElectronContext";
+import { useElectron } from "@/libElectron/contexts/ElectronContext";
 import { useNavigation } from "@lib/contexts/NavigationContext";
 import { useAuth } from "@lib/contexts/AuthContext";
+import { PageWrapper } from "@lib/layout";
 import { PageLoader } from "@lib/components/common";
-import { PageWrapper } from "@lib/layout/PageWrapper";
 
 export default function PickBanPage(): React.ReactElement {
   const router = useRouter();
@@ -19,13 +19,21 @@ export default function PickBanPage(): React.ReactElement {
   }, [setActiveModule]);
 
   if (authLoading) {
-    return <PageLoader text="Checking authentication..." />;
+    return (
+      <PageWrapper>
+        <PageLoader text="Checking authentication..." />
+      </PageWrapper>
+    );
   }
 
   if (!authUser) {
     // Redirect to auth if not authenticated
     router.replace("/login");
-    return <PageLoader text="Redirecting to authentication..." />;
+    return (
+      <PageWrapper>
+        <PageLoader text="Redirecting to authentication..." />
+      </PageWrapper>
+    );
   }
 
   // Show the hub for all users

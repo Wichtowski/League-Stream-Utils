@@ -8,7 +8,7 @@ import { useAuthenticatedFetch } from "@lib/hooks/useAuthenticatedFetch";
 import type { GameConfig, Team } from "@lib/types";
 import type { Tournament } from "@lib/types/tournament";
 import { PageWrapper } from "@lib/layout/PageWrapper";
-import { getTeamLogoUrl, getTournamentLogoUrl } from "@/lib/services/common/image";
+import { getTeamLogoUrl, getTournamentLogoUrl } from "@lib/services/common/image";
 
 export default function ConfigPage() {
   const params = useParams();

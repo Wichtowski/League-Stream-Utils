@@ -5,10 +5,9 @@ import { useRouter } from "next/navigation";
 import type { Tournament, BracketStructure } from "@lib/types/tournament";
 import type { Match } from "@lib/types/match";
 import { useUser } from "@lib/contexts";
-import { PageWrapper } from "@lib/layout/PageWrapper";
-import { MatchCreationForm } from "@lib/components/features";
+import { PageWrapper } from "@lib/layout";
+import { MatchCreationForm } from "@libTournament/components";
 import { LoadingSpinner } from "@lib/components/common";
-import { BackButton } from "@lib/components/common/buttons/BackButton";
 
 interface CreateMatchPageProps {
   params: Promise<{
@@ -103,12 +102,16 @@ export default function CreateMatchPage({ params }: CreateMatchPageProps): React
 
   if (error) {
     return (
-      <PageWrapper>
+      <PageWrapper
+        breadcrumbs={[
+          { label: "Tournaments", href: "/modules/tournaments" },
+          { label: "Matches", href: `/modules/tournaments/${tournamentId}/matches`, isActive: true }
+        ]}
+      >
         <div className="min-h-screen p-6 max-w-6xl mx-auto">
-                  <div className="text-center py-12">
-          <div className="text-red-400 text-lg mb-4">{error}</div>
-          <BackButton to="/modules/tournaments" />
-        </div>
+          <div className="text-center py-12">
+            <div className="text-red-400 text-lg mb-4">{error}</div>
+          </div>
         </div>
       </PageWrapper>
     );
@@ -116,11 +119,15 @@ export default function CreateMatchPage({ params }: CreateMatchPageProps): React
 
   if (!tournament) {
     return (
-      <PageWrapper>
+      <PageWrapper
+        breadcrumbs={[
+          { label: "Tournaments", href: "/modules/tournaments" },
+          { label: "Matches", href: `/modules/tournaments/${tournamentId}/matches`, isActive: true }
+        ]}
+      >
         <div className="min-h-screen p-6 max-w-6xl mx-auto">
             <div className="text-center py-12">
                 <div className="text-red-400 text-lg mb-4">Tournament not found</div>
-                <BackButton to="/modules/tournaments" />
             </div>
         </div>
       </PageWrapper>
@@ -128,10 +135,14 @@ export default function CreateMatchPage({ params }: CreateMatchPageProps): React
   }
 
   return (
-    <PageWrapper>
+    <PageWrapper
+      breadcrumbs={[
+        { label: "Tournaments", href: "/modules/tournaments" },
+        { label: "Matches", href: `/modules/tournaments/${tournamentId}/matches`, isActive: true }
+      ]}
+    >
       <div className="min-h-screen p-6 max-w-6xl mx-auto">
         <div className="mb-6">
-          <BackButton to="/modules/tournaments" />
           <h1 className="text-2xl font-bold text-white mt-4">
             Create Match - {tournament.name}
           </h1>

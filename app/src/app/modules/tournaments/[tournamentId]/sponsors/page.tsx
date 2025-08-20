@@ -1,19 +1,13 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { useTournaments } from "@lib/contexts/TournamentsContext";
+import { useTournaments } from "@/libTournament/contexts/TournamentsContext";
 import { useNavigation } from "@lib/contexts/NavigationContext";
-import { useModal } from "@lib/components/modal";
-
+import { useModal } from "@lib/contexts/ModalContext";
 import { LoadingSpinner } from "@lib/components/common";
-import { BackButton } from "@/lib/components/common/buttons";
-import { Tournament, Sponsorship, ImageStorage } from "@/lib/types/tournament";
-import { SponsorsGuidebook } from "@lib/components/features/tournaments/sponsors/SponsorsGuidebook";
-import { OBSDisplayInfo } from "@lib/components/features/tournaments/sponsors/OBSDisplayInfo";
-import { SponsorWindow } from "@lib/components/features/tournaments/sponsors/SponsorWindow";
-import { SponsorForm } from "@lib/components/features/tournaments/sponsors/SponsorForm";
-import { SponsorsList } from "@lib/components/features/tournaments/sponsors/SponsorsList";
-import { PageWrapper } from "@lib/layout/PageWrapper";
+import { Tournament, Sponsorship, ImageStorage } from "@lib/types/tournament";
+import { OBSDisplayInfo, SponsorWindow, SponsorForm, SponsorGuidebook, SponsorList } from "@libTournament/components/sponsors";
+import { PageWrapper } from "@lib/layout";
 
 interface TournamentSponsorsPageProps {
   params: Promise<{
@@ -324,12 +318,10 @@ export default function TournamentSponsorsPage({ params }: TournamentSponsorsPag
     return (
       <PageWrapper
         title="Tournament Not Found"
-        actions={
-          <div className="flex gap-4">
-            <BackButton to={`/modules`}>Back to Modules</BackButton>
-            <BackButton to={`/modules/tournaments/${tournamentId}`}>Back to Tournaments</BackButton>
-          </div>
-        }
+        breadcrumbs={[
+          { label: "Tournaments", href: `/modules/tournaments` },
+          { label: "Sponsors", href: `/modules/tournaments/${tournamentId}/sponsors`, isActive: true }
+        ]}
       >
         <div className="text-center">
           <p>The tournament you&apos;re looking for doesn&apos;t exist or you don&apos;t have access to it.</p>
@@ -380,7 +372,7 @@ export default function TournamentSponsorsPage({ params }: TournamentSponsorsPag
           </div>
 
           <div className="flex-1 space-y-6">
-            <SponsorsGuidebook expanded={false} />
+            <SponsorGuidebook expanded={false} />
             <OBSDisplayInfo tournamentId={tournamentId} />
           </div>
         </div>
@@ -419,7 +411,7 @@ export default function TournamentSponsorsPage({ params }: TournamentSponsorsPag
           />
         )}
 
-        <SponsorsList
+        <SponsorList
           sponsors={sponsors}
           loading={sponsorsLoading}
           onEditSponsor={handleEditSponsor}

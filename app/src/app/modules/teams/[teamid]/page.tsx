@@ -2,9 +2,8 @@
 
 import React, { useState, use } from "react";
 import { useTeams, useModal, useUser } from "@lib/contexts";
-import { TeamEditForm } from "@lib/components/features/teams/TeamEditForm";
 import { PageWrapper } from "@lib/layout/PageWrapper";
-import { TeamCard } from "@lib/components/features";
+import { TeamCard, TeamEditForm } from "@libTeam/components";
 import type { CreateTeamRequest, Team } from "@lib/types";
 
 interface TeamEditPageProps {
@@ -180,7 +179,6 @@ const TeamEditPage: React.FC<TeamEditPageProps> = ({params}: TeamEditPageProps) 
 
   return (
     <PageWrapper
-      loadingMessage="Loading team..."
       breadcrumbs={[
         { label: "Teams", href: "/modules/teams" },
         { label: team.name, href: `/modules/teams/${teamId}`, isActive: true }

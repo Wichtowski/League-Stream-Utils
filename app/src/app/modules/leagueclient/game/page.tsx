@@ -2,11 +2,11 @@
 
 import React, { useEffect, useState } from "react";
 import { useNavigation } from "@lib/contexts/NavigationContext";
-import { GameDataDisplay } from "@/lib/components/features/leagueclient/game";
-import { useGameData } from "@/lib/hooks/useGameData";
-import { tournamentStorage } from "@/lib/services/tournament";
-import { matchStorage } from "@/lib/services/match/match-storage";
-import { Tournament, Match } from "@/lib/types";
+import { GameDataDisplay } from "@libLeagueClient/components/game/GameDataDisplay";
+import { useGameData } from "@lib/hooks/useGameData";
+import { tournamentStorage } from "@lib/services/tournament";
+import { matchStorage } from "@lib/services/match/match-storage";
+import { Tournament, Match } from "@lib/types";
 
 const LiveGamePage: React.FC = () => {
   const { setActiveModule } = useNavigation();

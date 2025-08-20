@@ -1,10 +1,10 @@
 "use client";
 
-import { TeamCreationForm } from "@lib/components/features";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { PageWrapper } from "@lib/layout/PageWrapper";
-import { CreateTeamRequest } from "@/lib/types";
+import { TeamCreationForm } from "@libTeam/components";
+import { PageWrapper } from "@lib/layout";
+import { CreateTeamRequest } from "@lib/types";
 import { useNavigation, useTeams, useModal } from "@lib/contexts";
 
 export default function CreateTeamPage() {

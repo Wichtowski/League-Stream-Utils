@@ -1,12 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getTournamentById } from "@lib/database/tournament";
 
+interface RouteContext {
+  params: Promise<{ tournamentId: string }>;
+}
+
 export async function GET(
   request: NextRequest,
-  { params }: { params: { tournamentId: string } }
+  { params }: RouteContext
 ): Promise<NextResponse> {
   try {
-    const { tournamentId } = params;
+    const { tournamentId } = await params;
 
     if (!tournamentId) {
       return NextResponse.json(

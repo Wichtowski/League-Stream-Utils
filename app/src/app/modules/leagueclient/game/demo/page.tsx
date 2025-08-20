@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import type { LiveGameData } from "@lib/services/game/game-service";
-import { GameDataDisplay } from "@/lib/components/features/leagueclient/game/GameDataDisplay";
-import { Breadcrumbs } from "@lib/components/common/Breadcrumbs";
+import { LiveGameData } from "@libLeagueClient/types/LivePlayer";
+import { GameDataDisplay } from "@libLeagueClient/components/game/GameDataDisplay";
+import { Breadcrumbs } from "@lib/components/common";
 import { getChampions } from "@lib/champions";
 import { getSummonerSpells } from "@lib/summoner-spells";
 import { staticPlayersOrderMock, staticPlayersChaosMock, MockedEvents, mockMatch, mockTournament } from "@lib/mocks/game";

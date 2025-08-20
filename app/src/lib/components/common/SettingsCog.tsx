@@ -1,6 +1,6 @@
 "use client";
 
-import { useElectron } from "@lib/contexts/ElectronContext";
+import { useElectron } from "@/libElectron/contexts/ElectronContext";
 import { useRouter } from "next/navigation";
 import { Cog6ToothIcon } from "@heroicons/react/24/outline";
 

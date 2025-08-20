@@ -3,8 +3,8 @@
 import React, { useEffect, useState } from "react";
 import { useNavigation } from "@lib/contexts/NavigationContext";
 import { useAuth } from "@lib/contexts/AuthContext";
-import { useCameras } from "@lib/contexts/CamerasContext";
-import { useTeams } from "@lib/contexts/TeamsContext";
+import { useCameras } from "@/libCamera/context/CamerasContext";
+import { useTeams } from "@/libTeam/contexts/TeamsContext";
 import { CameraPlayer, CameraTeam } from "@lib/types";
 import { LoadingSpinner } from "@lib/components/common";
 import { PageWrapper } from "@lib/layout/PageWrapper";

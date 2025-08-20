@@ -2,13 +2,13 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useTournaments } from "@lib/contexts/TournamentsContext";
+import { useTournaments } from "@/libTournament/contexts/TournamentsContext";
 import { useNavigation } from "@lib/contexts/NavigationContext";
-import { useModal } from "@lib/components/modal";
+import { useModal } from "@lib/contexts/ModalContext";
 import { LoadingSpinner } from "@lib/components/common";
 import { tournamentStorage, LastSelectedTournament } from "@lib/services/tournament";
 import type { Tournament } from "@lib/types/tournament";
-import { PageWrapper } from "@lib/layout/PageWrapper";
+import { PageWrapper } from "@lib/layout";
 
 interface Commentator {
   id: string;
@@ -143,7 +143,7 @@ export default function CommentatorsPage(): React.ReactElement {
 
   if (loading || tournamentsLoading) {
     return (
-      <PageWrapper loadingMessage="Loading commentators...">
+      <PageWrapper>
         <LoadingSpinner fullscreen text="Loading commentators..." />
       </PageWrapper>
     );
@@ -151,7 +151,7 @@ export default function CommentatorsPage(): React.ReactElement {
 
   if (!tournament || !lastSelectedTournament) {
     return (
-      <PageWrapper loadingMessage="Loading tournament..." title="Tournament Not Found">
+      <PageWrapper title="Tournament Not Found">
         <div className="text-center">
           <p>The tournament you&apos;re looking for doesn&apos;t exist or you don&apos;t have access to it.</p>
           <button

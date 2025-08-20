@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { withAuth, setSecurityHeaders } from "@lib/auth";
+import { withAuth, setSecurityHeaders } from "@/lib/auth/utils";
 import { getSecurityEvents } from "@lib/database/security";
 import { JWTPayload } from "@lib/types/auth";
 

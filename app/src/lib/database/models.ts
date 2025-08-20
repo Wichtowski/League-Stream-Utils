@@ -1,4 +1,4 @@
-import { Schema, models, model } from "mongoose";
+import { Schema, models, model, Model, InferSchemaType } from "mongoose";
 import {
   GameSessionSchema,
   UserSchema,
@@ -13,13 +13,17 @@ import {
 } from "./schemas";
 
 // Lazy initialization function to ensure models are only created after connection
-const getModel = <T>(name: string, schema: Schema) => {
+const getModel = <T>(name: string, schema: Schema): Model<T> => {
   try {
     // Check if we're in a browser environment and models might not be available
     if (typeof window !== "undefined" && !models) {
       return model<T>(name, schema);
     }
-    return models[name] || model<T>(name, schema);
+    const existingModel = models[name] as Model<T> | undefined;
+    if (existingModel) {
+      return existingModel;
+    }
+    return model<T>(name, schema);
   } catch (_error) {
     // Fallback to creating a new model if accessing models fails
     return model<T>(name, schema);
@@ -32,7 +36,8 @@ export const UserModel = getModel("User", UserSchema);
 
 export const CameraTeamModel = getModel("CameraTeam", CameraTeamSchema);
 
-export const TeamModel = getModel("Team", TeamSchema);
+type TeamDoc = InferSchemaType<typeof TeamSchema>;
+export const TeamModel = getModel<TeamDoc>("Team", TeamSchema);
 
 export const TournamentModel = getModel("Tournament", TournamentSchema);
 

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import type { Sponsorship } from "@lib/types";
-import { SponsorWindow } from "@lib/components/features/tournaments/sponsors/SponsorWindow";
+import { SponsorWindow } from "@libTournament/components/sponsors";
 
 interface TournamentInfo {
   id: string;

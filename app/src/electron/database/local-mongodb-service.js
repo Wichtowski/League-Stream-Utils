@@ -29,13 +29,8 @@ export class LocalMongoDBService {
 
       // For now, just log that we would start MongoDB
       // In a real implementation, you would use mongodb-runner or similar
-      console.log("MongoDB would be started on port", this.port);
-      console.log("Data directory:", this.dataDirectory);
-
-      // Simulate MongoDB starting
       this.mongoProcess = { pid: 12345 }; // Mock process
 
-      console.log("Local MongoDB started successfully");
     } catch (error) {
       console.error("Failed to start local MongoDB:", error);
       throw error;

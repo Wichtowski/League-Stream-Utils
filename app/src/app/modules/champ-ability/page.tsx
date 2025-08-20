@@ -9,7 +9,7 @@ import { getChampions, getChampionCacheStats } from "@lib/champions";
 import { ChampionDownloadProgress } from "@lib/types/progress";
 import { assetCache } from "@lib/services/assets/assetCache";
 import { championCacheService } from "@lib/services/assets/champion";
-import { DownloadProgressModal } from "@lib/components/modal";
+import { DownloadProgressModal } from "@lib/components/common/modal";
 import { PageWrapper } from "@lib/layout/PageWrapper";
 
 type Spell = {

@@ -1,8 +1,8 @@
 "use client";
 
-import { useTeams } from "@lib/contexts/TeamsContext";
-import { useTournaments } from "@lib/contexts/TournamentsContext";
-import { usePickban } from "@lib/contexts/PickbanContext";
+import { useTeams } from "@/libTeam/contexts/TeamsContext";
+import { useTournaments } from "@/libTournament/contexts/TournamentsContext";
+import { usePickban } from "@/libPickban/contexts/PickbanContext";
 import { useSettings } from "@lib/contexts/SettingsContext";
 import { useAuth } from "@lib/contexts/AuthContext";
 import { PageWrapper } from "@lib/layout/PageWrapper";

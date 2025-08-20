@@ -2,14 +2,14 @@
 
 import { useState, useEffect, useCallback } from "react";
 import type { GameSession, SessionUrls } from "@lib/types";
+import { PickBanContent } from "@/libPickban/components/PickBanContent";
+import { useAuth } from "@lib/contexts/AuthContext";
 import { useNavigation } from "@lib/contexts/NavigationContext";
 import { useModal } from "@lib/contexts/ModalContext";
-import { useAuth } from "@lib/contexts/AuthContext";
 import { useAuthenticatedFetch } from "@lib/hooks/useAuthenticatedFetch";
 import { API_BASE_URL } from "@lib/services/common/constants";
-import { PickBanContent } from "@lib/components/features/pickban/PickBanContent";
-import { PageWrapper } from "@lib/layout/PageWrapper";
-import { LoadingSpinner } from "@/lib/components/common";
+import { LoadingSpinner } from "@lib/components/common";
+import { PageWrapper } from "@lib/layout";
 
 export default function StaticPickBanPage() {
   const { setActiveModule } = useNavigation();

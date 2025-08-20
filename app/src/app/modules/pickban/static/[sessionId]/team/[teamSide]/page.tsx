@@ -2,18 +2,18 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
+import Image from "next/image";
 import { useNavigation } from "@lib/contexts/NavigationContext";
 import { useModal } from "@lib/contexts/ModalContext";
 import { useAuthenticatedFetch } from "@lib/hooks/useAuthenticatedFetch";
 import { getChampionById, getChampions } from "@lib/champions";
-import { getChampionSquareImage } from "@/lib/components/features/leagueclient/common";
+import { getChampionSquareImage } from "@libLeagueClient/components";
 import type { GameSession, Champion } from "@lib/types";
 import { API_BASE_URL } from "@lib/services/common/constants";
-import Image from "next/image";
 import { useChampionHoverAnimation, useTurnSequence } from "@lib/hooks/useChampSelectData";
-import { PageWrapper } from "@lib/layout/PageWrapper";
+import { PageWrapper } from "@lib/layout";
 import { getTeamLogoUrl, getTournamentLogoUrl } from "@lib/services/common/image";
-import { TeamPasswordModal } from "@lib/components/features/pickban/TeamPasswordModal";
+import { TeamPasswordModal } from "@/libPickban/components/TeamPasswordModal";
 
 interface PickBanAction {
   id: string;

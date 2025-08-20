@@ -2,8 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useUser } from "@lib/contexts/AuthContext";
-import { BackButton } from "@lib/components/common/buttons";
-import { useTournaments } from "@lib/contexts/TournamentsContext";
+import { useTournaments } from "@/libTournament/contexts/TournamentsContext";
 import { PageWrapper } from "@lib/layout/PageWrapper";
 import type { Tournament } from "@lib/types";
 import type { BracketStructure, BracketNode } from "@lib/types/tournament";
@@ -49,13 +48,16 @@ export default function ComentatorPredictionsPage({ params }: ComentatorPredicti
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const [loadingMatches, setLoadingMatches] = useState(false);
 
+  const selectedTournamentName: string = selectedTournament ? selectedTournament.name : "Loading...";
+
   useEffect(() => {
     const resolveParams = async () => {
       const resolvedParams = await params;
       setTournamentId(resolvedParams.tournamentId);
+      setSelectedTournament(tournaments.find((t) => t.id === resolvedParams.tournamentId) || null);
     };
     resolveParams();
-  }, [params]);
+  }, [params, tournaments]);
 
   useEffect(() => {
     if (mode === "tournament" && selectedTournament) {
@@ -101,7 +103,7 @@ export default function ComentatorPredictionsPage({ params }: ComentatorPredicti
         title="Comentator Predictions"
         breadcrumbs={[
           { label: "Tournaments", href: "/modules/tournaments" },
-          { label: selectedTournament?.name || "Loading...", href: `/modules/tournaments/${tournamentId}` },
+          { label: selectedTournamentName, href: `/modules/tournaments/${tournamentId}` },
           { label: "Commentator Predictions", href: `/modules/tournaments/${tournamentId}/commentators/predictions`, isActive: true }
         ]}
         contentClassName="max-w-xl mx-auto"
@@ -128,7 +130,12 @@ export default function ComentatorPredictionsPage({ params }: ComentatorPredicti
     return (
       <PageWrapper
         title="Select Tournament"
-        actions={<BackButton to="/modules">Back to Modules</BackButton>}
+        breadcrumbs={[
+          { label: "Tournaments", href: "/modules/tournaments" },
+          { label: selectedTournamentName, href: `/modules/tournaments/${tournamentId}` },
+          { label: "Commentators", href: `/modules/tournaments/${tournamentId}/commentators` },
+          { label: "Predictions", href: `/modules/tournaments/${tournamentId}/commentators/predictions`, isActive: true }
+        ]}
         contentClassName="max-w-xl mx-auto"
       >
         <ul className="space-y-4">
@@ -163,7 +170,12 @@ export default function ComentatorPredictionsPage({ params }: ComentatorPredicti
     return (
       <PageWrapper
         title="Select a match"
-        actions={<BackButton to="/modules">Back to Modules</BackButton>}
+        breadcrumbs={[
+          { label: "Tournaments", href: "/modules/tournaments" },
+          { label: selectedTournamentName, href: `/modules/tournaments/${tournamentId}` },
+          { label: "Commentator", href: `/modules/tournaments/${tournamentId}/commentators/` },
+          { label: "Predictions", href: `/modules/tournaments/${tournamentId}/commentators/predictions`, isActive: true }
+        ]}
         contentClassName="max-w-xl mx-auto"
       >
         <h2 className="text-xl text-white mb-4">Select a match</h2>

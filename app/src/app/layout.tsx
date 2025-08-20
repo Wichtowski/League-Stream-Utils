@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { Footer } from "@lib/components/common";
+import { Footer } from "@lib/components/common/Footer";
 import {
   NavigationProvider,
   ModalProvider,
@@ -22,7 +22,7 @@ import {
 } from "@lib/contexts";
 import { NavigationGuard } from "@lib/components/navigation/NavigationGuard";
 import { ContextWrapper } from "@lib/components/navigation/ContextErrorBoundary";
-import { ChampionCacheInitializer } from "@/lib/components/system/LCU/ChampionCacheInitializer";
+import { ChampionCacheInitializer } from "@/lib/components/LCU/ChampionCacheInitializer";
 import "./globals.css";
 
 const geistSans = Geist({

@@ -188,7 +188,6 @@ export default function TeamCameraStreamPage() {
 
   return (
     <PageWrapper
-      loadingMessage="Loading team camera..."
       breadcrumbs={[
         { label: "Camera Hub", href: "/modules/cameras" },
         { label: "Setup", href: `/modules/cameras/setup` },

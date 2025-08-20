@@ -3,8 +3,8 @@
 import { useEffect, type ReactElement } from "react";
 import { useRouter } from "next/navigation";
 import { useNavigation, useTeams } from "@lib/contexts";
-import { PageWrapper } from "@lib/layout/PageWrapper";
-import { TeamListCard } from "@lib/components/features/teams";
+import { PageWrapper } from "@lib/layout";
+import { TeamListCard } from "@/libTeam/components";
 import { GridLoader } from "@lib/components/common";
 
 export default function TeamsPage(): ReactElement {

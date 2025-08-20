@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { downloadAllAssets, BootstrapProgress } from "@lib/services/assets/bootstrapper";
-import { useElectron } from "@lib/contexts/ElectronContext";
+import { useElectron } from "@/libElectron/contexts/ElectronContext";
 import { useDownload } from "@lib/contexts/DownloadContext";
 
 interface CategoryProgress {

@@ -1,25 +1,25 @@
 import { NavigationProvider } from "./NavigationContext";
 import { ModalProvider } from "./ModalContext";
 import { AuthProvider } from "./AuthContext";
-import { ElectronProvider } from "./ElectronContext";
+import { ElectronProvider } from "../../libElectron/contexts/ElectronContext";
 import { LCUProvider } from "./LCUContext";
-import { CamerasProvider } from "./CamerasContext";
-import { TeamsProvider } from "./TeamsContext";
-import { TournamentsProvider } from "./TournamentsContext";
-import { TournamentDataProvider } from "./TournamentDataContext";
-import { TournamentBracketProvider } from "./TournamentBracketContext";
-import { TournamentStatsProvider } from "./TournamentStatsContext";
-import { PickbanProvider } from "./PickbanContext";
+import { CamerasProvider } from "../../libCamera/context/CamerasContext";
+import { TeamsProvider } from "../../libTeam/contexts/TeamsContext";
+import { TournamentsProvider } from "../../libTournament/contexts/TournamentsContext";
+import { TournamentDataProvider } from "../../libTournament/contexts/TournamentDataContext";
+import { TournamentBracketProvider } from "../../libTournament/contexts/TournamentBracketContext";
+import { TournamentStatsProvider } from "../../libTournament/contexts/TournamentStatsContext";
+import { PickbanProvider } from "../../libPickban/contexts/PickbanContext";
 import { SettingsProvider } from "./SettingsContext";
 import { MockDataProvider } from "./MockDataContext";
 import { DownloadProvider } from "./DownloadContext";
-import { PredictionsProvider } from "./PredictionsContext";
-import { CurrentMatchProvider } from "./CurrentMatchContext";
+import { PredictionsProvider } from "../../libTournament/contexts/PredictionsContext";
+import { CurrentMatchProvider } from "../../libTournament/contexts/CurrentMatchContext";
 import { useUser } from "./AuthContext";
-import { useTeams } from "./TeamsContext";
+import { useTeams } from "../../libTeam/contexts/TeamsContext";
 import { useModal } from "./ModalContext";
 import { useNavigation } from "./NavigationContext";
-import { useCurrentMatch } from "./CurrentMatchContext";
+import { useCurrentMatch } from "../../libTournament/contexts/CurrentMatchContext";
 
 export {
   NavigationProvider,

@@ -3,8 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { getDynamicMockData } from "@lib/mocks/dynamic-champselect";
 import { getChampions } from "@lib/champions";
-import { ChampSelectDisplay } from "@lib/components/features/leagueclient/champselect/ChampSelectDisplay";
-import { Breadcrumbs } from "@lib/components/common/Breadcrumbs";
+import { Breadcrumbs } from "@lib/components/common";
+import { ChampSelectDisplay } from "@libLeagueClient/components/champselect/ChampSelectDisplay";
 
 const DemoPage: React.FC = () => {
   const [mockData, setMockData] = useState<ReturnType<typeof getDynamicMockData> | null>(null);

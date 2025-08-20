@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getGameSession, updateGameSession } from "@lib/database";
-import { withAuth } from "@lib/auth";
+import { withAuth } from "@/lib/auth/utils";
 
 export const POST = withAuth(async (req: NextRequest, _user) => {
   try {

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { withAuth } from "@lib/auth";
+import { withAuth } from "@/lib/auth/utils";
 import { getTournament, updateTournamentFields } from "@lib/database/tournament";
 import type { Sponsorship } from "@lib/types";
 

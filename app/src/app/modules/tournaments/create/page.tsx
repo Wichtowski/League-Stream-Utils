@@ -10,7 +10,7 @@ import { PageWrapper } from "@lib/layout/PageWrapper";
 // Dynamic imports for lazy loading
 const TournamentCreationForm = dynamic(
   () =>
-    import("@lib/components/features/tournaments/TournamentCreationForm").then((mod) => ({
+    import("@/libTournament/components/tournament/TournamentCreationForm").then((mod) => ({
       default: mod.TournamentCreationForm
     })),
   {
@@ -37,7 +37,6 @@ export default function CreateTournamentPage() {
 
   return (
     <PageWrapper
-      loadingMessage="Loading tournament form..."
       breadcrumbs={[
         { label: "Tournaments", href: "/modules/tournaments" },
         { label: "Create Tournament", isActive: true }

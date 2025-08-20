@@ -2,12 +2,12 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
-import { useTournaments } from "@lib/contexts/TournamentsContext";
+import { useTournaments } from "@/libTournament/contexts/TournamentsContext";
 import { useNavigation } from "@lib/contexts/NavigationContext";
-import { useModal } from "@lib/components/modal";
+import { useModal } from "@lib/contexts/ModalContext";
 import { GridLoader } from "@lib/components/common";
-import { PageWrapper } from "@lib/layout/PageWrapper";
-import { TournamentPageCard } from "@lib/components/features/tournaments";
+import { PageWrapper } from "@lib/layout";
+import { TournamentPageCard } from "@/libTournament/components";
 
 export default function TournamentsPage() {
   const { tournaments, loading: tournamentsLoading, error } = useTournaments();

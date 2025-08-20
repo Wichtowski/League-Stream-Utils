@@ -2,12 +2,12 @@
 
 import React, { useEffect, useState, Suspense } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { useNavigation } from "@lib/contexts/NavigationContext";
-import { AuthGuard } from "@lib/components/auth";
-import { useAuthenticatedFetch } from "@lib/hooks/useAuthenticatedFetch";
-import { CameraFeed, CameraNavigation, PlayerInfoHeader, CameraLayout } from "@lib/components/features";
-import type { CameraPlayer, CameraTeam } from "@lib/types";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
+import { useNavigation } from "@lib/contexts/NavigationContext";
+import { AuthGuard } from "@/lib/auth/components";
+import { useAuthenticatedFetch } from "@lib/hooks/useAuthenticatedFetch";
+import { CameraFeed, CameraNavigation, PlayerInfoHeader, CameraLayout } from "@libCamera/components";
+import { CameraPlayer, CameraTeam } from "@libCamera/types/camera";
 
 export default function PlayerCameraStreamPage() {
   const router = useRouter();
@@ -87,7 +87,7 @@ export default function PlayerCameraStreamPage() {
   }, [teamId, playerName, router, setActiveModule, authenticatedFetch]);
 
   return (
-    <AuthGuard loadingMessage="Loading player camera...">
+    <AuthGuard>
       <div className="mb-4">
         <button
           onClick={() => router.push("/modules/cameras")}

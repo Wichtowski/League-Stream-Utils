@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { findLCUCredentials, getChampSelectSession } from "@/lib/services/external/LCU/helpers";
+import { findLCUCredentials, getChampSelectSession } from "@lib/services/external/LCU/helpers";
 import { MOCK_CHAMP_SELECT_DATA } from "@lib/mocks/champselect";
 
 export async function GET(request: NextRequest): Promise<NextResponse> {

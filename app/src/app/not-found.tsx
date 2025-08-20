@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@lib/contexts/AuthContext";
-import { useElectron } from "@lib/contexts/ElectronContext";
+import { useElectron } from "@/libElectron/contexts/ElectronContext";
 
 const NotFoundPage: React.FC = (): React.ReactElement => {
   const router = useRouter();

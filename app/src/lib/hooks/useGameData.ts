@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { gameService, type LiveGameData, type GameStatus } from "@lib/services/game/game-service";
+import { gameService } from "@lib/services/game/game-service";
+import type { LiveGameData, GameStatus } from "@libLeagueClient/types";
 
 export interface UseGameDataReturn {
   gameData: LiveGameData | null;
@@ -22,28 +23,15 @@ export const useGameData = (pollingInterval = 1000): UseGameDataReturn => {
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
   const isPollingRef = useRef(false);
 
-  const connect = useCallback(async (): Promise<void> => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      
-      const success = await gameService.connect();
-      setIsConnected(success);
-      
-      if (success) {
-        await refreshData();
-        startPolling();
-      } else {
-        setError("Failed to connect to League Client");
-      }
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Unknown connection error";
-      setError(errorMessage);
-      setIsConnected(false);
-    } finally {
-      setIsLoading(false);
+  const stopPolling = useCallback((): void => {
+    if (pollingRef.current) {
+      clearInterval(pollingRef.current);
+      pollingRef.current = null;
     }
+    isPollingRef.current = false;
   }, []);
+
+  
 
   const disconnect = useCallback(async (): Promise<void> => {
     try {
@@ -56,7 +44,7 @@ export const useGameData = (pollingInterval = 1000): UseGameDataReturn => {
     } catch (err) {
       console.error("Error disconnecting:", err);
     }
-  }, []);
+  }, [stopPolling]);
 
   const refreshData = useCallback(async (): Promise<void> => {
     if (!gameService.isConnectedToLCU()) {
@@ -105,15 +93,30 @@ export const useGameData = (pollingInterval = 1000): UseGameDataReturn => {
         setIsConnected(false);
       }
     }, pollingInterval);
-  }, [pollingInterval, refreshData]);
+  }, [pollingInterval, refreshData, stopPolling]);
 
-  const stopPolling = useCallback((): void => {
-    if (pollingRef.current) {
-      clearInterval(pollingRef.current);
-      pollingRef.current = null;
+  const connect = useCallback(async (): Promise<void> => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      const success = await gameService.connect();
+      setIsConnected(success);
+      
+      if (success) {
+        await refreshData();
+        startPolling();
+      } else {
+        setError("Failed to connect to League Client");
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Unknown connection error";
+      setError(errorMessage);
+      setIsConnected(false);
+    } finally {
+      setIsLoading(false);
     }
-    isPollingRef.current = false;
-  }, []);
+  }, [refreshData, startPolling]);
 
   // Auto-connect on mount
   useEffect(() => {
