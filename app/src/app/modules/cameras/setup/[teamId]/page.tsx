@@ -8,6 +8,7 @@ import { useAuth } from "@lib/contexts/AuthContext";
 import { useElectron } from "@/libElectron/contexts/ElectronContext";
 import { useAuthenticatedFetch } from "@lib/hooks/useAuthenticatedFetch";
 import { useTeams } from "@/libTeam/contexts/TeamsContext";
+import { useCameras } from "@/libCamera/context/CamerasContext";
 import { CameraPlayer, CameraTeam } from "@libCamera/types/camera";
 import { TeamSetupHeader, ProgressBar, TeamStreamSection, PlayerStreamCard, QuickActions, HelpSection } from "@libCamera/components";
 
@@ -21,6 +22,7 @@ export default function TeamCameraSetupPage() {
   const { isElectron, useLocalData } = useElectron();
   const { authenticatedFetch } = useAuthenticatedFetch();
   const { teams: userTeams } = useTeams();
+  const { teams: cameraTeamsRaw, loading: camerasLoading, refreshCameras } = useCameras();
   const [team, setTeam] = useState<CameraTeam | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -28,64 +30,66 @@ export default function TeamCameraSetupPage() {
   // Find the full team info from userTeams
   const fullTeam = userTeams.find((t) => t.id === teamId);
 
+  // Set module once
   useEffect(() => {
     setActiveModule("cameras");
+  }, [setActiveModule]);
 
-    if (!authLoading) {
-      if (!user && !(isElectron && useLocalData)) {
-        router.push("/login");
-        return;
-      }
+  // Build team view from context (and refresh once if empty)
+  useEffect(() => {
+    if (authLoading) return;
+    if (!user && !(isElectron && useLocalData)) {
+      router.push("/login");
+      return;
+    }
 
-      const loadTeamSettings = async () => {
-        try {
-          setLoading(true);
-          const response = await authenticatedFetch("/api/v1/cameras/settings");
+    let cancelled = false;
+    const ensureDataAndCompose = async (): Promise<void> => {
+      try {
+        setLoading(true);
+        if ((!cameraTeamsRaw || (Array.isArray(cameraTeamsRaw) && cameraTeamsRaw.length === 0)) && !camerasLoading) {
+          await refreshCameras();
+        }
 
-          if (response.ok) {
-            const data = await response.json();
-            const teams = data.teams || [];
-            const foundTeam = teams.find((t: CameraTeam) => t.teamId === teamId);
+        const cameraTeams = (cameraTeamsRaw as unknown as CameraTeam[]) || [];
+        const foundTeam = cameraTeams.find((t) => t.teamId === teamId) || null;
 
-            // Merge logic: show all players from fullTeam, merge camera URLs from foundTeam
-            if (fullTeam) {
-              const allPlayers = [...fullTeam.players.main, ...fullTeam.players.substitutes].map((player) => {
-                const cameraPlayer = foundTeam?.players.find(
-                  (cp: CameraPlayer) =>
-                    (cp.playerId && cp.playerId === player.id) || (cp.inGameName && cp.inGameName === player.inGameName)
-                );
-                return {
-                  ...player,
-                  playerId: player.id,
-                  playerName: player.inGameName,
-                  url: cameraPlayer?.url || "",
-                  imagePath: cameraPlayer?.imagePath || ""
-                };
-              });
-              setTeam({
-                teamId: fullTeam.id,
-                teamName: fullTeam.name,
-                teamLogo: fullTeam.logo?.data,
-                players: allPlayers,
-                teamStreamUrl: foundTeam?.teamStreamUrl || ""
-              });
-            } else {
-              router.push("/modules/cameras/setup");
-            }
+        if (!cancelled) {
+          if (fullTeam) {
+            const allPlayers = [...fullTeam.players.main, ...fullTeam.players.substitutes].map((player) => {
+              const cameraPlayer = foundTeam?.players.find(
+                (cp: CameraPlayer) =>
+                  (cp.playerId && cp.playerId === player.id) || (cp.inGameName && cp.inGameName === player.inGameName)
+              );
+              return {
+                ...player,
+                playerId: player.id,
+                playerName: player.inGameName,
+                url: cameraPlayer?.url || "",
+                imagePath: cameraPlayer?.imagePath || ""
+              };
+            });
+            setTeam({
+              teamId: fullTeam.id,
+              teamName: fullTeam.name,
+              teamLogo: fullTeam.logo?.data,
+              players: allPlayers,
+              teamStreamUrl: foundTeam?.teamStreamUrl || ""
+            });
           } else {
             router.push("/modules/cameras/setup");
           }
-        } catch (error) {
-          console.error("Error loading team settings:", error);
-          router.push("/modules/cameras/setup");
-        } finally {
-          setLoading(false);
         }
-      };
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
 
-      loadTeamSettings();
-    }
-  }, [router, setActiveModule, teamId, user, authLoading, isElectron, useLocalData, authenticatedFetch, fullTeam]);
+    void ensureDataAndCompose();
+    return () => {
+      cancelled = true;
+    };
+  }, [authLoading, user, isElectron, useLocalData, router, teamId, fullTeam, cameraTeamsRaw, camerasLoading, refreshCameras]);
 
   const updatePlayerUrl = (playerId: string, url: string) => {
     if (!team) return;
@@ -109,36 +113,35 @@ export default function TeamCameraSetupPage() {
     try {
       setSaving(true);
 
-      // Get all teams, update this one, and save
-      const response = await authenticatedFetch("/api/v1/cameras/settings");
+      const currentTeams = ((cameraTeamsRaw as unknown as CameraTeam[]) || []).slice();
+      const existingIndex = currentTeams.findIndex((t) => t.teamId === teamId);
+      if (existingIndex >= 0) {
+        currentTeams[existingIndex] = team;
+      } else {
+        currentTeams.push(team);
+      }
 
-      if (response.ok) {
-        const data = await response.json();
-        const allTeams = data.teams || [];
+      // Save updated settings
+      const saveResponse = await authenticatedFetch("/api/v1/cameras/settings", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ teams: currentTeams })
+      });
 
-        // Update the current team in the list
-        const updatedTeams = allTeams.map((t: CameraTeam) => (t.teamId === teamId ? team : t));
-
-        // Save updated settings
-        const saveResponse = await authenticatedFetch("/api/v1/cameras/settings", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ teams: updatedTeams })
+      if (saveResponse.ok) {
+        await showAlert({
+          type: "success",
+          message: "Camera settings saved successfully!"
         });
-
-        if (saveResponse.ok) {
-          await showAlert({
-            type: "success",
-            message: "Camera settings saved successfully!"
-          });
-        } else {
-          await showAlert({
-            type: "error",
-            message: "Failed to save camera settings"
-          });
-        }
+        // Optionally refresh context after save
+        await refreshCameras();
+      } else {
+        await showAlert({
+          type: "error",
+          message: "Failed to save camera settings"
+        });
       }
     } catch (error) {
       console.error("Error saving camera settings:", error);

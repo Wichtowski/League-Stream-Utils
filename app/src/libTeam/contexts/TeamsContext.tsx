@@ -35,11 +35,10 @@ interface TeamsContextType {
   getLastSync: () => Promise<Date | null>;
 }
 
-const TeamsContext = createContext<TeamsContextType | undefined>(undefined);
+export const TeamsContext = createContext<TeamsContextType | undefined>(undefined);
 
 const CACHE_KEY = "teams-data";
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
-const _SYNC_CHECK_INTERVAL = 30000; // 30 seconds
 
 // Type for teams without image data for localStorage storage
 type TeamWithoutImageData = Omit<Team, 'logo'> & {
@@ -144,9 +143,8 @@ export function TeamsProvider({ children }: { children: ReactNode }) {
         return teams;
       }
 
-      // Don't fetch if user is not authenticated
+      // Don't fetch if user is not authenticated; keep current loading state to avoid UI flicker
       if (!user) {
-        if (showLoading) setLoading(false);
         return [];
       }
 

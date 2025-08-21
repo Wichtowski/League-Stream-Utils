@@ -1,67 +1,23 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, type ReactElement } from "react";
 import { useRouter } from "next/navigation";
 import { useNavigation } from "@lib/contexts/NavigationContext";
 import { useAuth } from "@lib/contexts/AuthContext";
-import { useCameras } from "@/libCamera/context/CamerasContext";
-import { useTeams } from "@/libTeam/contexts/TeamsContext";
-import Image from "next/image";
-import type { CameraPlayer, CameraTeam } from "@lib/types";
+import { useMergedCameraTeams } from "@lib/hooks/useMergedCameraTeams";
+import { SafeImage } from "@lib/components/common/SafeImage";
+import type { MergedPlayer, MergedTeamWithAllPlayers } from "@lib/hooks/useMergedCameraTeams";
 import { PageWrapper } from "@lib/layout/PageWrapper";
 
-export default function CameraSetupListPage() {
+export default function CameraSetupListPage(): ReactElement {
   const router = useRouter();
   const { setActiveModule } = useNavigation();
   const { isLoading: authLoading } = useAuth();
-  const { teams: cameraTeamsRaw, loading: camerasLoading } = useCameras();
-  const { teams: userTeams } = useTeams();
-
-  const [loading, setLoading] = useState(true);
-
-  // Ensure cameraTeams is typed as CameraTeam[]
-  const cameraTeams = cameraTeamsRaw as unknown as CameraTeam[];
-
-  // Merge logic: combine userTeams (full info) with cameraTeams (camera URLs)
-  const mergedTeams = userTeams.map((team) => {
-    const cameraTeam = cameraTeams.find((ct: CameraTeam) => ct.teamId === team.id);
-    // Merge all players (main + subs)
-    const allPlayers = [
-      ...team.players.main.map((player) => {
-        const cameraPlayer = cameraTeam?.players.find(
-          (cp: CameraPlayer) =>
-            (cp.playerId && cp.playerId === player.id) || (cp.inGameName && cp.inGameName === player.inGameName)
-        );
-        return {
-          ...player,
-          cameraUrl: cameraPlayer?.url || null
-        };
-      }),
-      ...team.players.substitutes.map((player) => {
-        const cameraPlayer = cameraTeam?.players.find(
-          (cp: CameraPlayer) =>
-            (cp.playerId && cp.playerId === player.id) || (cp.inGameName && cp.inGameName === player.inGameName)
-        );
-        return {
-          ...player,
-          cameraUrl: cameraPlayer?.url || null
-        };
-      })
-    ];
-    return {
-      id: team.id,
-      name: team.name,
-      logo: team.logo,
-      allPlayers
-    };
-  });
+  const { mergedTeams, loading } = useMergedCameraTeams(true);
 
   useEffect(() => {
     setActiveModule("cameras");
-    if (!authLoading && !camerasLoading) {
-      setLoading(false);
-    }
-  }, [setActiveModule, authLoading, camerasLoading]);
+  }, [setActiveModule]);
 
   if (authLoading || loading) {
     return (
@@ -98,7 +54,7 @@ export default function CameraSetupListPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {mergedTeams.map((team, idx) => {
+          {(mergedTeams as MergedTeamWithAllPlayers[]).map((team, idx) => {
             const configuredCount = team.allPlayers.filter((p) => p.cameraUrl && p.cameraUrl.trim() !== "").length;
             return (
               <div
@@ -108,7 +64,7 @@ export default function CameraSetupListPage() {
               >
                 <div className="flex items-center gap-4 mb-4">
                   {team.logo?.data ? (
-                    <Image
+                    <SafeImage
                       src={team.logo.data}
                       alt={team.name}
                       width={48}
@@ -145,7 +101,7 @@ export default function CameraSetupListPage() {
 
                   <div className="pt-2">
                     <p className="text-xs text-gray-500">
-                      Players: {team.allPlayers.map((p) => p.inGameName).join(", ")}
+                      Players: {(team.allPlayers as MergedPlayer[]).map((p: MergedPlayer) => p.inGameName).join(", ")}
                     </p>
                   </div>
                 </div>

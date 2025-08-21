@@ -65,12 +65,8 @@ export default function CommentatorsPage(): React.ReactElement {
       if (foundTournament) {
         setTournament(foundTournament);
       } else if (tournaments.length > 0) {
-        // Only clear if tournaments are loaded and the tournament is definitely not found
-        // Tournament no longer exists, clear the selection
-        tournamentStorage.clearLastSelectedTournament();
         router.push("/modules/tournaments");
       }
-      // If tournaments.length === 0, don't clear - tournaments might still be loading
     }
   }, [tournaments, tournamentsLoading, lastSelectedTournament, router]);
 

@@ -5,8 +5,9 @@ import { useRouter, useParams } from "next/navigation";
 import { useNavigation } from "@lib/contexts/NavigationContext";
 import { useAuthenticatedFetch } from "@lib/hooks/useAuthenticatedFetch";
 import { CameraPlayer, CameraTeam } from "@lib/types";
-import Image from "next/image";
 import { PageWrapper } from "@lib/layout/PageWrapper";
+import { useCameras } from "@/libCamera/context/CamerasContext";
+import { SafeImage } from "@lib/components/common/SafeImage";
 
 export default function TeamCameraStreamPage() {
   const router = useRouter();
@@ -14,6 +15,7 @@ export default function TeamCameraStreamPage() {
   const teamId = params.teamId as string;
   const { setActiveModule } = useNavigation();
   const { authenticatedFetch } = useAuthenticatedFetch();
+  const { teams: cameraTeamsRaw, loading: camerasLoading, refreshCameras } = useCameras();
   const [players, setPlayers] = useState<CameraPlayer[]>([]);
   const [currentPlayer, setCurrentPlayer] = useState<CameraPlayer | null>(null);
   const [randomMode, setRandomMode] = useState(false);
@@ -21,6 +23,7 @@ export default function TeamCameraStreamPage() {
   const [accessDenied, setAccessDenied] = useState(false);
   const [accessReason, setAccessReason] = useState<string>("");
   const [_streamFailed, setStreamFailed] = useState(false);
+  const [teamNotFound, setTeamNotFound] = useState(false);
 
   const getRandomPlayer = useCallback((): CameraPlayer | null => {
     if (players.length === 0) return null;
@@ -51,14 +54,11 @@ export default function TeamCameraStreamPage() {
   useEffect(() => {
     setActiveModule("cameras");
 
-    const checkAccessAndFetchData = async () => {
+    const checkAccess = async () => {
       try {
-        // First check if user has access to this team's cameras
         const accessResponse = await authenticatedFetch(`/api/v1/cameras/access?teamId=${teamId}`);
-
         if (accessResponse.ok) {
           const accessData = await accessResponse.json();
-
           if (!accessData.hasAccess) {
             setAccessDenied(true);
             setAccessReason(accessData.reason);
@@ -66,52 +66,49 @@ export default function TeamCameraStreamPage() {
             return;
           }
         }
-
-        // If access is granted, fetch camera settings
-        const response = await authenticatedFetch("/api/v1/cameras/settings");
-
-        if (response.ok) {
-          const data = await response.json();
-          const teams = data.teams || [];
-
-          const team = teams.find((t: CameraTeam) => t.teamId === teamId);
-
-          if (team) {
-            setTeamName(team.teamName);
-            const basePlayers = team.players || [];
-            const playersWithTeamStream: CameraPlayer[] =
-              team.teamStreamUrl && team.teamStreamUrl.trim() !== ""
-                ? [
-                    {
-                      playerId: "team-stream",
-                      playerName: "TEAM STREAM",
-                      inGameName: "Team Stream",
-                      url: team.teamStreamUrl.trim(),
-                      imagePath: ""
-                    },
-                    ...basePlayers
-                  ]
-                : basePlayers;
-
-            setPlayers(playersWithTeamStream);
-          } else {
-            console.error("Team not found");
-            router.push("/modules/cameras");
-          }
-        } else {
-          console.error("Failed to fetch camera settings");
-        }
-      } catch (error) {
-        console.error("Error checking access or fetching team players:", error);
+      } catch (_error) {
         setAccessDenied(true);
         setAccessReason("error");
       }
     };
 
     if (teamId) {
-      checkAccessAndFetchData();
+      checkAccess();
+      if (!cameraTeamsRaw || (Array.isArray(cameraTeamsRaw) && cameraTeamsRaw.length === 0)) {
+        refreshCameras();
+      }
     }
-  }, [teamId, router, setActiveModule, authenticatedFetch]);
+  }, [teamId, setActiveModule, authenticatedFetch, cameraTeamsRaw, refreshCameras]);
+
+  // Derive team players from CamerasContext
+  useEffect(() => {
+    if (!teamId || accessDenied) return;
+    const cameraTeams = cameraTeamsRaw as unknown as CameraTeam[];
+    const team = (cameraTeams || []).find((t) => t.teamId === teamId);
+    if (team) {
+      setTeamName(team.teamName);
+      const basePlayers = team.players || [];
+      const playersWithTeamStream: CameraPlayer[] =
+        team.teamStreamUrl && team.teamStreamUrl.trim() !== ""
+          ? [
+              {
+                playerId: "team-stream",
+                playerName: "TEAM STREAM",
+                inGameName: "Team Stream",
+                url: team.teamStreamUrl.trim(),
+                imagePath: ""
+              },
+              ...basePlayers
+            ]
+          : basePlayers;
+      setPlayers(playersWithTeamStream);
+      setTeamNotFound(false);
+    } else if (!camerasLoading) {
+      setTeamNotFound(true);
+      setPlayers([]);
+      setTeamName("");
+    }
+  }, [teamId, cameraTeamsRaw, accessDenied, camerasLoading]);
 
   // Separate effect to set initial player when players are loaded
   useEffect(() => {
@@ -195,7 +192,20 @@ export default function TeamCameraStreamPage() {
       ]}
       className="bg-black"
     >
-      {players.length === 0 ? (
+      {teamNotFound ? (
+        <div className="flex items-center justify-center p-8">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-white mb-4">Team Not Found</h2>
+            <p className="text-gray-400 mb-6">The requested team does not exist or has no cameras configured.</p>
+            <button
+              onClick={() => router.push("/modules/cameras")}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors"
+            >
+              Camera Hub
+            </button>
+          </div>
+        </div>
+      ) : players.length === 0 ? (
         <div className="flex items-center justify-center p-8">
           <div className="text-center">
             <h2 className="text-2xl font-bold text-white mb-4">No Players Found</h2>
@@ -225,10 +235,10 @@ export default function TeamCameraStreamPage() {
                     title={`${currentPlayer.inGameName || currentPlayer.playerName} camera feed`}
                   />
                 ) : currentPlayer.imagePath ? (
-                  <Image
+                  <SafeImage
                     src={currentPlayer.imagePath}
                     alt={currentPlayer.inGameName || currentPlayer.playerName || "Player"}
-                    fill
+                    fill={true}
                     className="object-cover"
                   />
                 ) : (

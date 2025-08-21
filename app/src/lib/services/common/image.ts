@@ -1,4 +1,5 @@
 import type { ImageStorage } from "@lib/types/tournament";
+import { LOGO_SQUARE_TOLERANCE } from "./constants";
 
 /**
  * Convert ImageStorage object into a URL that can be used in <img src>. 
@@ -38,18 +39,7 @@ export const getImageUrl = async (image?: ImageStorage): Promise<string> => {
  * Get team logo URL - uses the dedicated team logo endpoint
  */
 export const getTeamLogoUrl = async (teamId: string): Promise<string> => {
-  // Database-stored image - use the team logo endpoint
-    try {
-      const response = await fetch(`/api/v1/teams/${teamId}/logo`);
-      if (response.ok) {
-          const blob = await response.blob();
-          return URL.createObjectURL(blob);
-        }
-    } catch (error) {
-    console.error(`Failed to fetch logo for team ${teamId}:`, error);
-  }
-
-  return "";
+  return `/api/v1/teams/${teamId}/logo`;
 };
 
 /**
@@ -67,4 +57,11 @@ export const getTournamentLogoUrl = async (tournamentId: string): Promise<string
   }
 
   return "";
+};
+
+
+export const isAlmostSquare = (width: number, height: number, tolerance: number = LOGO_SQUARE_TOLERANCE): boolean => {
+  if (width <= 0 || height <= 0) return false;
+  const ratio = width / height;
+  return Math.abs(1 - ratio) <= tolerance;
 };

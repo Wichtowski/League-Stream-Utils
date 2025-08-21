@@ -10,6 +10,7 @@ import { getVisibleModules, ModuleCard } from "@lib/navigation";
 import { tournamentStorage, LastSelectedTournament } from "@lib/services/tournament";
 import { PageWrapper } from "@lib/layout/PageWrapper";
 import { SpotlightCard } from "@/lib/components/modules/SpotlightCard";
+import { Button } from "@/lib/components/common/button/Button";
 
 
 export default function ModulesPage() {
@@ -154,6 +155,13 @@ export default function ModulesPage() {
       title="Modules"
       subtitle={`Welcome back, ${user?.username ? user.username.charAt(0).toUpperCase() + user.username.slice(1) : "User"}! Choose a module to get started.`}
       contentClassName="max-w-7xl mx-auto"
+      actions={
+        lastSelectedTournament ? (
+          <Button onClick={() => tournamentStorage.clearLastSelectedTournament()}>
+            <span>Remove Last Selected Tournament</span>
+          </Button>
+        ) : null
+      }
     >
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {visibleModules.map((module) => (

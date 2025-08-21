@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, type ReactElement } from "react";
+import { useEffect, useRef, type ReactElement } from "react";
 import { useRouter } from "next/navigation";
 import { useNavigation, useTeams } from "@lib/contexts";
 import { PageWrapper } from "@lib/layout";
@@ -11,20 +11,20 @@ export default function TeamsPage(): ReactElement {
   const router = useRouter();
   const { teams, loading, refreshTeams } = useTeams();
   const { setActiveModule } = useNavigation();
-  
-
 
   useEffect(() => {
     setActiveModule("teams");
   }, [setActiveModule]);
 
+  const hasRequestedRef = useRef(false);
   useEffect(() => {
-    if (!loading && teams.length === 0) {
-      refreshTeams();
+    if (!loading && teams.length === 0 && !hasRequestedRef.current) {
+      hasRequestedRef.current = true;
+      void refreshTeams();
     }
   }, [loading, teams.length, refreshTeams]);
 
-  if (loading || !teams) {
+  if (loading || !teams || teams.length === 0) {
     return (
       <PageWrapper
         title="My Teams"

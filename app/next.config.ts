@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { ALLOWED_IMAGE_HOSTS } from "@lib/services/common/constants";
 
 const nextConfig: NextConfig = {
   output: "standalone",
@@ -65,19 +66,12 @@ const nextConfig: NextConfig = {
     ];
   },
   images: {
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "ddragon.leagueoflegends.com",
-        pathname: "/cdn/**"
-      },
-      {
-        protocol: "https",
-        hostname: "liquipedia.net",
-        pathname: "/**"
-      }
-    ],
-    domains: ["vdo.ninja", "via.placeholder.com", "ddragon.leagueoflegends.com", "127.0.0.1", "liquipedia.net"]
+    remotePatterns: ALLOWED_IMAGE_HOSTS.filter((h) => !["127.0.0.1", "localhost"].includes(h)).map((hostname) => ({
+      protocol: "https",
+      hostname,
+      pathname: "/**"
+    })),
+    domains: ALLOWED_IMAGE_HOSTS
   },
   // Webpack configuration for bundle splitting
   webpack: (config, { dev, isServer }) => {

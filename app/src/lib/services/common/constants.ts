@@ -24,3 +24,39 @@ export const banPlaceholder =
 
 export const blueColor = "#3b82f6";
 export const redColor = "#ef4444";
+
+export const ALLOWED_IMAGE_HOSTS: string[] = [
+  // Local development
+  "127.0.0.1",
+  "localhost",
+
+  // Project-specific
+  "ddragon.leagueoflegends.com",
+  "liquipedia.net",
+  "vdo.ninja",
+
+  // Discord / Imgur / Social
+  "cdn.discordapp.com",
+  "media.discordapp.net",
+  "i.pinimg.com",
+  "i.imgur.com",
+  "imgur.com",
+  "pbs.twimg.com",
+
+  // Popular image CDNs
+  "images.unsplash.com",
+  "picsum.photos",
+  "placehold.co",
+  "res.cloudinary.com",
+
+  // Streaming avatars/thumbnails
+  "static-cdn.jtvnw.net", // Twitch
+  "i.ytimg.com", // YouTube thumbnails
+  "yt3.ggpht.com", // YouTube avatars
+
+  // Google/CDN storage
+  "storage.googleapis.com",
+  "lh3.googleusercontent.com",
+];
+
+export const LOGO_SQUARE_TOLERANCE = 0.1;

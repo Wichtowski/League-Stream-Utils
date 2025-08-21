@@ -101,6 +101,7 @@ export default function ComentatorPredictionsPage({ params }: ComentatorPredicti
     return (
       <PageWrapper
         title="Comentator Predictions"
+        requireAuth={true}
         breadcrumbs={[
           { label: "Tournaments", href: "/modules/tournaments" },
           { label: selectedTournamentName, href: `/modules/tournaments/${tournamentId}` },

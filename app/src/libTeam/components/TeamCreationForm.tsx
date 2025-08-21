@@ -1,8 +1,12 @@
 import React, { useState, useRef } from "react";
-import Image from "next/image";
+import { SafeImage } from "@lib/components/common/SafeImage";
 import type { CreateTeamRequest, TeamTier } from "@lib/types";
 import { createDefaultTeamRequest } from "@lib/types";
 import { useModal } from "@lib/contexts";
+import { LOGO_SQUARE_TOLERANCE, ALLOWED_IMAGE_HOSTS } from "@lib/services/common/constants";
+import { isAlmostSquare } from "@lib/services/common/image";
+
+const ALLOWED_IMAGE_HOSTS_DISPLAY = ALLOWED_IMAGE_HOSTS.slice(3, ALLOWED_IMAGE_HOSTS.length)
 
 interface TeamCreationFormProps {
   onSubmit: (formData: CreateTeamRequest) => Promise<void>;
@@ -13,21 +17,76 @@ interface TeamCreationFormProps {
 export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, onCancel, isCreating }) => {
   const { showAlert } = useModal();
   const [logoPreview, setLogoPreview] = useState<string>("");
+  const [logoUrlInput, setLogoUrlInput] = useState<string>("");
   const [formData, setFormData] = useState<Partial<CreateTeamRequest>>(createDefaultTeamRequest());
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const clearLogo = () => {
+  const clearLogo = (): void => {
     setFormData({
       ...formData,
       logo: undefined
     });
     setLogoPreview("");
+    setLogoUrlInput("");
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
   };
 
-  const handleLogoUrlChange = (url: string) => {
+  const clearUrlOnly = (): void => {
+    if (formData.logo?.type === "url") {
+      setFormData({ ...formData, logo: undefined });
+    }
+    if (logoUrlInput) setLogoUrlInput("");
+  };
+
+  const clearFileOnly = (): void => {
+    if (formData.logo?.type === "upload") {
+      setFormData({ ...formData, logo: undefined });
+    }
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const handleLogoUrlChange = (url: string): void => {
+    // Switching to URL entry clears any uploaded file
+    clearFileOnly();
+    setLogoUrlInput(url);
+  };
+
+  const handlePreviewUrl = async (): Promise<void> => {
+    const url = logoUrlInput.trim();
+    if (!/^https?:\/\//i.test(url)) {
+      await showAlert({ type: "warning", message: "Please enter a valid http(s) image URL" });
+      return;
+    }
+    try {
+      new URL(url);
+    } catch {
+      await showAlert({ type: "warning", message: "Invalid URL format" });
+      return;
+    }
+
+    // Validate aspect ratio before accepting preview
+    try {
+      await new Promise<void>((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.onload = () => {
+          if (!isAlmostSquare(img.width, img.height)) {
+            reject(new Error(`Logo should be square. Current ratio ${(img.width / img.height).toFixed(3)}. Allowed deviation ±${LOGO_SQUARE_TOLERANCE}.`));
+            return;
+          }
+          resolve();
+        };
+        img.onerror = () => reject(new Error("Failed to load image from URL"));
+        img.src = url;
+      });
+    } catch (err) {
+      await showAlert({ type: "warning", message: err instanceof Error ? err.message : "Invalid image URL" });
+      return;
+    }
     setFormData({
       ...formData,
       logo: {
@@ -46,6 +105,13 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
       await showAlert({
         type: "warning",
         message: "Please select an image file"
+      });
+      return;
+    }
+    if (file.size <= 30 * 1024) {
+      await showAlert({
+        type: "warning",
+        message: "Image must be larger than 30KB to be visible"
       });
       return;
     }
@@ -69,18 +135,33 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
     }
 
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       const base64 = e.target?.result as string;
-      setFormData({
-        ...formData,
-        logo: {
-          type: "upload",
-          data: base64,
-          size: file.size,
-          format: format === "jpeg" ? "jpg" : format
-        }
-      });
-      setLogoPreview(base64);
+      try {
+        const img = new Image();
+        img.onload = async () => {
+          if (!isAlmostSquare(img.width, img.height)) {
+            await showAlert({
+              type: "warning",
+              message: `Logo should be square. Current ratio ${(img.width / img.height).toFixed(3)}. Allowed deviation ±${LOGO_SQUARE_TOLERANCE}.`
+            });
+            return;
+          }
+          setFormData({
+            ...formData,
+            logo: {
+              type: "upload",
+              data: base64,
+              size: file.size,
+              format: format === "jpeg" ? "jpg" : format
+            }
+          });
+          setLogoPreview(base64);
+        };
+        img.src = base64;
+      } catch {
+        setLogoPreview(base64);
+      }
     };
     reader.readAsDataURL(file);
   };
@@ -133,18 +214,19 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
         {/* Basic Info */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium mb-2">Team Name</label>
+            <label htmlFor="teamName" className="block text-sm font-medium mb-2">Team Name</label>
             <input
               type="text"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               className="w-full bg-gray-700 rounded px-3 py-2 text-white placeholder-gray-400"
               placeholder="Enter team name"
+              id="teamName"
               required
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-2">Team Tag</label>
+            <label htmlFor="teamTag" className="block text-sm font-medium mb-2">Team Tag</label>
             <input
               type="text"
               value={formData.tag}
@@ -152,26 +234,31 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
               className="w-full bg-gray-700 rounded px-3 py-2 text-white placeholder-gray-400"
               placeholder="Enter team tag"
               maxLength={5}
+              id="teamTag"
               required
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-2">Region</label>
+            <label htmlFor="region" className="block text-sm font-medium mb-2">Region</label>
             <input
               type="text"
               value={formData.region}
               onChange={(e) => setFormData({ ...formData, region: e.target.value })}
               className="w-full bg-gray-700 rounded px-3 py-2 text-white placeholder-gray-400"
               placeholder="e.g., EUNE, EUW, NA"
+              autoComplete="off"
+              id="region"
               required
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-2">Tier</label>
+            <label htmlFor="tier" className="block text-sm font-medium mb-2">Tier</label>
             <select
               value={formData.tier}
               onChange={(e) => setFormData({ ...formData, tier: e.target.value as TeamTier })}
               className="w-full bg-gray-700 rounded px-3 py-2 text-white"
+              id="tier"
+              style={{ height: '40px' }}
             >
               <option value="amateur">Amateur</option>
               <option value="semi-pro">Semi-Professional</option>
@@ -182,30 +269,73 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
 
         {/* Team Logo */}
         <div>
-          <label className="block text-sm font-medium mb-2">Team Logo</label>
+          <label htmlFor="teamLogo" className="block text-sm font-medium mb-2">Team Logo</label>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs text-gray-400 mb-1">Upload Image</label>
+              <label htmlFor="teamLogo" className="block text-xs text-gray-400 mb-1">Upload Image</label>
               <input
                 type="file"
                 accept="image/*"
-                onChange={(e) => e.target.files?.[0] && handleLogoFileChange(e.target.files[0])}
+                onClick={clearUrlOnly}
+                onChange={(e) => {
+                  clearUrlOnly();
+                  if (e.target.files?.[0]) void handleLogoFileChange(e.target.files[0]);
+                }}
                 className="w-full bg-gray-700 rounded px-3 py-2 text-sm text-white file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-gray-600 file:text-white hover:file:bg-gray-500"
-                disabled={formData.logo?.type === "url" && !!formData.logo.url}
                 ref={fileInputRef}
+                id="teamLogo"
               />
-              <p className="text-xs text-gray-400 mt-1">Max 5MB • PNG, JPG, WEBP</p>
+              <p className="text-xs text-gray-400 mt-1">Min 30KB • Max 5MB • PNG, JPG, WEBP</p>
             </div>
             <div>
-              <label className="block text-xs text-gray-400 mb-1">Or paste URL</label>
+              <div className="flex items-center gap-2 mb-1">
+                <label htmlFor="teamLogoUrl" className="block text-xs text-gray-400">Or Paste URL</label>
+                <div className="relative group">
+                  <svg className="w-4 h-4 text-gray-500 cursor-help" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                  </svg>
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-4 py-3 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10 w-80">
+                    <div className="font-semibold mb-2">Allowed URL&apos;s:</div>
+                    <div className="grid grid-cols-2 gap-1 text-xs">
+                      {ALLOWED_IMAGE_HOSTS_DISPLAY.map((host, index) => {
+                        return (
+                          <div key={index} className="text-gray-300">
+                            {host}
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+                  </div>
+                </div>
+              </div>
               <input
                 type="url"
-                value={formData.logo?.type === "url" ? formData.logo.url : ""}
+                value={logoUrlInput}
                 onChange={(e) => handleLogoUrlChange(e.target.value)}
                 className="w-full bg-gray-700 rounded px-3 py-2 text-white placeholder-gray-400"
+                style={{ height: '52px' }}
                 placeholder="https://example.com/logo.png"
-                disabled={formData.logo?.type === "upload" && !!formData.logo.data}
+                id="teamLogoUrl"
               />
+              {logoUrlInput && (
+                <div className="mt-2 flex gap-2">
+                  <button
+                    type="button"
+                    onClick={handlePreviewUrl}
+                    className="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-sm"
+                  >
+                    Preview Logo
+                  </button>
+                  <button
+                    type="button"
+                    onClick={clearLogo}
+                    className="bg-gray-600 hover:bg-gray-700 px-3 py-1 rounded text-sm"
+                  >
+                    Clear
+                  </button>
+                </div>
+              )}
             </div>
           </div>
           {logoPreview && (
@@ -219,13 +349,12 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
                 >
                   ×
                 </button>
-                <Image
+                <SafeImage
                   src={logoPreview}
                   alt="Logo preview"
                   width={100}
                   height={100}
                   className="rounded-lg object-contain"
-                  onError={() => setLogoPreview("")}
                 />
               </div>
             </div>
@@ -237,7 +366,7 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
           <h3 className="text-lg font-medium mb-3">Team Colors</h3>
           <div className="grid grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-2">Primary Color</label>
+              <label htmlFor="primaryColor" className="block text-sm font-medium mb-2">Primary Color</label>
               <input
                 type="color"
                 value={formData.colors?.primary}
@@ -248,10 +377,11 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
                   })
                 }
                 className="w-full h-10 rounded border-gray-600"
+                id="primaryColor"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">Secondary Color</label>
+              <label htmlFor="secondaryColor" className="block text-sm font-medium mb-2">Secondary Color</label>
               <input
                 type="color"
                 value={formData.colors?.secondary}
@@ -262,10 +392,11 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
                   })
                 }
                 className="w-full h-10 rounded border-gray-600"
+                id="secondaryColor"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">Accent Color</label>
+              <label htmlFor="accentColor" className="block text-sm font-medium mb-2">Accent Color</label>
               <input
                 type="color"
                 value={formData.colors?.accent}
@@ -276,6 +407,7 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
                   })
                 }
                 className="w-full h-10 rounded border-gray-600"
+                id="accentColor"
               />
             </div>
           </div>
@@ -287,13 +419,15 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
           <div className="space-y-3">
             {formData.players?.main.map((player, index) => (
               <div key={player.role} className="grid grid-cols-3 gap-4 items-center">
-                <div className="bg-gray-700 px-3 py-2 rounded text-center font-medium">{player.role}</div>
+                <div className="bg-gray-700 px py-2 rounded text-center font-medium">{player.role}</div>
                 <input
                   type="text"
                   placeholder="In-game name"
                   value={player.inGameName}
                   onChange={(e) => updatePlayer(index, "inGameName", e.target.value)}
                   className="bg-gray-700 rounded px-3 py-2 text-white placeholder-gray-400"
+                  autoComplete="off"
+                  id={`${player.role}-${index}-inGameName`}
                   required
                 />
                 <input
@@ -302,6 +436,8 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
                   value={player.tag}
                   onChange={(e) => updatePlayer(index, "tag", e.target.value)}
                   className="bg-gray-700 rounded px-3 py-2 text-white placeholder-gray-400"
+                  autoComplete="off"
+                  id={`${player.role}-${index}-tag`}
                   required
                 />
               </div>
@@ -341,6 +477,8 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
                   value={player.inGameName}
                   onChange={(e) => updateSubstitute(index, "inGameName", e.target.value)}
                   className="bg-gray-700 rounded px-3 py-2 text-white placeholder-gray-400"
+                  autoComplete="off"
+                  id={`${player.role}-${index}-inGameName`}
                 />
                 <input
                   type="text"
@@ -348,6 +486,8 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
                   value={player.tag}
                   onChange={(e) => updateSubstitute(index, "tag", e.target.value)}
                   className="bg-gray-700 rounded px-3 py-2 text-white placeholder-gray-400"
+                  autoComplete="off"
+                  id={`${player.role}-${index}-tag`}
                 />
                 <button
                   type="button"

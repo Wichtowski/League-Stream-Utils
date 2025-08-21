@@ -1,71 +1,54 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState, type ReactElement } from "react";
 import { useNavigation } from "@lib/contexts/NavigationContext";
 import { useAuth } from "@lib/contexts/AuthContext";
 import { useCameras } from "@/libCamera/context/CamerasContext";
 import { useTeams } from "@/libTeam/contexts/TeamsContext";
-import { CameraPlayer, CameraTeam } from "@lib/types";
+import { useMergedCameraTeams, type MergedTeamWithPlayers, type MergedPlayer } from "@lib/hooks/useMergedCameraTeams";
+import { SafeImage } from "@lib/components/common/SafeImage";
 import { LoadingSpinner } from "@lib/components/common";
 import { PageWrapper } from "@lib/layout/PageWrapper";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
-export default function CamerasPage() {
+export default function CamerasPage(): ReactElement {
   const { setActiveModule } = useNavigation();
   const { isLoading: authLoading } = useAuth();
-  const { teams: cameraTeamsRaw, loading: camerasLoading } = useCameras();
-  const { teams: userTeams } = useTeams();
+  const { teams: cameraTeamsRaw, loading: camerasLoading, refreshCameras } = useCameras();
+  const { teams: userTeams, loading: teamsLoading, refreshTeams } = useTeams();
+  const { mergedTeams } = useMergedCameraTeams(false);
   const router = useRouter();
   const [loading, setLoading] = useState(true);
+  const hasRefreshed = useRef(false);
 
-  // Ensure cameraTeams is typed as CameraTeam[]
-  const cameraTeams = cameraTeamsRaw as unknown as CameraTeam[];
-
-  // Merge logic: combine userTeams (full info) with cameraTeams (camera URLs)
-  const mergedTeams = userTeams.map((team) => {
-    const cameraTeam = cameraTeams.find((ct: CameraTeam) => ct.teamId === team.id);
-    return {
-      id: team.id,
-      name: team.name,
-      logo: team.logo,
-      players: {
-        main: team.players.main.map((player) => {
-          const cameraPlayer = cameraTeam?.players.find(
-            (cp: CameraPlayer) =>
-              (cp.playerId && cp.playerId === player.id) || (cp.inGameName && cp.inGameName === player.inGameName)
-          );
-          return {
-            ...player,
-            cameraUrl: cameraPlayer?.url || null
-          };
-        }),
-        substitutes: team.players.substitutes.map((player) => {
-          const cameraPlayer = cameraTeam?.players.find(
-            (cp: CameraPlayer) =>
-              (cp.playerId && cp.playerId === player.id) || (cp.inGameName && cp.inGameName === player.inGameName)
-          );
-          return {
-            ...player,
-            cameraUrl: cameraPlayer?.url || null
-          };
-        })
-      }
-    };
-  });
+  // mergedTeams from hook
 
   useEffect(() => {
     setActiveModule("cameras");
-    if (!authLoading && !camerasLoading) {
+    if (!authLoading && !camerasLoading && !teamsLoading) {
       setLoading(false);
     }
-  }, [setActiveModule, authLoading, camerasLoading]);
+  }, [setActiveModule, authLoading, camerasLoading, teamsLoading]);
+
+  useEffect(() => {
+    if (!hasRefreshed.current && !authLoading) {
+      hasRefreshed.current = true;
+      if (!cameraTeamsRaw || (Array.isArray(cameraTeamsRaw) && cameraTeamsRaw.length === 0)) {
+        void refreshCameras();
+      }
+      if (!userTeams || userTeams.length === 0) {
+        void refreshTeams();
+      }
+    }
+  }, [authLoading, cameraTeamsRaw, userTeams, refreshCameras, refreshTeams]);
 
   if (authLoading || loading) {
     return <LoadingSpinner fullscreen text="Loading cameras..." className="" />;
   }
 
   const totalPlayers = mergedTeams.reduce(
-    (sum, team) => sum + team.players.main.length + team.players.substitutes.length,
+    (sum: number, team: MergedTeamWithPlayers) => sum + team.players.main.length + team.players.substitutes.length,
     0
   );
 
@@ -108,35 +91,48 @@ export default function CamerasPage() {
         <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
           <h2 className="text-xl font-bold text-white mb-4">Teams Overview</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {mergedTeams.map((team) => (
+            {mergedTeams.map((team: MergedTeamWithPlayers) => (
               <div key={team.id} className="bg-gray-700 rounded-lg p-4">
-                <div className="flex justify-between items-center mb-2">
-                  <h3 className="font-semibold text-white">{team.name}</h3>
-                  <span className="text-sm text-gray-400">
-                    {team.players.main.length + team.players.substitutes.length} players
-                  </span>
-                </div>
-                {team.players.substitutes.length > 0 && (
-                  <div className="text-sm text-gray-400 mb-2">
-                    <span className="font-semibold">Subs:</span>{" "}
-                    {team.players.substitutes.map((p) => p.inGameName).join(", ")}
+                <Link href={`/modules/teams/${team.id}`} className="cursor-pointer">
+                  <div className="flex justify-between items-center mb-2">
+                    <h3 className="font-semibold text-white flex items-center gap-2">
+                      {team.logo?.data ? (
+                        <SafeImage
+                          src={team.logo.data}
+                          alt={team.name}
+                          width={24}
+                          height={24}
+                          className="w-6 h-6 rounded object-cover"
+                        />
+                      ) : null}
+                      {team.name}
+                    </h3>
+                    <span className="text-sm text-gray-400">
+                      {team.players.main.length + team.players.substitutes.length} players
+                    </span>
                   </div>
-                )}
-                <div className="mt-2">
-                  <span className="font-semibold text-xs text-gray-400">Camera Status:</span>
-                  <ul className="text-xs mt-1">
-                    {team.players.main.map((p) => (
-                      <li key={p.id} className={p.cameraUrl ? "text-green-400" : "text-yellow-400"}>
-                        {p.inGameName} {p.cameraUrl ? "• Configured" : "• Not Configured"}
-                      </li>
-                    ))}
-                    {team.players.substitutes.map((p) => (
-                      <li key={p.id} className={p.cameraUrl ? "text-green-400" : "text-yellow-400"}>
-                        {p.inGameName} (Sub) {p.cameraUrl ? "• Configured" : "• Not Configured"}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+                  {team.players.substitutes.length > 0 && (
+                    <div className="text-sm text-gray-400 mb-2">
+                      <span className="font-semibold">Subs:</span>{" "}
+                      {team.players.substitutes.map((p: MergedPlayer) => p.inGameName).join(", ")}
+                    </div>
+                  )}
+                  <div className="mt-2">
+                    <span className="font-semibold text-xs text-gray-400">Camera Status:</span>
+                    <ul className="text-xs mt-1">
+                      {team.players.main.map((p: MergedPlayer) => (
+                        <li key={p.inGameName} className={p.cameraUrl ? "text-green-400" : "text-yellow-400"}>
+                          {p.inGameName} {p.cameraUrl ? "• Configured" : "• Not Configured"}
+                        </li>
+                      ))}
+                      {team.players.substitutes.map((p: MergedPlayer) => (
+                        <li key={p.inGameName} className={p.cameraUrl ? "text-green-400" : "text-yellow-400"}>
+                          {p.inGameName} (Sub) {p.cameraUrl ? "• Configured" : "• Not Configured"}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </Link>
               </div>
             ))}
           </div>

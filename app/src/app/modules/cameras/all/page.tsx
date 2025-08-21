@@ -2,13 +2,13 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { useNavigation } from "@lib/contexts/NavigationContext";
 import { useCameras } from "@/libCamera/context/CamerasContext";
 import { CameraTeam } from "@libCamera/types/camera";
 import { Accordion, AccordionItem } from "@lib/components/common/Accordion";
 import { PageWrapper } from "@lib/layout/PageWrapper";
 import { LoadingSpinner } from "@lib/components/common";
+import { SafeImage } from "@lib/components/common/SafeImage";
 
 export default function AllCamerasPage() {
   const router = useRouter();
@@ -91,9 +91,9 @@ export default function AllCamerasPage() {
     header: (
       <div className="flex items-center gap-4">
         {team.logo && team.logo.type === "url" && team.logo.url ? (
-          <Image src={team.logo.url} alt={team.name} width={40} height={40} className="rounded-full object-cover" />
+          <SafeImage src={team.logo.url} alt={team.name} width={40} height={40} className="rounded-full object-cover" />
         ) : team.logo && team.logo.type === "upload" && team.logo.data ? (
-          <Image src={team.logo.data} alt={team.name} width={40} height={40} className="rounded-full object-cover" />
+          <SafeImage src={team.logo.data} alt={team.name} width={40} height={40} className="rounded-full object-cover" />
         ) : (
           <div className="w-10 h-10 bg-gray-600 rounded-full flex items-center justify-center">
             <span className="text-white text-sm font-bold">{team.name.charAt(0).toUpperCase()}</span>
@@ -137,10 +137,10 @@ export default function AllCamerasPage() {
                     title={`${player.inGameName || player.playerName} camera feed`}
                   />
                 ) : player.imagePath ? (
-                  <Image
+                  <SafeImage
                     src={player.imagePath}
                     alt={player.inGameName || player.playerName || "Player"}
-                    fill
+                    fill={true}
                     className="object-cover"
                   />
                 ) : (

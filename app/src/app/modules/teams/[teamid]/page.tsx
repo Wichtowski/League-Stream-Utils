@@ -1,33 +1,85 @@
 "use client";
 
-import React, { useState, use } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 import { useTeams, useModal, useUser } from "@lib/contexts";
 import { PageWrapper } from "@lib/layout/PageWrapper";
 import { TeamCard, TeamEditForm } from "@libTeam/components";
 import type { CreateTeamRequest, Team } from "@lib/types";
+import { useAuthenticatedFetch } from "@lib/hooks/useAuthenticatedFetch";
+import { Button } from "@lib/components/common";
 
-interface TeamEditPageProps {
-  params: Promise<{
-    teamId: string;
-  }>;
-}
-
-const TeamEditPage: React.FC<TeamEditPageProps> = ({params}: TeamEditPageProps) => {
-  const { teamId } = use(params);
-  const { teams, updateTeam, verifyPlayer, verifyAllPlayers } = useTeams();
+const TeamEditPage: React.FC = () => {
+  const params = useParams<{ teamid: string }>();
+  const teamId = params?.teamid;
+  const router = useRouter();
+  const { teams, updateTeam, verifyPlayer, verifyAllPlayers, refreshTeams } = useTeams();
+  const { authenticatedFetch } = useAuthenticatedFetch();
   const { showAlert, showConfirm } = useModal();
   const user = useUser();
   const [verifyingPlayers, setVerifyingPlayers] = useState<Set<string>>(new Set());
   const [verifyingAllTeams, setVerifyingAllTeams] = useState<Set<string>>(new Set());
   const [showEditForm, setShowEditForm] = useState(false);
+  const [fallbackTeam, setFallbackTeam] = useState<Team | null>(null);
+  const [attemptedDirectFetch, setAttemptedDirectFetch] = useState(false);
 
-  const team = teams.find((t) => t.id === teamId);
+  const team = teams.find((t) => t.id === teamId) || fallbackTeam || undefined;
 
-  // Remove the problematic useEffect that was causing infinite loops
-  // The team data is already available from the teams context
+  const hasRefreshedRef = useRef(false);
+  useEffect(() => {
+    if (!team && !hasRefreshedRef.current) {
+      hasRefreshedRef.current = true;
+      refreshTeams();
+    }
+  }, [team, refreshTeams]);
 
-  if (!team) return <div>Team not found</div>;
+  const hasFetchedFallbackRef = useRef(false);
+  useEffect(() => {
+    const run = async (): Promise<void> => {
+      if (!team && teamId && !hasFetchedFallbackRef.current) {
+        hasFetchedFallbackRef.current = true;
+        try {
+          const res = await authenticatedFetch(`/api/v1/teams/${teamId}`);
+          if (res.ok) {
+            const data = await res.json();
+            setFallbackTeam(data.team as Team);
+          }
+        } finally {
+          setAttemptedDirectFetch(true);
+        }
+      }
+    };
+    run();
+  }, [team, teamId, authenticatedFetch]);
 
+  if (!team && !attemptedDirectFetch) {
+    return (
+      <PageWrapper
+        title="Loading team..."
+        breadcrumbs={[
+          { label: "Teams", href: "/modules/teams" },
+          { label: teamId, href: "/modules/teams", isActive: true }
+        ]}
+        loading
+      >
+        <></>
+      </PageWrapper>
+    );
+  }
+
+  if (!team) {
+    return (
+      <PageWrapper
+        title="Team not found"
+        breadcrumbs={[
+          { label: "Teams", href: "/modules/teams" },
+          { label: teamId , href: "/modules/teams", isActive: true }
+        ]}
+      >
+        <div>Team not found</div>
+      </PageWrapper>
+    );
+  }
   const handleVerifyPlayer = async (teamId: string, playerId: string, playerName: string, playerTag: string) => {
     setVerifyingPlayers((prev) => new Set(prev).add(playerId));
     try {
@@ -179,20 +231,30 @@ const TeamEditPage: React.FC<TeamEditPageProps> = ({params}: TeamEditPageProps) 
 
   return (
     <PageWrapper
+    requireAuth={true}
       breadcrumbs={[
         { label: "Teams", href: "/modules/teams" },
         { label: team.name, href: `/modules/teams/${teamId}`, isActive: true }
       ]}
       title={team.name}
       actions={
-        (user?.id === team.userId || user?.isAdmin) && (
-          <button
-            onClick={handleEditTeam}
-            className="cursor-pointer bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-lg"
+        <div className="flex gap-2">
+          <Button
+            onClick={() => router.push(`/modules/cameras/stream/${team.id}`)}
+            variant="secondary"
+            className="cursor-pointer bg-gray-600 hover:bg-gray-700 px-6 py-2 rounded-lg text-white"
           >
-            Edit Team
-          </button>
-        )
+            Open Cameras
+          </Button>
+          {(user?.id === team.userId || user?.isAdmin) && (
+            <Button
+              onClick={handleEditTeam}
+              className="cursor-pointer bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-lg"
+            >
+              Edit Team
+            </Button>
+          )}
+        </div>
       }
     >
       {showEditForm ? (

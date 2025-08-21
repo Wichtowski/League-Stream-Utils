@@ -1,5 +1,7 @@
+"use client";
+
 import React, { useEffect, useState } from "react";
-import Image from "next/image";
+import { SafeImage } from "@lib/components/common/SafeImage";
 import { useRouter } from "next/navigation";
 import type { Team } from "@lib/types";
 import { getTeamLogoUrl } from "@lib/services/common/image";
@@ -40,15 +42,12 @@ export const TeamListCard: React.FC<TeamListCardProps> = ({ team }) => {
         <div className="relative">
             <div className="w-20 h-20 rounded-xl overflow-hidden bg-gray-700">
               {logoSrc ? (
-                <Image
+                <SafeImage
                   src={logoSrc}
                   alt={`${team?.name} logo`}
                   width={80}
                   height={80}
                   className="w-full h-full object-cover"
-                  onError={() => {
-                    console.warn(`Failed to load logo for team ${team.name}`);
-                  }}
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">

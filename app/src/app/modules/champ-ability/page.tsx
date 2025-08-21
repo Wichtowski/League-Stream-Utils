@@ -6,7 +6,7 @@ import type { Champion } from "@lib/types/game";
 import Image from "next/image";
 import { DDRAGON_CDN } from "@lib/services/common/constants";
 import { getChampions, getChampionCacheStats } from "@lib/champions";
-import { ChampionDownloadProgress } from "@lib/types/progress";
+import { ChampionDownloadProgress } from "@lib/types/champion";
 import { assetCache } from "@lib/services/assets/assetCache";
 import { championCacheService } from "@lib/services/assets/champion";
 import { DownloadProgressModal } from "@lib/components/common/modal";

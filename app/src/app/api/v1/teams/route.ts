@@ -3,7 +3,6 @@ import { withAuth } from "@/lib/auth/utils";
 import { createTeam, getUserTeams, checkTeamAvailability } from "@lib/database/team";
 import type { CreateTeamRequest, PlayerRole } from "@lib/types";
 
-// GET /api/v1/teams - Get user's teams
 export const GET = withAuth(async (req: NextRequest, user) => {
   try {
     const teams = await getUserTeams(user.userId);
@@ -15,22 +14,18 @@ export const GET = withAuth(async (req: NextRequest, user) => {
   }
 });
 
-// POST /api/v1/teams - Create new team
 export const POST = withAuth(async (req: NextRequest, user) => {
   try {
     const teamData: CreateTeamRequest = await req.json();
 
-    // Validate required fields
     if (!teamData.name || !teamData.tag || !teamData.players?.main?.length) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    // Validate main roster has exactly 5 players
     if (teamData.players.main.length !== 5) {
       return NextResponse.json({ error: "Main roster must have exactly 5 players" }, { status: 400 });
     }
 
-    // Validate player roles are unique and complete
     const roles = teamData.players.main.map((p) => p.role);
     const requiredRoles: PlayerRole[] = ["TOP", "JUNGLE", "MID", "ADC", "SUPPORT"];
     const hasAllRoles = requiredRoles.every((role) => roles.includes(role));
@@ -45,7 +40,6 @@ export const POST = withAuth(async (req: NextRequest, user) => {
       );
     }
 
-    // Check name and tag availability
     const availability = await checkTeamAvailability(teamData.name, teamData.tag);
     if (!availability.nameAvailable) {
       return NextResponse.json({ error: "Team name is already taken" }, { status: 409 });
