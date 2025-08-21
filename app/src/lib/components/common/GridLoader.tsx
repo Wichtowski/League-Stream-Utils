@@ -51,8 +51,7 @@ export const GridLoader: React.FC<GridLoaderProps> = ({
           >
             <div className="flex flex-col items-center text-center space-y-4">
               <div className="relative">
-                <div className="w-20 h-20 blur-sm bg-gradient-to-br from-gray-600 to-gray-700 rounded-xl flex items-center justify-center text-2xl font-bold text-gray-300">
-                </div>
+                <div className="w-20 h-20 blur-sm bg-gradient-to-br from-gray-600 to-gray-700 rounded-xl flex items-center justify-center text-2xl font-bold text-gray-300"></div>
               </div>
               <div className="h-8 bg-gray-600 rounded blur-sm w-32"></div>
             </div>

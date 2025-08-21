@@ -40,9 +40,7 @@ export const metadata: Metadata = {
   description: "Tournament stream management utilities",
   applicationName: "League Stream Utils",
 
-  authors: [
-    { name: "Oskar Wichtowski", url: "https://github.com/wichtowski" }
-  ]
+  authors: [{ name: "Oskar Wichtowski", url: "https://github.com/wichtowski" }]
 };
 
 export default function RootLayout({

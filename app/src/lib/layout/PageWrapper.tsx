@@ -26,7 +26,7 @@ export const PageWrapper: React.FC<PageWrapperProps> = ({
   contentClassName,
   requireAuth = true,
   loading = false,
-  loadingChildren,
+  loadingChildren
 }) => {
   const content = (
     <PageLayout
@@ -47,9 +47,5 @@ export const PageWrapper: React.FC<PageWrapperProps> = ({
     return content;
   }
 
-  return (
-    <AuthGuard>
-      {content}
-    </AuthGuard>
-  );
+  return <AuthGuard>{content}</AuthGuard>;
 };

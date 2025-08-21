@@ -10,7 +10,14 @@ import { useAuthenticatedFetch } from "@lib/hooks/useAuthenticatedFetch";
 import { useTeams } from "@/libTeam/contexts/TeamsContext";
 import { useCameras } from "@/libCamera/context/CamerasContext";
 import { CameraPlayer, CameraTeam } from "@libCamera/types/camera";
-import { TeamSetupHeader, ProgressBar, TeamStreamSection, PlayerStreamCard, QuickActions, HelpSection } from "@libCamera/components";
+import {
+  TeamSetupHeader,
+  ProgressBar,
+  TeamStreamSection,
+  PlayerStreamCard,
+  QuickActions,
+  HelpSection
+} from "@libCamera/components";
 
 export default function TeamCameraSetupPage() {
   const router = useRouter();

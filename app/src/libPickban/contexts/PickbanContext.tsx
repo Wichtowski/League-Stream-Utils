@@ -364,12 +364,12 @@ export function PickbanProvider({ children }: { children: ReactNode }) {
           const data = await response.json();
           const session = data.session;
           setCurrentSession(session);
-          
+
           // Only initialize WebSocket for non-static sessions
           if (session.type !== "static") {
             initializeWebSocket(sessionId);
           }
-          
+
           return { success: true };
         } else {
           const data = await response.json();

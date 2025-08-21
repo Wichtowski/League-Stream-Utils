@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { withAuth } from "@/lib/auth/utils";
+import { withAuth } from "@/lib/auth";
 import { registerTeamForTournament, unregisterTeamFromTournament, getTournamentById } from "@lib/database/tournament";
 import { getTeamById } from "@lib/database/team";
 import { JWTPayload } from "@lib/types/auth";
+import { Player } from "@lib/types/game";
 
 export const POST = withAuth(async (req: NextRequest, user: JWTPayload) => {
   try {
@@ -65,12 +66,12 @@ export const POST = withAuth(async (req: NextRequest, user: JWTPayload) => {
       }
 
       // Check if team players are verified (if required)
-      const unverifiedPlayers = team.players.main.filter((player) => !player.verified);
+      const unverifiedPlayers = team.players.main.filter((player: Player) => !player.verified);
       if (unverifiedPlayers.length > 0) {
         return NextResponse.json(
           {
-            error: `The following players need to be verified: ${unverifiedPlayers.map((p) => p.inGameName).join(", ")}`,
-            unverifiedPlayers: unverifiedPlayers.map((p) => ({
+            error: `The following players need to be verified: ${unverifiedPlayers.map((p: Player) => p.inGameName).join(", ")}`,
+            unverifiedPlayers: unverifiedPlayers.map((p: Player) => ({
               id: p.id,
               inGameName: p.inGameName
             }))

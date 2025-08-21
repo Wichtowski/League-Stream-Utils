@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useUser } from "@lib/contexts/AuthContext";
-import { AuthGuard } from "@lib/components/auth/AuthGuard";
+import { AuthGuard } from "@lib/auth/components";
 
 interface Match {
   id: string;

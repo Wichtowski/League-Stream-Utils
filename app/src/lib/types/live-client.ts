@@ -151,5 +151,3 @@ export interface RiotLiveClientData {
   events: RiotEventsWrapper;
   gameData: RiotGameDataMeta;
 }
-
-

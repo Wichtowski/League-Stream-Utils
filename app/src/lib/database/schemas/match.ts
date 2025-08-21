@@ -4,16 +4,16 @@ import { ChampionSchema } from "./common";
 
 const MatchTeamSchema = new Schema(
   {
-    id: { type: String, required: true },
-    name: { type: String, required: true },
-    tag: { type: String, required: true },
-    logo: { type: ImageStorageSchema, required: true },
+    id: { type: String, required: false },
+    name: { type: String, required: false },
+    tag: { type: String, required: false },
+    logo: { type: ImageStorageSchema, required: false },
     colors: {
-      primary: { type: String, required: true },
-      secondary: { type: String, required: true },
-      accent: { type: String, required: true }
+      primary: { type: String, required: false },
+      secondary: { type: String, required: false },
+      accent: { type: String, required: false }
     },
-    players: { type: [PlayerSchema], required: true },
+    players: { type: [PlayerSchema], required: false },
     coach: {
       name: { type: String },
       profileImage: { type: String }
@@ -24,31 +24,31 @@ const MatchTeamSchema = new Schema(
 
 const MatchCommentatorSchema = new Schema(
   {
-    id: { type: String, required: true },
-    name: { type: String, required: true },
+    id: { type: String, required: false },
+    name: { type: String, required: false },
     xHandle: { type: String },
-    assignedAt: { type: Date, required: true },
-    assignedBy: { type: String, required: true }
+    assignedAt: { type: Date, required: false },
+    assignedBy: { type: String, required: false }
   },
   { _id: false }
 );
 
 const MatchPredictionSchema = new Schema(
   {
-    commentatorId: { type: String, required: true },
-    commentatorName: { type: String, required: true },
-    prediction: { type: String, required: true },
-    timestamp: { type: Date, required: true }
+    commentatorId: { type: String, required: false },
+    commentatorName: { type: String, required: false },
+    prediction: { type: String, required: false },
+    timestamp: { type: Date, required: false }
   },
   { _id: false }
 );
 
 const GameResultSchema = new Schema(
   {
-    id: { type: String, required: true },
-    gameNumber: { type: Number, required: true },
-    winner: { type: String, enum: ["blue", "red"], required: true },
-    duration: { type: Number, required: true }, // in seconds
+    id: { type: String, required: false },
+    gameNumber: { type: Number, required: false },
+    winner: { type: String, enum: ["blue", "red"], required: false },
+    duration: { type: Number, required: false }, // in seconds
     blueTeam: {
       kills: { type: Number, default: 0 },
       gold: { type: Number, default: 0 },
@@ -67,15 +67,15 @@ const GameResultSchema = new Schema(
       bans: { type: [ChampionSchema], default: [] },
       picks: { type: [ChampionSchema], default: [] }
     },
-    completedAt: { type: Date, required: true }
+    completedAt: { type: Date, required: false }
   },
   { _id: false }
 );
 
 export const MatchSchema = new Schema({
-  id: { type: String, required: true, unique: true },
-  name: { type: String, required: true },
-  type: { type: String, enum: ["tournament", "standalone"], required: true },
+  id: { type: String, required: false, unique: true },
+  name: { type: String, required: false },
+  type: { type: String, enum: ["tournament", "standalone"], required: false },
 
   // Tournament context (only for tournament matches)
   tournamentId: { type: String },
@@ -86,13 +86,13 @@ export const MatchSchema = new Schema({
   matchNumber: { type: Number },
 
   // Teams
-  blueTeam: { type: MatchTeamSchema, required: true },
-  redTeam: { type: MatchTeamSchema, required: true },
+  blueTeam: { type: MatchTeamSchema, required: false },
+  redTeam: { type: MatchTeamSchema, required: false },
 
   // Match configuration
-  format: { type: String, enum: ["BO1", "BO3", "BO5"], required: true },
+  format: { type: String, enum: ["BO1", "BO3", "BO5"], required: false },
   isFearlessDraft: { type: Boolean, default: false },
-  patchName: { type: String, required: true },
+  patchName: { type: String, required: false },
 
   // Scheduling
   scheduledTime: { type: Date },
@@ -121,9 +121,9 @@ export const MatchSchema = new Schema({
   predictions: { type: [MatchPredictionSchema], default: [] },
 
   // Metadata
-  createdBy: { type: String, required: true },
-  createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now }
+  createdBy: { type: String, required: false },
+  createdAt: { type: Date, required: false, default: Date.now },
+  updatedAt: { type: Date, required: false, default: Date.now }
 });
 
 // Indexes for better query performance

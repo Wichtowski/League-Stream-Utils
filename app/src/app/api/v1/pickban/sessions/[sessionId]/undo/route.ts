@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getGameSession, updateGameSession } from "@lib/database";
-import { withAuth } from "@/lib/auth/utils";
+import { withAuth } from "@/lib/auth";
 
 export const POST = withAuth(async (req: NextRequest, _user) => {
   try {
@@ -32,20 +32,20 @@ export const POST = withAuth(async (req: NextRequest, _user) => {
     // Remove the action from team-specific data
     if (lastAction.type === "ban") {
       const teamBans = updatedSession.teams[lastAction.teamSide].bans;
-      const banIndex = teamBans.findIndex(champion => champion.id === lastAction.championId);
+      const banIndex = teamBans.findIndex((champion) => champion.id === lastAction.championId);
       if (banIndex > -1) {
         teamBans.splice(banIndex, 1);
       }
     } else if (lastAction.type === "pick") {
       const teamPicks = updatedSession.teams[lastAction.teamSide].picks;
-      const pickIndex = teamPicks.findIndex(champion => champion.id === lastAction.championId);
+      const pickIndex = teamPicks.findIndex((champion) => champion.id === lastAction.championId);
       if (pickIndex > -1) {
         teamPicks.splice(pickIndex, 1);
       }
     }
 
     const savedSession = await updateGameSession(sessionId, updatedSession);
-    
+
     if (!savedSession) {
       return NextResponse.json({ error: "Failed to update session" }, { status: 500 });
     }

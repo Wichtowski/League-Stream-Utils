@@ -6,28 +6,24 @@ interface ConnectionStatusProps {
   onRefresh: () => Promise<void>;
 }
 
-export const ConnectionStatus: React.FC<ConnectionStatusProps> = ({
-  isConnected,
-  onDisconnect,
-  onRefresh
-}) => {
+export const ConnectionStatus: React.FC<ConnectionStatusProps> = ({ isConnected, onDisconnect, onRefresh }) => {
   return (
     <div className="fixed top-4 right-4 z-50 bg-gray-800/90 backdrop-blur-sm border border-gray-600 rounded-lg p-4 text-white max-w-sm">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-medium">Connection Status</h3>
-        <div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}></div>
+        <div className={`w-3 h-3 rounded-full ${isConnected ? "bg-green-500" : "bg-red-500"}`}></div>
       </div>
-      
+
       <div className="space-y-3">
         <div className="text-xs">
           <div className="flex items-center space-x-2">
             <span>Status:</span>
-            <span className={isConnected ? 'text-green-400' : 'text-red-400'}>
-              {isConnected ? 'Connected' : 'Disconnected'}
+            <span className={isConnected ? "text-green-400" : "text-red-400"}>
+              {isConnected ? "Connected" : "Disconnected"}
             </span>
           </div>
         </div>
-        
+
         <div className="flex space-x-2">
           <button
             onClick={onRefresh}

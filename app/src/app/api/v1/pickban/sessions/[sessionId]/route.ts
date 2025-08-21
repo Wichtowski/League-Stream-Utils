@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { deleteGameSession, getGameSession } from "@lib/database";
-import { withAuth } from "@/lib/auth/utils";
+import { withAuth } from "@/lib/auth";
 import type { JWTPayload } from "@lib/types/auth";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ sessionId: string }> }) {

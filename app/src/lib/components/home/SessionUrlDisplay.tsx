@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CopyButton } from "@lib/components/common/buttons";
+import { CopyButton } from "@lib/components/common";
 import type { SessionUrls } from "@lib/types";
 
 interface SessionUrlDisplayProps {
@@ -11,7 +11,7 @@ export function SessionUrlDisplay({ urls }: SessionUrlDisplayProps) {
     <div className="mt-6 p-4 bg-gray-700 rounded-lg">
       <h3 className="text-lg font-semibold mb-3 text-green-400">Session Created!</h3>
       <div className="space-y-3">
-        <div>
+        <div>+
           <span className="font-medium text-amber-300">Configuration URL:</span>
           <div className="p-2 rounded mt-1 break-all flex items-center justify-between">
             <Link

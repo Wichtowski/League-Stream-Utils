@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getGameSession, updateGameSession } from "@lib/database";
-import { withAuth } from "@/lib/auth/utils";
+import { withAuth } from "@/lib/auth";
 import { getChampionById } from "@lib/champions";
 
 export const POST = withAuth(async (req: NextRequest, _user) => {
@@ -9,7 +9,7 @@ export const POST = withAuth(async (req: NextRequest, _user) => {
     const pathParts = url.pathname.split("/");
     const sessionId = pathParts[pathParts.length - 2]; // action is the last part, sessionId is second to last
     const body = await req.json();
-    
+
     const { type, teamSide, championId } = body;
 
     if (!type || !teamSide) {
@@ -71,7 +71,10 @@ export const POST = withAuth(async (req: NextRequest, _user) => {
           ...session.teams,
           [teamSide]: {
             ...session.teams[teamSide as keyof typeof session.teams],
-            [type === "ban" ? "bans" : "picks"]: [...(session.teams[teamSide as keyof typeof session.teams][type === "ban" ? "bans" : "picks"] || []), champion]
+            [type === "ban" ? "bans" : "picks"]: [
+              ...(session.teams[teamSide as keyof typeof session.teams][type === "ban" ? "bans" : "picks"] || []),
+              champion
+            ]
           }
         };
 

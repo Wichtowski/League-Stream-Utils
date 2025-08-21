@@ -728,7 +728,7 @@ class ChampionCacheService extends BaseCacheService<Champion> {
 
       // Build validCompletedSet from actual champions that are complete on disk (not from category progress which might have bad data)
       const validCompletedSet = new Set<string>();
-      
+
       // Find which champions are actually complete by checking which ones are NOT missing
       for (const championKey of allChampionKeys) {
         if (!missingChampionKeys.includes(championKey)) {
@@ -736,7 +736,9 @@ class ChampionCacheService extends BaseCacheService<Champion> {
         }
       }
 
-      console.log(`Found ${validCompletedSet.size} champions already completed on disk out of ${allChampionKeys.length} total`);
+      console.log(
+        `Found ${validCompletedSet.size} champions already completed on disk out of ${allChampionKeys.length} total`
+      );
 
       const ASSETS_PER_CHAMPION = 9;
 

@@ -51,35 +51,44 @@ export default function TeamPickBanPage() {
   const [showPasswordModal, setShowPasswordModal] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  const getTeamBans = useCallback((team: "blue" | "red") => {
-    return actions.filter((action) => action.type === "ban" && action.team === team);
-  }, [actions]);
+  const getTeamBans = useCallback(
+    (team: "blue" | "red") => {
+      return actions.filter((action) => action.type === "ban" && action.team === team);
+    },
+    [actions]
+  );
 
-  const getTeamPicks = useCallback((team: "blue" | "red") => {
-    return actions.filter((action) => action.type === "pick" && action.team === team);
-  }, [actions]);
+  const getTeamPicks = useCallback(
+    (team: "blue" | "red") => {
+      return actions.filter((action) => action.type === "pick" && action.team === team);
+    },
+    [actions]
+  );
 
   // Create mock EnhancedChampSelectSession for hover animations
-  const mockChampSelectData = useMemo(() => ({
-    phase: session?.phase || "ban1",
-    timer: {
-      adjustedTimeLeftInPhase: timer,
-      totalTimeInPhase: 30,
+  const mockChampSelectData = useMemo(
+    () => ({
       phase: session?.phase || "ban1",
-      isInfinite: false
-    },
-    chatDetails: { chatRoomName: "", chatRoomPassword: "" },
-    myTeam: [],
-    theirTeam: [],
-    trades: [],
-    actions: [],
-    bans: {
-      myTeamBans: getTeamBans(teamSide).map((ban) => ban.championId),
-      theirTeamBans: getTeamBans(teamSide === "blue" ? "red" : "blue").map((ban) => ban.championId)
-    },
-    localPlayerCellId: 0,
-    isSpectating: false
-  }), [session?.phase, timer, getTeamBans, teamSide]);
+      timer: {
+        adjustedTimeLeftInPhase: timer,
+        totalTimeInPhase: 30,
+        phase: session?.phase || "ban1",
+        isInfinite: false
+      },
+      chatDetails: { chatRoomName: "", chatRoomPassword: "" },
+      myTeam: [],
+      theirTeam: [],
+      trades: [],
+      actions: [],
+      bans: {
+        myTeamBans: getTeamBans(teamSide).map((ban) => ban.championId),
+        theirTeamBans: getTeamBans(teamSide === "blue" ? "red" : "blue").map((ban) => ban.championId)
+      },
+      localPlayerCellId: 0,
+      isSpectating: false
+    }),
+    [session?.phase, timer, getTeamBans, teamSide]
+  );
 
   // Hover animation hooks
   const turnInfo = useTurnSequence(mockChampSelectData);
@@ -142,14 +151,14 @@ export default function TeamPickBanPage() {
     if (!session) return;
 
     setIsConnected(true);
-    
+
     const pollInterval = setInterval(async () => {
       try {
         const response = await authenticatedFetch(`${API_BASE_URL}/pickban/sessions/${sessionId}`);
         if (response.ok) {
           const updatedSession = await response.json();
           setSession(updatedSession);
-          
+
           // Update timer if session is in progress
           if (updatedSession.sessionState === "in_progress" && updatedSession.timer?.isActive) {
             const now = new Date();
@@ -170,8 +179,6 @@ export default function TeamPickBanPage() {
       setIsConnected(false);
     };
   }, [sessionId, session, authenticatedFetch]);
-
-
 
   const filteredChampions = champions.filter(
     (champion: Champion) =>
@@ -254,7 +261,10 @@ export default function TeamPickBanPage() {
       if (response.ok) {
         setShowChampionSelect(false);
         setPendingAction(null);
-        showAlert({ type: "success", message: `${actionType === "pick" ? "Picked" : "Banned"} ${getChampionById(championId)?.name}` });
+        showAlert({
+          type: "success",
+          message: `${actionType === "pick" ? "Picked" : "Banned"} ${getChampionById(championId)?.name}`
+        });
       }
     } catch (error) {
       console.error("Error performing action:", error);
@@ -322,9 +332,11 @@ export default function TeamPickBanPage() {
           <div className="bg-green-900/30 border border-green-600 px-3 py-2 rounded-lg text-sm">
             Real-time Team Interface
           </div>
-          <div className={`px-3 py-2 rounded-lg text-sm font-medium ${
-            isConnected ? "bg-green-600 text-white" : "bg-red-600 text-white"
-          }`}>
+          <div
+            className={`px-3 py-2 rounded-lg text-sm font-medium ${
+              isConnected ? "bg-green-600 text-white" : "bg-red-600 text-white"
+            }`}
+          >
             {isConnected ? "Connected" : "Disconnected"}
           </div>
           <button
@@ -363,15 +375,13 @@ export default function TeamPickBanPage() {
                 Ready to Start
               </button>
             )}
-            {isReady && (
-              <div className="bg-green-600 text-white px-4 py-2 rounded-lg">
-                Ready ✓
-              </div>
-            )}
+            {isReady && <div className="bg-green-600 text-white px-4 py-2 rounded-lg">Ready ✓</div>}
           </div>
-          
+
           <div className="grid grid-cols-2 gap-4 mt-4">
-            <div className={`p-4 rounded-lg border ${session.teamReadiness?.blue ? "bg-green-900/30 border-green-600" : "bg-gray-700 border-gray-600"}`}>
+            <div
+              className={`p-4 rounded-lg border ${session.teamReadiness?.blue ? "bg-green-900/30 border-green-600" : "bg-gray-700 border-gray-600"}`}
+            >
               <div className="flex items-center">
                 {blueTeamLogoUrl && (
                   <div className="w-8 h-8 rounded-lg overflow-hidden mr-3 bg-gray-700">
@@ -388,8 +398,10 @@ export default function TeamPickBanPage() {
                 {session.teamReadiness?.blue && <span className="ml-auto text-green-400">✓</span>}
               </div>
             </div>
-            
-            <div className={`p-4 rounded-lg border ${session.teamReadiness?.red ? "bg-green-900/30 border-green-600" : "bg-gray-700 border-gray-600"}`}>
+
+            <div
+              className={`p-4 rounded-lg border ${session.teamReadiness?.red ? "bg-green-900/30 border-green-600" : "bg-gray-700 border-gray-600"}`}
+            >
               <div className="flex items-center">
                 {redTeamLogoUrl && (
                   <div className="w-8 h-8 rounded-lg overflow-hidden mr-3 bg-gray-700">
@@ -432,11 +444,13 @@ export default function TeamPickBanPage() {
               <div>
                 <h2 className="text-xl font-semibold capitalize">{session.phase?.replace(/(\d)/, " $1")} Phase</h2>
                 <p className="text-gray-400">
-                  {session.currentTeam === teamSide ? "Your turn!" : `${session.currentTeam === "blue" ? "Blue" : "Red"} team's turn`}
+                  {session.currentTeam === teamSide
+                    ? "Your turn!"
+                    : `${session.currentTeam === "blue" ? "Blue" : "Red"} team's turn`}
                 </p>
               </div>
             </div>
-            
+
             {/* Timer */}
             {timer > 0 && (
               <div className="text-center">
@@ -444,7 +458,7 @@ export default function TeamPickBanPage() {
                 <div className="text-sm text-gray-400">Time remaining</div>
               </div>
             )}
-            
+
             {/* Action Buttons */}
             {isMyTurn && session.sessionState === "in_progress" && (
               <div className="flex gap-3">
@@ -496,8 +510,7 @@ export default function TeamPickBanPage() {
           <div className="grid grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-3 max-h-96 overflow-y-auto">
             {filteredChampions
               .filter(
-                (champion) =>
-                  !getBannedChampions().includes(champion.id) && !getPickedChampions().includes(champion.id)
+                (champion) => !getBannedChampions().includes(champion.id) && !getPickedChampions().includes(champion.id)
               )
               .map((champion) => (
                 <button
@@ -528,7 +541,9 @@ export default function TeamPickBanPage() {
       {/* Teams Display */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         {/* My Team */}
-        <div className={`rounded-lg p-6 border ${teamSide === "blue" ? "bg-blue-900/30 border-blue-600" : "bg-red-900/30 border-red-600"}`}>
+        <div
+          className={`rounded-lg p-6 border ${teamSide === "blue" ? "bg-blue-900/30 border-blue-600" : "bg-red-900/30 border-red-600"}`}
+        >
           <div className="flex items-center mb-4">
             {myTeamLogoUrl && (
               <div className="w-12 h-12 rounded-lg overflow-hidden mr-3 bg-gray-700">
@@ -595,7 +610,10 @@ export default function TeamPickBanPage() {
                 const champion = pick ? getChampionById(pick.championId) : null;
 
                 return (
-                  <div key={i} className={`flex items-center rounded p-3 ${teamSide === "blue" ? "bg-blue-800/30" : "bg-red-800/30"}`}>
+                  <div
+                    key={i}
+                    className={`flex items-center rounded p-3 ${teamSide === "blue" ? "bg-blue-800/30" : "bg-red-800/30"}`}
+                  >
                     <div className="w-12 h-12 bg-gray-800 rounded border border-gray-600 overflow-hidden mr-3">
                       {champion ? (
                         <Image
@@ -623,7 +641,9 @@ export default function TeamPickBanPage() {
         </div>
 
         {/* Opponent Team */}
-        <div className={`rounded-lg p-6 border ${teamSide === "blue" ? "bg-red-900/30 border-red-600" : "bg-blue-900/30 border-blue-600"}`}>
+        <div
+          className={`rounded-lg p-6 border ${teamSide === "blue" ? "bg-red-900/30 border-red-600" : "bg-blue-900/30 border-blue-600"}`}
+        >
           <div className="flex items-center mb-4">
             {opponentTeamLogoUrl && (
               <div className="w-12 h-12 rounded-lg overflow-hidden mr-3 bg-gray-700">
@@ -690,7 +710,10 @@ export default function TeamPickBanPage() {
                 const champion = pick ? getChampionById(pick.championId) : null;
 
                 return (
-                  <div key={i} className={`flex items-center rounded p-3 ${teamSide === "blue" ? "bg-red-800/30" : "bg-blue-800/30"}`}>
+                  <div
+                    key={i}
+                    className={`flex items-center rounded p-3 ${teamSide === "blue" ? "bg-red-800/30" : "bg-blue-800/30"}`}
+                  >
                     <div className="w-12 h-12 bg-gray-800 rounded border border-gray-600 overflow-hidden mr-3">
                       {champion ? (
                         <Image

@@ -121,12 +121,12 @@ export default function CamerasPage(): ReactElement {
                     <span className="font-semibold text-xs text-gray-400">Camera Status:</span>
                     <ul className="text-xs mt-1">
                       {team.players.main.map((p: MergedPlayer) => (
-                        <li key={p.inGameName} className={p.cameraUrl ? "text-green-400" : "text-yellow-400"}>
+                        <li key={p.playerId} className={p.cameraUrl ? "text-green-400" : "text-yellow-400"}>
                           {p.inGameName} {p.cameraUrl ? "• Configured" : "• Not Configured"}
                         </li>
                       ))}
                       {team.players.substitutes.map((p: MergedPlayer) => (
-                        <li key={p.inGameName} className={p.cameraUrl ? "text-green-400" : "text-yellow-400"}>
+                        <li key={p.playerId} className={p.cameraUrl ? "text-green-400" : "text-yellow-400"}>
                           {p.inGameName} (Sub) {p.cameraUrl ? "• Configured" : "• Not Configured"}
                         </li>
                       ))}

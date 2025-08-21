@@ -34,13 +34,13 @@ export class GameService {
     try {
       // Get game status via proxy API
       const response = await fetch("/api/game");
-      
+
       if (!response.ok) {
         return { success: false, error: `Proxy API error: ${response.status} ${response.statusText}` };
       }
 
       const liveData = await response.json();
-      
+
       // Determine if in game based on whether we have live data
       const isInGame = liveData && liveData.gameData && liveData.allPlayers;
       const gamePhase = isInGame ? "InProgress" : "WaitingForGame";
@@ -68,11 +68,11 @@ export class GameService {
     try {
       // Use our proxy API endpoint to avoid SSL certificate issues
       const response = await fetch("/api/game");
-      
+
       if (!response.ok) {
-        return { 
-          success: false, 
-          error: `Proxy API error: ${response.status} ${response.statusText}` 
+        return {
+          success: false,
+          error: `Proxy API error: ${response.status} ${response.statusText}`
         };
       }
 
@@ -136,44 +136,46 @@ function transformRiotToLiveGameData(riot: import("@lib/types/live-client").Riot
   const nowSeconds = Math.floor(Date.now() / 1000);
   const gameTime = riot.gameData?.gameTime ?? 0;
 
-  const allPlayers: LivePlayer[] = (riot.allPlayers || []).map((p): LivePlayer => ({
-    summonerName: p.summonerName,
-    championName: p.championName,
-    team: p.team,
-    position: p.position,
-    scores: {
-      kills: p.scores?.kills ?? 0,
-      deaths: p.scores?.deaths ?? 0,
-      assists: p.scores?.assists ?? 0,
-      creepScore: p.scores?.creepScore ?? 0,
-      visionScore: p.scores?.wardScore ?? 0
-    },
-    items: (p.items || []).map((it) => ({
-      itemID: it.itemID ?? 0,
-      name: it.name ?? "",
-      count: it.count ?? 0,
-      price: 0
-    })),
-    level: p.level ?? 1,
-    gold: 0,
-    health: 0,
-    maxHealth: 1,
-    summonerSpells: {
-      summonerSpellOne: {
-        displayName: p.summonerSpells?.summonerSpellOne?.displayName ?? "",
-        rawDescription: p.summonerSpells?.summonerSpellOne?.rawDescription ?? ""
+  const allPlayers: LivePlayer[] = (riot.allPlayers || []).map(
+    (p): LivePlayer => ({
+      summonerName: p.summonerName,
+      championName: p.championName,
+      team: p.team,
+      position: p.position,
+      scores: {
+        kills: p.scores?.kills ?? 0,
+        deaths: p.scores?.deaths ?? 0,
+        assists: p.scores?.assists ?? 0,
+        creepScore: p.scores?.creepScore ?? 0,
+        visionScore: p.scores?.wardScore ?? 0
       },
-      summonerSpellTwo: {
-        displayName: p.summonerSpells?.summonerSpellTwo?.displayName ?? "",
-        rawDescription: p.summonerSpells?.summonerSpellTwo?.rawDescription ?? ""
+      items: (p.items || []).map((it) => ({
+        itemID: it.itemID ?? 0,
+        name: it.name ?? "",
+        count: it.count ?? 0,
+        price: 0
+      })),
+      level: p.level ?? 1,
+      gold: 0,
+      health: 0,
+      maxHealth: 1,
+      summonerSpells: {
+        summonerSpellOne: {
+          displayName: p.summonerSpells?.summonerSpellOne?.displayName ?? "",
+          rawDescription: p.summonerSpells?.summonerSpellOne?.rawDescription ?? ""
+        },
+        summonerSpellTwo: {
+          displayName: p.summonerSpells?.summonerSpellTwo?.displayName ?? "",
+          rawDescription: p.summonerSpells?.summonerSpellTwo?.rawDescription ?? ""
+        }
+      },
+      runes: {
+        keystone: p.runes?.keystone?.displayName ?? "",
+        primaryRuneTree: p.runes?.primaryRuneTree?.displayName ?? "",
+        secondaryRuneTree: p.runes?.secondaryRuneTree?.displayName ?? ""
       }
-    },
-    runes: {
-      keystone: p.runes?.keystone?.displayName ?? "",
-      primaryRuneTree: p.runes?.primaryRuneTree?.displayName ?? "",
-      secondaryRuneTree: p.runes?.secondaryRuneTree?.displayName ?? ""
-    }
-  }));
+    })
+  );
 
   const activeName = riot.activePlayer?.summonerName;
   const active = allPlayers.find((x) => x.summonerName === activeName);

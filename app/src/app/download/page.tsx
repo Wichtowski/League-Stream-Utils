@@ -22,13 +22,7 @@ interface OverallProgress {
   percentage: number;
 }
 
-const categories = [
-  "champion",
-  "item",
-  "game-ui",
-  "spell",
-  "rune"
-];
+const categories = ["champion", "item", "game-ui", "spell", "rune"];
 
 export default function DownloadAssetsPage() {
   const router = useRouter();
@@ -98,7 +92,7 @@ export default function DownloadAssetsPage() {
           newMap.forEach((catProgress) => {
             // Skip "overall" category to avoid double-counting
             if (catProgress.category === "overall") return;
-            
+
             if (catProgress.stage === "complete") {
               totalCurrent += catProgress.total;
               totalTotal += catProgress.total;

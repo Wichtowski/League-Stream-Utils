@@ -17,12 +17,12 @@ const nextConfig: NextConfig = {
   // Content Security Policy headers (duplicated in auth.ts since data types missmatch)
   async headers() {
     const isDev = process.env.NODE_ENV === "development";
-    
+
     // Skip CSP headers in development to avoid conflicts with dev tools
     if (isDev) {
       return [];
     }
-    
+
     return [
       {
         source: "/(.*)",

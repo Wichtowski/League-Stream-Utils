@@ -19,7 +19,6 @@ export default function CreateMatchPage({ params }: CreateMatchPageProps): React
   const user = useUser();
   const router = useRouter();
 
-  
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [bracketStructure, setBracketStructure] = useState<BracketStructure | null>(null);
   const [loading, setLoading] = useState(true);
@@ -67,7 +66,6 @@ export default function CreateMatchPage({ params }: CreateMatchPageProps): React
           // Bracket might not exist yet, which is fine
           console.debug("No bracket found for tournament:", bracketError);
         }
-
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to fetch data");
       } finally {
@@ -126,9 +124,9 @@ export default function CreateMatchPage({ params }: CreateMatchPageProps): React
         ]}
       >
         <div className="min-h-screen p-6 max-w-6xl mx-auto">
-            <div className="text-center py-12">
-                <div className="text-red-400 text-lg mb-4">Tournament not found</div>
-            </div>
+          <div className="text-center py-12">
+            <div className="text-red-400 text-lg mb-4">Tournament not found</div>
+          </div>
         </div>
       </PageWrapper>
     );
@@ -143,9 +141,7 @@ export default function CreateMatchPage({ params }: CreateMatchPageProps): React
     >
       <div className="min-h-screen p-6 max-w-6xl mx-auto">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-white mt-4">
-            Create Match - {tournament.name}
-          </h1>
+          <h1 className="text-2xl font-bold text-white mt-4">Create Match - {tournament.name}</h1>
           <p className="text-gray-400 mt-2">
             Create a new match for this tournament. You can create matches manually or from existing bracket nodes.
           </p>

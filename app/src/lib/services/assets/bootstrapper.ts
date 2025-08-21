@@ -36,7 +36,7 @@ interface CategoryTracker {
 export const downloadAllAssets = async (onProgress?: (progress: BootstrapProgress) => void): Promise<void> => {
   // First, get accurate total asset counts
   let totalAssetCounts: AssetCounts | null = null;
-  
+
   try {
     onProgress?.({
       current: 0,
@@ -49,7 +49,7 @@ export const downloadAllAssets = async (onProgress?: (progress: BootstrapProgres
     });
 
     totalAssetCounts = await assetCounterService.getTotalAssetCounts();
-    
+
     onProgress?.({
       current: 0,
       total: totalAssetCounts.total,
@@ -129,16 +129,15 @@ export const downloadAllAssets = async (onProgress?: (progress: BootstrapProgres
 
   const updateOverallProgress = (): void => {
     if (!totalAssetCounts) return;
-    
+
     // Calculate overall progress across all categories
     let totalCompletedAssets = 0;
     for (const tracker of categoryTrackers.values()) {
       totalCompletedAssets += tracker.completedAssets;
     }
-    
-    const overallPercentage = totalAssetCounts.total > 0 
-      ? Math.round((totalCompletedAssets / totalAssetCounts.total) * 100)
-      : 0;
+
+    const overallPercentage =
+      totalAssetCounts.total > 0 ? Math.round((totalCompletedAssets / totalAssetCounts.total) * 100) : 0;
 
     // Send an overall progress update
     onProgress?.({
@@ -167,11 +166,11 @@ export const downloadAllAssets = async (onProgress?: (progress: BootstrapProgres
       // DON'T override tracker.total - keep the original value (1539)
       tracker.stage = p.stage;
       tracker.currentAsset = p.currentAsset || p.itemName || "champion";
-      
+
       // Update completed assets for overall progress
       tracker.completedAssets = p.current;
 
-      onProgress?.({ 
+      onProgress?.({
         current: tracker.current,
         total: tracker.total,
         itemName: p.itemName,
@@ -181,11 +180,13 @@ export const downloadAllAssets = async (onProgress?: (progress: BootstrapProgres
         currentAsset: p.currentAsset,
         category: "champion",
         totalAssets: totalAssetCounts?.total || 0,
-        overallProgress: totalAssetCounts ? {
-          completedAssets: tracker.completedAssets,
-          totalAssets: totalAssetCounts.total,
-          percentage: Math.round((tracker.completedAssets / totalAssetCounts.total) * 100)
-        } : undefined
+        overallProgress: totalAssetCounts
+          ? {
+              completedAssets: tracker.completedAssets,
+              totalAssets: totalAssetCounts.total,
+              percentage: Math.round((tracker.completedAssets / totalAssetCounts.total) * 100)
+            }
+          : undefined
       });
       updateOverallProgress();
     });
@@ -200,11 +201,13 @@ export const downloadAllAssets = async (onProgress?: (progress: BootstrapProgres
       percentage: 0,
       category: "champion",
       totalAssets: totalAssetCounts?.total,
-      overallProgress: totalAssetCounts ? {
-        completedAssets: 0,
-        totalAssets: totalAssetCounts.total,
-        percentage: 0
-      } : undefined
+      overallProgress: totalAssetCounts
+        ? {
+            completedAssets: 0,
+            totalAssets: totalAssetCounts.total,
+            percentage: 0
+          }
+        : undefined
     });
 
     // Download all individual champions (service fetches champion list internally)
@@ -223,19 +226,21 @@ export const downloadAllAssets = async (onProgress?: (progress: BootstrapProgres
       tracker.total = p.total;
       tracker.stage = p.stage;
       tracker.currentAsset = p.currentAsset || p.itemName || "item";
-      
+
       // Update completed assets for overall progress
       tracker.completedAssets = p.current;
 
-      onProgress?.({ 
-        ...p, 
+      onProgress?.({
+        ...p,
         category: "item",
         totalAssets: totalAssetCounts?.total,
-        overallProgress: totalAssetCounts ? {
-          completedAssets: tracker.completedAssets,
-          totalAssets: totalAssetCounts.total,
-          percentage: Math.round((tracker.completedAssets / totalAssetCounts.total) * 100)
-        } : undefined
+        overallProgress: totalAssetCounts
+          ? {
+              completedAssets: tracker.completedAssets,
+              totalAssets: totalAssetCounts.total,
+              percentage: Math.round((tracker.completedAssets / totalAssetCounts.total) * 100)
+            }
+          : undefined
       });
       updateOverallProgress();
     });
@@ -249,19 +254,21 @@ export const downloadAllAssets = async (onProgress?: (progress: BootstrapProgres
       tracker.total = p.total;
       tracker.stage = p.stage;
       tracker.currentAsset = p.currentAsset || p.itemName || "item";
-      
+
       // Update completed assets for overall progress
       tracker.completedAssets = p.current;
 
-      onProgress?.({ 
-        ...p, 
+      onProgress?.({
+        ...p,
         category: "item",
         totalAssets: totalAssetCounts?.total,
-        overallProgress: totalAssetCounts ? {
-          completedAssets: tracker.completedAssets,
-          totalAssets: totalAssetCounts.total,
-          percentage: Math.round((tracker.completedAssets / totalAssetCounts.total) * 100)
-        } : undefined
+        overallProgress: totalAssetCounts
+          ? {
+              completedAssets: tracker.completedAssets,
+              totalAssets: totalAssetCounts.total,
+              percentage: Math.round((tracker.completedAssets / totalAssetCounts.total) * 100)
+            }
+          : undefined
       });
       updateOverallProgress();
     });
@@ -281,7 +288,7 @@ export const downloadAllAssets = async (onProgress?: (progress: BootstrapProgres
       tracker.total = p.total;
       tracker.stage = p.stage;
       tracker.currentAsset = p.currentAsset || p.message || "game-ui-assets";
-      
+
       // Update completed assets for overall progress
       tracker.completedAssets = p.current;
 
@@ -293,11 +300,13 @@ export const downloadAllAssets = async (onProgress?: (progress: BootstrapProgres
         percentage: p.total > 0 ? Math.round((p.current / p.total) * 100) : 0,
         category: "game-ui",
         totalAssets: totalAssetCounts?.total,
-        overallProgress: totalAssetCounts ? {
-          completedAssets: tracker.completedAssets,
-          totalAssets: totalAssetCounts.total,
-          percentage: Math.round((tracker.completedAssets / totalAssetCounts.total) * 100)
-        } : undefined
+        overallProgress: totalAssetCounts
+          ? {
+              completedAssets: tracker.completedAssets,
+              totalAssets: totalAssetCounts.total,
+              percentage: Math.round((tracker.completedAssets / totalAssetCounts.total) * 100)
+            }
+          : undefined
       });
       updateOverallProgress();
     });
@@ -312,11 +321,13 @@ export const downloadAllAssets = async (onProgress?: (progress: BootstrapProgres
       percentage: 0,
       category: "game-ui",
       totalAssets: totalAssetCounts?.total,
-      overallProgress: totalAssetCounts ? {
-        completedAssets: 0,
-        totalAssets: totalAssetCounts.total,
-        percentage: 0
-      } : undefined
+      overallProgress: totalAssetCounts
+        ? {
+            completedAssets: 0,
+            totalAssets: totalAssetCounts.total,
+            percentage: 0
+          }
+        : undefined
     });
 
     try {
@@ -348,19 +359,21 @@ export const downloadAllAssets = async (onProgress?: (progress: BootstrapProgres
       tracker.total = p.total;
       tracker.stage = p.stage;
       tracker.currentAsset = p.currentAsset || p.itemName || "spell";
-      
+
       // Update completed assets for overall progress
       tracker.completedAssets = p.current;
 
-      onProgress?.({ 
-        ...p, 
+      onProgress?.({
+        ...p,
         category: "spell",
         totalAssets: totalAssetCounts?.total,
-        overallProgress: totalAssetCounts ? {
-          completedAssets: tracker.completedAssets,
-          totalAssets: totalAssetCounts.total,
-          percentage: Math.round((tracker.completedAssets / totalAssetCounts.total) * 100)
-        } : undefined
+        overallProgress: totalAssetCounts
+          ? {
+              completedAssets: tracker.completedAssets,
+              totalAssets: totalAssetCounts.total,
+              percentage: Math.round((tracker.completedAssets / totalAssetCounts.total) * 100)
+            }
+          : undefined
       });
       updateOverallProgress();
     });
@@ -375,11 +388,13 @@ export const downloadAllAssets = async (onProgress?: (progress: BootstrapProgres
       percentage: 0,
       category: "spell",
       totalAssets: totalAssetCounts?.total,
-      overallProgress: totalAssetCounts ? {
-        completedAssets: 0,
-        totalAssets: totalAssetCounts.total,
-        percentage: 0
-      } : undefined
+      overallProgress: totalAssetCounts
+        ? {
+            completedAssets: 0,
+            totalAssets: totalAssetCounts.total,
+            percentage: 0
+          }
+        : undefined
     });
 
     try {
@@ -412,19 +427,21 @@ export const downloadAllAssets = async (onProgress?: (progress: BootstrapProgres
       tracker.total = p.total;
       tracker.stage = p.stage;
       tracker.currentAsset = p.currentAsset || p.itemName || "rune";
-      
+
       // Update completed assets for overall progress
       tracker.completedAssets = p.current;
 
-      onProgress?.({ 
-        ...p, 
+      onProgress?.({
+        ...p,
         category: "rune",
         totalAssets: totalAssetCounts?.total,
-        overallProgress: totalAssetCounts ? {
-          completedAssets: tracker.completedAssets,
-          totalAssets: totalAssetCounts.total,
-          percentage: Math.round((tracker.completedAssets / totalAssetCounts.total) * 100)
-        } : undefined
+        overallProgress: totalAssetCounts
+          ? {
+              completedAssets: tracker.completedAssets,
+              totalAssets: totalAssetCounts.total,
+              percentage: Math.round((tracker.completedAssets / totalAssetCounts.total) * 100)
+            }
+          : undefined
       });
       updateOverallProgress();
     });
@@ -439,11 +456,13 @@ export const downloadAllAssets = async (onProgress?: (progress: BootstrapProgres
       percentage: 0,
       category: "rune",
       totalAssets: totalAssetCounts?.total,
-      overallProgress: totalAssetCounts ? {
-        completedAssets: 0,
-        totalAssets: totalAssetCounts.total,
-        percentage: 0
-      } : undefined
+      overallProgress: totalAssetCounts
+        ? {
+            completedAssets: 0,
+            totalAssets: totalAssetCounts.total,
+            percentage: 0
+          }
+        : undefined
     });
 
     try {

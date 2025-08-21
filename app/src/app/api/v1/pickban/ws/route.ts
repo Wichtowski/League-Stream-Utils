@@ -1,9 +1,8 @@
 import { NextRequest } from "next/server";
-import { 
-  getGameSession,
-  // updateGameSession 
-}
-from "@lib/database";
+import {
+  getGameSession
+  // updateGameSession
+} from "@lib/database";
 // import { getChampionById } from "@lib/champions";
 
 // WebSocket connections will be handled on the client side

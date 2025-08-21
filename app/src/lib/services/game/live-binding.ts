@@ -32,11 +32,7 @@ const roleToLivePosition = (role: PlayerRole): string => {
   return "UTILITY";
 };
 
-const bindTeam = (
-  roster: Player[],
-  liveTeam: LivePlayer[],
-  team: "ORDER" | "CHAOS"
-): BoundPlayer[] => {
+const bindTeam = (roster: Player[], liveTeam: LivePlayer[], team: "ORDER" | "CHAOS"): BoundPlayer[] => {
   const used = new Set<number>();
 
   const slots: BoundPlayer[] = ROLE_ORDER.map((role) => ({
@@ -65,9 +61,7 @@ const bindTeam = (
   // 2) For remaining empty slots, match by live position/role
   slots.forEach((slot) => {
     if (slot.livePlayer) return;
-    const idx = liveTeam.findIndex(
-      (lp, i) => !used.has(i) && livePositionToRole(lp.position) === slot.resolvedRole
-    );
+    const idx = liveTeam.findIndex((lp, i) => !used.has(i) && livePositionToRole(lp.position) === slot.resolvedRole);
     if (idx >= 0) {
       slot.livePlayer = liveTeam[idx];
       used.add(idx);
@@ -107,9 +101,7 @@ export const bindLivePlayersToMatch = (
     if (b.livePlayer) usedSet.add(`${b.livePlayer.team}:${normalize(b.livePlayer.summonerName)}`);
   });
 
-  const unbound = livePlayers.filter(
-    (lp) => !usedSet.has(`${lp.team}:${normalize(lp.summonerName)}`)
-  );
+  const unbound = livePlayers.filter((lp) => !usedSet.has(`${lp.team}:${normalize(lp.summonerName)}`));
 
   return { blue, red, unbound };
 };
@@ -137,5 +129,3 @@ export const createFallbackLivePlayer = (player: Player, team: "ORDER" | "CHAOS"
 });
 
 export const getRoleOrder = (): PlayerRole[] => ROLE_ORDER;
-
-

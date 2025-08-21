@@ -15,7 +15,9 @@ export const TeamStreamSection = ({ teamStreamUrl, onChange }: TeamStreamSection
           <h3 className="text-lg font-semibold text-white">Team Stream</h3>
           <p className="text-sm text-gray-400">Single stream representing the whole team</p>
         </div>
-        <div className={`w-3 h-3 rounded-full ${teamStreamUrl && teamStreamUrl.trim() !== "" ? "bg-green-500" : "bg-gray-500"}`}></div>
+        <div
+          className={`w-3 h-3 rounded-full ${teamStreamUrl && teamStreamUrl.trim() !== "" ? "bg-green-500" : "bg-gray-500"}`}
+        ></div>
       </div>
       <div className="space-y-4">
         <div>

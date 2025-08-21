@@ -1,7 +1,12 @@
 import { Item } from "./types";
 import { DDRAGON_CDN } from "@lib/services/common/constants";
 import { itemCacheService } from "@lib/services/assets/item";
-import { getLatestVersion as getLatestDdragonVersion, saveListToLocal, loadListFromLocal, toLocalImageUrl } from "@lib/services/common/unified-asset-cache";
+import {
+  getLatestVersion as getLatestDdragonVersion,
+  saveListToLocal,
+  loadListFromLocal,
+  toLocalImageUrl
+} from "@lib/services/common/unified-asset-cache";
 
 const getLatestVersion = async (): Promise<string> => {
   return await getLatestDdragonVersion();
@@ -52,8 +57,8 @@ async function loadFromElectronCache(): Promise<{ items: Item[]; timestamp: numb
   try {
     const items = await itemCacheService.getAllItems();
     if (items.length > 0) {
-        const mapped = (items as Item[]).map((i) => ({ ...i, image: toLocalImageUrl(i.image) }));
-        return { items: mapped, timestamp: Date.now() };
+      const mapped = (items as Item[]).map((i) => ({ ...i, image: toLocalImageUrl(i.image) }));
+      return { items: mapped, timestamp: Date.now() };
     }
   } catch (_error) {
     return null;
@@ -111,5 +116,3 @@ export const getItemById = (id: string): Item | undefined => {
   const items = getItemsCached();
   return items.find((i) => i.id === id);
 };
-
-

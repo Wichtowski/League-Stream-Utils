@@ -19,7 +19,7 @@ export const useGameData = (pollingInterval = 1000): UseGameDataReturn => {
   const [isConnected, setIsConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
   const isPollingRef = useRef(false);
 
@@ -30,8 +30,6 @@ export const useGameData = (pollingInterval = 1000): UseGameDataReturn => {
     }
     isPollingRef.current = false;
   }, []);
-
-  
 
   const disconnect = useCallback(async (): Promise<void> => {
     try {
@@ -53,12 +51,12 @@ export const useGameData = (pollingInterval = 1000): UseGameDataReturn => {
 
     try {
       setError(null);
-      
+
       // Get game status
       const statusResult = await gameService.getGameStatus();
       if (statusResult.success && statusResult.data) {
         setGameStatus(statusResult.data);
-        
+
         // If in game, get live game data
         if (statusResult.data.isInGame) {
           const gameDataResult = await gameService.getLiveGameData();
@@ -99,10 +97,10 @@ export const useGameData = (pollingInterval = 1000): UseGameDataReturn => {
     try {
       setIsLoading(true);
       setError(null);
-      
+
       const success = await gameService.connect();
       setIsConnected(success);
-      
+
       if (success) {
         await refreshData();
         startPolling();
@@ -121,7 +119,7 @@ export const useGameData = (pollingInterval = 1000): UseGameDataReturn => {
   // Auto-connect on mount
   useEffect(() => {
     connect();
-    
+
     return () => {
       stopPolling();
     };

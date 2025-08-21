@@ -1,13 +1,17 @@
 import { SummonerSpell } from "./types/summoner-spell";
 import { summonerSpellCacheService } from "./services/assets/summoner-spell";
 import { DDRAGON_CDN } from "@lib/services/common/constants";
-import { getLatestVersion as getLatestDdragonVersion, loadListFromLocal, saveListToLocal, clearLocal, toLocalImageUrl } from "@lib/services/common/unified-asset-cache";
+import {
+  getLatestVersion as getLatestDdragonVersion,
+  loadListFromLocal,
+  saveListToLocal,
+  clearLocal,
+  toLocalImageUrl
+} from "@lib/services/common/unified-asset-cache";
 
 const getLatestVersion = async (): Promise<string> => {
   return await getLatestDdragonVersion();
 };
-
- 
 
 async function fetchSummonerSpellsFromAPI(): Promise<{
   spells: SummonerSpell[];
@@ -24,7 +28,17 @@ async function fetchSummonerSpellsFromAPI(): Promise<{
   const data = await response.json();
 
   const spells: SummonerSpell[] = Object.values(data.data).map((spell: unknown) => {
-    const s = spell as { id: string; name: string; key: string; description: string; maxrank: number; cooldown: number[]; cost: number[]; range: number[]; image: { full: string } };
+    const s = spell as {
+      id: string;
+      name: string;
+      key: string;
+      description: string;
+      maxrank: number;
+      cooldown: number[];
+      cost: number[];
+      range: number[];
+      image: { full: string };
+    };
     return {
       id: s.id,
       name: s.name,
@@ -68,12 +82,12 @@ async function getSummonerSpellsFromComprehensiveCache(): Promise<SummonerSpell[
     // Check if we're in Electron environment
     if (typeof window === "undefined" || !window.electronAPI) {
       console.log("Not in Electron environment, fetching from DataDragon API");
-      return await fetchSummonerSpellsFromAPI().then(data => data.spells);
+      return await fetchSummonerSpellsFromAPI().then((data) => data.spells);
     }
 
     const spells = await summonerSpellCacheService.getAllSummonerSpells();
     console.log("Spells:", spells);
-    
+
     if (spells.length === 0) {
       try {
         await summonerSpellCacheService.downloadAllSummonerSpellsOnStartup();
@@ -84,7 +98,7 @@ async function getSummonerSpellsFromComprehensiveCache(): Promise<SummonerSpell[
         return [];
       }
     }
-    
+
     return spells;
   } catch (error) {
     console.warn("Comprehensive summoner spell cache failed:", error);
@@ -158,7 +172,7 @@ export const getSummonerSpellsCached = (): SummonerSpell[] => {
 export const getSummonerSpellByKey = (key: string): SummonerSpell | undefined => {
   const spells = getSummonerSpellsCached();
   const found = spells.find((spell) => spell.key === key);
-  
+
   return found;
 };
 
@@ -203,5 +217,3 @@ export async function getSummonerSpellCacheStats(): Promise<{
   }
   return null;
 }
-
-

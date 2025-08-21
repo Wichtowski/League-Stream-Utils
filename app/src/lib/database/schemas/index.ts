@@ -6,3 +6,4 @@ export * from "./camera";
 export * from "./user";
 export * from "./security";
 export * from "./match";
+export * from "./team";

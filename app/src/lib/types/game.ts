@@ -1,8 +1,7 @@
 import { MatchFormat } from "./tournament";
-import { GamePhase, PlayerRole } from "./common";
-import { ImageStorage } from "./tournament";
-import { Staff } from "./tournament";
-import { TeamTier } from "./tournament";
+import { GamePhase, PlayerRole, ImageStorage } from "./common";
+import { Team } from "./team";
+
 
 export interface Champion {
   id: number;
@@ -32,52 +31,6 @@ export interface ChampionSpell {
 export interface Coach {
   name: string;
   id?: string;
-}
-
-export interface Team {
-  id: string;
-  name: string;
-  tag: string;
-  logo: ImageStorage;
-  colors: {
-    primary: string;
-    secondary: string;
-    accent: string;
-  };
-  players: {
-    main: Player[];
-    substitutes: Player[];
-  };
-  staff?: {
-    coach?: Staff;
-    analyst?: Staff;
-    manager?: Staff;
-  };
-  region: string;
-  tier: TeamTier;
-  founded: Date;
-  verified: boolean;
-  verificationSubmittedAt?: Date;
-  socialMedia?: {
-    twitter?: string;
-    discord?: string;
-    website?: string;
-  };
-  userId: string;
-  createdAt: Date;
-  updatedAt: Date;
-
-  // Standalone team fields
-  isStandalone?: boolean;
-  tournamentId?: string;
-
-  // In-game draft fields (optional so tournament objects remain valid)
-  side?: "blue" | "red";
-  bans?: Champion[];
-  picks?: Champion[];
-  isReady?: boolean;
-  usedChampions?: Champion[];
-  coach?: Coach;
 }
 
 export interface GameConfig {

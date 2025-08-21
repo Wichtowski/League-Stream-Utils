@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { withAuth } from "@/lib/auth/utils";
+import { withAuth } from "@/lib/auth";
 import { getTeamById, verifyTeamPlayers } from "@lib/database/team";
 import { connectToDatabase } from "@lib/database/connection";
 import { TeamModel } from "@lib/database/models";
 import type { JWTPayload } from "@lib/types/auth";
+import { Player } from "@lib/types/game";
 
 export const POST = withAuth(async (req: NextRequest, user: JWTPayload) => {
   try {
@@ -41,12 +42,12 @@ export const POST = withAuth(async (req: NextRequest, user: JWTPayload) => {
 
     if (verifyPlayers && verified) {
       const playerUpdates = [
-        ...team.players.main.map((player) => ({
-          playerId: player.id,
+        ...team.players.main.map((p: Player) => ({
+          playerId: p.id,
           verified: true
         })),
-        ...team.players.substitutes.map((player) => ({
-          playerId: player.id,
+        ...team.players.substitutes.map((p: Player) => ({
+          playerId: p.id,
           verified: true
         }))
       ];
@@ -86,20 +87,20 @@ export const GET = withAuth(async (req: NextRequest, user: JWTPayload) => {
       teamVerified: team.verified,
       verificationSubmittedAt: team.verificationSubmittedAt,
       playersVerified: {
-        main: team.players.main.map((p) => ({
+        main: team.players.main.map((p: Player) => ({
           id: p.id,
           inGameName: p.inGameName,
           verified: p.verified,
           verifiedAt: p.verifiedAt
         })),
-        substitutes: team.players.substitutes.map((p) => ({
+        substitutes: team.players.substitutes.map((p: Player) => ({
           id: p.id,
           inGameName: p.inGameName,
           verified: p.verified,
           verifiedAt: p.verifiedAt
         }))
       },
-      allPlayersVerified: [...team.players.main, ...team.players.substitutes].every((p) => p.verified)
+      allPlayersVerified: [...team.players.main, ...team.players.substitutes].every((p: Player) => p.verified)
     };
 
     return NextResponse.json({ team: verificationStatus });

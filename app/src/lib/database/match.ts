@@ -10,15 +10,22 @@ import type {
   AssignCommentatorRequest,
   SubmitPredictionRequest,
   MatchCommentator,
-  MatchPrediction
 } from "@lib/types/match";
+import { ImageStorage, TeamColors } from "@lib/types/common";
+import { Player } from "@lib/types/game";
+
+// Helper function to transform mongoose document to Match
+function transformToMatch(doc: { _id?: unknown; __v?: number; [key: string]: unknown }): Match {
+  const { _id, __v, ...match } = doc;
+  return match as unknown as Match;
+}
 
 export async function createMatch(userId: string, matchData: CreateMatchRequest): Promise<Match> {
   await connectToDatabase();
 
   // Fetch team data
-  const blueTeam = await TeamModel.findOne({ id: matchData.blueTeamId });
-  const redTeam = await TeamModel.findOne({ id: matchData.redTeamId });
+  const blueTeam = await TeamModel.findOne({ id: matchData.blueTeamId }).lean();
+  const redTeam = await TeamModel.findOne({ id: matchData.redTeamId }).lean();
 
   if (!blueTeam || !redTeam) {
     throw new Error("One or both teams not found");
@@ -29,7 +36,7 @@ export async function createMatch(userId: string, matchData: CreateMatchRequest)
   if (matchData.tournamentId) {
     tournamentData = await TournamentModel.findOne({
       id: matchData.tournamentId
-    });
+    }).lean();
     if (!tournamentData) {
       throw new Error("Tournament not found");
     }
@@ -40,20 +47,17 @@ export async function createMatch(userId: string, matchData: CreateMatchRequest)
     name: matchData.name,
     type: matchData.type,
     tournamentId: matchData.tournamentId,
-    tournamentName: tournamentData?.name,
-    tournamentLogo: tournamentData?.logo,
     bracketNodeId: matchData.bracketNodeId,
     blueTeam: {
       id: blueTeam.id,
       name: blueTeam.name,
       tag: blueTeam.tag,
-      logo: blueTeam.logo,
-      colors: blueTeam.colors,
-      players: blueTeam.players.main,
+      logo: blueTeam.logo as ImageStorage,
+      colors: blueTeam.colors as TeamColors,
+      players: blueTeam.players?.main as Player[],
       coach: blueTeam.staff?.coach
         ? {
-            name: blueTeam.staff.coach.name,
-            profileImage: blueTeam.staff.coach.profileImage
+            name: blueTeam.staff.coach.name
           }
         : undefined
     },
@@ -61,13 +65,12 @@ export async function createMatch(userId: string, matchData: CreateMatchRequest)
       id: redTeam.id,
       name: redTeam.name,
       tag: redTeam.tag,
-      logo: redTeam.logo,
-      colors: redTeam.colors,
-      players: redTeam.players.main,
+      logo: redTeam.logo as ImageStorage,
+      colors: redTeam.colors as TeamColors,
+      players: redTeam.players?.main as Player[],
       coach: redTeam.staff?.coach
         ? {
-            name: redTeam.staff.coach.name,
-            profileImage: redTeam.staff.coach.profileImage
+            name: redTeam.staff.coach.name
           }
         : undefined
     },
@@ -87,61 +90,63 @@ export async function createMatch(userId: string, matchData: CreateMatchRequest)
 
   const newMatch = new MatchModel(matchDoc);
   await newMatch.save();
-  return newMatch.toObject();
+  return matchDoc;
 }
 
 export async function getMatchById(matchId: string): Promise<Match | null> {
   await connectToDatabase();
-  const match = await MatchModel.findOne({ id: matchId });
-  return match ? match.toObject() : null;
+  const match = await MatchModel.findOne({ id: matchId }).lean();
+  return match ? transformToMatch(match) : null;
 }
 
 export async function getMatchesByTournament(tournamentId: string): Promise<Match[]> {
   await connectToDatabase();
   const matches = await MatchModel.find({ tournamentId }).sort({
     scheduledTime: 1
-  });
-  return matches.map((match) => match.toObject());
+  }).lean();
+  return matches.map(transformToMatch);
 }
 
 export async function getStandaloneMatches(): Promise<Match[]> {
   await connectToDatabase();
   const matches = await MatchModel.find({ type: "standalone" }).sort({
     scheduledTime: 1
-  });
-  return matches.map((match) => match.toObject());
+  }).lean();
+  return matches.map(transformToMatch);
 }
 
 export async function getMatchesByCommentator(commentatorId: string): Promise<Match[]> {
   await connectToDatabase();
   const matches = await MatchModel.find({
     "commentators.id": commentatorId
-  }).sort({ scheduledTime: 1 });
-  return matches.map((match) => match.toObject());
+  }).sort({ scheduledTime: 1 }).lean();
+  return matches.map(transformToMatch);
 }
 
 export async function updateMatch(matchId: string, userId: string, updates: UpdateMatchRequest): Promise<Match | null> {
   await connectToDatabase();
 
-  const match = await MatchModel.findOne({ id: matchId });
+  const match = await MatchModel.findOne({ id: matchId }).lean();
   if (!match) {
     return null;
   }
 
   // Check permissions (only creator or admin can update)
-  if (match.createdBy !== userId) {
+  if (transformToMatch(match).createdBy !== userId) {
     throw new Error("Forbidden: Only match creator can update match");
   }
 
-  if (updates.name) match.name = updates.name;
-  if (updates.scheduledTime) match.scheduledTime = new Date(updates.scheduledTime);
-  if (updates.status) match.status = updates.status;
-  if (updates.winner) match.winner = updates.winner;
-  if (updates.score) match.score = updates.score;
+  const updatedMatch = await MatchModel.findOneAndUpdate(
+    { id: matchId },
+    {
+      ...updates,
+      scheduledTime: updates.scheduledTime ? new Date(updates.scheduledTime) : undefined,
+      updatedAt: new Date()
+    },
+    { new: true }
+  ).lean();
 
-  match.updatedAt = new Date();
-  await match.save();
-  return match.toObject();
+  return updatedMatch ? transformToMatch(updatedMatch) : null;
 }
 
 export async function assignCommentator(
@@ -151,13 +156,13 @@ export async function assignCommentator(
 ): Promise<Match | null> {
   await connectToDatabase();
 
-  const match = await MatchModel.findOne({ id: matchId });
+  const match = await MatchModel.findOne({ id: matchId }).lean();
   if (!match) {
     return null;
   }
 
   // Check permissions (only creator or admin can assign commentators)
-  if (match.createdBy !== userId) {
+  if (transformToMatch(match).createdBy !== userId) {
     throw new Error("Forbidden: Only match creator can assign commentators");
   }
 
@@ -169,13 +174,17 @@ export async function assignCommentator(
     assignedBy: request.assignedBy
   };
 
-  // Remove existing assignment for this commentator if exists
-  match.commentators = match.commentators.filter((c: MatchCommentator) => c.id !== request.commentatorId);
-  match.commentators.push(newCommentator);
+  const updatedMatch = await MatchModel.findOneAndUpdate(
+    { id: matchId },
+    {
+      $push: { commentators: newCommentator },
+      $pull: { commentators: { id: request.commentatorId } },
+      updatedAt: new Date()
+    },
+    { new: true }
+  ).lean();
 
-  match.updatedAt = new Date();
-  await match.save();
-  return match.toObject();
+  return updatedMatch ? transformToMatch(updatedMatch) : null;
 }
 
 export async function submitPrediction(
@@ -185,44 +194,46 @@ export async function submitPrediction(
 ): Promise<Match | null> {
   await connectToDatabase();
 
-  const match = await MatchModel.findOne({ id: matchId });
+  const match = await MatchModel.findOne({ id: matchId }).lean();
   if (!match) {
     return null;
   }
 
   // Check if commentator is assigned to this match
-  const commentator = match.commentators.find((c: MatchCommentator) => c.id === commentatorId);
+  const matchData = transformToMatch(match);
+  const commentator = matchData.commentators.find((c: MatchCommentator) => c.id === commentatorId);
   if (!commentator) {
     throw new Error("Forbidden: Only assigned commentators can submit predictions");
   }
 
-  // Remove existing prediction from this commentator
-  match.predictions = match.predictions.filter((p: MatchPrediction) => p.commentatorId !== commentatorId);
+  const updatedMatch = await MatchModel.findOneAndUpdate(
+    { id: matchId },
+    {
+      $push: { predictions: {
+        commentatorId,
+        commentatorName: commentator.name,
+        prediction: request.prediction,
+        timestamp: new Date()
+      }},
+      $pull: { predictions: { commentatorId } },
+      updatedAt: new Date()
+    },
+    { new: true }
+  ).lean();
 
-  // Add new prediction
-  const newPrediction = {
-    commentatorId,
-    commentatorName: commentator.name,
-    prediction: request.prediction,
-    timestamp: new Date()
-  };
-
-  match.predictions.push(newPrediction);
-  match.updatedAt = new Date();
-  await match.save();
-  return match.toObject();
+  return updatedMatch ? transformToMatch(updatedMatch) : null;
 }
 
 export async function deleteMatch(matchId: string, userId: string): Promise<boolean> {
   await connectToDatabase();
 
-  const match = await MatchModel.findOne({ id: matchId });
+  const match = await MatchModel.findOne({ id: matchId }).lean();
   if (!match) {
     return false;
   }
 
   // Check permissions (only creator or admin can delete)
-  if (match.createdBy !== userId) {
+  if (transformToMatch(match).createdBy !== userId) {
     throw new Error("Forbidden: Only match creator can delete match");
   }
 

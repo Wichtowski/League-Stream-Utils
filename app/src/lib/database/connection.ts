@@ -71,7 +71,7 @@ class DatabaseConnection {
 
     try {
       console.log("🚀 Creating new database connection...");
-      
+
       const mongoUri = config.database.uri!;
 
       this.connectionPromise = mongooseInstance.connect(mongoUri, {
@@ -129,8 +129,9 @@ class DatabaseConnection {
   public getConnectionInfo(): { state: string; listeners: number; maxListeners: number } {
     return {
       state: this.getConnectionState(),
-      listeners: mongooseInstance.connection.listenerCount("connected") + 
-        mongooseInstance.connection.listenerCount("error") + 
+      listeners:
+        mongooseInstance.connection.listenerCount("connected") +
+        mongooseInstance.connection.listenerCount("error") +
         mongooseInstance.connection.listenerCount("disconnected"),
       maxListeners: mongooseInstance.connection.getMaxListeners()
     };
@@ -141,7 +142,7 @@ const dbConnection = DatabaseConnection.getInstance();
 
 export async function connectToDatabase(): Promise<typeof mongoose> {
   const result = await dbConnection.connect();
-    
+
   return result;
 }
 

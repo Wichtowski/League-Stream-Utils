@@ -22,13 +22,7 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({ player, teamColor }) => 
     <div className={`border rounded-md p-1 ${colorClasses[teamColor]} transition-all`}>
       <div className="flex items-center">
         <div className="relative mr-1">
-          <Image
-            src={championImage}
-            alt={player.championName}
-            width={28}
-            height={28}
-            className="rounded"
-          />
+          <Image src={championImage} alt={player.championName} width={28} height={28} className="rounded" />
           <div className="absolute -bottom-1 -left-1 bg-yellow-500 text-black text-[10px] leading-none px-1 rounded">
             {player.level || 1}
           </div>
@@ -36,10 +30,20 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({ player, teamColor }) => 
         <div className="flex items-center flex-1 min-w-0">
           <div className="flex flex-col space-y-0.5 mr-1">
             <div className="w-4 h-4 bg-gray-700 rounded border border-gray-600 flex items-center justify-center">
-              <Image src={summonerSpellOne} alt={player.summonerSpells?.summonerSpellOne?.displayName} width={12} height={12} />
+              <Image
+                src={summonerSpellOne}
+                alt={player.summonerSpells?.summonerSpellOne?.displayName}
+                width={12}
+                height={12}
+              />
             </div>
             <div className="w-4 h-4 bg-gray-700 rounded border border-gray-600 flex items-center justify-center">
-              <Image src={summonerSpellTwo} alt={player.summonerSpells?.summonerSpellTwo?.displayName} width={12} height={12} />
+              <Image
+                src={summonerSpellTwo}
+                alt={player.summonerSpells?.summonerSpellTwo?.displayName}
+                width={12}
+                height={12}
+              />
             </div>
           </div>
           <div className="flex-1 min-w-0">
@@ -51,7 +55,7 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({ player, teamColor }) => 
           </div>
           <div className="ml-1 text-right">
             <div className="text-[10px] font-bold text-white">
-              {(player.scores?.kills || 0)}/{(player.scores?.deaths || 0)}/{(player.scores?.assists || 0)}
+              {player.scores?.kills || 0}/{player.scores?.deaths || 0}/{player.scores?.assists || 0}
             </div>
           </div>
         </div>

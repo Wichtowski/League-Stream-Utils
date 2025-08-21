@@ -91,10 +91,10 @@ class ItemCacheService extends BaseCacheService<ItemCacheData> {
     }
 
     const itemsData: DataDragonItemResponse = await response.json();
-    
+
     // Cache the data
     ItemCacheService.itemsDataCache.set(version, itemsData);
-    
+
     return itemsData;
   }
 
@@ -271,7 +271,15 @@ class ItemCacheService extends BaseCacheService<ItemCacheData> {
 
         for (const itemKey of allItemKeys) {
           // Check if the main item image exists (this is the key asset)
-          const itemImagePath = path.join(userDataPath, "hosted", "cache", "assets", version, "items", `${itemKey}.png`);
+          const itemImagePath = path.join(
+            userDataPath,
+            "hosted",
+            "cache",
+            "assets",
+            version,
+            "items",
+            `${itemKey}.png`
+          );
           const fileCheck = await window.electronAPI.checkFileExists(itemImagePath);
 
           if (!fileCheck.success || !fileCheck.exists) {
@@ -324,7 +332,9 @@ class ItemCacheService extends BaseCacheService<ItemCacheData> {
       const missingItems = cacheCheck.missingItems;
       const downloadedCount = cacheCheck.cachedItems;
 
-      console.log(`Found ${downloadedCount} existing items, ${totalItems - downloadedCount} missing out of ${totalItems} total`);
+      console.log(
+        `Found ${downloadedCount} existing items, ${totalItems - downloadedCount} missing out of ${totalItems} total`
+      );
       console.log(`Missing items: ${missingItems.length}`);
 
       // Update progress after checking to show current count
@@ -483,7 +493,7 @@ class ItemCacheService extends BaseCacheService<ItemCacheData> {
       .map(async ([_, item]) => {
         const iconUrl = `${DDRAGON_CDN}/${version}/img/item/${item.image.full}`;
         const iconPath = `${version}/items/${item.image.full}`;
-        
+
         try {
           // Use inherited downloadAsset method
           await this.downloadAsset(iconUrl, "assets", iconPath);

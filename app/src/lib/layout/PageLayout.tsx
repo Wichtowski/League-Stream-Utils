@@ -23,7 +23,7 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
   className = "",
   contentClassName = "",
   loading = false,
-  loadingChildren,
+  loadingChildren
 }) => {
   const { isElectron } = useElectron();
 
@@ -41,9 +41,7 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
             {actions && <div className="flex items-center space-x-4">{actions}</div>}
             {isElectron && <SettingsCog />}
           </div>
-          <div className="space-y-6">
-            {loadingChildren || children}
-          </div>
+          <div className="space-y-6">{loadingChildren || children}</div>
         </div>
       </div>
     );

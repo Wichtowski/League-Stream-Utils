@@ -38,40 +38,43 @@ export function CurrentMatchProvider({ children }: { children: ReactNode }) {
   const isLocalDataMode = isElectron && useLocalData;
 
   // Simple electron storage helper
-  const electronStorage = useMemo(() => ({
-    async get<T>(key: string): Promise<T | null> {
-      if (typeof window !== "undefined" && window.electronAPI?.storage?.get) {
-        try {
-          const data = await window.electronAPI.storage.get(key);
-          return data as T;
-        } catch (err) {
-          console.debug("Electron storage get failed:", err);
-          return null;
+  const electronStorage = useMemo(
+    () => ({
+      async get<T>(key: string): Promise<T | null> {
+        if (typeof window !== "undefined" && window.electronAPI?.storage?.get) {
+          try {
+            const data = await window.electronAPI.storage.get(key);
+            return data as T;
+          } catch (err) {
+            console.debug("Electron storage get failed:", err);
+            return null;
+          }
         }
-      }
-      return null;
-    },
+        return null;
+      },
 
-    async set<T>(key: string, data: T): Promise<void> {
-      if (typeof window !== "undefined" && window.electronAPI?.storage?.set) {
-        try {
-          await window.electronAPI.storage.set(key, data);
-        } catch (err) {
-          console.debug("Electron storage set failed:", err);
+      async set<T>(key: string, data: T): Promise<void> {
+        if (typeof window !== "undefined" && window.electronAPI?.storage?.set) {
+          try {
+            await window.electronAPI.storage.set(key, data);
+          } catch (err) {
+            console.debug("Electron storage set failed:", err);
+          }
         }
-      }
-    },
+      },
 
-    async remove(key: string): Promise<void> {
-      if (typeof window !== "undefined" && window.electronAPI?.storage?.remove) {
-        try {
-          await window.electronAPI.storage.remove(key);
-        } catch (err) {
-          console.debug("Electron storage remove failed:", err);
+      async remove(key: string): Promise<void> {
+        if (typeof window !== "undefined" && window.electronAPI?.storage?.remove) {
+          try {
+            await window.electronAPI.storage.remove(key);
+          } catch (err) {
+            console.debug("Electron storage remove failed:", err);
+          }
         }
       }
-    }
-  }), []);
+    }),
+    []
+  );
 
   const setCurrentMatch = useCallback(
     async (match: Match | null): Promise<void> => {
@@ -128,22 +131,22 @@ export function CurrentMatchProvider({ children }: { children: ReactNode }) {
       if (isLocalDataMode) {
         const match = await electronStorage.get<Match>(CURRENT_MATCH_KEY);
         const tournamentId = await electronStorage.get<string>(CURRENT_TOURNAMENT_KEY);
-        
+
         if (match) {
           setCurrentMatchState(match);
           setCurrentTournamentIdState(tournamentId);
         }
-        
+
         return match;
       } else {
         const match = await storage.get<Match>(CURRENT_MATCH_KEY);
         const tournamentId = await storage.get<string>(CURRENT_TOURNAMENT_KEY);
-        
+
         if (match) {
           setCurrentMatchState(match);
           setCurrentTournamentIdState(tournamentId);
         }
-        
+
         return match;
       }
     } catch (err) {
@@ -160,11 +163,11 @@ export function CurrentMatchProvider({ children }: { children: ReactNode }) {
       if (currentMatch?.id) {
         // Fetch fresh match data from API
         const response = await authenticatedFetch(`/api/v1/matches/${currentMatch.id}`);
-        
+
         if (response.ok) {
           const data = await response.json();
           const freshMatch = data.match;
-          
+
           if (freshMatch) {
             setCurrentMatchState(freshMatch);
             // Update storage with fresh data
@@ -220,4 +223,3 @@ export function useCurrentMatch(): CurrentMatchContextType {
   }
   return context;
 }
-

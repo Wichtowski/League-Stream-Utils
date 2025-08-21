@@ -1,7 +1,8 @@
 import { v4 as uuidv4 } from "uuid";
 import { connectToDatabase } from "./connection";
-import { TeamModel } from "./models";
+import { TeamDoc, TeamModel } from "./models";
 import type { Team, CreateTeamRequest, Player, RiotPlayerData } from "@lib/types";
+import { transformDoc } from "./transformDoc";
 
 // Create a new team
 export async function createTeam(userId: string, teamData: CreateTeamRequest): Promise<Team> {
@@ -66,15 +67,15 @@ export async function createTeam(userId: string, teamData: CreateTeamRequest): P
 
 export async function getUserTeams(userId: string): Promise<Team[]> {
   await connectToDatabase();
-  const teams = await TeamModel.find({ userId }).sort({ createdAt: -1 });
-  return teams.map((team: { toObject: () => Team }) => team.toObject());
+  const teams = await TeamModel.find({ userId }).sort({ createdAt: -1 }).lean();
+  return teams.map((team: Team) => transformDoc<TeamDoc, Team>(team));
 }
 
 // Get all teams (admin only)
 export async function getAllTeams(): Promise<Team[]> {
   await connectToDatabase();
   const teams = await TeamModel.find({}).sort({ createdAt: -1 });
-  return teams.map((team: { toObject: () => Team }) => team.toObject());
+  return teams.map((team: Team) => transformDoc<TeamDoc, Team>(team));
 }
 
 export async function getTeamById(teamId: string): Promise<Team | null> {
@@ -119,8 +120,8 @@ export async function updateTeam(
 
   // Update players if provided
   if (updates.players) {
-    const oldMain = team.players.main || [];
-    const oldSubs = team.players.substitutes || [];
+    const oldMain = team.players?.main || [];
+    const oldSubs = team.players?.substitutes || [];
     const newMain = updates.players.main || [];
     const newSubs = updates.players.substitutes || [];
 
@@ -130,24 +131,32 @@ export async function updateTeam(
     // If roster changed, reset verification
     if (mainChanged || subsChanged) {
       team.verified = false;
-      team.players = {
-        main: newMain.map((player) => ({
+      
+      // Clear existing players and add new ones
+      team.players?.main?.splice(0);
+      team.players?.substitutes?.splice(0);
+      
+      newMain.forEach((player) => {
+        team.players?.main?.push({
           ...player,
           id: uuidv4(),
           verified: false,
           verifiedAt: undefined,
           createdAt: new Date(),
           updatedAt: new Date()
-        })),
-        substitutes: newSubs.map((player) => ({
+        } as Team);
+      });
+      
+      newSubs.forEach((player) => {
+        team.players?.substitutes?.push({
           ...player,
           id: uuidv4(),
           verified: false,
           verifiedAt: undefined,
           createdAt: new Date(),
           updatedAt: new Date()
-        }))
-      };
+        } as Team);
+      });
     } else {
       // If roster unchanged, keep existing players
       // (no-op, or you could update other fields if needed)
@@ -175,11 +184,7 @@ export async function updateTeam(
 }
 
 // Update team verification status
-export async function updateTeamVerification(
-  teamId: string,
-  userId: string,
-  verified: boolean
-): Promise<Team | null> {
+export async function updateTeamVerification(teamId: string, userId: string, verified: boolean): Promise<Team | null> {
   await connectToDatabase();
 
   // Find the team and verify ownership
@@ -228,7 +233,7 @@ export async function verifyTeamPlayers(
   // Update player verification status
   playerUpdates.forEach((update) => {
     // Check main players
-    const mainPlayer = team.players.main.find((p: Player) => p.id === update.playerId);
+    const mainPlayer = team.players?.main?.find((p) => p.id === update.playerId);
     if (mainPlayer) {
       mainPlayer.verified = update.verified;
       if (update.verified) {
@@ -243,7 +248,7 @@ export async function verifyTeamPlayers(
     }
 
     // Check substitute players
-    const subPlayer = team.players.substitutes.find((p: Player) => p.id === update.playerId);
+    const subPlayer = team.players?.substitutes?.find((p) => p.id === update.playerId);
     if (subPlayer) {
       subPlayer.verified = update.verified;
       if (update.verified) {
@@ -259,9 +264,9 @@ export async function verifyTeamPlayers(
   });
 
   // Auto-verify team if all players are verified
-  const allMainVerified = team.players.main.length > 0 && team.players.main.every((p: Player) => p.verified);
+  const allMainVerified = (team.players?.main?.length || 0) > 0 && team.players?.main?.every((p) => p.verified);
   const allSubsVerified =
-    team.players.substitutes.length === 0 || team.players.substitutes.every((p: Player) => p.verified);
+    (team.players?.substitutes?.length || 0) === 0 || team.players?.substitutes?.every((p) => p.verified);
   if (allMainVerified && allSubsVerified) {
     team.verified = true;
   } else {
@@ -289,29 +294,27 @@ export async function updatePlayerVerification(
   }
 
   // Update main players
-  team.players.main = team.players.main.map((player) => {
+  team.players?.main?.forEach((player, index: number) => {
     if (player.id === playerId) {
-      return {
+      team.players!.main[index] = {
         ...player,
         verified,
         verifiedAt: verified ? new Date() : undefined,
         updatedAt: new Date()
-      };
+      } as typeof player;
     }
-    return player;
   });
 
   // Update substitute players
-  team.players.substitutes = team.players.substitutes.map((player) => {
+  team.players?.substitutes?.forEach((player, index: number) => {
     if (player.id === playerId) {
-      return {
+      team.players!.substitutes[index] = {
         ...player,
         verified,
         verifiedAt: verified ? new Date() : undefined,
         updatedAt: new Date()
-      };
+      } as typeof player;
     }
-    return player;
   });
 
   team.updatedAt = new Date();
@@ -320,10 +323,7 @@ export async function updatePlayerVerification(
 }
 
 // Verify all players in a team
-export async function verifyAllTeamPlayers(
-  teamId: string,
-  userId: string
-): Promise<Team | null> {
+export async function verifyAllTeamPlayers(teamId: string, userId: string): Promise<Team | null> {
   await connectToDatabase();
 
   // Find the team and verify ownership
@@ -335,20 +335,24 @@ export async function verifyAllTeamPlayers(
   const now = new Date();
 
   // Verify all main players
-  team.players.main = team.players.main.map((player) => ({
-    ...player,
-    verified: true,
-    verifiedAt: now,
-    updatedAt: now
-  }));
+  team.players?.main?.forEach((player, index: number) => {
+    team.players!.main[index] = {
+      ...player,
+      verified: true,
+      verifiedAt: now,
+      updatedAt: now
+    } as typeof player;
+  });
 
   // Verify all substitute players
-  team.players.substitutes = team.players.substitutes.map((player) => ({
-    ...player,
-    verified: true,
-    verifiedAt: now,
-    updatedAt: now
-  }));
+  team.players?.substitutes?.forEach((player, index: number) => {
+    team.players!.substitutes[index] = {
+      ...player,
+      verified: true,
+      verifiedAt: now,
+      updatedAt: now
+    } as typeof player;
+  });
 
   team.updatedAt = now;
   await team.save();

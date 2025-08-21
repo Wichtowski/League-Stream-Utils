@@ -1,6 +1,6 @@
 import { MatchFormat } from "./tournament";
 import { Player, Champion } from "./game";
-import { ImageStorage } from "./tournament";
+import { ImageStorage } from "./common";
 
 export interface Match {
   id: string;
@@ -9,12 +9,10 @@ export interface Match {
 
   // Tournament context (only for tournament matches)
   tournamentId?: string;
-  tournamentName?: string;
-  tournamentLogo?: ImageStorage;
   bracketNodeId?: string;
   roundName?: string;
   matchNumber?: number;
-
+  
   // Teams
   blueTeam: MatchTeam;
   redTeam: MatchTeam;
@@ -90,7 +88,7 @@ export interface GameResult {
   winner: "blue" | "red";
   // Side mapping for this game: which match team played on each side
   blueSideTeamId: string; // should match Match.blueTeam.id
-  redSideTeamId: string;  // should match Match.redTeam.id
+  redSideTeamId: string; // should match Match.redTeam.id
   duration: number; // in seconds
   blueTeam: {
     kills: number;

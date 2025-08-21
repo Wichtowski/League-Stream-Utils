@@ -3,15 +3,10 @@ import { connectToDatabase } from "./connection";
 import { GameSessionModel } from "./models";
 import type { GameSession as GameSessionType, Champion } from "@lib/types";
 
-interface MongooseDocument extends Omit<GameSessionType, "_id"> {
-  _id?: string | object;
-  __v?: number;
-}
-
 // Helper function to transform mongoose document to GameSession
-function transformToGameSession(doc: MongooseDocument): GameSessionType {
-  const { _id, __v, ...gameSession } = doc;
-  return gameSession as GameSessionType;
+function transformToGameSession(doc: unknown): GameSessionType {
+  const { _id, __v, ...gameSession } = doc as { _id?: unknown; __v?: number; [key: string]: unknown };
+  return gameSession as unknown as GameSessionType;
 }
 
 export async function createGameSession(sessionData: Partial<GameSessionType>): Promise<GameSessionType> {
@@ -115,7 +110,7 @@ export async function getGameSession(sessionId: string): Promise<GameSessionType
   try {
     const session = await GameSessionModel.findOne({ id: sessionId }).lean();
     if (!session) return null;
-    return transformToGameSession(session as MongooseDocument);
+    return transformToGameSession(session);
   } catch (error) {
     console.error("Error getting game session:", error);
     throw error;
@@ -154,7 +149,7 @@ export async function getAllGameSessions(): Promise<GameSessionType[]> {
 
   try {
     const sessions = await GameSessionModel.find({}).lean();
-    return sessions.map((doc) => transformToGameSession(doc as MongooseDocument));
+    return sessions.map((doc) => transformToGameSession(doc));
   } catch (error) {
     console.error("Error getting all game sessions:", error);
     throw error;
@@ -185,7 +180,7 @@ export async function getUsedChampionsInSeries(sessionId: string): Promise<Champ
     const session = await GameSessionModel.findOne({ id: sessionId }).lean();
     if (!session) return [];
 
-    const transformedSession = transformToGameSession(session as MongooseDocument);
+    const transformedSession = transformToGameSession(session);
 
     const allUsedChampions = [
       ...(transformedSession.teams.blue.usedChampions || []),

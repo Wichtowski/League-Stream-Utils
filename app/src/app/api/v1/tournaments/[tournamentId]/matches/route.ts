@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { withAuth } from "@/lib/auth/utils";
+import { withAuth } from "@/lib/auth";
 import { getMatchesByTournament } from "@lib/database/match";
 import { getTournamentById } from "@lib/database/tournament";
 
@@ -10,7 +10,7 @@ export const GET = withAuth(async (req: NextRequest) => {
 
     // Check if tournament exists
     const tournament = await getTournamentById(tournamentId);
-    
+
     if (!tournament) {
       return NextResponse.json({ error: "Tournament not found" }, { status: 404 });
     }

@@ -22,7 +22,7 @@ export default function OBSView({ params }: { params: Promise<{ sessionId: strin
     // Instead, we'll use polling to get session updates
     console.log("Static OBS page - using API polling instead of WebSocket");
     setConnected(true);
-    
+
     // Set up polling for session updates
     const pollInterval = setInterval(async () => {
       try {
@@ -33,15 +33,18 @@ export default function OBSView({ params }: { params: Promise<{ sessionId: strin
             // Update game state based on session data
             setGameState((prevState) => {
               if (!prevState) return prevState;
-              
+
               return {
                 ...prevState,
                 phase: data.currentPhase || "ban1",
-                currentTurn: data.currentTeam && data.currentPosition ? {
-                  team: data.currentTeam,
-                  type: data.currentPhase?.includes("ban") ? "ban" : "pick",
-                  phase: data.currentPhase || "ban1"
-                } : null,
+                currentTurn:
+                  data.currentTeam && data.currentPosition
+                    ? {
+                        team: data.currentTeam,
+                        type: data.currentPhase?.includes("ban") ? "ban" : "pick",
+                        phase: data.currentPhase || "ban1"
+                      }
+                    : null,
                 turnNumber: data.currentPosition || 1
               };
             });

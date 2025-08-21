@@ -42,14 +42,14 @@ export default function ConfigPage() {
   const [selectedBlueTeam, setSelectedBlueTeam] = useState<Team | null>(null);
   const [selectedRedTeam, setSelectedRedTeam] = useState<Team | null>(null);
   const [loadingTournaments, setLoadingTournaments] = useState(false);
-  
+
   const [blueTeamLogoUrl, setBlueTeamLogoUrl] = useState<string>("");
   const [redTeamLogoUrl, setRedTeamLogoUrl] = useState<string>("");
   const [tournamentLogoUrl, setTournamentLogoUrl] = useState<string>("");
 
   useEffect(() => {
     if (selectedBlueTeam) {
-      getTeamLogoUrl(selectedBlueTeam).then(setBlueTeamLogoUrl);
+      getTeamLogoUrl(selectedBlueTeam.id).then(setBlueTeamLogoUrl);
     } else {
       setBlueTeamLogoUrl("");
     }
@@ -57,7 +57,7 @@ export default function ConfigPage() {
 
   useEffect(() => {
     if (selectedRedTeam) {
-      getTeamLogoUrl(selectedRedTeam).then(setRedTeamLogoUrl);
+      getTeamLogoUrl(selectedRedTeam.id).then(setRedTeamLogoUrl);
     } else {
       setRedTeamLogoUrl("");
     }
@@ -309,14 +309,14 @@ export default function ConfigPage() {
 
             <div className="md:col-span-2">
               <label className="block text-sm font-medium mb-2">Event Logo URL (Optional)</label>
-                             <input
-                 type="url"
-                 value={tournamentLogoUrl || ""}
-                 onChange={() => {}}
-                 disabled={!!selectedTournament}
-                 className="w-full px-3 py-2 bg-gray-700 rounded text-white border border-gray-600 focus:border-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                 placeholder="Tournament logo will be loaded automatically"
-               />
+              <input
+                type="url"
+                value={tournamentLogoUrl || ""}
+                onChange={() => {}}
+                disabled={!!selectedTournament}
+                className="w-full px-3 py-2 bg-gray-700 rounded text-white border border-gray-600 focus:border-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                placeholder="Tournament logo will be loaded automatically"
+              />
             </div>
           </div>
 
@@ -491,23 +491,23 @@ export default function ConfigPage() {
                 />
               </div>
 
-                             {blueTeamLogoUrl && (
-                 <div>
-                   <label className="block text-sm font-medium mb-2">Team Logo</label>
-                   <div className="bg-blue-900/30 rounded-lg p-4 text-center">
-                     <Image
-                       src={blueTeamLogoUrl}
-                       alt="Blue Team Logo Preview"
-                       width={96}
-                       height={48}
-                       className="max-h-12 max-w-24 object-contain mx-auto"
-                       onError={(e) => {
-                         e.currentTarget.style.display = "none";
-                       }}
-                     />
-                   </div>
-                 </div>
-               )}
+              {blueTeamLogoUrl && (
+                <div>
+                  <label className="block text-sm font-medium mb-2">Team Logo</label>
+                  <div className="bg-blue-900/30 rounded-lg p-4 text-center">
+                    <Image
+                      src={blueTeamLogoUrl}
+                      alt="Blue Team Logo Preview"
+                      width={96}
+                      height={48}
+                      className="max-h-12 max-w-24 object-contain mx-auto"
+                      onError={(e) => {
+                        e.currentTarget.style.display = "none";
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
 
               <div>
                 <label className="block text-sm font-medium mb-2">Coach Name (Optional)</label>
@@ -525,8 +525,6 @@ export default function ConfigPage() {
                   placeholder="Enter coach name"
                 />
               </div>
-
-              
             </div>
           </div>
 
@@ -603,8 +601,6 @@ export default function ConfigPage() {
                   maxLength={5}
                 />
               </div>
-
-
 
               <div>
                 <label className="block text-sm font-medium mb-2">Coach Name (Optional)</label>
