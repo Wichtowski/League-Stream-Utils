@@ -66,12 +66,12 @@ const nextConfig: NextConfig = {
     ];
   },
   images: {
-    remotePatterns: ALLOWED_IMAGE_HOSTS.filter((h) => !["127.0.0.1", "localhost"].includes(h)).map((hostname) => ({
+    domains: [], // Explicitly set empty to suppress deprecation warning
+    remotePatterns: ALLOWED_IMAGE_HOSTS.map((h) => ({
       protocol: "https",
-      hostname,
+      hostname: h,
       pathname: "/**"
-    })),
-    domains: ALLOWED_IMAGE_HOSTS
+    }))
   },
   // Webpack configuration for bundle splitting
   webpack: (config, { dev, isServer }) => {
