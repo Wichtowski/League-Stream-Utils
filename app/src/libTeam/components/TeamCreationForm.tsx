@@ -4,7 +4,7 @@ import type { CreateTeamRequest, TeamTier } from "@lib/types";
 import { createDefaultTeamRequest } from "@lib/types";
 import { useModal } from "@lib/contexts";
 import { LOGO_SQUARE_TOLERANCE, ALLOWED_IMAGE_HOSTS } from "@lib/services/common/constants";
-import { isAlmostSquare } from "@lib/services/common/image";
+import { isAlmostSquare, extractTeamColorsFromImage } from "@lib/services/common/image";
 
 const ALLOWED_IMAGE_HOSTS_DISPLAY = ALLOWED_IMAGE_HOSTS.slice(3, ALLOWED_IMAGE_HOSTS.length)
 
@@ -20,6 +20,7 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
   const [logoUrlInput, setLogoUrlInput] = useState<string>("");
   const [formData, setFormData] = useState<Partial<CreateTeamRequest>>(createDefaultTeamRequest());
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const urlAutoPreviewTimer = useRef<number | null>(null);
 
   const clearLogo = (): void => {
     setFormData({
@@ -36,6 +37,7 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
   const clearUrlOnly = (): void => {
     if (formData.logo?.type === "url") {
       setFormData({ ...formData, logo: undefined });
+      setLogoPreview("");
     }
     if (logoUrlInput) setLogoUrlInput("");
   };
@@ -43,16 +45,58 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
   const clearFileOnly = (): void => {
     if (formData.logo?.type === "upload") {
       setFormData({ ...formData, logo: undefined });
+      setLogoPreview("");
     }
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
   };
 
+  const attemptAutoPreviewUrl = async (url: string): Promise<void> => {
+    try {
+      await new Promise<void>((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.onload = () => {
+          if (!isAlmostSquare(img.width, img.height)) {
+            reject(new Error("Not square"));
+            return;
+          }
+          resolve();
+        };
+        img.onerror = () => reject(new Error("Failed to load image from URL"));
+        img.src = url;
+      });
+    } catch {
+      return;
+    }
+    setFormData({
+      ...formData,
+      logo: {
+        type: "url",
+        url,
+        format: "png"
+      }
+    });
+    setLogoPreview(url);
+  };
+
   const handleLogoUrlChange = (url: string): void => {
     // Switching to URL entry clears any uploaded file
     clearFileOnly();
     setLogoUrlInput(url);
+    if (urlAutoPreviewTimer.current) {
+      window.clearTimeout(urlAutoPreviewTimer.current);
+      urlAutoPreviewTimer.current = null;
+    }
+    const trimmed = url.trim();
+    if (trimmed.length > 25 && /^https?:\/\//i.test(trimmed)) {
+      urlAutoPreviewTimer.current = window.setTimeout(() => {
+        void attemptAutoPreviewUrl(trimmed);
+      }, 600);
+    } else {
+      setLogoPreview("");
+    }
   };
 
   const handlePreviewUrl = async (): Promise<void> => {
@@ -164,6 +208,24 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
       }
     };
     reader.readAsDataURL(file);
+  };
+
+  const generateColorsFromCurrentLogo = async (): Promise<void> => {
+    if (!logoPreview) return;
+    try {
+      const colors = await extractTeamColorsFromImage(logoPreview);
+      setFormData({
+        ...formData,
+        colors: {
+          ...formData.colors!,
+          primary: colors.primary,
+          secondary: colors.secondary,
+          accent: colors.accent
+        }
+      });
+    } catch (_err) {
+      await showAlert({ type: "warning", message: "Failed to generate colors from logo" });
+    }
   };
 
   const updatePlayer = (index: number, field: "inGameName" | "tag", value: string) => {
@@ -363,7 +425,18 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
 
         {/* Team Colors */}
         <div>
-          <h3 className="text-lg font-medium mb-3">Team Colors</h3>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-lg font-medium">Team Colors</h3>
+            {logoPreview && (
+              <button
+                type="button"
+                onClick={() => { void generateColorsFromCurrentLogo(); }}
+                className="bg-purple-600 hover:bg-purple-700 px-3 py-1 rounded text-sm"
+              >
+                Extract Most Dominant Colors
+              </button>
+            )}
+          </div>
           <div className="grid grid-cols-3 gap-4">
             <div>
               <label htmlFor="primaryColor" className="block text-sm font-medium mb-2">Primary Color</label>
