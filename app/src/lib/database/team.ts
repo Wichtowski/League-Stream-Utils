@@ -67,7 +67,7 @@ export async function createTeam(userId: string, teamData: CreateTeamRequest): P
 
 export async function getUserTeams(userId: string): Promise<Team[]> {
   await connectToDatabase();
-  const teams = await TeamModel.find({ userId }).sort({ createdAt: -1 }).lean();
+  const teams = await TeamModel.find({ userId }).sort({ createdAt: -1 });
   return teams.map((team: Team) => transformDoc<TeamDoc, Team>(team));
 }
 
@@ -80,7 +80,7 @@ export async function getAllTeams(): Promise<Team[]> {
 
 export async function getTeamById(teamId: string): Promise<Team | null> {
   await connectToDatabase();
-  const team = await TeamModel.findOne({ id: teamId });
+  const team = await TeamModel.findById(teamId);
   return team ? team.toObject() : null;
 }
 
