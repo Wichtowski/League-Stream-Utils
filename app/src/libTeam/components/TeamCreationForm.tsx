@@ -541,7 +541,7 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
                   <option value="TOP">TOP</option>
                   <option value="JUNGLE">JUNGLE</option>
                   <option value="MID">MID</option>
-                  <option value="ADC">ADC</option>
+                  <option value="BOTTOM">BOTTOM</option>
                   <option value="SUPPORT">SUPPORT</option>
                 </select>
                 <input

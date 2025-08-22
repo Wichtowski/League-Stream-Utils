@@ -523,7 +523,7 @@ export async function completeGame(
         won: winner === "blue",
         picks: session.teams.blue.picks.map((champion, index) => ({
           championId: champion.id,
-          role: ["TOP", "JUNGLE", "MID", "ADC", "SUPPORT"][index] as PlayerRole,
+          role: ["TOP", "JUNGLE", "MID", "BOTTOM", "SUPPORT"][index] as PlayerRole,
           player: undefined
         })),
         bans: session.teams.blue.bans.map((champion) => champion.id)
@@ -534,7 +534,7 @@ export async function completeGame(
         won: winner === "red",
         picks: session.teams.red.picks.map((champion, index) => ({
           championId: champion.id,
-          role: ["TOP", "JUNGLE", "MID", "ADC", "SUPPORT"][index] as PlayerRole,
+          role: ["TOP", "JUNGLE", "MID", "BOTTOM", "SUPPORT"][index] as PlayerRole,
           player: undefined
         })),
         bans: session.teams.red.bans.map((champion) => champion.id)

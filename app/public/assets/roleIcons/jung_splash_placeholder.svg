@@ -1,0 +1,17 @@
+<svg width="76" height="86" xmlns="http://www.w3.org/2000/svg">
+
+ <title>jung_splash_placeholder</title>
+ <g>
+  <title>Layer 1</title>
+  <g id="svg_7">
+   <path id="svg_4" fill="#fff" d="m127,217l25.5,24l6,-7.5s6,-37.5 -27,-76.5c7.5,21 12,42 12,51c-6,-13.5 -21,-25.5 -27,-27c10.5,12 10.5,36 10.5,36z" class="cls-1"/>
+   <path id="svg_5" fill="#fff" d="m155.5,188.5s7.5,-21 21,-31.5c-4.5,12 -11.5,30.5 -14.5,53a90.81,90.81 0 0 0 -6.5,-21.5z" class="cls-1"/>
+   <path id="svg_6" fill="#fff" d="m163,230l13,-14s4,-23.5 14.5,-34c-12,6 -27.5,24 -27.5,48z" class="cls-1"/>
+  </g>
+  <g id="Top">
+   <path id="svg_1" fill="#fff" d="m12,61l25.5,24l6,-7.5s6,-37.5 -27,-76.5c7.5,21 12,42 12,51c-6,-13.5 -21,-25.5 -27,-27c10.5,12 10.5,36 10.5,36z" class="cls-1"/>
+   <path id="svg_2" fill="#fff" d="m40.5,32.5s7.5,-21 21,-31.5c-4.5,12 -11.5,30.5 -14.5,53a90.81,90.81 0 0 0 -6.5,-21.5z" class="cls-1"/>
+   <path id="svg_3" fill="#fff" d="m48,74l13,-14s4,-23.5 14.5,-34c-12,6 -27.5,24 -27.5,48z" class="cls-1"/>
+  </g>
+ </g>
+</svg>

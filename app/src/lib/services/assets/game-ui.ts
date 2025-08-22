@@ -29,10 +29,11 @@ class GameUIBlueprintDownloader extends BaseCacheService {
   private isDownloading = false;
   private assetCategories = {
     dragonpit: ["infernal.png", "ocean.png", "hextech.png", "chemtech.png", "mountain.png", "elder.png", "cloud.png"],
-    default: ["player.png", "tournament.png"],
+    default: ["player.png", "tournament.png", "default_ban_placeholder.svg"],
     scoreboard: ["gold.png", "grubs.png", "tower.png"],
     atakhan: ["atakhan_ruinous.png", "atakhan_voracious.png"],
-    baronpit: ["baron.png", "grubs.png", "herald.png"]
+    baronpit: ["baron.png", "grubs.png", "herald.png"],
+    roleIcons: ["top_splash_placeholder.svg", "jung_splash_placeholder.svg", "mid_splash_placeholder.svg", "sup_splash_placeholder.svg", "bot_splash_placeholder.svg"]
   };
   private gameUIProgressCallback?: (progress: GameUIDownloadProgress) => void;
 
@@ -253,54 +254,56 @@ class GameUIBlueprintDownloader extends BaseCacheService {
           }
 
           if (typeof window !== "undefined" && window.electronAPI?.isElectron) {
-            // Download from local development server
-            const assetUrl = `http://localhost:2137/assets/${category}/${filename}`;
-
+            // Try to copy directly from public folder first (more reliable for local files)
+            console.log(`Trying to copy ${filename} from public folder`);
             try {
-              const downloadResult = await window.electronAPI.downloadAsset(assetUrl, "assets", assetKey);
+              const sourcePath = `public/assets/${category}/${filename}`;
+              const targetPath = `assets/${assetKey}`;
+              const copyResult = await window.electronAPI.copyAssetFile(sourcePath, targetPath);
 
-              if (downloadResult.success && downloadResult.localPath) {
-                // Get file size from the downloaded result
-                const sizeResult = await window.electronAPI.getFileSize(downloadResult.localPath);
+              if (copyResult.success && copyResult.localPath) {
+                const sizeResult = await window.electronAPI.getFileSize(copyResult.localPath);
                 const fileSize = sizeResult.success ? sizeResult.size || 0 : 0;
 
                 processedCount++;
                 totalSize += fileSize;
+                console.log(`Successfully copied ${filename} from public folder: ${fileSize} bytes`);
               } else {
-                const errorMsg = `Failed to download ${assetUrl}: ${downloadResult.error}`;
-                console.error(errorMsg);
-                errors.push(errorMsg);
+                throw new Error(`Copy failed: ${copyResult.error}`);
               }
-            } catch (fileError) {
-              console.error(`Failed to download file ${assetUrl}:`, fileError);
+            } catch (copyError: unknown) {
+                console.log(`Copy failed, trying HTTP download: ${copyError instanceof Error ? copyError.message : String(copyError)}`);
+                
+                // Fallback: Download from local development server
+                const assetUrl = `http://localhost:2137/api/assets/${category}/${filename}`;
 
-              // Fallback: try to copy directly from public folder
-              console.log(`Trying fallback: copy from public folder`);
-              try {
-                const sourcePath = `public/assets/${category}/${filename}`;
-                const targetPath = `assets/${assetKey}`;
-                const copyResult = await window.electronAPI.copyAssetFile(sourcePath, targetPath);
+                try {
+                  const downloadResult = await window.electronAPI.downloadAsset(assetUrl, "assets", assetKey);
 
-                if (copyResult.success && copyResult.localPath) {
-                  const sizeResult = await window.electronAPI.getFileSize(copyResult.localPath);
-                  const fileSize = sizeResult.success ? sizeResult.size || 0 : 0;
+                  if (downloadResult.success && downloadResult.localPath) {
+                    // Get file size from the downloaded result
+                    const sizeResult = await window.electronAPI.getFileSize(downloadResult.localPath);
+                    const fileSize = sizeResult.success ? sizeResult.size || 0 : 0;
 
-                  processedCount++;
-                  totalSize += fileSize;
-                  console.log(`Successfully copied ${filename} from public folder: ${fileSize} bytes`);
-                } else {
-                  throw new Error(`Fallback copy failed: ${copyResult.error}`);
+                    processedCount++;
+                    totalSize += fileSize;
+                  } else {
+                    const errorMsg = `Failed to download ${assetUrl}: ${downloadResult.error}`;
+                    console.error(errorMsg);
+                    errors.push(errorMsg);
+                  }
+                } catch (fileError) {
+                  console.error(`Failed to download file ${assetUrl}:`, fileError);
+                  const errorMsg = `Failed to download asset from local server: ${fileError}`;
+                  console.error(errorMsg);
+                  errors.push(errorMsg);
                 }
-              } catch (fallbackError) {
-                console.error(`Fallback copy also failed:`, fallbackError);
-                throw new Error(`Failed to download asset from local server: ${fileError}`);
               }
+            } else {
+              throw new Error(
+                "Electron API not available - game UI assets can only be processed in Electron environment"
+              );
             }
-          } else {
-            throw new Error(
-              "Electron API not available - game UI assets can only be processed in Electron environment"
-            );
-          }
 
           this.updateGameUIProgress({
             current: processedCount,
@@ -337,7 +340,7 @@ class GameUIBlueprintDownloader extends BaseCacheService {
 
       // Process the single asset
       if (typeof window !== "undefined" && window.electronAPI?.isElectron) {
-        const assetUrl = `http://localhost:2137/assets/${category}/${filename}`;
+        const assetUrl = `http://localhost:2137/api/assets/${category}/${filename}`;
 
         try {
           const downloadResult = await window.electronAPI.downloadAsset(assetUrl, "assets", assetKey);

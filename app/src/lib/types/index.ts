@@ -13,10 +13,8 @@ export type {
   ChampSelectTimer,
   ChampSelectSession,
   Coach,
-  Team,
   Player,
   PickbanPlayer,
-  PickbanTournamentTeam,
   EnhancedChampSelectPlayer,
   EnhancedChampSelectSession,
   SessionTeam
@@ -28,6 +26,7 @@ export type { GameState } from "./ui";
 export type { TournamentForm } from "./forms";
 export type { UserDocument, UserQueryResult } from "./database";
 export type { PlayerRole, GamePhase } from "./common";
+export type { Team } from "./team";
 export type { Item } from "./item";
 export type {
   RiotLiveClientData,
@@ -45,7 +44,6 @@ export type {
   TournamentTemplate,
   TournamentStatus,
   TeamTier,
-  ImageStorage,
   Staff,
   Tournament,
   CreateTournamentRequest,

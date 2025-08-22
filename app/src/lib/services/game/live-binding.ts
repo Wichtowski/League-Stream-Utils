@@ -1,4 +1,4 @@
-import type { LivePlayer } from "@lib/services/game/game-service";
+import { LivePlayer } from "@libLeagueClient/types";
 import type { Match } from "@lib/types/match";
 import type { Player } from "@lib/types/game";
 import type { PlayerRole } from "@lib/types/common";
@@ -10,7 +10,7 @@ export type BoundPlayer = {
   resolvedRole: PlayerRole;
 };
 
-const ROLE_ORDER: PlayerRole[] = ["TOP", "JUNGLE", "MID", "ADC", "SUPPORT"];
+const ROLE_ORDER: PlayerRole[] = ["TOP", "JUNGLE", "MID", "BOTTOM", "SUPPORT"];
 
 const normalize = (value?: string): string => (value || "").trim().toLowerCase();
 
@@ -19,7 +19,7 @@ const livePositionToRole = (position: string): PlayerRole | null => {
   if (key === "top") return "TOP";
   if (key === "jungle") return "JUNGLE";
   if (key === "middle" || key === "mid") return "MID";
-  if (key === "bottom" || key === "bot" || key === "adc") return "ADC";
+  if (key === "bottom" || key === "bot" || key === "adc") return "BOTTOM";
   if (key === "utility" || key === "support") return "SUPPORT";
   return null;
 };
@@ -28,7 +28,7 @@ const roleToLivePosition = (role: PlayerRole): string => {
   if (role === "TOP") return "TOP";
   if (role === "JUNGLE") return "JUNGLE";
   if (role === "MID") return "MIDDLE";
-  if (role === "ADC") return "BOTTOM";
+  if (role === "BOTTOM") return "BOTTOM";
   return "UTILITY";
 };
 

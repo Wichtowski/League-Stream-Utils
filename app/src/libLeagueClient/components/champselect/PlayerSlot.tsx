@@ -1,10 +1,9 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import Image from "next/image";
 import type { EnhancedChampSelectPlayer } from "@lib/types";
 import { getChampionName, getChampionCenteredSplashImage } from "../common";
-import { PLAYER_CARD_ROLE_ICONS } from "@lib/services/common/constants";
 
 // Pick and ban phase configuration - 20 turns total
 const PICK_BAN_ORDER: Array<{
@@ -54,11 +53,40 @@ interface PlayerSlotProps {
     currentActionType: "pick" | "ban" | null;
     currentTurn?: number;
   };
+  roleIcons: Record<string, string>;
+  onRegisterImages?: (urls: string[]) => void;
 }
 
-const PlayerSlotComponent: React.FC<PlayerSlotProps> = ({ player, index, teamColor, _currentPhase, hoverState }) => {
+export const PlayerSlot: React.FC<PlayerSlotProps> = ({ 
+  player, 
+  index, 
+  teamColor, 
+  _currentPhase, 
+  hoverState, 
+  roleIcons,
+  onRegisterImages 
+}) => {
   const image = getChampionCenteredSplashImage(player.championId);
   const isPlaceholder = player.cellId < 0;
+
+  // Register images with parent component
+  useEffect(() => {
+    if (onRegisterImages) {
+      const urls: string[] = [];
+      
+      // Add champion splash image
+      if (player.championId && image) {
+        urls.push(image);
+      }
+      
+      // Add role icon if player has a role
+      if (player.role && roleIcons[player.role]) {
+        urls.push(roleIcons[player.role]);
+      }
+      
+      onRegisterImages(urls);
+    }
+  }, [player.championId, player.role, image, roleIcons, onRegisterImages]);
 
   const getCurrentPickingPlayerIndex = (): number => {
     if (!hoverState?.currentTurn || hoverState?.currentActionType !== "pick") {
@@ -128,9 +156,9 @@ const PlayerSlotComponent: React.FC<PlayerSlotProps> = ({ player, index, teamCol
           />
         ) : (
           <div className="absolute inset-0 w-full h-full bg-transparent flex items-center justify-center text-gray-500 text-sm z-0">
-            {!isPlaceholder && player.role && PLAYER_CARD_ROLE_ICONS[player.role] ? (
+            {!isPlaceholder && player.role && roleIcons[player.role] ? (
               <Image
-                src={PLAYER_CARD_ROLE_ICONS[player.role]}
+                src={roleIcons[player.role] } // || PLAYER_CARD_ROLE_ICONS[player.role]}
                 alt={player.role}
                 width={24}
                 height={24}
@@ -150,11 +178,11 @@ const PlayerSlotComponent: React.FC<PlayerSlotProps> = ({ player, index, teamCol
             <div className="text-sm font-semibold text-white truncate">
               {isPlaceholder ? "Empty Slot" : player.summonerName || player.playerInfo?.name || `Player ${index + 1}`}
             </div>
-            {!isPlaceholder && player.role && PLAYER_CARD_ROLE_ICONS[player.role] && (
+            {!isPlaceholder && player.role && roleIcons[player.role] && (
               <div
                 className="w-6 h-6 flex-shrink-0 bg-cover bg-center bg-no-repeat"
                 style={{
-                  backgroundImage: `url(${PLAYER_CARD_ROLE_ICONS[player.role]})`
+                  backgroundImage: `url(${roleIcons[player.role] })` // || PLAYER_CARD_ROLE_ICONS[player.role]})`
                 }}
               />
             )}
@@ -168,6 +196,6 @@ const PlayerSlotComponent: React.FC<PlayerSlotProps> = ({ player, index, teamCol
   );
 };
 
-const PlayerSlot = React.memo(PlayerSlotComponent);
+// const PlayerSlot = React.memo(PlayerSlotComponent);
 
-export { PlayerSlot };
+// export { PlayerSlot };

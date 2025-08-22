@@ -1,4 +1,22 @@
 import type { EnhancedChampSelectSession } from "@lib/types";
+import { Team } from "@lib/types";
+
+const LosRatones: Team = {
+  id: "1",
+  name: "Los Ratones",
+  tag: "LR",
+  region: "EUW",
+  tier: "professional",
+  logo: {
+    type: "url",
+    url: "",
+  },
+  colors: {
+    primary: "#000000",
+    secondary: "#000000",
+    accent: "#000000"
+  }
+};
 
 // Pick and ban phase configuration - 21 turns total
 const PICK_BAN_ORDER = [
@@ -228,14 +246,13 @@ export class DynamicChampSelectMock {
 
   constructor(config: Partial<DynamicMockConfig> = {}) {
     this.config = {
+      ...config,
       currentPhase: "BAN_1",
       currentTurn: 0,
       isHovering: false,
-      blueTeamName: "Blue Team",
-      redTeamName: "Red Team",
+      blueTeamName: "FMS",
+      redTeamName: "LR",
       tournamentName: "Dynamic Tournament",
-      roundName: "SEMIFINALS",
-      matchNumber: 1,
       bestOf: 3,
       autoAdvance: false,
       autoAdvanceInterval: 5000,
@@ -460,7 +477,7 @@ export class DynamicChampSelectMock {
         cellId: 0,
         championId: bluePicks[0] || 0,
         summonerId: 1,
-        summonerName: "BluePlayer1",
+        summonerName: LosRatones.players.main[0].inGameName,
         puuid: "mock1",
         isBot: false,
         isActingNow: getCurrentPickingPlayerIndex("blue") === 0,
@@ -469,7 +486,7 @@ export class DynamicChampSelectMock {
         team: 100,
         playerInfo: {
           id: "1",
-          name: "BluePlayer1",
+          name: LosRatones.players.main[0].inGameName,
           role: "TOP" as const,
           profileImage: "/assets/default/player.png"
         },
@@ -480,7 +497,7 @@ export class DynamicChampSelectMock {
         cellId: 1,
         championId: bluePicks[1] || 0,
         summonerId: 2,
-        summonerName: "BluePlayer2",
+        summonerName: LosRatones.players.main[1].inGameName,
         puuid: "mock2",
         isBot: false,
         isActingNow: getCurrentPickingPlayerIndex("blue") === 1,
@@ -489,7 +506,7 @@ export class DynamicChampSelectMock {
         team: 100,
         playerInfo: {
           id: "2",
-          name: "BluePlayer2",
+          name: LosRatones.players.main[1].inGameName,
           role: "JUNGLE" as const,
           profileImage: "/assets/default/player.png"
         },
@@ -500,7 +517,7 @@ export class DynamicChampSelectMock {
         cellId: 2,
         championId: bluePicks[2] || 0,
         summonerId: 3,
-        summonerName: "BluePlayer3",
+        summonerName: LosRatones.players.main[2].inGameName,
         puuid: "mock3",
         isBot: false,
         isActingNow: getCurrentPickingPlayerIndex("blue") === 2,
@@ -509,7 +526,7 @@ export class DynamicChampSelectMock {
         team: 100,
         playerInfo: {
           id: "3",
-          name: "BluePlayer3",
+          name: LosRatones.players.main[2].inGameName,
           role: "MID" as const,
           profileImage: "/assets/default/player.png"
         },
@@ -520,7 +537,7 @@ export class DynamicChampSelectMock {
         cellId: 3,
         championId: bluePicks[3] || 0,
         summonerId: 4,
-        summonerName: "BluePlayer4",
+        summonerName: LosRatones.players.main[3].inGameName,
         puuid: "mock4",
         isBot: false,
         isActingNow: getCurrentPickingPlayerIndex("blue") === 3,
@@ -529,18 +546,18 @@ export class DynamicChampSelectMock {
         team: 100,
         playerInfo: {
           id: "4",
-          name: "BluePlayer4",
-          role: "SUPPORT" as const,
+          name: LosRatones.players.main[3].inGameName,
+          role: "BOTTOM" as const,
           profileImage: "/assets/default/player.png"
         },
-        role: "SUPPORT" as const,
+        role: "BOTTOM" as const,
         profileImage: "/assets/default/player.png"
       },
       {
         cellId: 4,
         championId: bluePicks[4] || 0,
         summonerId: 5,
-        summonerName: "BluePlayer5",
+        summonerName: LosRatones.players.main[4].inGameName,
         puuid: "mock5",
         isBot: false,
         isActingNow: getCurrentPickingPlayerIndex("blue") === 4,
@@ -549,11 +566,11 @@ export class DynamicChampSelectMock {
         team: 100,
         playerInfo: {
           id: "5",
-          name: "BluePlayer5",
-          role: "ADC" as const,
+          name: LosRatones.players.main[4].inGameName,
+          role: "SUPPORT" as const,
           profileImage: "/assets/default/player.png"
         },
-        role: "ADC" as const,
+        role: "SUPPORT" as const,
         profileImage: "/assets/default/player.png"
       }
     ];
@@ -563,7 +580,7 @@ export class DynamicChampSelectMock {
         cellId: 5,
         championId: redPicks[0] || 0,
         summonerId: 6,
-        summonerName: "RedPlayer1",
+        summonerName: FajnieMiecSklad.players.main[0].inGameName,
         puuid: "mock6",
         isBot: false,
         isActingNow: getCurrentPickingPlayerIndex("red") === 0,
@@ -572,7 +589,7 @@ export class DynamicChampSelectMock {
         team: 200,
         playerInfo: {
           id: "6",
-          name: "RedPlayer1",
+          name: FajnieMiecSklad.players.main[0].inGameName,
           role: "TOP" as const,
           profileImage: "/assets/default/player.png"
         },
@@ -583,7 +600,7 @@ export class DynamicChampSelectMock {
         cellId: 6,
         championId: redPicks[1] || 0,
         summonerId: 7,
-        summonerName: "RedPlayer2",
+        summonerName: FajnieMiecSklad.players.main[1].inGameName,
         puuid: "mock7",
         isBot: false,
         isActingNow: getCurrentPickingPlayerIndex("red") === 1,
@@ -592,7 +609,7 @@ export class DynamicChampSelectMock {
         team: 200,
         playerInfo: {
           id: "7",
-          name: "RedPlayer2",
+          name: FajnieMiecSklad.players.main[1].inGameName,
           role: "JUNGLE" as const,
           profileImage: "/assets/default/player.png"
         },
@@ -603,7 +620,7 @@ export class DynamicChampSelectMock {
         cellId: 7,
         championId: redPicks[2] || 0,
         summonerId: 8,
-        summonerName: "RedPlayer3",
+        summonerName: FajnieMiecSklad.players.main[2].inGameName,
         puuid: "mock8",
         isBot: false,
         isActingNow: getCurrentPickingPlayerIndex("red") === 2,
@@ -612,7 +629,7 @@ export class DynamicChampSelectMock {
         team: 200,
         playerInfo: {
           id: "8",
-          name: "RedPlayer3",
+          name: FajnieMiecSklad.players.main[2].inGameName,
           role: "MID" as const,
           profileImage: "/assets/default/player.png"
         },
@@ -623,7 +640,7 @@ export class DynamicChampSelectMock {
         cellId: 8,
         championId: redPicks[3] || 0,
         summonerId: 9,
-        summonerName: "RedPlayer4",
+        summonerName: FajnieMiecSklad.players.main[3].inGameName,
         puuid: "mock9",
         isBot: false,
         isActingNow: getCurrentPickingPlayerIndex("red") === 3,
@@ -632,18 +649,18 @@ export class DynamicChampSelectMock {
         team: 200,
         playerInfo: {
           id: "9",
-          name: "RedPlayer4",
-          role: "SUPPORT" as const,
+          name: FajnieMiecSklad.players.main[3].inGameName,
+          role: "BOTTOM" as const,
           profileImage: "/assets/default/player.png"
         },
-        role: "SUPPORT" as const,
+        role: "BOTTOM" as const,
         profileImage: "/assets/default/player.png"
       },
       {
         cellId: 9,
         championId: redPicks[4] || 0,
         summonerId: 10,
-        summonerName: "RedPlayer5",
+        summonerName: FajnieMiecSklad.players.main[4].inGameName,
         puuid: "mock10",
         isBot: false,
         isActingNow: getCurrentPickingPlayerIndex("red") === 4,
@@ -652,11 +669,11 @@ export class DynamicChampSelectMock {
         team: 200,
         playerInfo: {
           id: "10",
-          name: "RedPlayer5",
-          role: "ADC" as const,
+          name: FajnieMiecSklad.players.main[4].inGameName,
+          role: "SUPPORT" as const,
           profileImage: "/assets/default/player.png"
         },
-        role: "ADC" as const,
+        role: "SUPPORT" as const,
         profileImage: "/assets/default/player.png"
       }
     ];
@@ -694,6 +711,7 @@ export class DynamicChampSelectMock {
       },
       // Series data for Fearless Draft
       isFearlessDraft: true,
+      usedChampions: [], // Empty array for now, can be populated with champions from previous games
       fearlessBans: {
         blue: [
           // TOP - 4 bans
@@ -714,11 +732,11 @@ export class DynamicChampSelectMock {
           { championId: 157, role: "MID" }, // Yasuo
           { championId: 7, role: "MID" }, // LeBlanc
 
-          // ADC - 4 bans
-          { championId: 777, role: "ADC" }, // Yone
-          { championId: 51, role: "ADC" }, // Caitlyn
-          { championId: 202, role: "ADC" }, // Jhin
-          { championId: 222, role: "ADC" }, // Jinx
+          // BOTTOM - 4 bans
+          { championId: 777, role: "BOTTOM" }, // Yone
+          { championId: 51, role: "BOTTOM" }, // Caitlyn
+          { championId: 202, role: "BOTTOM" }, // Jhin
+          { championId: 222, role: "BOTTOM" }, // Jinx
 
           // SUPPORT - 4 bans
           { championId: 21, role: "SUPPORT" }, // Miss Fortune
@@ -745,11 +763,11 @@ export class DynamicChampSelectMock {
           { championId: 61, role: "MID" }, // Orianna
           { championId: 134, role: "MID" }, // Syndra
 
-          // ADC - 4 bans
-          { championId: 523, role: "ADC" }, // Aphelios
-          { championId: 22, role: "ADC" }, // Ashe
-          { championId: 145, role: "ADC" }, // Kai'Sa
-          { championId: 429, role: "ADC" }, // Kalista
+          // BOTTOM - 4 bans
+          { championId: 523, role: "BOTTOM" }, // Aphelios
+          { championId: 22, role: "BOTTOM" }, // Ashe
+          { championId: 145, role: "BOTTOM" }, // Kai'Sa
+          { championId: 429, role: "BOTTOM" }, // Kalista
 
           // SUPPORT - 4 bans
           { championId: 44, role: "SUPPORT" }, // Taric
@@ -769,100 +787,8 @@ export class DynamicChampSelectMock {
             bestOf: this.config.bestOf!
           }
         },
-        blueTeam: {
-          id: "blue-team",
-          name: this.config.blueTeamName!,
-          tag: "BLUE",
-          logo: "/assets/default-team-logo.png",
-          colors: {
-            primary: "#3b82f6",
-            secondary: "#1e40af",
-            accent: "#60a5fa"
-          },
-          players: [
-            {
-              id: "1",
-              name: "BluePlayer1",
-              role: "TOP",
-              profileImage: "/assets/default/player.png"
-            },
-            {
-              id: "2",
-              name: "BluePlayer2",
-              role: "JUNGLE",
-              profileImage: "/assets/default/player.png"
-            },
-            {
-              id: "3",
-              name: "BluePlayer3",
-              role: "MID",
-              profileImage: "/assets/default/player.png"
-            },
-            {
-              id: "4",
-              name: "BluePlayer4",
-              role: "SUPPORT",
-              profileImage: "/assets/default/player.png"
-            },
-            {
-              id: "5",
-              name: "BluePlayer5",
-              role: "ADC",
-              profileImage: "/assets/default/player.png"
-            }
-          ],
-          coach: {
-            name: "BLUECOACH",
-            profileImage: "/assets/default-coach.png"
-          }
-        },
-        redTeam: {
-          id: "red-team",
-          name: this.config.redTeamName!,
-          tag: "RED",
-          logo: "/assets/default-team-logo.png",
-          colors: {
-            primary: "#ef4444",
-            secondary: "#dc2626",
-            accent: "#f87171"
-          },
-          players: [
-            {
-              id: "6",
-              name: "RedPlayer1",
-              role: "TOP",
-              profileImage: "/assets/default/player.png"
-            },
-            {
-              id: "7",
-              name: "RedPlayer2",
-              role: "JUNGLE",
-              profileImage: "/assets/default/player.png"
-            },
-            {
-              id: "8",
-              name: "RedPlayer3",
-              role: "MID",
-              profileImage: "/assets/default/player.png"
-            },
-            {
-              id: "9",
-              name: "RedPlayer4",
-              role: "SUPPORT",
-              profileImage: "/assets/default/player.png"
-            },
-            {
-              id: "10",
-              name: "RedPlayer5",
-              role: "ADC",
-              profileImage: "/assets/default/player.png"
-            }
-          ],
-          coach: {
-            name: "REDCOACH",
-            profileImage: "/assets/default-coach.png"
-          }
-        }
+        blueTeam: LosRatones,
+        redTeam: FajnieMiecSklad
       }
     };
   }

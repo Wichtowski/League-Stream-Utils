@@ -8,7 +8,7 @@ import { usePathname } from "next/navigation";
 import type { ChampSelectSession } from "@lib/types";
 
 import { LCUData, LCUChampSelectSession } from "../types/electron";
-import { MOCK_CHAMP_SELECT_DATA } from "@lib/mocks/champselect";
+import { getDynamicMockData } from "@lib/mocks/dynamic-champselect";
 import { useDownload } from "./DownloadContext";
 
 interface LCUContextType {
@@ -215,14 +215,14 @@ export function LCUProvider({ children }: { children: ReactNode }) {
       setIsConnected(true);
       setIsConnecting(false);
       setConnectionError(null);
-      setChampSelectSession(MOCK_CHAMP_SELECT_DATA as ChampSelectSession);
+              setChampSelectSession(getDynamicMockData() as ChampSelectSession);
 
       // Update Electron with mock data
       updateElectronLCUData({
         isConnected: true,
         isConnecting: false,
         connectionError: null,
-        champSelectSession: MOCK_CHAMP_SELECT_DATA as unknown as LCUChampSelectSession,
+        champSelectSession: getDynamicMockData() as unknown as LCUChampSelectSession,
         useMockData: true
       });
     } else {

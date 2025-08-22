@@ -130,14 +130,22 @@ export async function GET(req: NextRequest) {
     // Cache images smaller than 1MB
     const cachedResponse = responseCache.get(safePath);
     if (cachedResponse && cachedResponse.etag === etag) {
+      const headers: Record<string, string> = {
+        "Content-Type": cachedResponse.contentType,
+        "Cache-Control": "public, max-age=31536000, immutable",
+        ETag: cachedResponse.etag,
+        "Content-Length": cachedResponse.data.length.toString()
+      };
+
+      // Add specific headers for SVG files to allow them to be served
+      if (ext === ".svg") {
+        headers["X-Content-Type-Options"] = "nosniff";
+        headers["Content-Security-Policy"] = "default-src 'self'";
+      }
+
       return new NextResponse(cachedResponse.data, {
         status: 200,
-        headers: {
-          "Content-Type": cachedResponse.contentType,
-          "Cache-Control": "public, max-age=31536000, immutable",
-          ETag: cachedResponse.etag,
-          "Content-Length": cachedResponse.data.length.toString()
-        }
+        headers
       });
     }
   }
@@ -162,14 +170,22 @@ export async function GET(req: NextRequest) {
         timestamp: Date.now()
       });
 
+      const headers: Record<string, string> = {
+        "Content-Type": contentType,
+        "Cache-Control": "public, max-age=31536000, immutable",
+        ETag: etag,
+        "Content-Length": data.length.toString()
+      };
+
+      // Add specific headers for SVG files to allow them to be served
+      if (ext === ".svg") {
+        headers["X-Content-Type-Options"] = "nosniff";
+        headers["Content-Security-Policy"] = "default-src 'self'";
+      }
+
       return new NextResponse(data, {
         status: 200,
-        headers: {
-          "Content-Type": contentType,
-          "Cache-Control": "public, max-age=31536000, immutable",
-          ETag: etag,
-          "Content-Length": data.length.toString()
-        }
+        headers
       });
     } catch (error) {
       // Fallback to streaming if memory read fails
@@ -196,14 +212,22 @@ export async function GET(req: NextRequest) {
     }
   });
 
+  const headers: Record<string, string> = {
+    "Content-Type": contentType,
+    "Cache-Control": "public, max-age=31536000, immutable",
+    ETag: etag,
+    "Accept-Ranges": "bytes",
+    "Content-Length": stats?.size?.toString() || ""
+  };
+
+  // Add specific headers for SVG files to allow them to be served
+  if (ext === ".svg") {
+    headers["X-Content-Type-Options"] = "nosniff";
+    headers["Content-Security-Policy"] = "default-src 'self'";
+  }
+
   return new NextResponse(readableStream, {
     status: 200,
-    headers: {
-      "Content-Type": contentType,
-      "Cache-Control": "public, max-age=31536000, immutable",
-      ETag: etag,
-      "Accept-Ranges": "bytes",
-      "Content-Length": stats?.size?.toString() || ""
-    }
+    headers
   });
 }

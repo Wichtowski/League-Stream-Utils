@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { findLCUCredentials, getChampSelectSession } from "@lib/services/external/LCU/helpers";
-import { MOCK_CHAMP_SELECT_DATA } from "@lib/mocks/champselect";
+import { getDynamicMockData } from "@lib/mocks/dynamic-champselect";
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
@@ -10,7 +10,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       return NextResponse.json(
         {
           success: true,
-          data: MOCK_CHAMP_SELECT_DATA,
+          data: getDynamicMockData(),
           inChampSelect: true
         },
         { status: 200 }

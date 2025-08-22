@@ -1,8 +1,10 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { getChampionSquareImage } from "../common";
-import { ROLE_ICONS } from "@lib/services/common/constants";
 import { PlayerRole } from "@lib/types/common";
+import { getLatestVersion } from "@lib/services/common/unified-asset-cache";
+import { getAllRoleIconAssets } from "../common";
+import { useImagePreload } from "@lib/hooks/useImagePreload";
 
 interface FearlessBan {
   championId: number;
@@ -18,14 +20,67 @@ interface FearlessDraftBansProps {
     blue: FearlessBan[];
     red: FearlessBan[];
   };
+  onRegisterImages?: (urls: string[]) => void;
 }
 
-export const FearlessDraftBans: React.FC<FearlessDraftBansProps> = ({ customTeamColors, bans }) => {
-  const ROLE_ORDER: FearlessBan["role"][] = ["TOP", "JUNGLE", "MID", "ADC", "SUPPORT"];
+export const FearlessDraftBans: React.FC<FearlessDraftBansProps> = ({ customTeamColors, bans, onRegisterImages }) => {
+  const ROLE_ORDER: FearlessBan["role"][] = ["TOP", "JUNGLE", "MID", "BOTTOM", "SUPPORT"];
+  const [roleIcons, setRoleIcons] = useState<Record<string, string>>({});
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [imagesLoaded, setImagesLoaded] = useState(false);
+
+  useEffect(() => {
+    const loadVersion = async () => {
+      const v = await getLatestVersion();
+      const icons = getAllRoleIconAssets(v);
+      setRoleIcons(icons);
+      
+      // Collect all image URLs
+      const urls: string[] = [];
+      
+      // Add role icons
+      Object.values(icons).forEach(icon => {
+        if (icon) urls.push(icon);
+      });
+      
+      // Add champion images
+      const allBans = [...bans.blue, ...bans.red];
+      allBans.forEach(ban => {
+        if (ban.championId) {
+          const squareImage = getChampionSquareImage(ban.championId);
+          if (squareImage) urls.push(squareImage);
+        }
+      });
+      
+      setImageUrls(Array.from(new Set(urls)));
+      
+      // Register with parent component
+      if (onRegisterImages) {
+        onRegisterImages(urls);
+      }
+    };
+    loadVersion();
+  }, [bans, onRegisterImages]);
+
+  // Preload all images for this component
+  const { loaded } = useImagePreload(imageUrls);
+
+  useEffect(() => {
+    if (imageUrls.length > 0 && loaded) {
+      setImagesLoaded(true);
+    } else if (imageUrls.length === 0) {
+      setImagesLoaded(true);
+    }
+  }, [imageUrls, loaded]);
+
+  // Don't render until images are loaded
+  if (!imagesLoaded) {
+    return <></>;
+  }
 
   return (
     <div className="flex flex-row gap-2">
-      {ROLE_ORDER.map((role) => {
+      {roleIcons && ROLE_ORDER.map((role) => {
         const blueBans = bans.blue.filter((ban) => ban.role === role);
         const redBans = bans.red.filter((ban) => ban.role === role);
         if (blueBans.length === 0 && redBans.length === 0) return null;
@@ -42,7 +97,7 @@ export const FearlessDraftBans: React.FC<FearlessDraftBansProps> = ({ customTeam
               <Image
                 height={32}
                 width={role === "SUPPORT" ? 40 : 32}
-                src={ROLE_ICONS[role]}
+                src={roleIcons[role] || "/assets/default/default_ban_placeholder.svg"}
                 alt={role}
                 className={role === "SUPPORT" ? "w-10 h-8" : "w-8 h-8"}
               />
@@ -54,7 +109,7 @@ export const FearlessDraftBans: React.FC<FearlessDraftBansProps> = ({ customTeam
                   <Image
                     height={32}
                     width={32}
-                    src={getChampionSquareImage(blueBans[idx].championId) || ""}
+                    src={getChampionSquareImage(blueBans[idx].championId)}
                     alt={blueBans[idx].championId.toString()}
                     className="w-8 h-8 rounded bg-gray-800"
                     style={{ border: `2px solid ${customTeamColors.blueTeam}` }}
@@ -69,7 +124,7 @@ export const FearlessDraftBans: React.FC<FearlessDraftBansProps> = ({ customTeam
                   <Image
                     height={32}
                     width={32}
-                    src={getChampionSquareImage(redBans[idx].championId) as string}
+                    src={getChampionSquareImage(redBans[idx].championId)}
                     alt={redBans[idx].championId.toString()}
                     className="w-8 h-8 rounded bg-gray-800"
                     style={{ border: `2px solid ${customTeamColors.redTeam}` }}

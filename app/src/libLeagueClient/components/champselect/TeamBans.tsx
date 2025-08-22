@@ -1,9 +1,9 @@
-import React from "react";
+import React, { useEffect } from "react";
 import Image from "next/image";
 import { getChampionById } from "@lib/champions";
 import { getChampionSquareImage } from "../common";
 import type { Champion } from "@lib/types";
-import { banPlaceholder } from "@lib/services/common/constants";
+
 
 type TeamBansProps = {
   bans: number[];
@@ -18,6 +18,8 @@ type TeamBansProps = {
     currentActionType: "pick" | "ban" | null;
     currentTurn?: number;
   };
+  banPlaceholder: string;
+  onRegisterImages?: (urls: string[]) => void;
 };
 
 const TeamBansComponent: React.FC<TeamBansProps> = ({
@@ -25,9 +27,41 @@ const TeamBansComponent: React.FC<TeamBansProps> = ({
   teamColor,
   isFearlessDraft = false,
   usedChampions = [],
-  hoverState
+  hoverState,
+  banPlaceholder,
+  onRegisterImages
 }) => {
   const maxBans = 5; // Maximum number of bans per team
+
+  // Register images with parent component
+  useEffect(() => {
+    if (onRegisterImages) {
+      const urls: string[] = [];
+      
+      // Add ban placeholder
+      if (banPlaceholder) urls.push(banPlaceholder);
+      
+      // Add champion images
+      bans.forEach(championId => {
+        if (championId) {
+          const squareImage = getChampionSquareImage(championId);
+          if (squareImage) urls.push(squareImage);
+        }
+      });
+      
+      // Add used champions images for fearless draft
+      if (isFearlessDraft && usedChampions.length > 0) {
+        usedChampions.forEach(champ => {
+          if (champ.id) {
+            const squareImage = getChampionSquareImage(champ.id);
+            if (squareImage) urls.push(squareImage);
+          }
+        });
+      }
+      
+      onRegisterImages(urls);
+    }
+  }, [bans, banPlaceholder, isFearlessDraft, usedChampions, onRegisterImages]);
 
   // Check if this team should show hover effect for bans
   const isBanHovering =
@@ -92,7 +126,7 @@ const TeamBansComponent: React.FC<TeamBansProps> = ({
             {champ ? (
               <>
                 <Image
-                  src={getChampionSquareImage(championId) || champ.image}
+                  src={getChampionSquareImage(championId) || champ.image || banPlaceholder}
                   alt={champ.name}
                   width={64}
                   height={64}

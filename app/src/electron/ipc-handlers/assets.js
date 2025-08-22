@@ -15,7 +15,9 @@ function registerHostedAssetsHandlers(_mainWindow, assetsPath, assetCachePath) {
 
       let fullSourcePath = sourcePath;
       if (!path.isAbsolute(sourcePath)) {
-        fullSourcePath = path.join(__dirname, "..", sourcePath);
+        // Use import.meta.url to get the current module's directory
+        const currentDir = path.dirname(new URL(import.meta.url).pathname);
+        fullSourcePath = path.join(currentDir, "..", sourcePath);
       }
 
       console.log(`Copying asset: ${fullSourcePath} -> ${destPath}`);
@@ -92,7 +94,6 @@ function registerHostedAssetsHandlers(_mainWindow, assetsPath, assetCachePath) {
         return { success: true, localPath: targetPath };
       }
       return new Promise((resolve) => {
-        const file = fs.createWriteStream(targetPath);
         let downloadedBytes = 0;
         const startTime = Date.now();
 
@@ -108,17 +109,46 @@ function registerHostedAssetsHandlers(_mainWindow, assetsPath, assetCachePath) {
             headers: {
               "User-Agent": "League-Stream-Utils/1.0",
               Accept: "*/*",
-              "Accept-Encoding": "gzip, deflate, br"
+              "Accept-Encoding": "identity"
             }
           },
           (response) => {
             if (response.statusCode === 200) {
+              let chunks = [];
               response.on("data", (chunk) => {
+                chunks.push(chunk);
                 downloadedBytes += chunk.length;
               });
-              response.pipe(file);
-              file.on("finish", async () => {
-                file.close();
+              
+                             response.on("end", () => {
+                 const buffer = Buffer.concat(chunks);
+                 
+                 // Debug: Log the first few bytes for SVG files
+                 if (targetPath.endsWith('.svg')) {
+                   console.log(`Downloading SVG file: ${targetPath}`);
+                   console.log(`Response headers:`, response.headers);
+                   console.log(`Buffer length: ${buffer.length}`);
+                   console.log(`First 100 bytes:`, buffer.toString('utf8', 0, 100));
+                 }
+                 
+                 // Check if this is a text file (SVG, JSON, etc.) and ensure proper encoding
+                 const isTextFile = targetPath.endsWith('.svg') || targetPath.endsWith('.json') || targetPath.endsWith('.txt');
+                 
+                 if (isTextFile) {
+                   // For text files, ensure UTF-8 encoding
+                   const content = buffer.toString('utf8');
+                   fs.writeFileSync(targetPath, content, 'utf8');
+                   
+                   // Debug: Verify the written content
+                   if (targetPath.endsWith('.svg')) {
+                     const writtenContent = fs.readFileSync(targetPath, 'utf8');
+                     console.log(`Written content first 100 chars:`, writtenContent.substring(0, 100));
+                   }
+                 } else {
+                   // For binary files, write as buffer
+                   fs.writeFileSync(targetPath, buffer);
+                 }
+                
                 const downloadTime = (Date.now() - startTime) / 1000;
                 const downloadSpeed = downloadedBytes / downloadTime;
                 resolve({
@@ -130,7 +160,6 @@ function registerHostedAssetsHandlers(_mainWindow, assetsPath, assetCachePath) {
                 });
               });
             } else {
-              file.close();
               if (fs.existsSync(targetPath)) {
                 fs.unlinkSync(targetPath);
               }
@@ -143,7 +172,6 @@ function registerHostedAssetsHandlers(_mainWindow, assetsPath, assetCachePath) {
           }
         );
         request.on("error", (err) => {
-          file.close();
           if (fs.existsSync(targetPath)) {
             fs.unlinkSync(targetPath);
           }
@@ -155,7 +183,6 @@ function registerHostedAssetsHandlers(_mainWindow, assetsPath, assetCachePath) {
         });
         request.on("timeout", () => {
           request.destroy();
-          file.close();
           if (fs.existsSync(targetPath)) {
             fs.unlinkSync(targetPath);
           }

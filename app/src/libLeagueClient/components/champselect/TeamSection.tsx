@@ -1,9 +1,10 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import type { EnhancedChampSelectPlayer } from "@lib/types";
 import { PlayerSlot } from "./PlayerSlot";
-import { TeamColors } from "@lib/types/tournament";
+import { TeamColors } from "@lib/types/common";
+import { getChampionCenteredSplashImage, getChampionSquareImage } from "../common";
 
 interface TeamSectionProps {
   team: EnhancedChampSelectPlayer[];
@@ -25,9 +26,43 @@ interface TeamSectionProps {
     blueTeam?: { colors?: TeamColors };
     redTeam?: { colors?: TeamColors };
   };
+  roleIcons: Record<string, string>;
+  onRegisterImages?: (urls: string[]) => void;
 }
 
-const TeamSection: React.FC<TeamSectionProps> = ({ team, teamColor, currentPhase, hoverState, tournamentData }) => {
+const TeamSection: React.FC<TeamSectionProps> = ({ 
+  team, 
+  teamColor, 
+  currentPhase, 
+  hoverState, 
+  tournamentData, 
+  roleIcons,
+  onRegisterImages 
+}) => {
+  // Register images with parent component
+  useEffect(() => {
+    if (onRegisterImages) {
+      const urls: string[] = [];
+      
+      // Add role icons
+      Object.values(roleIcons).forEach(icon => {
+        if (icon) urls.push(icon);
+      });
+      
+      // Add champion images from team players
+      team.forEach(player => {
+        if (player.championId) {
+          const splashImage = getChampionCenteredSplashImage(player.championId);
+          const squareImage = getChampionSquareImage(player.championId);
+          if (splashImage) urls.push(splashImage);
+          if (squareImage) urls.push(squareImage);
+        }
+      });
+      
+      onRegisterImages(urls);
+    }
+  }, [team, roleIcons, onRegisterImages]);
+
   // Create a full team array with placeholder players if needed
   const fullTeam = [...team];
   while (fullTeam.length < 5) {
@@ -56,6 +91,8 @@ const TeamSection: React.FC<TeamSectionProps> = ({ team, teamColor, currentPhase
             teamColor={tournamentData?.blueTeam?.colors?.primary || teamColor}
             _currentPhase={currentPhase}
             hoverState={hoverState}
+            roleIcons={roleIcons}
+            onRegisterImages={onRegisterImages}
           />
         ))}
       </div>

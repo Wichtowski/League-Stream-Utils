@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import type { EnhancedChampSelectSession, GameState } from "@lib/types";
-import { MOCK_CHAMP_SELECT_DATA } from "@lib/mocks/champselect";
+import { getDynamicMockData } from "@lib/mocks/dynamic-champselect";
 
 export type UseChampSelectDataResult = {
   data: EnhancedChampSelectSession | null;
@@ -241,7 +241,7 @@ export const useChampSelectData = (): UseChampSelectDataResult => {
     const backend = getBackendUrl();
 
     if (!backend) {
-      setData(MOCK_CHAMP_SELECT_DATA);
+              setData(getDynamicMockData());
       setLoading(false);
       return;
     }

@@ -18,7 +18,7 @@ export const PlayerSchema = new Schema(
     tag: { type: String, required: true },
     role: {
       type: String,
-      enum: ["TOP", "JUNGLE", "MID", "ADC", "SUPPORT"],
+      enum: ["TOP", "JUNGLE", "MID", "BOTTOM", "SUPPORT"],
       required: true
     },
     profileImage: { type: String, required: false },

@@ -151,23 +151,6 @@ export interface PickbanPlayer {
   puuid?: string;
 }
 
-export interface PickbanTournamentTeam {
-  id: string;
-  name: string;
-  tag: string;
-  logo: string;
-  colors: {
-    primary: string;
-    secondary: string;
-    accent: string;
-  };
-  players: PickbanPlayer[];
-  coach?: {
-    name: string;
-    profileImage?: string;
-  };
-}
-
 // Pickban specific types
 export interface PickbanConfig {
   seriesType: MatchFormat;
@@ -182,7 +165,7 @@ export interface PickbanConfig {
       coach?: Coach;
       logoUrl?: string;
       // Enhanced tournament team data
-      tournamentTeam?: PickbanTournamentTeam;
+      tournamentTeam?: TournamentTeam;
     };
     red: {
       name: string;
@@ -190,7 +173,7 @@ export interface PickbanConfig {
       coach?: Coach;
       logoUrl?: string;
       // Enhanced tournament team data
-      tournamentTeam?: PickbanTournamentTeam;
+      tournamentTeam?: TournamentTeam;
     };
   };
   tournament?: {
@@ -297,7 +280,7 @@ export interface ChampSelectSession {
 export interface EnhancedChampSelectPlayer extends ChampSelectPlayer {
   // Additional tournament data
   playerInfo?: PickbanPlayer;
-  role?: "TOP" | "JUNGLE" | "MID" | "ADC" | "SUPPORT";
+  role?: "TOP" | "JUNGLE" | "MID" | "BOTTOM" | "SUPPORT";
   profileImage?: string;
 }
 
@@ -307,8 +290,8 @@ export interface EnhancedChampSelectSession extends Omit<ChampSelectSession, "my
   // Tournament context
   tournamentData?: {
     tournament: PickbanConfig["tournament"];
-    blueTeam: PickbanTournamentTeam;
-    redTeam: PickbanTournamentTeam;
+    blueTeam: Team;
+    redTeam: Team;
   };
   // Hover and selection state for dynamic mock
   hoverState?: {
@@ -325,11 +308,11 @@ export interface EnhancedChampSelectSession extends Omit<ChampSelectSession, "my
   fearlessBans?: {
     blue: {
       championId: number;
-      role: "TOP" | "JUNGLE" | "MID" | "ADC" | "SUPPORT";
+      role: "TOP" | "JUNGLE" | "MID" | "BOTTOM" | "SUPPORT";
     }[];
     red: {
       championId: number;
-      role: "TOP" | "JUNGLE" | "MID" | "ADC" | "SUPPORT";
+      role: "TOP" | "JUNGLE" | "MID" | "BOTTOM" | "SUPPORT";
     }[];
   };
 }

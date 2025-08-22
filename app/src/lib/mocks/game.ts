@@ -332,7 +332,7 @@ export const mockStaticPlayersBlue: Player[] = [
     id: "4",
     inGameName: "zamulek",
     tag: "FMS",
-    role: "ADC",
+    role: "BOTTOM",
     verified: true,
     createdAt: new Date(),
     updatedAt: new Date()
@@ -380,7 +380,7 @@ export const mockStaticPlayersRed: Player[] = [
     id: "9",
     inGameName: "Crownie",
     tag: "LR",
-    role: "ADC",
+    role: "BOTTOM",
     verified: true,
     createdAt: new Date(),
     updatedAt: new Date()

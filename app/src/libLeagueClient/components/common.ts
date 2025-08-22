@@ -180,6 +180,7 @@ export const getOverlayAsset = (version: string, asset: string): string => {
 export const getDefaultAsset = (version: string, asset: string): string => {
   return getAsset(version, "default", asset);
 };
+
 type DragonPitAsset =
   | "chemtech.png"
   | "cloud.png"
@@ -205,6 +206,21 @@ export const getAtakhanAsset = (version: string, asset: AtakhanAsset): string =>
 type ScoreboardAsset = "gold.png" | "tower.png" | "grubs.png";
 export const getScoreboardAsset = (version: string, asset: ScoreboardAsset): string => {
   return getAsset(version, "scoreboard", asset);
+};
+
+type RoleIconAsset = "top_splash_placeholder.svg" | "jung_splash_placeholder.svg" | "mid_splash_placeholder.svg" | "sup_splash_placeholder.svg" | "bot_splash_placeholder.svg";
+export const getRoleIconAsset = (version: string, asset: RoleIconAsset): string => {
+  return getAsset(version, "role", asset);
+};
+
+export const getAllRoleIconAssets = (version: string): { [key: string]: string } => {
+  return {
+    TOP: getAsset(version, "roleIcons", "top_splash_placeholder.svg"),
+    JUNGLE: getAsset(version, "roleIcons", "jung_splash_placeholder.svg"),
+    MID: getAsset(version, "roleIcons", "mid_splash_placeholder.svg"),
+    SUPPORT: getAsset(version, "roleIcons", "sup_splash_placeholder.svg"),
+    BOTTOM: getAsset(version, "roleIcons", "bot_splash_placeholder.svg")
+  };
 };
 
 const getAsset = (version: string, type: string, asset: string): string => {

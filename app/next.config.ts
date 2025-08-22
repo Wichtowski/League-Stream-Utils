@@ -71,7 +71,9 @@ const nextConfig: NextConfig = {
       protocol: "https",
       hostname: h,
       pathname: "/**"
-    }))
+    })),
+    dangerouslyAllowSVG: true,
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;"
   },
   // Webpack configuration for bundle splitting
   webpack: (config, { dev, isServer }) => {

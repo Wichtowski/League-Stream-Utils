@@ -27,7 +27,7 @@ const ChampionStatsSchema = new Schema({
     TOP: { type: Number, default: 0 },
     JUNGLE: { type: Number, default: 0 },
     MID: { type: Number, default: 0 },
-    ADC: { type: Number, default: 0 },
+    BOTTOM: { type: Number, default: 0 },
     SUPPORT: { type: Number, default: 0 }
   },
 
@@ -59,7 +59,7 @@ const GameResultSchema = new Schema({
         championId: { type: Number, required: true },
         role: {
           type: String,
-          enum: ["TOP", "JUNGLE", "MID", "ADC", "SUPPORT"]
+          enum: ["TOP", "JUNGLE", "MID", "BOTTOM", "SUPPORT"]
         },
         player: { type: String }
       }
@@ -76,7 +76,7 @@ const GameResultSchema = new Schema({
         championId: { type: Number, required: true },
         role: {
           type: String,
-          enum: ["TOP", "JUNGLE", "MID", "ADC", "SUPPORT"]
+          enum: ["TOP", "JUNGLE", "MID", "BOTTOM", "SUPPORT"]
         },
         player: { type: String }
       }
@@ -191,7 +191,7 @@ async function updateChampionStat(
         TOP: 0,
         JUNGLE: 0,
         MID: 0,
-        ADC: 0,
+        BOTTOM: 0,
         SUPPORT: 0
       },
       lastUpdated: new Date()

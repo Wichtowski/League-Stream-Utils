@@ -31,7 +31,6 @@ export interface Team {
       discord?: string;
       website?: string;
     };
-    userId: string;
     createdAt: Date;
     updatedAt: Date;
   

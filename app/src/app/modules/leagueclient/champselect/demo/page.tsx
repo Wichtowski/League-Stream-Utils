@@ -1,23 +1,32 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { getDynamicMockData } from "@lib/mocks/dynamic-champselect";
-import { getChampions } from "@lib/champions";
-import { Breadcrumbs } from "@lib/components/common";
+import React, { useEffect, useState } from "react";
+import { EnhancedChampSelectSession } from "@lib/types";
 import { ChampSelectDisplay } from "@libLeagueClient/components/champselect/ChampSelectDisplay";
+import { Breadcrumbs } from "@lib/components/common";
+import { getChampions } from "@lib/champions";
+import { getLatestVersion } from "@lib/services/common/unified-asset-cache";
+import { getDefaultAsset, getAllRoleIconAssets } from "@/libLeagueClient/components/common";
+import { getDynamicMockData } from "@lib/mocks/dynamic-champselect";
 
-const DemoPage: React.FC = () => {
-  const [mockData, setMockData] = useState<ReturnType<typeof getDynamicMockData> | null>(null);
-  const [showControls, setShowControls] = useState(true);
+const DemoChampSelectPage: React.FC = () => {
+  const [mockData, setMockData] = useState<EnhancedChampSelectSession | null>(null);
+  const [roleIcons, setRoleIcons] = useState<Record<string, string>>({});
+  const [banPlaceholder, setBanPlaceholder] = useState<string>("");
+
 
   useEffect(() => {
-    // Initialize mock data on client side
-    setMockData(getDynamicMockData());
+    const init = async (): Promise<void> => {
+      await Promise.allSettled([getChampions()]);
+      
+      const v = await getLatestVersion();
+      setBanPlaceholder(getDefaultAsset(v, "default_ban_placeholder.svg"));
+      setRoleIcons(getAllRoleIconAssets(v));
+      
+      setMockData(getDynamicMockData());
+    };
+    init().catch(console.error);
 
-    // Ensure champions cache is populated
-    getChampions().catch(console.error);
-
-    // Update mock data every second
     const interval = setInterval(() => {
       setMockData(getDynamicMockData());
     }, 1000);
@@ -25,32 +34,28 @@ const DemoPage: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
-  if (!mockData) {
-    return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="text-white text-xl">Loading demo...</div>
-      </div>
-    );
+  if (!mockData || !roleIcons || !banPlaceholder) {
+    return <></>;
   }
 
   return (
     <>
-      <div className="mb-4 p-4">
-        <Breadcrumbs
+      <Breadcrumbs
           items={[
-            { label: "Pick & Ban", href: "/modules/pickban" },
-            { label: "Demo", href: "/modules/pickban/demo", isActive: true }
+            { label: "League Client", href: "/modules/leagueclient" },
+            { label: "Champ Select", href: "/modules/leagueclient/champselect" },
+            { label: "Demo", href: "/modules/leagueclient/champselect/demo", isActive: true }
           ]}
-        />
-      </div>
+      />
       <ChampSelectDisplay
         data={mockData}
+        roleIcons={roleIcons}
+        banPlaceholder={banPlaceholder}
         isOverlay={false}
-        showControls={showControls}
-        onToggleControls={() => setShowControls(!showControls)}
+        showControls={true}
       />
     </>
   );
 };
 
-export default DemoPage;
+export default DemoChampSelectPage;

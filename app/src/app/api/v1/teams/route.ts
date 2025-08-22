@@ -27,14 +27,14 @@ export const POST = withAuth(async (req: NextRequest, user) => {
     }
 
     const roles = teamData.players.main.map((p) => p.role);
-    const requiredRoles: PlayerRole[] = ["TOP", "JUNGLE", "MID", "ADC", "SUPPORT"];
+    const requiredRoles: PlayerRole[] = ["TOP", "JUNGLE", "MID", "BOTTOM", "SUPPORT"];
     const hasAllRoles = requiredRoles.every((role) => roles.includes(role));
     const hasUniqueRoles = new Set(roles).size === roles.length;
 
     if (!hasAllRoles || !hasUniqueRoles) {
       return NextResponse.json(
         {
-          error: "Team must have exactly one player per role: TOP, JUNGLE, MID, ADC, SUPPORT"
+          error: "Team must have exactly one player per role: TOP, JUNGLE, MID, BOTTOM, SUPPORT"
         },
         { status: 400 }
       );

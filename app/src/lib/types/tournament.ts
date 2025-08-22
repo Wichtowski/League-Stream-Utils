@@ -155,7 +155,7 @@ export const createDefaultTeamRequest = (): Partial<CreateTeamRequest> => ({
       { role: "TOP", inGameName: "", tag: "" },
       { role: "JUNGLE", inGameName: "", tag: "" },
       { role: "MID", inGameName: "", tag: "" },
-      { role: "ADC", inGameName: "", tag: "" },
+      { role: "BOTTOM", inGameName: "", tag: "" },
       { role: "SUPPORT", inGameName: "", tag: "" }
     ],
     substitutes: []
@@ -212,7 +212,7 @@ export interface ChampionStats {
     TOP: number;
     JUNGLE: number;
     MID: number;
-    ADC: number;
+    BOTTOM: number;
     SUPPORT: number;
   };
 

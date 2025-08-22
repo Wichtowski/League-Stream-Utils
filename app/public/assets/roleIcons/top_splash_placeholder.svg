@@ -1,0 +1,12 @@
+<svg width="84" height="84" xmlns="http://www.w3.org/2000/svg">
+
+ <title>top_splash_placeholder</title>
+ <g>
+  <title>Layer 1</title>
+  <g id="Top">
+   <rect id="svg_1" fill="#666" height="24" width="24" y="31" x="31" class="cls-1"/>
+   <polygon id="svg_2" fill="#666" points="72,19.80999755859375 72,72 19.300003051757812,72 7.180000305175781,84 84,84 84,7.92999267578125 72,19.80999755859375 " class="cls-1"/>
+   <polygon id="svg_3" fill="#fff" points="16,63 16,16 63,16 78,1 1,1 1,78 16,63 " class="cls-2"/>
+  </g>
+ </g>
+</svg>

@@ -1,11 +1,16 @@
-import React from "react";
+import React, { useEffect } from "react";
 import Image from "next/image";
-import type { PickbanTournamentTeam } from "@lib/types";
 import { ProgressBar } from "./ProgressBar";
 
+// Generic team type that works with both PickbanTournamentTeam and MatchTeam
+type TeamWithLogo = {
+  name: string;
+  logo: string;
+};
+
 type MatchInfoProps = {
-  blueTeam: PickbanTournamentTeam;
-  redTeam: PickbanTournamentTeam;
+  blueTeam: TeamWithLogo;
+  redTeam: TeamWithLogo;
   timer: number;
   maxTimer: number;
   tournamentLogo: string;
@@ -14,6 +19,7 @@ type MatchInfoProps = {
   blueScore?: number;
   redScore?: number;
   gameVersion?: string;
+  onRegisterImages?: (urls: string[]) => void;
 };
 
 const MatchInfoComponent: React.FC<MatchInfoProps> = ({
@@ -26,10 +32,25 @@ const MatchInfoComponent: React.FC<MatchInfoProps> = ({
   isBO5 = false,
   blueScore = 0,
   redScore = 0,
-  gameVersion = "25.13"
+  gameVersion = "25.13",
+  onRegisterImages
 }) => {
   const progress = (timer / maxTimer) * 100;
   const showScores = isBO3 || isBO5;
+
+  // Register images with parent component
+  useEffect(() => {
+    if (onRegisterImages) {
+      const urls: string[] = [];
+      
+      // Add team logos
+      if (blueTeam.logo) urls.push(blueTeam.logo);
+      if (redTeam.logo) urls.push(redTeam.logo);
+      if (tournamentLogo) urls.push(tournamentLogo);
+      
+      onRegisterImages(urls);
+    }
+  }, [blueTeam.logo, redTeam.logo, tournamentLogo, onRegisterImages]);
 
   return (
     <div className="flex flex-col items-center justify-end min-w-[200px] max-w-[300px]">
