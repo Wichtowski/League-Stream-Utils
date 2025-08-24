@@ -1,7 +1,7 @@
+import { MatchFormat } from "./match";
+import { ImageStorage } from "./common";
 import { Player } from "./game";
-import { PlayerRole, ImageStorage, TeamColors } from "./common";
 
-export type MatchFormat = "BO1" | "BO3" | "BO5";
 export type TournamentFormat = "Ladder" | "Swiss into Ladder" | "Round Robin into Ladder" | "Groups";
 
 export interface PhaseMatchFormats {
@@ -17,21 +17,25 @@ export type TournamentStatus = "draft" | "registration" | "ongoing" | "completed
 export type TeamTier = "amateur" | "semi-pro" | "professional";
 
 export interface TournamentTemplate {
-  id: string;
+  _id: string;
   name: string;
   description: string;
-  logo: ImageStorage;
+  matchFormat: MatchFormat;
+  tournamentFormat: TournamentFormat;
+  maxTeams: number;
+  isActive: boolean;
+  createdAt: Date;
 }
 
 export interface Staff {
-  id: string;
+  _id: string;
   name: string;
   role: "coach" | "analyst" | "manager";
   contact?: string;
 }
 
 export interface Tournament {
-  id: string;
+  _id: string;
   name: string;
   abbreviation: string;
 
@@ -117,13 +121,13 @@ export interface CreateTeamRequest {
   logo: ImageStorage;
   colors: TeamColors;
   players: {
-    main: Omit<Player, "id" | "createdAt" | "updatedAt" | "verified" | "verifiedAt">[];
-    substitutes: Omit<Player, "id" | "createdAt" | "updatedAt" | "verified" | "verifiedAt">[];
+    main: Omit<Player, "_id" | "createdAt" | "updatedAt" | "verified" | "verifiedAt">[];
+    substitutes: Omit<Player, "_id" | "createdAt" | "updatedAt" | "verified" | "verifiedAt">[];
   };
   staff?: {
-    coach?: Omit<Staff, "id">;
-    analyst?: Omit<Staff, "id">;
-    manager?: Omit<Staff, "id">;
+    coach?: Omit<Staff, "_id">;
+    analyst?: Omit<Staff, "_id">;
+    manager?: Omit<Staff, "_id">;
   };
   region: string;
   tier: TeamTier;
@@ -138,46 +142,56 @@ export interface CreateTeamRequest {
 }
 
 export type UpdateTeamRequest = Partial<CreateTeamRequest> & {
-  id: string;
-  logo?: ImageStorage;
+  _id: string;
 };
 
 export const createDefaultTeamRequest = (): Partial<CreateTeamRequest> => ({
   name: "",
   tag: "",
-  colors: {
-    primary: "#3B82F6",
-    secondary: "#1E40AF",
-    accent: "#FFFFFF"
-  },
-  players: {
-    main: [
-      { role: "TOP", inGameName: "", tag: "" },
-      { role: "JUNGLE", inGameName: "", tag: "" },
-      { role: "MID", inGameName: "", tag: "" },
-      { role: "BOTTOM", inGameName: "", tag: "" },
-      { role: "SUPPORT", inGameName: "", tag: "" }
-    ],
-    substitutes: []
-  },
-  region: "",
-  tier: "amateur",
   logo: {
     type: "url",
     url: "",
     format: "png"
-  }
+  },
+  colors: {
+    primary: "#3B82F6",
+    secondary: "#1E40AF",
+    accent: "#F59E0B"
+  },
+  players: {
+    main: [],
+    substitutes: []
+  },
+  region: "NA",
+  tier: "amateur",
+  socialMedia: {
+    twitter: "",
+    discord: "",
+    website: ""
+  },
+  isStandalone: true
 });
 
-// Riot API integration types
+export interface TeamColors {
+  primary: string;
+  secondary: string;
+  accent: string;
+}
+
+export interface PlayerVerificationRequest {
+  playerId: string;
+  puuid: string;
+  summonerName: string;
+  tag: string;
+}
+
 export interface RiotPlayerData {
   puuid: string;
+  summonerName: string;
+  tag: string;
   summonerLevel: number;
   rank: string;
-  tier: string;
-  leaguePoints: number;
-  wins: number;
-  losses: number;
+  lastGameAt: Date;
 }
 
 export interface PlayerVerificationResult {
@@ -224,22 +238,13 @@ export interface TournamentChampionStats {
   totalGames: number;
   totalMatches: number;
   lastUpdated: Date;
-
   championStats: ChampionStats[];
-
-  topPicks: ChampionStats[];
-  topBans: ChampionStats[];
-  topPresence: ChampionStats[];
-
-  blueSidePriority: ChampionStats[];
-  redSidePriority: ChampionStats[];
 }
 
 export interface GameResult {
   sessionId: string;
   tournamentId?: string;
   gameNumber: number;
-
   gameDuration?: number;
   patch: string;
   completedAt: Date;
@@ -248,34 +253,29 @@ export interface GameResult {
     teamId?: string;
     teamName: string;
     won: boolean;
-    picks: Array<{
+    picks: {
       championId: number;
-      role?: PlayerRole;
+      role?: "TOP" | "JUNGLE" | "MID" | "BOTTOM" | "SUPPORT";
       player?: string;
-    }>;
+    }[];
     bans: number[];
   };
+
   redTeam: {
     teamId?: string;
     teamName: string;
     won: boolean;
-    picks: Array<{
+    picks: {
       championId: number;
-      role?: PlayerRole;
+      role?: "TOP" | "JUNGLE" | "MID" | "BOTTOM" | "SUPPORT";
       player?: string;
-    }>;
+    }[];
     bans: number[];
   };
 }
 
-// Phase 3: Advanced Tournament Formats
-export type AdvancedTournamentFormat =
-  | "single-elimination"
-  | "double-elimination"
-  | "swiss-system"
-  | "group-stage-playoffs"
-  | "league-season"
-  | TournamentFormat; // Include existing formats
+// Advanced Tournament Format Types
+export type AdvancedTournamentFormat = "swiss" | "groups" | "league" | "hybrid";
 
 export interface BracketSettings {
   type: "single" | "double";
@@ -340,15 +340,17 @@ export interface StreamConfig {
 }
 
 export interface Sponsorship {
-  id: string;
+  _id: string;
   name: string;
   logo: ImageStorage;
   website?: string;
-  tier: "title" | "presenting" | "official" | "partner";
-  displayPriority: number;
-  showName?: boolean;
-  namePosition?: "left" | "right";
-  fillContainer?: boolean;
+  description?: string;
+  tier: "platinum" | "gold" | "silver" | "bronze";
+  startDate: Date;
+  endDate: Date;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface BrandingConfig {
@@ -363,7 +365,7 @@ export interface BrandingConfig {
 
 // Bracket System Types
 export interface BracketNode {
-  id: string;
+  _id: string;
   round: number;
   position: number;
   team1?: string; // Team ID
@@ -380,7 +382,7 @@ export interface BracketNode {
 }
 
 export interface BracketStructure {
-  id: string;
+  _id: string;
   tournamentId: string;
   format: "single-elimination" | "double-elimination";
   nodes: BracketNode[];
@@ -394,7 +396,6 @@ export interface BracketStructure {
   updatedAt: Date;
 }
 
-// Swiss System Types
 export interface SwissRound {
   roundNumber: number;
   pairings: SwissPairing[];
@@ -404,32 +405,29 @@ export interface SwissRound {
 }
 
 export interface SwissPairing {
-  id: string;
-  team1: string; // Team ID
-  team2: string; // Team ID
-  result?: {
-    winner: string; // Team ID
-    score1: number;
-    score2: number;
-    completedAt: Date;
-  };
-  tableNumber?: number;
+  _id: string;
+  team1Id: string;
+  team2Id: string;
+  team1Score?: number;
+  team2Score?: number;
+  winner?: string;
   status: "pending" | "in-progress" | "completed";
+  scheduledTime?: Date;
+  completedAt?: Date;
 }
 
 export interface SwissStandings {
   teamId: string;
-  points: number;
+  teamName: string;
   wins: number;
   losses: number;
   draws: number;
-  buchholzScore?: number;
-  sonnebornBergerScore?: number;
-  opponents: string[]; // Team IDs they've played
-  tiebreakScore: number;
+  points: number;
+  buchholz: number;
+  sonnebornBerger: number;
+  headToHead: number;
 }
 
-// Enhanced Tournament Interface
 export interface AdvancedTournament extends Tournament {
   // Advanced format settings
   advancedFormat?: AdvancedTournamentFormat;
@@ -457,17 +455,18 @@ export interface AdvancedTournament extends Tournament {
   discordIntegration?: {
     serverId: string;
     channelId: string;
-    roleId?: string;
+    roleId: string;
   };
 
-  // Professional features
-  isPublic: boolean;
-  featured: boolean;
-  verified: boolean; // Platform verified tournament
-  tier: "amateur" | "semi-pro" | "professional";
+  // Analytics and reporting
+  analytics?: TournamentAnalytics;
+  reporting?: {
+    autoGenerateReports: boolean;
+    reportFrequency: "daily" | "weekly" | "end-of-tournament";
+    customMetrics?: string[];
+  };
 }
 
-// API Request/Response types for Advanced Tournaments
 export interface CreateAdvancedTournamentRequest extends CreateTournamentRequest {
   advancedFormat?: AdvancedTournamentFormat;
   bracketSettings?: BracketSettings;
@@ -485,12 +484,11 @@ export interface CreateAdvancedTournamentRequest extends CreateTournamentRequest
   discordIntegration?: {
     serverId: string;
     channelId: string;
-    roleId?: string;
+    roleId: string;
   };
-  tier?: "amateur" | "semi-pro" | "professional";
 }
 
-// Bracket API Types
+// API Response Types
 export interface BracketAPIResponse {
   bracket: BracketStructure;
   standings?: SwissStandings[];
@@ -500,70 +498,63 @@ export interface BracketAPIResponse {
 
 export interface UpdateMatchResultRequest {
   matchId: string;
-  winner: string; // Team ID
-  score1: number;
-  score2: number;
-  forfeit?: boolean;
-  notes?: string;
+  winner: string;
+  score: { blue: number; red: number };
+  gameResults?: GameResult[];
 }
 
-// Statistics and Analytics Types
+// Analytics Types
 export interface TournamentAnalytics {
   tournamentId: string;
-  totalParticipants: number;
   totalMatches: number;
-  averageMatchDuration: number;
-  popularTimes: { hour: number; matches: number }[];
-  teamPerformance: {
-    teamId: string;
-    wins: number;
-    losses: number;
-    averageGameTime: number;
-    championPicks: { champion: string; count: number }[];
-  }[];
-  prizePoolDistribution?: {
-    totalPool: number;
-    platformFee: number;
-    organizerShare: number;
-    prizes: { position: number; amount: number }[];
-  };
+  totalGames: number;
+  averageGameDuration: number;
+  totalViewers: number;
+  peakViewers: number;
+  averageViewers: number;
+  engagementRate: number;
+  socialMediaMentions: number;
+  revenue: number;
+  costs: number;
+  profit: number;
+  roi: number;
 }
 
-// Additional types for contexts
 export interface TournamentStats {
   tournamentId: string;
-  totalParticipants: number;
+  totalTeams: number;
+  registeredTeams: number;
+  activeTeams: number;
   totalMatches: number;
   completedMatches: number;
-  averageMatchDuration?: number;
-  championStats: ChampionStats[];
-  teamStats: {
-    teamId: string;
-    teamName: string;
-    wins: number;
-    losses: number;
-    totalGames: number;
-    winRate: number;
-    averageGameTime?: number;
-    favoriteChampions: ChampionStats[];
-  }[];
-  timeline: {
-    date: Date;
-    matchesPlayed: number;
-    cumulativeMatches: number;
-  }[];
-  lastUpdated: Date;
+  pendingMatches: number;
+  totalGames: number;
+  averageGameDuration: number;
+  totalPrizePool: number;
+  distributedPrizes: number;
+  averageViewers: number;
+  peakViewers: number;
+  totalViewers: number;
+  socialMediaReach: number;
+  sponsorExposure: number;
+  revenue: number;
+  costs: number;
+  profit: number;
+  roi: number;
 }
 
+// Legacy Bracket Type (for backward compatibility)
 export interface Bracket {
-  id: string;
+  _id: string;
   tournamentId: string;
-  type: "single-elimination" | "double-elimination" | "swiss" | "round-robin";
-  structure: BracketStructure | SwissRound[] | unknown; // Different structure per type
-  currentRound: number;
-  totalRounds: number;
-  status: "setup" | "active" | "completed";
-  settings: BracketSettings | SwissSettings | GroupSettings;
+  format: "single-elimination" | "double-elimination";
+  nodes: BracketNode[];
+  metadata: {
+    totalRounds: number;
+    teamsCount: number;
+    currentRound: number;
+    status: "setup" | "active" | "completed";
+  };
   createdAt: Date;
   updatedAt: Date;
 }

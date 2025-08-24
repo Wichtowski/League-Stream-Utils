@@ -2,7 +2,6 @@ import { Schema } from "mongoose";
 
 const BracketNodeSchema = new Schema(
   {
-    id: { type: String, required: true },
     round: { type: Number, required: true },
     position: { type: Number, required: true },
     team1: { type: String },
@@ -24,12 +23,10 @@ const BracketNodeSchema = new Schema(
       enum: ["winner", "loser", "grand-final"],
       required: true
     }
-  },
-  { _id: false }
+  }
 );
 
 export const BracketSchema = new Schema({
-  id: { type: String, required: true, unique: true },
   tournamentId: { type: String, required: true, unique: true },
   format: {
     type: String,

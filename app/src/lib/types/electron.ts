@@ -21,36 +21,7 @@ export interface CachedAsset {
   checksum: string;
 }
 
-export interface LCUChampSelectSession {
-  timer: {
-    phase: string;
-    adjustedTimeLeftInPhase: number;
-  };
-  bans: {
-    myTeamBans: number[];
-    theirTeamBans: number[];
-  };
-  picks: {
-    myTeam: Array<{
-      championId: number;
-      spell1Id: number;
-      spell2Id: number;
-    }>;
-    theirTeam: Array<{
-      championId: number;
-      spell1Id: number;
-      spell2Id: number;
-    }>;
-  };
-}
 
-export interface LCUData {
-  isConnected: boolean;
-  isConnecting: boolean;
-  champSelectSession: LCUChampSelectSession | null;
-  connectionError: string | null;
-  useMockData: boolean;
-}
 
 export interface ElectronAPI {
   // Platform info
@@ -180,15 +151,7 @@ export interface ElectronAPI {
     error?: string;
   }>;
 
-  // LCU Data communication for overlay
-  getLCUData: () => Promise<LCUData>;
-  updateLCUData: (data: Partial<LCUData>) => Promise<{ success: boolean }>;
-  setMockData: (enabled: boolean) => Promise<{ success: boolean }>;
-  onLCUDataUpdate: (callback: (data: LCUData) => void) => void;
-  onLCUConnectionChange: (
-    callback: (data: Pick<LCUData, "isConnected" | "isConnecting" | "connectionError">) => void
-  ) => void;
-  onMockDataToggle: (callback: (enabled: boolean) => void) => void;
+
 
   // Storage operations (AppData persistent storage)
   storage?: {

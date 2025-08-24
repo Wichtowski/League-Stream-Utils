@@ -100,7 +100,7 @@ export const StandaloneTeamManager = ({
 
     setRegistering(true);
     try {
-      const response = await fetch(`/api/v1/tournaments/${tournament.id}/register`, {
+      const response = await fetch(`/api/v1/tournaments/${tournament._id}/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -127,12 +127,12 @@ export const StandaloneTeamManager = ({
     } finally {
       setRegistering(false);
     }
-  }, [tournament.id, selectedTeam, showAlert, onTeamAdded]);
+  }, [tournament._id, selectedTeam, showAlert, onTeamAdded]);
 
   const handleUnregisterTeam = useCallback(
     async (teamId: string): Promise<void> => {
       try {
-        const response = await fetch(`/api/v1/tournaments/${tournament.id}/register`, {
+        const response = await fetch(`/api/v1/tournaments/${tournament._id}/register`, {
           method: "DELETE",
           headers: {
             "Content-Type": "application/json",
@@ -160,7 +160,7 @@ export const StandaloneTeamManager = ({
         console.error("Failed to unregister team:", error);
       }
     },
-    [tournament.id, showAlert, onTeamAdded]
+    [tournament._id, showAlert, onTeamAdded]
   );
 
   const selectedTeamData = teams.find((t) => t.id === selectedTeam);

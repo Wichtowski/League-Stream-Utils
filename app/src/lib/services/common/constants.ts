@@ -33,7 +33,11 @@ export const ALLOWED_IMAGE_HOSTS: string[] = [
   // Project-specific
   "ddragon.leagueoflegends.com",
   "liquipedia.net",
+  "lol.fandom.com",
+  "static.wikia.nocookie.net",
+  "cdn.akamai.steamstatic.com",
   "vdo.ninja",
+  "cdn.cloudflare.com",
 
   // Discord / Imgur / Social
   "cdn.discordapp.com",
@@ -59,4 +63,4 @@ export const ALLOWED_IMAGE_HOSTS: string[] = [
   "lh3.googleusercontent.com",
 ];
 
-export const LOGO_SQUARE_TOLERANCE = 0.1;
+export const LOGO_SQUARE_TOLERANCE = 0.15; // Increased tolerance for WebP images and other formats

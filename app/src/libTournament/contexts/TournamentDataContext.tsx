@@ -117,7 +117,7 @@ export function TournamentDataProvider({ children }: { children: ReactNode }) {
     return tournaments1.every((tournament, index) => {
       const otherTournament = tournaments2[index];
       return (
-        tournament.id === otherTournament.id &&
+        tournament._id === otherTournament._id &&
         tournament.name === otherTournament.name &&
         tournament.status === otherTournament.status &&
         tournament.registeredTeams?.length === otherTournament.registeredTeams?.length

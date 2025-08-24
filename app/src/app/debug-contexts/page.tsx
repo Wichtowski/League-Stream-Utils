@@ -1,6 +1,5 @@
 "use client";
 
-import { useTeams } from "@/libTeam/contexts/TeamsContext";
 import { useTournaments } from "@/libTournament/contexts/TournamentsContext";
 import { usePickban } from "@/libPickban/contexts/PickbanContext";
 import { useSettings } from "@lib/contexts/SettingsContext";
@@ -16,7 +15,6 @@ export default function DebugContextsPage() {
     >
       <AuthDebug />
       <SettingsDebug />
-      <TeamsDebug />
       <TournamentsDebug />
       <PickbanDebug />
     </PageWrapper>
@@ -92,41 +90,6 @@ function SettingsDebug() {
             className="bg-green-600 hover:bg-green-700 px-3 py-1 rounded text-sm"
           >
             Toggle Timer
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function TeamsDebug() {
-  const { teams, loading, error, refreshTeams, getLastSync } = useTeams();
-
-  const handleCheckSync = async () => {
-    const lastSync = await getLastSync();
-    alert(`Last sync: ${lastSync?.toLocaleString() || "Never"}`);
-  };
-
-  return (
-    <div className="bg-gray-800 p-6 rounded-lg">
-      <h2 className="text-xl font-semibold mb-4">👥 Teams Context</h2>
-      <div className="space-y-2">
-        <p>
-          <span className="font-medium">Loading:</span> {loading ? "🔄" : "✅"}
-        </p>
-        <p>
-          <span className="font-medium">Error:</span> {error || "None"}
-        </p>
-        <p>
-          <span className="font-medium">Teams Count:</span> {teams.length}
-        </p>
-
-        <div className="mt-4 space-x-2">
-          <button onClick={refreshTeams} className="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-sm">
-            Refresh
-          </button>
-          <button onClick={handleCheckSync} className="bg-purple-600 hover:bg-purple-700 px-3 py-1 rounded text-sm">
-            Check Sync
           </button>
         </div>
       </div>

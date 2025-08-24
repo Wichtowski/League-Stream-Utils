@@ -186,9 +186,6 @@ class GameUIBlueprintDownloader extends BaseCacheService {
 
       // Clean up manifests after successful completion
       if (processedCount > 0 && errors.length === 0) {
-        console.log(
-          `Found ${processedCount} existing game UI assets, ${totalCount - processedCount} missing out of ${totalCount} total`
-        );
         await this.cleanupManifestAfterSuccess();
       }
 
@@ -255,7 +252,6 @@ class GameUIBlueprintDownloader extends BaseCacheService {
 
           if (typeof window !== "undefined" && window.electronAPI?.isElectron) {
             // Try to copy directly from public folder first (more reliable for local files)
-            console.log(`Trying to copy ${filename} from public folder`);
             try {
               const sourcePath = `public/assets/${category}/${filename}`;
               const targetPath = `assets/${assetKey}`;
@@ -267,12 +263,10 @@ class GameUIBlueprintDownloader extends BaseCacheService {
 
                 processedCount++;
                 totalSize += fileSize;
-                console.log(`Successfully copied ${filename} from public folder: ${fileSize} bytes`);
               } else {
                 throw new Error(`Copy failed: ${copyResult.error}`);
               }
-            } catch (copyError: unknown) {
-                console.log(`Copy failed, trying HTTP download: ${copyError instanceof Error ? copyError.message : String(copyError)}`);
+            } catch (_copyError: unknown) {
                 
                 // Fallback: Download from local development server
                 const assetUrl = `http://localhost:2137/api/assets/${category}/${filename}`;
@@ -335,8 +329,6 @@ class GameUIBlueprintDownloader extends BaseCacheService {
       if (fileExists) {
         return cachedPath;
       }
-
-      console.log(`Asset ${assetKey} not found in cache, processing...`);
 
       // Process the single asset
       if (typeof window !== "undefined" && window.electronAPI?.isElectron) {

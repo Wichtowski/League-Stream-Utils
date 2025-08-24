@@ -2,7 +2,6 @@ import { Schema } from "mongoose";
 import { ImageStorageSchema, PlayerSchema, StaffSchema } from "./common";
 
 export const TeamSchema = new Schema({
-    id: { type: String, required: true, unique: true },
     name: { type: String, required: true },
     tag: { type: String, required: true },
     logo: { type: ImageStorageSchema, required: true },
@@ -45,7 +44,7 @@ export const TeamSchema = new Schema({
       website: { type: String }
     },
   
-    userId: { type: String, required: false },
+    teamOwnerId: { type: String, required: false },
     createdAt: { type: Date, required: false, default: Date.now },
     updatedAt: { type: Date, required: false, default: Date.now },
   
@@ -54,7 +53,6 @@ export const TeamSchema = new Schema({
     tournamentId: { type: String, required: false }
 });
 
-TeamSchema.index({ userId: 1 });
+TeamSchema.index({ teamOwnerId: 1 });
 TeamSchema.index({ name: 1 });
-TeamSchema.index({ tag: 1 });
 TeamSchema.index({ "players.main.puuid": 1 });

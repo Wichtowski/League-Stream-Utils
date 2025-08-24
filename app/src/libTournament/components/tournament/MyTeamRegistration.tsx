@@ -55,7 +55,7 @@ export const MyTeamRegistration = ({
     async (teamId: string): Promise<void> => {
       setRegistering(true);
       try {
-        const response = await fetch(`/api/v1/tournaments/${tournament.id}/register`, {
+        const response = await fetch(`/api/v1/tournaments/${tournament._id}/register`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -87,14 +87,14 @@ export const MyTeamRegistration = ({
         setRegistering(false);
       }
     },
-    [tournament.id, tournament.name, myTeams, showAlert, onTeamRegistered]
+    [tournament._id, tournament.name, myTeams, showAlert, onTeamRegistered]
   );
 
   const handleUnregisterTeam = useCallback(
     async (teamId: string): Promise<void> => {
       setRegistering(true);
       try {
-        const response = await fetch(`/api/v1/tournaments/${tournament.id}/register`, {
+        const response = await fetch(`/api/v1/tournaments/${tournament._id}/register`, {
           method: "DELETE",
           headers: {
             "Content-Type": "application/json",
@@ -119,18 +119,18 @@ export const MyTeamRegistration = ({
             message: data.error || "Failed to unregister team"
           });
         }
-      } catch (error) {
-        await showAlert({
-          type: "error",
-          message: "Failed to unregister team"
-        });
-        console.error("Failed to unregister team:", error);
-      } finally {
-        setRegistering(false);
-      }
-    },
-    [tournament.id, tournament.name, myTeams, showAlert, onTeamRegistered]
-  );
+              } catch (error) {
+          await showAlert({
+            type: "error",
+            message: "Failed to unregister team"
+          });
+          console.error("Failed to unregister team:", error);
+        } finally {
+          setRegistering(false);
+        }
+      },
+      [tournament._id, tournament.name, myTeams, showAlert, onTeamRegistered]
+    );
 
   const filteredTeams = myTeams.filter(
     (team) =>

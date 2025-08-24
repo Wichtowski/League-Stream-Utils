@@ -2,18 +2,17 @@ import { Schema } from "mongoose";
 
 export const ImageStorageSchema = new Schema(
   {
-    type: { type: String, enum: ["upload", "url"], required: true },
-    data: { type: String, required: false },
-    url: { type: String, required: false },
-    size: { type: Number, required: false },
-    format: { type: String, enum: ["png", "jpg", "webp"], required: false }
-  },
-  { _id: false }
+    url: { type: String, required: true },
+    filename: { type: String, required: true },
+    originalName: { type: String, required: true },
+    mimeType: { type: String, required: true },
+    size: { type: Number, required: true },
+    uploadedAt: { type: Date, default: Date.now }
+  }
 );
 
 export const PlayerSchema = new Schema(
   {
-    id: { type: String, required: true },
     inGameName: { type: String, required: true },
     tag: { type: String, required: true },
     role: {
@@ -33,32 +32,33 @@ export const PlayerSchema = new Schema(
     verifiedAt: { type: Date },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now }
-  },
-  { _id: false }
+  }
 );
 
 export const StaffSchema = new Schema(
   {
-    id: { type: String, required: true },
     name: { type: String, required: true },
-    role: {
-      type: String,
-      enum: ["coach", "analyst", "manager"],
-      required: true
+    role: { type: String, required: true },
+    email: { type: String, required: false },
+    phone: { type: String, required: false },
+    profileImage: { type: String, required: false },
+    bio: { type: String, required: false },
+    socialMedia: {
+      twitter: { type: String },
+      discord: { type: String },
+      linkedin: { type: String }
     },
-    contact: { type: String }
-  },
-  { _id: false }
+    createdAt: { type: Date, default: Date.now },
+    updatedAt: { type: Date, default: Date.now }
+  }
 );
 
 export const ChampionSchema = new Schema({
-  id: { type: Number, required: true },
   name: { type: String, required: true },
   key: { type: String, required: true },
   image: { type: String, required: true }
 });
 
 export const CoachSchema = new Schema({
-  name: { type: String, required: true },
-  id: { type: String }
+  name: { type: String, required: true }
 });

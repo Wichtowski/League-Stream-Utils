@@ -1,19 +1,4 @@
-import { ipcMain } from "electron";
-
-function registerLCUHandlers(lcuDataRef, useMockDataRef, broadcastLCUDataUpdate, broadcastMockDataToggle) {
-  // Removed unused get-lcu-data handler
-
-  ipcMain.handle("update-lcu-data", async (event, data) => {
-    lcuDataRef.value = { ...lcuDataRef.value, ...data };
-    broadcastLCUDataUpdate();
-    return { success: true };
-  });
-
-  ipcMain.handle("set-mock-data", async (event, enabled) => {
-    useMockDataRef.value = enabled;
-    broadcastMockDataToggle();
-    return { success: true };
-  });
+// LCU handlers have been removed as LCU functionality is now self-contained in the champselect page
+export function registerLCUHandlers() {
+  // No handlers needed
 }
-
-export { registerLCUHandlers };

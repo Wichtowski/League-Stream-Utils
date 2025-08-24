@@ -3,7 +3,7 @@ export type TeamSideLCU = "ORDER" | "CHAOS";
 export interface RiotAbility {
   abilityLevel?: number;
   displayName: string;
-  id: string;
+  _id: string;
   rawDescription: string;
   rawDisplayName: string;
 }

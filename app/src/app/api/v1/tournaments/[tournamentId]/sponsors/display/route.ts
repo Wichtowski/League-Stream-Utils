@@ -20,7 +20,7 @@ export const GET = async (req: NextRequest, { params }: { params: Promise<{ tour
 
     return NextResponse.json({
       tournament: {
-        id: tournament.id,
+        id: tournament._id,
         name: tournament.name,
         abbreviation: tournament.abbreviation
       },

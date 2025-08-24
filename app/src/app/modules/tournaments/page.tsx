@@ -15,7 +15,7 @@ export default function TournamentsPage() {
   const { showAlert } = useModal();
 
   const placeholderTournament = {
-    id: "placeholder",
+    _id: "placeholder",
     name: "",
     abbreviation: "",
     status: "draft" as const,
@@ -85,7 +85,7 @@ export default function TournamentsPage() {
           <h2 className="text-xl text-white mb-6 text-center">Select Tournament to Edit</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {tournaments.map((tournament) => (
-              <TournamentPageCard key={tournament.id} tournament={tournament} />
+              <TournamentPageCard key={tournament._id} tournament={tournament} />
             ))}
           </div>
         </div>

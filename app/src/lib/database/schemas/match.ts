@@ -1,79 +1,43 @@
 import { Schema } from "mongoose";
-import { ImageStorageSchema, PlayerSchema } from "./common";
+import { ImageStorageSchema } from "./common";
 import { ChampionSchema } from "./common";
-
-const MatchTeamSchema = new Schema(
-  {
-    id: { type: String, required: false },
-    name: { type: String, required: false },
-    tag: { type: String, required: false },
-    logo: { type: ImageStorageSchema, required: false },
-    colors: {
-      primary: { type: String, required: false },
-      secondary: { type: String, required: false },
-      accent: { type: String, required: false }
-    },
-    players: { type: [PlayerSchema], required: false },
-    coach: {
-      name: { type: String },
-      profileImage: { type: String }
-    }
-  },
-  { _id: false }
-);
 
 const MatchCommentatorSchema = new Schema(
   {
-    id: { type: String, required: false },
-    name: { type: String, required: false },
-    xHandle: { type: String },
-    assignedAt: { type: Date, required: false },
-    assignedBy: { type: String, required: false }
-  },
-  { _id: false }
+    name: { type: String, required: true },
+    role: { type: String, enum: ["play-by-play", "color", "analyst"], required: true },
+    email: { type: String, required: false },
+    phone: { type: String, required: false },
+    assignedAt: { type: Date, default: Date.now }
+  }
 );
 
 const MatchPredictionSchema = new Schema(
   {
-    commentatorId: { type: String, required: false },
-    commentatorName: { type: String, required: false },
-    prediction: { type: String, required: false },
-    timestamp: { type: Date, required: false }
-  },
-  { _id: false }
+    userId: { type: String, required: true },
+    username: { type: String, required: true },
+    prediction: { type: String, enum: ["blue", "red"], required: true },
+    confidence: { type: Number, min: 1, max: 10, required: false },
+    submittedAt: { type: Date, default: Date.now }
+  }
 );
 
 const GameResultSchema = new Schema(
   {
-    id: { type: String, required: false },
-    gameNumber: { type: Number, required: false },
-    winner: { type: String, enum: ["blue", "red"], required: false },
-    duration: { type: Number, required: false }, // in seconds
-    blueTeam: {
-      kills: { type: Number, default: 0 },
-      gold: { type: Number, default: 0 },
-      towers: { type: Number, default: 0 },
-      dragons: { type: Number, default: 0 },
-      barons: { type: Number, default: 0 },
-      bans: { type: [ChampionSchema], default: [] },
-      picks: { type: [ChampionSchema], default: [] }
-    },
-    redTeam: {
-      kills: { type: Number, default: 0 },
-      gold: { type: Number, default: 0 },
-      towers: { type: Number, default: 0 },
-      dragons: { type: Number, default: 0 },
-      barons: { type: Number, default: 0 },
-      bans: { type: [ChampionSchema], default: [] },
-      picks: { type: [ChampionSchema], default: [] }
-    },
+    gameNumber: { type: Number, required: true },
+    winner: { type: String, enum: ["blue", "red"], required: true },
+    duration: { type: Number, required: false },
+    blueScore: { type: Number, default: 0 },
+    redScore: { type: Number, default: 0 },
+    blueTeam: { type: String, required: true },
+    redTeam: { type: String, required: true },
+    startTime: { type: Date, required: false },
+    endTime: { type: Date, required: false },
     completedAt: { type: Date, required: false }
-  },
-  { _id: false }
+  }
 );
 
 export const MatchSchema = new Schema({
-  id: { type: String, required: false, unique: true },
   name: { type: String, required: false },
   type: { type: String, enum: ["tournament", "standalone"], required: false },
 
@@ -86,8 +50,8 @@ export const MatchSchema = new Schema({
   matchNumber: { type: Number },
 
   // Teams
-  blueTeam: { type: MatchTeamSchema, required: false },
-  redTeam: { type: MatchTeamSchema, required: false },
+  blueTeam: { type: String, required: true },
+  redTeam: { type: String, required: true },
 
   // Match configuration
   format: { type: String, enum: ["BO1", "BO3", "BO5"], required: false },
@@ -131,4 +95,4 @@ MatchSchema.index({ tournamentId: 1, status: 1 });
 MatchSchema.index({ type: 1, status: 1 });
 MatchSchema.index({ scheduledTime: 1 });
 MatchSchema.index({ createdBy: 1 });
-MatchSchema.index({ "commentators.id": 1 });
+MatchSchema.index({ "commentators._id": 1 });

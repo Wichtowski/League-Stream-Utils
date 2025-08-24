@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useEffect, useRef, useState, useCallback } from "react";
-import type { EnhancedChampSelectSession } from "@lib/types";
+import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import type { EnhancedChampSelectSession, Team } from "@lib/types";
 import type { Match } from "@lib/types/match";
 import type { Tournament } from "@lib/types/tournament";
 import { TournamentHeader, TeamSection, MatchInfo, TeamBans } from "./";
@@ -12,10 +12,19 @@ import { FearlessDraftBans } from "./FearlessDraftBans";
 import { blueColor, redColor } from "@lib/services/common/constants";
 import { getChampionCenteredSplashImage, getChampionSquareImage } from "../common";
 import { useImagePreload } from "@lib/hooks/useImagePreload";
+import { getItems } from "@lib/items";
+import { getChampions } from "@lib/champions";
+import { getSummonerSpells } from "@lib/summoner-spells";
+import { getTournamentById } from "@/lib/database/tournament";
+import { getMatchById } from "@/lib/database/match";
+import { getTeamById } from "@/lib/database/team";
 
 interface ChampSelectDisplayProps {
   data: EnhancedChampSelectSession;
+  matchId?: string;
+  tournamentId?: string;
   match?: Match;
+  teams?: Team[];
   tournament?: Tournament;
   roleIcons: Record<string, string>;
   banPlaceholder: string;
@@ -26,6 +35,8 @@ interface ChampSelectDisplayProps {
 
 const ChampSelectDisplayComponent: React.FC<ChampSelectDisplayProps> = ({
   data,
+  matchId,
+  tournamentId,
   match,
   tournament,
   roleIcons,
@@ -36,21 +47,88 @@ const ChampSelectDisplayComponent: React.FC<ChampSelectDisplayProps> = ({
 }) => {
   const { myTeam, theirTeam, tournamentData, bans, timer, hoverState } = data;
   const [uiReady, setUiReady] = useState(false);
+  const [loadedTournament, setLoadedTournament] = useState<Tournament | null>(null);
+  const [loadedMatch, setLoadedMatch] = useState<Match | null>(null);
+  const [loadedTeams, setLoadedTeams] = useState<Team[]>([]);
   const initialPreloadDoneRef = useRef<boolean>(false);
-  const [initialPreloadUrls, setInitialPreloadUrls] = useState<string[]>([]);
   const [childImageUrls, setChildImageUrls] = useState<string[]>([]);
   const [childImagesLoaded, setChildImagesLoaded] = useState(false);
+  const preloadedUrlsRef = useRef<Set<string>>(new Set());
 
-  // Use provided match/tournament data or fall back to tournamentData from the session
-  const effectiveTournamentData = tournamentData || (match && tournament ? ({
-    tournament: {
-      id: tournament.id,
-      name: tournament.name,
-      logoUrl: typeof tournament.logo === "string" ? tournament.logo : tournament.logo.data || tournament.logo.url || ""
-    },
-    blueTeam: match.blueTeam,
-    redTeam: match.redTeam
-  } as unknown as typeof tournamentData) : undefined);
+  // Load tournament and match data when IDs are provided
+  useEffect(() => {
+    const loadData = async () => {
+      if (!matchId && !tournamentId) return;
+      
+      try {
+        const promises: Promise<any>[] = [];
+        
+        if (tournamentId) {
+          promises.push(getTournamentById(tournamentId).then(setLoadedTournament));
+        }
+        
+        if (matchId) {
+          promises.push(getMatchById(matchId).then(setLoadedMatch));
+        }
+        
+        await Promise.all(promises);
+      } catch (error) {
+        console.error("Failed to load tournament or match data:", error);
+      }
+    };
+
+    loadData();
+  }, [matchId, tournamentId]);
+
+  // Load teams when match data is available
+  useEffect(() => {
+    const loadTeams = async () => {
+      if (!loadedMatch) return;
+      
+      try {
+        const [blueTeam, redTeam] = await Promise.all([
+          getTeamById(loadedMatch.blueTeamId),
+          getTeamById(loadedMatch.redTeamId)
+        ]);
+        
+        if (blueTeam && redTeam) {
+          setLoadedTeams([blueTeam, redTeam]);
+        }
+      } catch (error) {
+        console.error("Failed to load team data:", error);
+      }
+    };
+
+    loadTeams();
+  }, [loadedMatch]);
+
+  // Use provided data or loaded data
+  const effectiveTournament = tournament || loadedTournament;
+  const effectiveMatch = match || loadedMatch;
+  const effectiveTeams = teams || loadedTeams;
+
+  useEffect(() => {
+    const loadAssets = async () => {
+      await getChampions();
+      await getSummonerSpells();
+      await getItems();
+    };
+    loadAssets().catch(console.error);
+  }, []);
+
+    // Use provided match/tournament data or fall back to tournamentData from the session
+  const effectiveTournamentData = useMemo(() => 
+    tournamentData || (effectiveMatch && effectiveTournament ? ({
+      tournament: {
+        id: effectiveTournament._id,
+        name: effectiveTournament.name,
+        logo: effectiveTournament.logo
+      },
+      blueTeam: effectiveMatch.blueTeamId,
+      redTeam: effectiveMatch.redTeamId
+    } as unknown as typeof tournamentData) : undefined),
+    [tournamentData, effectiveMatch, effectiveTournament]
+  );
 
   // Helper function to get team color
   const getTeamColor = (team: { colors?: { primary?: string } } | undefined, fallback: string): string => {
@@ -71,74 +149,114 @@ const ChampSelectDisplayComponent: React.FC<ChampSelectDisplayProps> = ({
     });
   }, []);
 
+  // Memoize the initial preload URLs to prevent unnecessary recalculations
+  const initialPreloadUrls = useMemo(() => {
+    if (!data || initialPreloadDoneRef.current) return [];
+    
+    const urls: string[] = [];
+    
+    // Static UI assets
+    if (banPlaceholder) urls.push(banPlaceholder);
+    
+    // Role icons
+    Object.values(roleIcons).forEach(icon => {
+      if (icon) urls.push(icon);
+    });
+
+    // Champion images from data - only depend on champion IDs, not entire player objects
+    const championIds = [
+      ...myTeam.map(p => p.championId).filter(Boolean),
+      ...theirTeam.map(p => p.championId).filter(Boolean)
+    ];
+    championIds.forEach(championId => {
+      const splashImage = getChampionCenteredSplashImage(championId);
+      const squareImage = getChampionSquareImage(championId);
+      if (splashImage && !preloadedUrlsRef.current.has(splashImage)) urls.push(splashImage);
+      if (squareImage && !preloadedUrlsRef.current.has(squareImage)) urls.push(squareImage);
+    });
+
+    // Ban images - only depend on champion IDs, not entire ban objects
+    const banChampionIds = [
+      ...bans.myTeamBans.filter(Boolean),
+      ...bans.theirTeamBans.filter(Boolean)
+    ];
+    banChampionIds.forEach(championId => {
+      const squareImage = getChampionSquareImage(championId);
+      if (squareImage && !preloadedUrlsRef.current.has(squareImage)) urls.push(squareImage);
+    });
+
+    // Tournament and team logos - only depend on logo strings, not entire team objects
+    if (effectiveTournamentData?.blueTeam?.logo) {
+      const blueLogo = getTeamLogo(effectiveTournamentData.blueTeam);
+      if (blueLogo && !preloadedUrlsRef.current.has(blueLogo)) urls.push(blueLogo);
+    }
+    
+    if (effectiveTournamentData?.redTeam?.logo) {
+      const redLogo = getTeamLogo(effectiveTournamentData.redTeam);
+      if (redLogo && !preloadedUrlsRef.current.has(redLogo)) urls.push(redLogo);
+    }
+
+    // Get tournament logo from the tournament object
+    if (effectiveTournamentData?.tournament?.logo) {
+      const tournamentLogo = typeof effectiveTournamentData.tournament.logo === "string" 
+        ? effectiveTournamentData.tournament.logo 
+        : effectiveTournamentData.tournament.logo.data || effectiveTournamentData.tournament.logo.url || "";
+      if (tournamentLogo && !preloadedUrlsRef.current.has(tournamentLogo)) urls.push(tournamentLogo);
+    }
+
+    // Additional images that might be used by child components
+    // MatchInfo component uses a hardcoded tournament logo path
+    const tournamentLogoPath = "/assets/VML-Nexus-Cup-logo.png";
+    if (!preloadedUrlsRef.current.has(tournamentLogoPath)) urls.push(tournamentLogoPath);
+    
+    // Default images that might be used
+    const defaultImages = [
+      "/assets/default/player.png",
+      "/assets/default-team-logo.png",
+      "/assets/default-coach.png",
+      "/assets/default/default_ban_placeholder.svg"
+    ];
+    defaultImages.forEach(img => {
+      if (!preloadedUrlsRef.current.has(img)) urls.push(img);
+    });
+
+    return Array.from(new Set(urls));
+  }, [
+    banPlaceholder, 
+    roleIcons,
+    data,
+    myTeam,
+    theirTeam,
+    bans.myTeamBans,
+    bans.theirTeamBans,
+    effectiveTournamentData?.blueTeam?.logo,
+    effectiveTournamentData?.redTeam?.logo,
+    effectiveTournamentData?.tournament?.logo
+  ]);
+
   // Compute initial preload set once when data is ready
   useEffect(() => {
     if (!initialPreloadDoneRef.current && data) {
-      const urls: string[] = [];
-      
-      // Static UI assets
-      if (banPlaceholder) urls.push(banPlaceholder);
-      
-      // Role icons
-      Object.values(roleIcons).forEach(icon => {
-        if (icon) urls.push(icon);
-      });
-
-      // Champion images from data
-      const allPlayers = [...myTeam, ...theirTeam];
-      allPlayers.forEach(player => {
-        if (player.championId) {
-          const splashImage = getChampionCenteredSplashImage(player.championId);
-          const squareImage = getChampionSquareImage(player.championId);
-          if (splashImage) urls.push(splashImage);
-          if (squareImage) urls.push(squareImage);
-        }
-      });
-
-      // Ban images
-      const allBans = [...bans.myTeamBans, ...bans.theirTeamBans];
-      allBans.forEach(championId => {
-        if (championId) {
-          const squareImage = getChampionSquareImage(championId);
-          if (squareImage) urls.push(squareImage);
-        }
-      });
-
-      // Tournament and team logos
-      if (effectiveTournamentData?.blueTeam?.logo) {
-        const blueLogo = getTeamLogo(effectiveTournamentData.blueTeam);
-        if (blueLogo) urls.push(blueLogo);
-      }
-      
-      if (effectiveTournamentData?.redTeam?.logo) {
-        const redLogo = getTeamLogo(effectiveTournamentData.redTeam);
-        if (redLogo) urls.push(redLogo);
-      }
-
-      if (effectiveTournamentData?.tournament?.logoUrl) {
-        urls.push(effectiveTournamentData.tournament.logoUrl);
-      }
-
-      // Additional images that might be used by child components
-      // MatchInfo component uses a hardcoded tournament logo path
-      urls.push("/assets/VML-Nexus-Cup-logo.png");
-      
-      // Default images that might be used
-      urls.push("/assets/default/player.png");
-      urls.push("/assets/default-team-logo.png");
-      urls.push("/assets/default-coach.png");
-      urls.push("/assets/default/default_ban_placeholder.svg");
-
-      setInitialPreloadUrls(Array.from(new Set(urls)));
+      // No need to set state since we're using the memoized value directly
+      initialPreloadDoneRef.current = true;
     }
-  }, [data, banPlaceholder, roleIcons, myTeam, theirTeam, bans, effectiveTournamentData]);
+  }, [data]);
 
-  const { loaded: initialImagesLoaded } = useImagePreload(initialPreloadUrls);
-  const { loaded: childImagesLoadedStatus } = useImagePreload(childImageUrls);
+  const { loaded: initialImagesLoaded } = useImagePreload(initialPreloadDoneRef.current ? [] : initialPreloadUrls);
+  const { loaded: childImagesLoadedStatus } = useImagePreload(initialPreloadDoneRef.current ? [] : childImageUrls);
+
+  // Track which URLs have been preloaded to prevent re-preloading
+  useEffect(() => {
+    if (initialPreloadUrls.length > 0) {
+      initialPreloadUrls.forEach(url => preloadedUrlsRef.current.add(url));
+    }
+  }, [initialPreloadUrls]);
 
   useEffect(() => {
     if (!initialPreloadDoneRef.current && initialPreloadUrls.length > 0 && initialImagesLoaded) {
       initialPreloadDoneRef.current = true;
+      // Mark all initial URLs as preloaded to prevent future preloading
+      initialPreloadUrls.forEach(url => preloadedUrlsRef.current.add(url));
     }
 
     if (childImageUrls.length > 0 && childImagesLoadedStatus) {
@@ -241,7 +359,13 @@ const ChampSelectDisplayComponent: React.FC<ChampSelectDisplayProps> = ({
                 name: effectiveTournamentData.redTeam.name,
                 logo: getTeamLogo(effectiveTournamentData.redTeam)
               }}
-              tournamentLogo={effectiveTournamentData.tournament?.logoUrl || ""}
+              tournamentLogo={(() => {
+                const logo = effectiveTournamentData.tournament?.logo;
+                if (typeof logo === "string") return logo;
+                if (logo?.type === "upload" && logo.data) return logo.data;
+                if (logo?.type === "url" && logo.url) return logo.url;
+                return "";
+              })()}
               timer={timer.adjustedTimeLeftInPhase}
               maxTimer={timer.totalTimeInPhase}
               isBO3={true}

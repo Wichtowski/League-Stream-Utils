@@ -4,7 +4,8 @@ import React, { useEffect, useRef, useState, type ReactElement } from "react";
 import { useNavigation } from "@lib/contexts/NavigationContext";
 import { useAuth } from "@lib/contexts/AuthContext";
 import { useCameras } from "@/libCamera/context/CamerasContext";
-import { useTeams } from "@/libTeam/contexts/TeamsContext";
+import type { Team } from "@lib/types";
+
 import { useMergedCameraTeams, type MergedTeamWithPlayers, type MergedPlayer } from "@lib/hooks/useMergedCameraTeams";
 import { SafeImage } from "@lib/components/common/SafeImage";
 import { LoadingSpinner } from "@lib/components/common";
@@ -16,9 +17,36 @@ export default function CamerasPage(): ReactElement {
   const { setActiveModule } = useNavigation();
   const { isLoading: authLoading } = useAuth();
   const { teams: cameraTeamsRaw, loading: camerasLoading, refreshCameras } = useCameras();
-  const { teams: userTeams, loading: teamsLoading, refreshTeams } = useTeams();
+  const [userTeams, setUserTeams] = useState<Team[]>([]);
+  const [teamsLoading, setTeamsLoading] = useState(true);
   const { mergedTeams } = useMergedCameraTeams(false);
   const router = useRouter();
+
+  // Fetch teams directly
+  useEffect(() => {
+    const fetchTeams = async () => {
+      try {
+        setTeamsLoading(true);
+        const token = localStorage.getItem("token");
+        const response = await fetch("/api/v1/teams", {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          setUserTeams(data.teams || []);
+        }
+      } catch (error) {
+        console.error("Error fetching teams:", error);
+      } finally {
+        setTeamsLoading(false);
+      }
+    };
+
+    fetchTeams();
+  }, []);
   const [loading, setLoading] = useState(true);
   const hasRefreshed = useRef(false);
 
@@ -38,10 +66,10 @@ export default function CamerasPage(): ReactElement {
         void refreshCameras();
       }
       if (!userTeams || userTeams.length === 0) {
-        void refreshTeams();
+        // Teams are already fetched in the useEffect above
       }
     }
-  }, [authLoading, cameraTeamsRaw, userTeams, refreshCameras, refreshTeams]);
+  }, [authLoading, cameraTeamsRaw, userTeams, refreshCameras]);
 
   if (authLoading || loading) {
     return <LoadingSpinner fullscreen text="Loading cameras..." className="" />;
@@ -121,12 +149,12 @@ export default function CamerasPage(): ReactElement {
                     <span className="font-semibold text-xs text-gray-400">Camera Status:</span>
                     <ul className="text-xs mt-1">
                       {team.players.main.map((p: MergedPlayer) => (
-                        <li key={p.playerId} className={p.cameraUrl ? "text-green-400" : "text-yellow-400"}>
+                        <li key={p.id} className={p.cameraUrl ? "text-green-400" : "text-yellow-400"}>
                           {p.inGameName} {p.cameraUrl ? "• Configured" : "• Not Configured"}
                         </li>
                       ))}
                       {team.players.substitutes.map((p: MergedPlayer) => (
-                        <li key={p.playerId} className={p.cameraUrl ? "text-green-400" : "text-yellow-400"}>
+                        <li key={p.id} className={p.cameraUrl ? "text-green-400" : "text-yellow-400"}>
                           {p.inGameName} (Sub) {p.cameraUrl ? "• Configured" : "• Not Configured"}
                         </li>
                       ))}

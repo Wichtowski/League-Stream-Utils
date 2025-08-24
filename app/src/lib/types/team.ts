@@ -3,7 +3,7 @@ import { ImageStorage } from "./common";
 import { Staff, TeamTier } from "./tournament";
 
 export interface Team {
-    id: string;
+    _id: string;
     name: string;
     tag: string;
     logo: ImageStorage;
@@ -31,6 +31,7 @@ export interface Team {
       discord?: string;
       website?: string;
     };
+    teamOwnerId?: string;
     createdAt: Date;
     updatedAt: Date;
   

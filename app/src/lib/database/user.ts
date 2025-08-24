@@ -2,35 +2,59 @@ import { v4 as uuidv4 } from "uuid";
 import { connectToDatabase } from "./connection";
 import { UserModel } from "./models";
 import type { User as UserType, UserRegistration, UserQueryResult } from "@lib/types";
-import { transformDoc } from "./transformDoc";
 
 export async function createUser(userData: UserRegistration & { passwordHistory?: string[] }): Promise<UserType> {
   await connectToDatabase();
 
   const newUser = new UserModel({
-    id: uuidv4(),
     username: userData.username,
     password: userData.password,
     passwordHistory: userData.passwordHistory || [],
     email: userData.email,
     isAdmin: false,
     sessionsCreatedToday: 0,
-    lastSessionDate: ""
+    lastSessionDate: new Date()
   });
 
   await newUser.save();
 
-  return transformDoc(newUser);
+  return newUser.toObject();
 }
 
 export async function getUserByUsername(username: string): Promise<UserQueryResult> {
   await connectToDatabase();
-  return await UserModel.findOne({ username });
+  const user = await UserModel.findOne({ username });
+  return user;
+}
+
+export async function getUserById(userId: string): Promise<UserQueryResult> {
+  await connectToDatabase();
+  const user = await UserModel.findById(userId);
+  return user;
 }
 
 export async function getUserByEmail(email: string): Promise<UserQueryResult> {
   await connectToDatabase();
-  return await UserModel.findOne({ email });
+  const user = await UserModel.findOne({ email });
+  return user;
+}
+
+export async function updateUser(userId: string, updates: Partial<UserType>): Promise<UserType | null> {
+  await connectToDatabase();
+  const updatedUser = await UserModel.findByIdAndUpdate(userId, updates, { new: true });
+  return updatedUser?.toObject() || null;
+}
+
+export async function deleteUser(userId: string): Promise<boolean> {
+  await connectToDatabase();
+  const result = await UserModel.findByIdAndDelete(userId);
+  return !!result;
+}
+
+export async function getAllUsers(): Promise<UserType[]> {
+  await connectToDatabase();
+  const users = await UserModel.find({});
+  return users.map(user => user.toObject());
 }
 
 export async function updateUserSessionCount(userId: string): Promise<void> {

@@ -73,9 +73,7 @@ export const PUT = withAuth(async (req: NextRequest, user: JWTPayload) => {
       if (teamData.name && !availability.nameAvailable) {
         return NextResponse.json({ error: "Team name is already taken" }, { status: 409 });
       }
-      if (teamData.tag && !availability.tagAvailable) {
-        return NextResponse.json({ error: "Team tag is already taken" }, { status: 409 });
-      }
+      // Team tags are not unique - multiple teams can have the same tag
     }
 
     const updatedTeam = await updateTeam(teamId, user.userId, teamData);

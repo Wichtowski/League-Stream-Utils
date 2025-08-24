@@ -65,7 +65,7 @@ export default function ConfigPage() {
 
   useEffect(() => {
     if (selectedTournament) {
-      getTournamentLogoUrl(selectedTournament.id).then(setTournamentLogoUrl);
+              getTournamentLogoUrl(selectedTournament._id).then(setTournamentLogoUrl);
     } else {
       setTournamentLogoUrl("");
     }
@@ -139,14 +139,14 @@ export default function ConfigPage() {
       // Update config with tournament info - save ID instead of logo data
       setConfig((prev) => ({
         ...prev,
-        tournamentId: tournament.id,
+        tournamentId: tournament._id,
         tournamentName: tournament.name,
         seriesType: tournament.matchFormat,
         isFearlessDraft: tournament.fearlessDraft
       }));
 
       // Load teams for this tournament
-      loadTournamentTeams(tournament.id);
+              loadTournamentTeams(tournament._id);
     },
     [loadTournamentTeams]
   );
@@ -282,9 +282,9 @@ export default function ConfigPage() {
                 {tournaments
                   .filter((tournament) => user?.isAdmin || tournament.userId === user?.id)
                   .map((tournament) => (
-                    <option key={tournament.id} value={tournament.id}>
-                      {tournament.name}
-                    </option>
+                                    <option key={tournament._id} value={tournament._id}>
+                  {tournament.name}
+                </option>
                   ))}
               </select>
               {loadingTournaments && <p className="text-xs text-gray-400 mt-1">Loading tournaments...</p>}

@@ -12,7 +12,7 @@ interface StorageOptions {
   enableChecksum?: boolean;
 }
 
-class UniversalStorage {
+export class UniversalStorage implements Storage {
   private isElectron: boolean;
   private useLocalData: boolean;
 
@@ -22,6 +22,17 @@ class UniversalStorage {
 
     // Perform cleanup on initialization to prevent quota issues
     this.performInitialCleanup();
+  }
+
+  // Utility function for Unicode-safe base64 encoding
+  private safeBase64Encode(str: string): string {
+    const encoder = new TextEncoder();
+    const bytes = encoder.encode(str);
+    let binary = '';
+    for (let i = 0; i < bytes.length; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    return btoa(binary);
   }
 
   private performInitialCleanup(): void {
@@ -67,7 +78,9 @@ class UniversalStorage {
   }
 
   private generateChecksum(data: unknown): string {
-    return btoa(JSON.stringify(data)).slice(0, 16);
+    // Use a Unicode-safe base64 encoding function
+    const jsonString = JSON.stringify(data);
+    return this.safeBase64Encode(jsonString).slice(0, 16);
   }
 
   private getStorageKey(key: string): string {
@@ -330,6 +343,27 @@ class UniversalStorage {
     } else {
       return await asyncStorage.getTimestamp(storageKey);
     }
+  }
+
+  // Storage interface methods
+  get length(): number {
+    return localStorage.length;
+  }
+
+  getItem(key: string): string | null {
+    return localStorage.getItem(key);
+  }
+
+  key(index: number): string | null {
+    return localStorage.key(index);
+  }
+
+  removeItem(key: string): void {
+    localStorage.removeItem(key);
+  }
+
+  setItem(key: string, value: string): void {
+    localStorage.setItem(key, value);
   }
 }
 

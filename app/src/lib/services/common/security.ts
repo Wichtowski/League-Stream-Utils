@@ -1,7 +1,6 @@
 import bcrypt from "bcryptjs";
 import { NextRequest } from "next/server";
 
-const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
 export function validatePassword(password: string): {
   isValid: boolean;
@@ -14,11 +13,10 @@ export function validatePassword(password: string): {
     };
   }
 
-  if (!passwordRegex.test(password)) {
+  if (password.length > 128) {
     return {
       isValid: false,
-      message:
-        "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&)"
+      message: "Password must be less than 128 characters long"
     };
   }
 

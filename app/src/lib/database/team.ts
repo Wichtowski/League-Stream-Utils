@@ -1,195 +1,100 @@
-import { v4 as uuidv4 } from "uuid";
 import { connectToDatabase } from "./connection";
-import { TeamDoc, TeamModel } from "./models";
-import type { Team, CreateTeamRequest, Player, RiotPlayerData } from "@lib/types";
-import { transformDoc } from "./transformDoc";
+import { TeamModel } from "./models";
+import type { Team, CreateTeamRequest, RiotPlayerData } from "@lib/types";
+import type { Document } from "mongoose";
 
-// Create a new team
-export async function createTeam(userId: string, teamData: CreateTeamRequest): Promise<Team> {
+const convertMongoDoc = (doc: Document): Team => {
+  const obj = doc.toObject();
+  return {
+    ...obj,
+    _id: obj._id.toString(),
+    createdAt: new Date(obj.createdAt),
+    updatedAt: new Date(obj.updatedAt),
+    founded: new Date(obj.founded)
+  };
+};
+
+export const createTeam = async (userId: string, teamData: CreateTeamRequest): Promise<Team> => {
   await connectToDatabase();
 
-  // Generate IDs for players and staff
-  const mainPlayers: Player[] = teamData.players.main.map((player) => ({
-    ...player,
-    id: uuidv4(),
-    verified: false,
-    createdAt: new Date(),
-    updatedAt: new Date()
-  }));
-
-  const substitutePlayers: Player[] = teamData.players.substitutes.map((player) => ({
-    ...player,
-    id: uuidv4(),
-    verified: false,
-    createdAt: new Date(),
-    updatedAt: new Date()
-  }));
-
-  // Generate IDs for staff
-  const staff: Team["staff"] = {};
-  if (teamData.staff?.coach) {
-    staff.coach = { ...teamData.staff.coach, id: uuidv4() };
-  }
-  if (teamData.staff?.analyst) {
-    staff.analyst = { ...teamData.staff.analyst, id: uuidv4() };
-  }
-  if (teamData.staff?.manager) {
-    staff.manager = { ...teamData.staff.manager, id: uuidv4() };
-  }
-
   const newTeam = new TeamModel({
-    id: uuidv4(),
     name: teamData.name,
     tag: teamData.tag,
     logo: teamData.logo,
     colors: teamData.colors,
-    players: {
-      main: mainPlayers,
-      substitutes: substitutePlayers
-    },
-    staff,
+    players: teamData.players,
+    staff: teamData.staff,
     region: teamData.region,
     tier: teamData.tier,
     founded: new Date(),
     verified: false,
     socialMedia: teamData.socialMedia,
-    userId,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    // Standalone team fields
+    teamOwnerId: userId,
     isStandalone: teamData.isStandalone || false,
     tournamentId: teamData.tournamentId
   });
 
   await newTeam.save();
-  return newTeam.toObject();
-}
+  return convertMongoDoc(newTeam);
+};
 
-export async function getUserTeams(userId: string): Promise<Team[]> {
+export const getUserTeams = async (teamOwnerId: string): Promise<Team[]> => {
   await connectToDatabase();
-  const teams = await TeamModel.find({ userId }).sort({ createdAt: -1 });
-  return teams.map((team: Team) => transformDoc<TeamDoc, Team>(team));
-}
+  const teams = await TeamModel.find({ teamOwnerId }).sort({ createdAt: -1 });
+  return teams.map(convertMongoDoc);
+};
 
-// Get all teams (admin only)
-export async function getAllTeams(): Promise<Team[]> {
+export const getAllTeams = async (): Promise<Team[]> => {
   await connectToDatabase();
   const teams = await TeamModel.find({}).sort({ createdAt: -1 });
-  return teams.map((team: Team) => transformDoc<TeamDoc, Team>(team));
-}
+  return teams.map(convertMongoDoc);
+};
 
-export async function getTeamById(teamId: string): Promise<Team | null> {
+export const getTeamById = async (teamId: string): Promise<Team | null> => {
   await connectToDatabase();
   const team = await TeamModel.findById(teamId);
-  return team ? team.toObject() : null;
-}
+  if (!team) return null;
+  return convertMongoDoc(team);
+};
 
-// Update team
-export async function updateTeam(
+export const updateTeam = async (
   teamId: string,
   userId: string,
   updates: Partial<CreateTeamRequest>
-): Promise<Team | null> {
+): Promise<Team | null> => {
   await connectToDatabase();
 
-  // Find the team and verify ownership
-  const team = await TeamModel.findOne({ id: teamId, userId });
-  if (!team) {
+  const team = await TeamModel.findById(teamId);
+  if (!team || team.teamOwnerId !== userId) {
     return null;
   }
 
-  // Update fields
   if (updates.name) team.name = updates.name;
   if (updates.tag) team.tag = updates.tag;
-  if (updates.logo) team.logo = updates.logo;
+  if (updates.logo) team.logo = updates.logo as unknown as typeof team.logo;
   if (updates.colors) team.colors = updates.colors;
   if (updates.region) team.region = updates.region;
   if (updates.tier) team.tier = updates.tier;
   if (updates.socialMedia) team.socialMedia = updates.socialMedia;
 
-  // Helper to compare player lists
-  const playersEqual = (a: Player[], b: Player[]): boolean => {
-    if (a.length !== b.length) return false;
-    for (let i = 0; i < a.length; i++) {
-      if (a[i].inGameName !== b[i].inGameName || a[i].tag !== b[i].tag || a[i].role !== b[i].role) {
-        return false;
-      }
-    }
-    return true;
-  };
-
-  // Update players if provided
   if (updates.players) {
-    const oldMain = team.players?.main || [];
-    const oldSubs = team.players?.substitutes || [];
-    const newMain = updates.players.main || [];
-    const newSubs = updates.players.substitutes || [];
-
-    const mainChanged = !playersEqual(oldMain as Player[], newMain as Player[]);
-    const subsChanged = !playersEqual(oldSubs as Player[], newSubs as Player[]);
-
-    // If roster changed, reset verification
-    if (mainChanged || subsChanged) {
-      team.verified = false;
-      
-      // Clear existing players and add new ones
-      team.players?.main?.splice(0);
-      team.players?.substitutes?.splice(0);
-      
-      newMain.forEach((player) => {
-        team.players?.main?.push({
-          ...player,
-          id: uuidv4(),
-          verified: false,
-          verifiedAt: undefined,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        } as Team);
-      });
-      
-      newSubs.forEach((player) => {
-        team.players?.substitutes?.push({
-          ...player,
-          id: uuidv4(),
-          verified: false,
-          verifiedAt: undefined,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        } as Team);
-      });
-    } else {
-      // If roster unchanged, keep existing players
-      // (no-op, or you could update other fields if needed)
-    }
+    team.players = updates.players as unknown as typeof team.players;
   }
 
-  // Update staff if provided
   if (updates.staff) {
-    const staff: Team["staff"] = {};
-    if (updates.staff.coach) {
-      staff.coach = { ...updates.staff.coach, id: uuidv4() };
-    }
-    if (updates.staff.analyst) {
-      staff.analyst = { ...updates.staff.analyst, id: uuidv4() };
-    }
-    if (updates.staff.manager) {
-      staff.manager = { ...updates.staff.manager, id: uuidv4() };
-    }
-    team.staff = staff;
+    team.staff = updates.staff as unknown as typeof team.staff;
   }
 
   team.updatedAt = new Date();
   await team.save();
-  return team.toObject();
-}
+  return convertMongoDoc(team);
+};
 
-// Update team verification status
-export async function updateTeamVerification(teamId: string, userId: string, verified: boolean): Promise<Team | null> {
+export const updateTeamVerification = async (teamId: string, userId: string, verified: boolean): Promise<Team | null> => {
   await connectToDatabase();
 
-  // Find the team and verify ownership
-  const team = await TeamModel.findOne({ id: teamId, userId });
-  if (!team) {
+  const team = await TeamModel.findById(teamId);
+  if (!team || team.teamOwnerId !== userId) {
     return null;
   }
 
@@ -197,43 +102,40 @@ export async function updateTeamVerification(teamId: string, userId: string, ver
   team.updatedAt = new Date();
 
   await team.save();
-  return team.toObject();
-}
+  return convertMongoDoc(team);
+};
 
-// Delete team
-export async function deleteTeam(teamId: string, userId: string): Promise<boolean> {
+export const deleteTeam = async (teamId: string, userId: string): Promise<boolean> => {
   await connectToDatabase();
-  const result = await TeamModel.deleteOne({ id: teamId, userId });
-  return result.deletedCount > 0;
-}
+  const team = await TeamModel.findById(teamId);
+  if (!team || team.teamOwnerId !== userId) {
+    return false;
+  }
+  const result = await TeamModel.findByIdAndDelete(teamId);
+  return !!result;
+};
 
-// Get teams by IDs (for tournament team selection)
-export async function getTeamsByIds(teamIds: string[]): Promise<Team[]> {
+export const getTeamsByIds = async (teamIds: string[]): Promise<Team[]> => {
   await connectToDatabase();
-  const teams = await TeamModel.find({ id: { $in: teamIds } });
-  return teams.map((team: { toObject: () => Team }) => team.toObject());
-}
+  const teams = await TeamModel.find({ _id: { $in: teamIds } });
+  return teams.map(convertMongoDoc);
+};
 
-// Verify team players (update player verification status)
-export async function verifyTeamPlayers(
+export const verifyTeamPlayers = async (
   teamId: string,
   playerUpdates: {
     playerId: string;
     verified: boolean;
     riotData?: RiotPlayerData;
   }[]
-): Promise<Team | null> {
+): Promise<Team | null> => {
   await connectToDatabase();
 
-  const team = await TeamModel.findOne({ id: teamId });
-  if (!team) {
-    return null;
-  }
+  const team = await TeamModel.findById(teamId);
+  if (!team) return null;
 
-  // Update player verification status
   playerUpdates.forEach((update) => {
-    // Check main players
-    const mainPlayer = team.players?.main?.find((p) => p.id === update.playerId);
+    const mainPlayer = team.players?.main?.find((p) => p._id?.toString() === update.playerId);
     if (mainPlayer) {
       mainPlayer.verified = update.verified;
       if (update.verified) {
@@ -247,8 +149,7 @@ export async function verifyTeamPlayers(
       }
     }
 
-    // Check substitute players
-    const subPlayer = team.players?.substitutes?.find((p) => p.id === update.playerId);
+    const subPlayer = team.players?.substitutes?.find((p) => p._id?.toString() === update.playerId);
     if (subPlayer) {
       subPlayer.verified = update.verified;
       if (update.verified) {
@@ -263,7 +164,6 @@ export async function verifyTeamPlayers(
     }
   });
 
-  // Auto-verify team if all players are verified
   const allMainVerified = (team.players?.main?.length || 0) > 0 && team.players?.main?.every((p) => p.verified);
   const allSubsVerified =
     (team.players?.substitutes?.length || 0) === 0 || team.players?.substitutes?.every((p) => p.verified);
@@ -275,27 +175,24 @@ export async function verifyTeamPlayers(
 
   team.updatedAt = new Date();
   await team.save();
-  return team.toObject();
-}
+  return convertMongoDoc(team);
+};
 
-// Update player verification status
-export async function updatePlayerVerification(
+export const updatePlayerVerification = async (
   teamId: string,
   userId: string,
   playerId: string,
   verified: boolean
-): Promise<Team | null> {
+): Promise<Team | null> => {
   await connectToDatabase();
 
-  // Find the team and verify ownership
-  const team = await TeamModel.findOne({ id: teamId, userId });
-  if (!team) {
+  const team = await TeamModel.findById(teamId);
+  if (!team || team.teamOwnerId !== userId) {
     return null;
   }
 
-  // Update main players
   team.players?.main?.forEach((player, index: number) => {
-    if (player.id === playerId) {
+    if (player._id?.toString() === playerId) {
       team.players!.main[index] = {
         ...player,
         verified,
@@ -305,9 +202,8 @@ export async function updatePlayerVerification(
     }
   });
 
-  // Update substitute players
   team.players?.substitutes?.forEach((player, index: number) => {
-    if (player.id === playerId) {
+    if (player._id?.toString() === playerId) {
       team.players!.substitutes[index] = {
         ...player,
         verified,
@@ -319,22 +215,19 @@ export async function updatePlayerVerification(
 
   team.updatedAt = new Date();
   await team.save();
-  return team.toObject();
-}
+  return convertMongoDoc(team);
+};
 
-// Verify all players in a team
-export async function verifyAllTeamPlayers(teamId: string, userId: string): Promise<Team | null> {
+export const verifyAllTeamPlayers = async (teamId: string, userId: string): Promise<Team | null> => {
   await connectToDatabase();
 
-  // Find the team and verify ownership
-  const team = await TeamModel.findOne({ id: teamId, userId });
-  if (!team) {
+  const team = await TeamModel.findById(teamId);
+  if (!team || team.teamOwnerId !== userId) {
     return null;
   }
 
   const now = new Date();
 
-  // Verify all main players
   team.players?.main?.forEach((player, index: number) => {
     team.players!.main[index] = {
       ...player,
@@ -344,7 +237,6 @@ export async function verifyAllTeamPlayers(teamId: string, userId: string): Prom
     } as typeof player;
   });
 
-  // Verify all substitute players
   team.players?.substitutes?.forEach((player, index: number) => {
     team.players!.substitutes[index] = {
       ...player,
@@ -356,26 +248,33 @@ export async function verifyAllTeamPlayers(teamId: string, userId: string): Prom
 
   team.updatedAt = now;
   await team.save();
-  return team.toObject();
-}
+  return convertMongoDoc(team);
+};
 
-// Check if team name or tag is available
-export async function checkTeamAvailability(
+export const checkTeamAvailability = async (
   name: string,
   tag: string,
   excludeTeamId?: string
-): Promise<{ nameAvailable: boolean; tagAvailable: boolean }> {
+): Promise<{ nameAvailable: boolean; tagAvailable: boolean }> => {
   await connectToDatabase();
 
-  const query = excludeTeamId ? { id: { $ne: excludeTeamId } } : {};
+  const query = excludeTeamId ? { _id: { $ne: excludeTeamId } } : {};
 
-  const [nameExists, tagExists] = await Promise.all([
-    TeamModel.findOne({ ...query, name }),
-    TeamModel.findOne({ ...query, tag })
-  ]);
+  const nameExists = await TeamModel.findOne({ ...query, name });
 
   return {
     nameAvailable: !nameExists,
-    tagAvailable: !tagExists
+    tagAvailable: true
   };
-}
+};
+
+export const searchTeams = async (query: string, limit: number = 20): Promise<Team[]> => {
+  await connectToDatabase();
+  const searchRegex = new RegExp(query, "i");
+  const teams = await TeamModel.find({
+    $or: [{ name: searchRegex }, { tag: searchRegex }]
+  })
+    .sort({ createdAt: -1 })
+    .limit(limit);
+  return teams.map(convertMongoDoc);
+};

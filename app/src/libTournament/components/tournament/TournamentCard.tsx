@@ -73,14 +73,14 @@ export const TournamentCard = ({
 
       <div className="flex flex-wrap gap-2">
         <a
-          href={`/modules/tournaments/${tournament.id}/sponsors`}
+          href={`/modules/tournaments/${tournament._id}/sponsors`}
           className="bg-indigo-600 hover:bg-indigo-700 px-4 py-2 rounded text-sm"
         >
           Sponsors
         </a>
         {tournament.status === "draft" && (
           <button
-            onClick={() => onStatusUpdate(tournament.id, "registration")}
+            onClick={() => onStatusUpdate(tournament._id, "registration")}
             className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-sm"
           >
             Open Registration
@@ -89,7 +89,7 @@ export const TournamentCard = ({
         {tournament.status === "registration" && (
           <>
             <button
-              onClick={() => onStatusUpdate(tournament.id, "ongoing")}
+              onClick={() => onStatusUpdate(tournament._id, "ongoing")}
               className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded text-sm"
             >
               Start Tournament
@@ -107,7 +107,7 @@ export const TournamentCard = ({
               Add Standalone Teams
             </button>
             <button
-              onClick={() => onStatusUpdate(tournament.id, "draft")}
+              onClick={() => onStatusUpdate(tournament._id, "draft")}
               className="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded text-sm"
             >
               Close Registration
@@ -116,8 +116,8 @@ export const TournamentCard = ({
         )}
         {tournament.status === "ongoing" && (
           <button
-            onClick={() => onStatusUpdate(tournament.id, "completed")}
-            className="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded text-sm"
+            onClick={() => onStatusUpdate(tournament._id, "completed")}
+            className="bg-gray-600 hover:bg-blue-700 px-4 py-2 rounded text-sm"
           >
             Complete Tournament
           </button>

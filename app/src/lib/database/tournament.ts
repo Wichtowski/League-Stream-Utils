@@ -1,191 +1,113 @@
-import { v4 as uuidv4 } from "uuid";
 import { connectToDatabase } from "./connection";
-import { TournamentDoc, TournamentModel } from "./models";
+import { TournamentModel } from "./models";
 import type { Tournament as TournamentType, CreateTournamentRequest } from "@lib/types";
-import { transformDoc } from "./transformDoc";
 
-export const createTournament = async (
-  userId: string,
-  tournamentData: CreateTournamentRequest
-) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const convertMongoDoc = (doc: any): TournamentType => {
+  const obj = doc.toObject();
+  return {
+    ...obj,
+    _id: obj._id.toString(),
+    startDate: new Date(obj.startDate),
+    endDate: new Date(obj.endDate),
+    registrationDeadline: obj.registrationDeadline ? new Date(obj.registrationDeadline) : undefined,
+    createdAt: new Date(obj.createdAt),
+    updatedAt: new Date(obj.updatedAt)
+  };
+};
+
+export const createTournament = async (userId: string, tournamentData: CreateTournamentRequest): Promise<TournamentType> => {
   await connectToDatabase();
 
-  const tournamentDoc: TournamentType = {
-    id: uuidv4(),
+  const newTournament = new TournamentModel({
     name: tournamentData.name,
     abbreviation: tournamentData.abbreviation,
     startDate: new Date(tournamentData.startDate),
     endDate: new Date(tournamentData.endDate),
     requireRegistrationDeadline: tournamentData.requireRegistrationDeadline,
+    registrationDeadline: tournamentData.registrationDeadline ? new Date(tournamentData.registrationDeadline) : undefined,
     matchFormat: tournamentData.matchFormat,
     tournamentFormat: tournamentData.tournamentFormat,
     phaseMatchFormats: tournamentData.phaseMatchFormats,
     maxTeams: tournamentData.maxTeams,
-    registrationOpen: true,
     prizePool: tournamentData.prizePool,
     fearlessDraft: tournamentData.fearlessDraft,
     logo: tournamentData.logo,
-    registeredTeams: [],
-    selectedTeams: tournamentData.selectedTeams || [],
-    status: "draft",
-    allowSubstitutes: true,
-    maxSubstitutes: 2,
+    selectedTeams: tournamentData.selectedTeams,
     timezone: tournamentData.timezone,
-    matchDays: tournamentData.matchDays || [],
+    matchDays: tournamentData.matchDays,
     defaultMatchTime: tournamentData.defaultMatchTime,
+    streamUrl: tournamentData.streamUrl,
     broadcastLanguage: tournamentData.broadcastLanguage,
     gameVersion: tournamentData.gameVersion,
-    sponsors: tournamentData.sponsors || [],
-    userId,
-    createdAt: new Date(),
-    updatedAt: new Date()
-  };
-
-  if (tournamentData.requireRegistrationDeadline && tournamentData.registrationDeadline) {
-    tournamentDoc.registrationDeadline = new Date(tournamentData.registrationDeadline);
-  }
-
-  const newTournament = new TournamentModel(tournamentDoc);
+    sponsors: tournamentData.sponsors,
+    userId
+  });
 
   await newTournament.save();
-  return transformDoc<TournamentDoc, TournamentType>(newTournament);
-}
+  return convertMongoDoc(newTournament);
+};
 
 export async function getUserTournaments(userId: string): Promise<TournamentType[]> {
   await connectToDatabase();
   const tournaments = await TournamentModel.find({ userId }).sort({
     createdAt: -1
   });
-  return tournaments.map((tournament) => transformDoc<TournamentDoc, TournamentType>(tournament));
+  return tournaments.map(convertMongoDoc);
 }
 
 export async function getAllTournaments(): Promise<TournamentType[]> {
   await connectToDatabase();
   const tournaments = await TournamentModel.find({}).sort({ createdAt: -1 });
-  return tournaments.map((tournament) => transformDoc<TournamentDoc, TournamentType>(tournament));
+  return tournaments.map(convertMongoDoc);
 }
 
 export async function getTournamentById(tournamentId: string): Promise<TournamentType | null> {
   await connectToDatabase();
-  const tournament = await TournamentModel.findOne({ id: tournamentId });
-  return tournament ? transformDoc<TournamentDoc, TournamentType>(tournament) : null;
+  const tournament = await TournamentModel.findById(tournamentId);
+  if (!tournament) return null;
+  return convertMongoDoc(tournament);
 }
 
 export const updateTournament = async (
   tournamentId: string,
-  userId: string,
-  updates: Partial<CreateTournamentRequest>
+  updates: Partial<TournamentType>
 ): Promise<TournamentType | null> => {
   await connectToDatabase();
+  const updatedTournament = await TournamentModel.findByIdAndUpdate(tournamentId, updates, { new: true });
+  if (!updatedTournament) return null;
+  return convertMongoDoc(updatedTournament);
+};
 
-  const tournament = await TournamentModel.findOne({
-    id: tournamentId,
-    userId
-  });
-  if (!tournament) {
-    return null;
-  }
-
-  if (updates.name) tournament.name = updates.name;
-  if (updates.abbreviation) tournament.abbreviation = updates.abbreviation;
-  if (updates.startDate) tournament.startDate = new Date(updates.startDate);
-  if (updates.endDate) tournament.endDate = new Date(updates.endDate);
-  if (updates.requireRegistrationDeadline !== undefined)
-    tournament.requireRegistrationDeadline = updates.requireRegistrationDeadline;
-  if (updates.registrationDeadline) tournament.registrationDeadline = new Date(updates.registrationDeadline);
-  if (updates.matchFormat) tournament.matchFormat = updates.matchFormat;
-  if (updates.tournamentFormat) tournament.tournamentFormat = updates.tournamentFormat;
-  if (updates.maxTeams) tournament.maxTeams = updates.maxTeams;
-  if (updates.prizePool !== undefined) tournament.prizePool = updates.prizePool;
-  if (updates.fearlessDraft !== undefined) tournament.fearlessDraft = updates.fearlessDraft;
-  if (updates.logo) tournament.logo = updates.logo;
-  if (updates.selectedTeams) tournament.selectedTeams = updates.selectedTeams;
-  if (updates.timezone) tournament.timezone = updates.timezone;
-  if (updates.matchDays) tournament.matchDays = updates.matchDays;
-  if (updates.defaultMatchTime) tournament.defaultMatchTime = updates.defaultMatchTime;
-  if (updates.broadcastLanguage !== undefined) tournament.broadcastLanguage = updates.broadcastLanguage;
-  if (updates.gameVersion !== undefined) tournament.gameVersion = updates.gameVersion;
-
-  tournament.updatedAt = new Date();
-  await tournament.save();
-  return transformDoc<TournamentDoc, TournamentType>(tournament);
-}
-
-export const deleteTournament = async (tournamentId: string, userId: string): Promise<boolean> => {
+export const deleteTournament = async (tournamentId: string): Promise<boolean> => {
   await connectToDatabase();
-  const result = await TournamentModel.deleteOne({ id: tournamentId, userId });
-  return result.deletedCount > 0;
-}
+  const result = await TournamentModel.findByIdAndDelete(tournamentId);
+  return !!result;
+};
 
-export const updateTournamentStatus = async (
-  tournamentId: string,
-  userId: string,
-  status: TournamentType["status"]
-): Promise<TournamentType | null> => {
+export const registerTeamToTournament = async (tournamentId: string, teamId: string): Promise<TournamentType | null> => {
   await connectToDatabase();
+  const tournament = await TournamentModel.findById(tournamentId);
+  if (!tournament) return null;
 
-  const tournament = await TournamentModel.findOne({
-    id: tournamentId,
-    userId
-  });
-  if (!tournament) {
-    return null;
+  if (!tournament.registeredTeams.includes(teamId)) {
+    tournament.registeredTeams.push(teamId);
+    await tournament.save();
   }
 
-  tournament.status = status;
-  tournament.updatedAt = new Date();
-  await tournament.save();
-  return transformDoc<TournamentDoc, TournamentType>(tournament);
-}
+  return convertMongoDoc(tournament);
+};
 
-export async function registerTeamForTournament(
-  tournamentId: string,
-  teamId: string,
-  isAdmin: boolean = false
-): Promise<TournamentType | null> {
+export const unregisterTeamFromTournament = async (tournamentId: string, teamId: string): Promise<TournamentType | null> => {
   await connectToDatabase();
+  const tournament = await TournamentModel.findById(tournamentId);
+  if (!tournament) return null;
 
-  const tournament = await TournamentModel.findOne({ id: tournamentId });
-  if (!tournament) {
-    return null;
-  }
-
-  if (!isAdmin) {
-    if (!tournament.registrationOpen || tournament.status !== "registration") {
-      return null;
-    }
-
-    if (tournament.registeredTeams.length >= tournament.maxTeams) {
-      return null;
-    }
-  }
-
-  if (tournament.registeredTeams.includes(teamId)) {
-    return transformDoc<TournamentDoc, TournamentType>(tournament);
-  }
-
-  tournament.registeredTeams.push(teamId);
-  tournament.updatedAt = new Date();
+  tournament.registeredTeams = tournament.registeredTeams.filter(id => id !== teamId);
   await tournament.save();
-  return transformDoc<TournamentDoc, TournamentType>(tournament);
-}
 
-export const unregisterTeamFromTournament = async (
-  tournamentId: string,
-  teamId: string
-): Promise<TournamentType | null> => {
-  await connectToDatabase();
-
-  const tournament = await TournamentModel.findOne({ id: tournamentId });
-  if (!tournament) {
-    return null;
-  }
-
-  tournament.registeredTeams = tournament.registeredTeams.filter((id: string) => id !== teamId);
-  tournament.updatedAt = new Date();
-  await tournament.save();
-  return transformDoc<TournamentDoc, TournamentType>(tournament);
-}
+  return convertMongoDoc(tournament);
+};
 
 export const getPublicTournaments = async (limit: number = 20, offset: number = 0): Promise<TournamentType[]> => {
   await connectToDatabase();
@@ -196,8 +118,8 @@ export const getPublicTournaments = async (limit: number = 20, offset: number = 
     .limit(limit)
     .skip(offset);
 
-  return tournaments.map((tournament) => transformDoc<TournamentDoc, TournamentType>(tournament));
-}
+  return tournaments.map(convertMongoDoc);
+};
 
 export const searchTournaments = async (query: string, limit: number = 20): Promise<TournamentType[]> => {
   await connectToDatabase();
@@ -210,36 +132,28 @@ export const searchTournaments = async (query: string, limit: number = 20): Prom
     .sort({ createdAt: -1 })
     .limit(limit);
 
-  return tournaments.map((tournament) => transformDoc<TournamentDoc, TournamentType>(tournament));
-}
+  return tournaments.map(convertMongoDoc);
+};
 
 export const getTournamentStats = async (tournamentId: string): Promise<{
+  totalTeams: number;
   registeredTeams: number;
-  maxTeams: number;
-  daysUntilStart: number;
-  daysUntilRegistrationDeadline: number | null;
+  totalMatches: number;
+  completedMatches: number;
+  pendingMatches: number;
 } | null> => {
   await connectToDatabase();
-
-  const tournament = await TournamentModel.findOne({ id: tournamentId });
-  if (!tournament) {
-    return null;
-  }
-
-  const now = new Date();
-  const daysUntilStart = Math.ceil((tournament.startDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-  const daysUntilRegistrationDeadline =
-    tournament.requireRegistrationDeadline && tournament.registrationDeadline
-      ? Math.ceil((tournament.registrationDeadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
-      : null;
+  const tournament = await TournamentModel.findById(tournamentId);
+  if (!tournament) return null;
 
   return {
+    totalTeams: tournament.maxTeams,
     registeredTeams: tournament.registeredTeams.length,
-    maxTeams: tournament.maxTeams,
-    daysUntilStart,
-    daysUntilRegistrationDeadline
+    totalMatches: tournament.matches?.length || 0,
+    completedMatches: 0, // This would need to be calculated from actual matches
+    pendingMatches: 0 // This would need to be calculated from actual matches
   };
-}
+};
 
 export const checkTournamentAvailability = async (
   name: string,
@@ -248,45 +162,30 @@ export const checkTournamentAvailability = async (
 ): Promise<{ nameAvailable: boolean; abbreviationAvailable: boolean }> => {
   await connectToDatabase();
 
-  const query = excludeTournamentId ? { id: { $ne: excludeTournamentId } } : {};
+  const query = excludeTournamentId ? { _id: { $ne: excludeTournamentId } } : {};
 
-  const [nameExists, abbreviationExists] = await Promise.all([
-    TournamentModel.findOne({ ...query, name }),
-    TournamentModel.findOne({ ...query, abbreviation })
-  ]);
+  const nameExists = await TournamentModel.findOne({ ...query, name });
+  const abbreviationExists = await TournamentModel.findOne({ ...query, abbreviation });
 
   return {
     nameAvailable: !nameExists,
     abbreviationAvailable: !abbreviationExists
   };
-}
+};
 
 export const getTournament = async (tournamentId: string): Promise<TournamentType | null> => {
   await connectToDatabase();
-  const tournament = await TournamentModel.findOne({ id: tournamentId });
-  return tournament ? transformDoc<TournamentDoc, TournamentType>(tournament) : null;
-}
+  const tournament = await TournamentModel.findById(tournamentId);
+  if (!tournament) return null;
+  return convertMongoDoc(tournament);
+};
 
 export const updateTournamentFields = async (
   tournamentId: string,
   updates: Partial<TournamentType>
-): Promise<{ success: boolean; error?: string }> => {
-  try {
-    await connectToDatabase();
-
-    const tournament = await TournamentModel.findOne({ id: tournamentId });
-    if (!tournament) {
-      return { success: false, error: "Tournament not found" };
-    }
-
-    // Update all provided fields
-    Object.assign(tournament, updates);
-    tournament.updatedAt = new Date();
-
-    await tournament.save();
-    return { success: true };
-  } catch (error) {
-    console.error("Error updating tournament:", error);
-    return { success: false, error: "Failed to update tournament" };
-  }
-}
+): Promise<TournamentType | null> => {
+  await connectToDatabase();
+  const updatedTournament = await TournamentModel.findByIdAndUpdate(tournamentId, updates, { new: true });
+  if (!updatedTournament) return null;
+  return convertMongoDoc(updatedTournament);
+};

@@ -83,21 +83,21 @@ export const TournamentEditor = ({
         <h3 className="text-lg font-semibold mb-4">Tournament Actions</h3>
         <div className="flex flex-wrap gap-3">
           <button
-            onClick={() => router.push(`/modules/tournaments/${tournament.id}/sponsors`)}
+            onClick={() => router.push(`/modules/tournaments/${tournament._id}/sponsors`)}
             className={`${buttonStyle} bg-indigo-600 hover:bg-indigo-700`}
           >
             Sponsors
           </button>
 
           <button
-            onClick={() => router.push(`/modules/tournaments/${tournament.id}/matches`)}
+            onClick={() => router.push(`/modules/tournaments/${tournament._id}/matches`)}
             className={`${buttonStyle} bg-red-600 hover:bg-red-700`}
           >
             Matches
           </button>
 
           <button
-            onClick={() => router.push(`/modules/tournaments/${tournament.id}/standalone`)}
+            onClick={() => router.push(`/modules/tournaments/${tournament._id}/standalone`)}
             className={`${buttonStyle} bg-orange-600 hover:bg-orange-700`}
           >
             Standalone Teams
@@ -105,7 +105,7 @@ export const TournamentEditor = ({
 
           {tournament.status === "draft" && (
             <button
-              onClick={() => onStatusUpdate(tournament.id, "registration")}
+              onClick={() => onStatusUpdate(tournament._id, "registration")}
               className={`${buttonStyle} bg-blue-600 hover:bg-blue-700`}
             >
               Open Registration
@@ -115,7 +115,7 @@ export const TournamentEditor = ({
           {tournament.status === "registration" && (
             <>
               <button
-                onClick={() => onStatusUpdate(tournament.id, "ongoing")}
+                onClick={() => onStatusUpdate(tournament._id, "ongoing")}
                 className={`${buttonStyle} bg-green-600 hover:bg-green-700`}
               >
                 Start Tournament
@@ -127,7 +127,7 @@ export const TournamentEditor = ({
                 Add Teams
               </button>
               <button
-                onClick={() => onStatusUpdate(tournament.id, "draft")}
+                onClick={() => onStatusUpdate(tournament._id, "draft")}
                 className={`${buttonStyle} bg-gray-600 hover:bg-gray-700`}
               >
                 Close Registration
@@ -137,7 +137,7 @@ export const TournamentEditor = ({
 
           {tournament.status === "ongoing" && (
             <button
-              onClick={() => onStatusUpdate(tournament.id, "completed")}
+              onClick={() => onStatusUpdate(tournament._id, "completed")}
               className={`${buttonStyle} bg-gray-600 hover:bg-gray-700`}
             >
               Complete Tournament

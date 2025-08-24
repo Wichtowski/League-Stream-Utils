@@ -15,7 +15,7 @@ export const TournamentPageCard = ({ tournament, loading = false }: TournamentPa
 
   const handleCardClick = async (): Promise<void> => {
     try {
-      await tournamentStorage.setLastSelectedTournament(tournament.id, tournament.name);
+      await tournamentStorage.setLastSelectedTournament(tournament._id, tournament.name);
     } catch (error) {
       console.error("Failed to save last selected tournament:", error);
     }
@@ -25,7 +25,7 @@ export const TournamentPageCard = ({ tournament, loading = false }: TournamentPa
     e.preventDefault();
     e.stopPropagation();
     try {
-      await tournamentStorage.setLastSelectedTournament(tournament.id, tournament.name);
+      await tournamentStorage.setLastSelectedTournament(tournament._id, tournament.name);
       router.push("/modules");
     } catch (error) {
       console.error("Failed to save last selected tournament:", error);
@@ -34,7 +34,7 @@ export const TournamentPageCard = ({ tournament, loading = false }: TournamentPa
 
   return (
     <Link
-      href={`/modules/tournaments/${tournament.id}`}
+      href={`/modules/tournaments/${tournament._id}`}
       className={`bg-gray-800 hover:bg-blue-700 text-white rounded-xl p-6 border border-gray-700 hover:border-blue-500 transition-all duration-200 shadow-lg text-left block ${loading ? "blur-sm" : ""}`}
       onClick={handleCardClick}
     >

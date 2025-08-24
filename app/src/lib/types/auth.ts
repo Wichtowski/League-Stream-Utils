@@ -4,7 +4,7 @@ export interface AuthCredentials {
 }
 
 export interface User {
-  id: string;
+  _id: string;
   username: string;
   password: string;
   passwordHistory: string[];
@@ -13,10 +13,6 @@ export interface User {
   sessionsCreatedToday: number;
   lastSessionDate: Date;
   createdAt: Date;
-  isLocked?: boolean;
-  lockedUntil?: Date;
-  lastLoginAt?: Date;
-  lastLoginIP?: string;
 }
 
 export interface UserRegistration {
@@ -29,8 +25,8 @@ export interface JWTPayload {
   userId: string;
   username: string;
   isAdmin: boolean;
-  tokenType?: "access" | "refresh";
-  sessionId?: string;
+  iat: number;
+  exp: number;
 }
 
 export interface AuthTokens {
@@ -40,13 +36,10 @@ export interface AuthTokens {
 }
 
 export interface SessionData {
-  id: string;
+  _id: string;
   userId: string;
-  refreshToken: string;
-  expiresAt: Date;
+  username: string;
+  isAdmin: boolean;
   createdAt: Date;
-  lastUsedAt: Date;
-  ip?: string;
-  userAgent?: string;
-  isValid: boolean;
+  expiresAt: Date;
 }

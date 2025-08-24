@@ -34,7 +34,7 @@ const LiveGamePage: React.FC = () => {
   }, [setActiveModule]);
 
   if (isLoading || !isConnected || !gameData || !currentMatch || !currentTournament) {
-    return null;
+    return <></>;
   }
 
   return <GameDataDisplay gameData={gameData} match={currentMatch} tournament={currentTournament} />;

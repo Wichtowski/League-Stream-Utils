@@ -49,7 +49,6 @@ export const CameraSettingsModel = getModel("CameraSettings", CameraSettingsSche
 export const ChampionModel = getModel(
   "Champion",
   new Schema({
-    id: { type: Number, required: true, unique: true },
     name: { type: String, required: true },
     key: { type: String, required: true },
     image: { type: String, required: true }

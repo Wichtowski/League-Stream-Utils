@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { connect, disconnect } from "mongoose";
 import { config } from "@lib/config";
 
 const mongooseInstance = mongoose;
@@ -74,7 +74,7 @@ class DatabaseConnection {
 
       const mongoUri = config.database.uri!;
 
-      this.connectionPromise = mongooseInstance.connect(mongoUri, {
+      this.connectionPromise = connect(mongoUri, {
         bufferCommands: false,
         maxPoolSize: 10,
         serverSelectionTimeoutMS: 5000,
@@ -99,7 +99,7 @@ class DatabaseConnection {
 
   public async disconnect(): Promise<void> {
     if (connection.isConnected) {
-      await mongooseInstance.disconnect();
+      await disconnect();
       connection.isConnected = false;
       this.connectionPromise = null;
       console.log("🔌 MongoDB disconnected - by method");
@@ -140,25 +140,23 @@ class DatabaseConnection {
 
 const dbConnection = DatabaseConnection.getInstance();
 
-export async function connectToDatabase(): Promise<typeof mongoose> {
-  const result = await dbConnection.connect();
-
-  return result;
+export const connectToDatabase = async (): Promise<typeof mongoose> => {
+  return dbConnection.connect();
 }
 
-export function isConnectionEstablished(): boolean {
+export const isConnectionEstablished = (): boolean => {
   return dbConnection.isConnected();
 }
 
-export function getConnectionState(): string {
+export const getConnectionState = (): string => {
   return dbConnection.getConnectionState();
 }
 
-export function getConnectionInfo() {
+export const getConnectionInfo = () => {
   return dbConnection.getConnectionInfo();
 }
 
-export async function disconnectFromDatabase(): Promise<void> {
+export const disconnectFromDatabase = async (): Promise<void> => {
   return dbConnection.disconnect();
 }
 

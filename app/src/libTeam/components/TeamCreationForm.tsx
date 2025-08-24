@@ -6,6 +6,31 @@ import { useModal } from "@lib/contexts";
 import { LOGO_SQUARE_TOLERANCE, ALLOWED_IMAGE_HOSTS } from "@lib/services/common/constants";
 import { isAlmostSquare, extractTeamColorsFromImage } from "@lib/services/common/image";
 
+// Input sanitization functions
+const sanitizeText = (text: string): string => {
+  return text.trim().replace(/\s+/g, ' '); // Trim and normalize whitespace
+};
+
+const sanitizeTeamName = (name: string): string => {
+  return sanitizeText(name).slice(0, 100); // Limit length
+};
+
+const sanitizeTeamTag = (tag: string): string => {
+  return sanitizeText(tag).slice(0, 5).toUpperCase(); // Limit length and uppercase
+};
+
+const sanitizeRegion = (region: string): string => {
+  return sanitizeText(region).slice(0, 10).toUpperCase(); // Limit length and uppercase
+};
+
+const sanitizePlayerName = (name: string): string => {
+  return sanitizeText(name).slice(0, 50); // Limit length
+};
+
+const sanitizePlayerTag = (tag: string): string => {
+  return sanitizeText(tag).slice(0, 20); // Limit length
+};
+
 const ALLOWED_IMAGE_HOSTS_DISPLAY = ALLOWED_IMAGE_HOSTS.slice(3, ALLOWED_IMAGE_HOSTS.length)
 
 interface TeamCreationFormProps {
@@ -57,12 +82,25 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
       await new Promise<void>((resolve, reject) => {
         const img = new Image();
         img.crossOrigin = "anonymous";
+        
+        // Add a small delay to ensure image is fully loaded
         img.onload = () => {
-          if (!isAlmostSquare(img.width, img.height)) {
-            reject(new Error("Not square"));
+                  // Wait a bit more for WebP images to fully decode
+        setTimeout(() => {
+          // Try to get natural dimensions if available
+          const width = img.naturalWidth || img.width;
+          const height = img.naturalHeight || img.height;
+          
+          // Add debugging for image dimensions
+          console.log(`Image loaded - Width: ${width}, Height: ${height}, Ratio: ${(width / height).toFixed(3)}`);
+          console.log(`Image natural dimensions - NaturalWidth: ${img.naturalWidth}, NaturalHeight: ${img.naturalHeight}`);
+          
+          if (!isAlmostSquare(width, height)) {
+            reject(new Error(`Not square - Width: ${width}, Height: ${height}, Ratio: ${(width / height).toFixed(3)}`));
             return;
           }
           resolve();
+        }, 100);
         };
         img.onerror = () => reject(new Error("Failed to load image from URL"));
         img.src = url;
@@ -118,11 +156,22 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
         const img = new Image();
         img.crossOrigin = "anonymous";
         img.onload = () => {
-          if (!isAlmostSquare(img.width, img.height)) {
-            reject(new Error(`Logo should be square. Current ratio ${(img.width / img.height).toFixed(3)}. Allowed deviation ±${LOGO_SQUARE_TOLERANCE}.`));
-            return;
-          }
-          resolve();
+          // Wait a bit more for WebP images to fully decode
+          setTimeout(() => {
+            // Try to get natural dimensions if available
+            const width = img.naturalWidth || img.width;
+            const height = img.naturalHeight || img.height;
+            
+            // Add debugging for image dimensions
+            console.log(`Preview validation - Width: ${width}, Height: ${height}, Ratio: ${(width / height).toFixed(3)}`);
+            console.log(`Image natural dimensions - NaturalWidth: ${img.naturalWidth}, NaturalHeight: ${img.naturalHeight}`);
+            
+            if (!isAlmostSquare(width, height)) {
+              reject(new Error(`Logo should be square. Current ratio ${(width / height).toFixed(3)}. Allowed deviation ±${LOGO_SQUARE_TOLERANCE}.`));
+              return;
+            }
+            resolve();
+          }, 100);
         };
         img.onerror = () => reject(new Error("Failed to load image from URL"));
         img.src = url;
@@ -184,23 +233,34 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
       try {
         const img = new Image();
         img.onload = async () => {
-          if (!isAlmostSquare(img.width, img.height)) {
-            await showAlert({
-              type: "warning",
-              message: `Logo should be square. Current ratio ${(img.width / img.height).toFixed(3)}. Allowed deviation ±${LOGO_SQUARE_TOLERANCE}.`
-            });
-            return;
-          }
-          setFormData({
-            ...formData,
-            logo: {
-              type: "upload",
-              data: base64,
-              size: file.size,
-              format: format === "jpeg" ? "jpg" : format
+          // Wait a bit more for WebP images to fully decode
+          setTimeout(async () => {
+            // Try to get natural dimensions if available
+            const width = img.naturalWidth || img.width;
+            const height = img.naturalHeight || img.height;
+            
+            // Add debugging for image dimensions
+            console.log(`File upload validation - Width: ${width}, Height: ${height}, Ratio: ${(width / height).toFixed(3)}`);
+            console.log(`Image natural dimensions - NaturalWidth: ${img.naturalWidth}, NaturalHeight: ${img.naturalHeight}`);
+            
+            if (!isAlmostSquare(width, height)) {
+              await showAlert({
+                type: "warning",
+                message: `Logo should be square. Current ratio ${(width / height).toFixed(3)}. Allowed deviation ±${LOGO_SQUARE_TOLERANCE}.`
+              });
+              return;
             }
-          });
-          setLogoPreview(base64);
+            setFormData({
+              ...formData,
+              logo: {
+                type: "upload",
+                data: base64,
+                size: file.size,
+                format: format === "jpeg" ? "jpg" : format
+              }
+            });
+            setLogoPreview(base64);
+          }, 100);
         };
         img.src = base64;
       } catch {
@@ -230,7 +290,8 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
 
   const updatePlayer = (index: number, field: "inGameName" | "tag", value: string) => {
     const newPlayers = [...(formData.players?.main || [])];
-    newPlayers[index] = { ...newPlayers[index], [field]: value };
+    const sanitizedValue = field === "inGameName" ? sanitizePlayerName(value) : sanitizePlayerTag(value);
+    newPlayers[index] = { ...newPlayers[index], [field]: sanitizedValue };
     setFormData({
       ...formData,
       players: { ...formData.players!, main: newPlayers }
@@ -257,7 +318,13 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
 
   const updateSubstitute = (index: number, field: "role" | "inGameName" | "tag", value: string) => {
     const newSubs = [...(formData.players?.substitutes || [])];
-    newSubs[index] = { ...newSubs[index], [field]: value };
+    let sanitizedValue = value;
+    if (field === "inGameName") {
+      sanitizedValue = sanitizePlayerName(value);
+    } else if (field === "tag") {
+      sanitizedValue = sanitizePlayerTag(value);
+    }
+    newSubs[index] = { ...newSubs[index], [field]: sanitizedValue };
     setFormData({
       ...formData,
       players: { ...formData.players!, substitutes: newSubs }
@@ -266,7 +333,28 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await onSubmit(formData as CreateTeamRequest);
+    
+    // Final sanitization before submission
+    const sanitizedFormData: CreateTeamRequest = {
+      ...formData,
+      name: sanitizeTeamName(formData.name || ""),
+      tag: sanitizeTeamTag(formData.tag || ""),
+      region: sanitizeRegion(formData.region || ""),
+      players: {
+        main: (formData.players?.main || []).map(player => ({
+          ...player,
+          inGameName: sanitizePlayerName(player.inGameName || ""),
+          tag: sanitizePlayerTag(player.tag || "")
+        })),
+        substitutes: (formData.players?.substitutes || []).map(player => ({
+          ...player,
+          inGameName: sanitizePlayerName(player.inGameName || ""),
+          tag: sanitizePlayerTag(player.tag || "")
+        }))
+      }
+    } as CreateTeamRequest;
+    
+    await onSubmit(sanitizedFormData);
   };
 
   return (
@@ -280,7 +368,7 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
             <input
               type="text"
               value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              onChange={(e) => setFormData({ ...formData, name: sanitizeTeamName(e.target.value) })}
               className="w-full bg-gray-700 rounded px-3 py-2 text-white placeholder-gray-400"
               placeholder="Enter team name"
               id="teamName"
@@ -292,7 +380,7 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
             <input
               type="text"
               value={formData.tag}
-              onChange={(e) => setFormData({ ...formData, tag: e.target.value })}
+              onChange={(e) => setFormData({ ...formData, tag: sanitizeTeamTag(e.target.value) })}
               className="w-full bg-gray-700 rounded px-3 py-2 text-white placeholder-gray-400"
               placeholder="Enter team tag"
               maxLength={5}
@@ -305,7 +393,7 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
             <input
               type="text"
               value={formData.region}
-              onChange={(e) => setFormData({ ...formData, region: e.target.value })}
+              onChange={(e) => setFormData({ ...formData, region: sanitizeRegion(e.target.value) })}
               className="w-full bg-gray-700 rounded px-3 py-2 text-white placeholder-gray-400"
               placeholder="e.g., EUNE, EUW, NA"
               autoComplete="off"

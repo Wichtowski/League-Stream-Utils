@@ -27,7 +27,7 @@ export const BracketManager = ({ tournament, isOwner }: BracketManagerProps): Re
   const loadBracket = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/v1/tournaments/${tournament.id}/bracket`, {
+      const response = await fetch(`/api/v1/tournaments/${tournament._id}/bracket`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`
         }
@@ -44,7 +44,7 @@ export const BracketManager = ({ tournament, isOwner }: BracketManagerProps): Re
     } finally {
       setLoading(false);
     }
-  }, [tournament.id]);
+  }, [tournament._id]);
 
   useEffect(() => {
     loadBracket();
@@ -60,7 +60,7 @@ export const BracketManager = ({ tournament, isOwner }: BracketManagerProps): Re
 
     try {
       setGenerating(true);
-      const response = await fetch(`/api/v1/tournaments/${tournament.id}/bracket`, {
+      const response = await fetch(`/api/v1/tournaments/${tournament._id}/bracket`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`
@@ -90,7 +90,7 @@ export const BracketManager = ({ tournament, isOwner }: BracketManagerProps): Re
     } finally {
       setGenerating(false);
     }
-  }, [tournament.id, showAlert, showConfirm]);
+  }, [tournament._id, showAlert, showConfirm]);
 
   const updateMatchResult = useCallback(
     async (matchId: string, winner: string, score1: number, score2: number) => {
@@ -102,7 +102,7 @@ export const BracketManager = ({ tournament, isOwner }: BracketManagerProps): Re
           score2
         };
 
-        const response = await fetch(`/api/v1/tournaments/${tournament.id}/bracket`, {
+        const response = await fetch(`/api/v1/tournaments/${tournament._id}/bracket`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -136,7 +136,7 @@ export const BracketManager = ({ tournament, isOwner }: BracketManagerProps): Re
         });
       }
     },
-    [tournament.id, showAlert]
+    [tournament._id, showAlert]
   );
 
   const resetBracket = useCallback(async () => {
@@ -148,7 +148,7 @@ export const BracketManager = ({ tournament, isOwner }: BracketManagerProps): Re
     if (!confirmed) return;
 
     try {
-      const response = await fetch(`/api/v1/tournaments/${tournament.id}/bracket`, {
+      const response = await fetch(`/api/v1/tournaments/${tournament._id}/bracket`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`
@@ -169,7 +169,7 @@ export const BracketManager = ({ tournament, isOwner }: BracketManagerProps): Re
         message: "Failed to delete bracket"
       });
     }
-  }, [tournament.id, showAlert, showConfirm]);
+  }, [tournament._id, showAlert, showConfirm]);
 
   if (loading) {
     return (

@@ -14,6 +14,7 @@ export function useImagePreload(urls: string[]): UseImagePreloadReturn {
   const [completed, setCompleted] = useState(0);
   const totalRef = useRef<number>(uniqueUrls.length);
   const settledRef = useRef<Set<string>>(new Set());
+  const preloadedUrlsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     totalRef.current = uniqueUrls.length;
@@ -28,11 +29,21 @@ export function useImagePreload(urls: string[]): UseImagePreloadReturn {
       if (isCancelled) return;
       if (!settledRef.current.has(src)) {
         settledRef.current.add(src);
+        preloadedUrlsRef.current.add(src);
         setCompleted((c) => c + 1);
       }
     };
 
-    const imageObjects = uniqueUrls.map((src) => {
+    // Only preload URLs that haven't been preloaded before
+    const urlsToPreload = uniqueUrls.filter(url => !preloadedUrlsRef.current.has(url));
+    
+    if (urlsToPreload.length === 0) {
+      // All images already preloaded
+      setCompleted(uniqueUrls.length);
+      return;
+    }
+
+    const imageObjects = urlsToPreload.map((src) => {
       const img = new Image();
       img.onload = () => handleSettle(src);
       img.onerror = () => handleSettle(src);

@@ -33,10 +33,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
   resumeBackgroundProcesses: () => ipcRenderer.invoke("resume-background-processes"),
   setModeSwitching: (enabled) => ipcRenderer.invoke("set-mode-switching", enabled),
 
-  // LCU mock/control
-  updateLCUData: (data) => ipcRenderer.invoke("update-lcu-data", data),
-  setMockData: (enabled) => ipcRenderer.invoke("set-mock-data", enabled),
-  onMockDataToggle: (callback) => ipcRenderer.on("mock-data-toggle", callback),
+
 
   // Electron menu events
   onUpdateChampions: (callback) => ipcRenderer.on("update-champions", callback),

@@ -20,10 +20,7 @@ function registerHostedAssetsHandlers(_mainWindow, assetsPath, assetCachePath) {
         fullSourcePath = path.join(currentDir, "..", sourcePath);
       }
 
-      console.log(`Copying asset: ${fullSourcePath} -> ${destPath}`);
-
       if (!fs.existsSync(fullSourcePath)) {
-        console.error(`Source file does not exist: ${fullSourcePath}`);
         return {
           success: false,
           error: `Source file does not exist: ${fullSourcePath}`
@@ -31,10 +28,8 @@ function registerHostedAssetsHandlers(_mainWindow, assetsPath, assetCachePath) {
       }
 
       fs.copyFileSync(fullSourcePath, destPath);
-      console.log(`Successfully copied: ${fullSourcePath} -> ${destPath}`);
       return { success: true, localPath: destPath };
     } catch (error) {
-      console.error(`Failed to copy asset: ${sourcePath} -> ${fileName}`, error);
       return { success: false, error: error.message };
     }
   });
@@ -120,30 +115,15 @@ function registerHostedAssetsHandlers(_mainWindow, assetsPath, assetCachePath) {
                 downloadedBytes += chunk.length;
               });
               
-                             response.on("end", () => {
-                 const buffer = Buffer.concat(chunks);
+              response.on("end", () => {
+                const buffer = Buffer.concat(chunks);
+
+                const isTextFile = targetPath.endsWith('.svg') || targetPath.endsWith('.json') || targetPath.endsWith('.txt');
                  
-                 // Debug: Log the first few bytes for SVG files
-                 if (targetPath.endsWith('.svg')) {
-                   console.log(`Downloading SVG file: ${targetPath}`);
-                   console.log(`Response headers:`, response.headers);
-                   console.log(`Buffer length: ${buffer.length}`);
-                   console.log(`First 100 bytes:`, buffer.toString('utf8', 0, 100));
-                 }
-                 
-                 // Check if this is a text file (SVG, JSON, etc.) and ensure proper encoding
-                 const isTextFile = targetPath.endsWith('.svg') || targetPath.endsWith('.json') || targetPath.endsWith('.txt');
-                 
-                 if (isTextFile) {
-                   // For text files, ensure UTF-8 encoding
+                if (isTextFile) {
                    const content = buffer.toString('utf8');
                    fs.writeFileSync(targetPath, content, 'utf8');
                    
-                   // Debug: Verify the written content
-                   if (targetPath.endsWith('.svg')) {
-                     const writtenContent = fs.readFileSync(targetPath, 'utf8');
-                     console.log(`Written content first 100 chars:`, writtenContent.substring(0, 100));
-                   }
                  } else {
                    // For binary files, write as buffer
                    fs.writeFileSync(targetPath, buffer);

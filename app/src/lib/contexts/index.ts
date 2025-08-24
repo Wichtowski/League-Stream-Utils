@@ -2,9 +2,8 @@ import { NavigationProvider } from "./NavigationContext";
 import { ModalProvider } from "./ModalContext";
 import { AuthProvider } from "./AuthContext";
 import { ElectronProvider } from "../../libElectron/contexts/ElectronContext";
-import { LCUProvider } from "./LCUContext";
 import { CamerasProvider } from "../../libCamera/context/CamerasContext";
-import { TeamsProvider } from "../../libTeam/contexts/TeamsContext";
+
 import { TournamentsProvider } from "../../libTournament/contexts/TournamentsContext";
 import { TournamentDataProvider } from "../../libTournament/contexts/TournamentDataContext";
 import { TournamentBracketProvider } from "../../libTournament/contexts/TournamentBracketContext";
@@ -16,7 +15,7 @@ import { DownloadProvider } from "./DownloadContext";
 import { PredictionsProvider } from "../../libTournament/contexts/PredictionsContext";
 import { CurrentMatchProvider } from "../../libTournament/contexts/CurrentMatchContext";
 import { useUser } from "./AuthContext";
-import { useTeams } from "../../libTeam/contexts/TeamsContext";
+
 import { useModal } from "./ModalContext";
 import { useNavigation } from "./NavigationContext";
 import { useCurrentMatch } from "../../libTournament/contexts/CurrentMatchContext";
@@ -26,9 +25,8 @@ export {
   ModalProvider,
   AuthProvider,
   ElectronProvider,
-  LCUProvider,
   CamerasProvider,
-  TeamsProvider,
+
   TournamentsProvider,
   TournamentDataProvider,
   TournamentBracketProvider,
@@ -40,7 +38,7 @@ export {
   PredictionsProvider,
   CurrentMatchProvider,
   useUser,
-  useTeams,
+
   useModal,
   useNavigation,
   useCurrentMatch

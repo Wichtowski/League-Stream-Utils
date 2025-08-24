@@ -3,7 +3,6 @@ import { ImageStorageSchema } from "./common";
 import { SponsorSchema } from "./sponsors";
 
 export const TournamentSchema = new Schema({
-  id: { type: String, required: true, unique: true },
   name: { type: String, required: true },
   abbreviation: { type: String, required: true },
 
@@ -58,6 +57,7 @@ export const TournamentSchema = new Schema({
   matchDays: [{ type: String }],
   defaultMatchTime: { type: String, required: true },
 
+  streamUrl: { type: String },
   broadcastLanguage: { type: String },
   gameVersion: { type: String },
 

@@ -1,143 +1,191 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import type { EnhancedChampSelectSession } from "@lib/types";
+import React, { useEffect, useState, useCallback } from "react";
+import type { EnhancedChampSelectSession, ChampSelectSession } from "@lib/types";
 import { getChampions } from "@lib/champions";
 import { useNavigation } from "@lib/contexts/NavigationContext";
-import { useMockDataContext } from "@lib/contexts/MockDataContext";
-import { useLCU } from "@lib/contexts/LCUContext";
-import { getDynamicMockData } from "@lib/mocks/dynamic-champselect";
+import { useDownload } from "@lib/contexts/DownloadContext";
+import { LCUConnector } from "@lib/services/external/LCU/connector";
+import { storage } from "@lib/services/common/UniversalStorage";
 import { ChampSelectDisplay } from "@libLeagueClient/components/champselect/ChampSelectDisplay";
-import { Button } from "@lib/components/common";
+import { getAllRoleIconAssets, getDefaultAsset } from "@/libLeagueClient/components/common";
+import { getLatestVersion } from "@/lib/services/common/unified-asset-cache";
+
+const LCU_SETTINGS_KEY = "lcu-settings";
+const LCU_CONNECTION_KEY = "lcu-connection";
+
+interface LCUSettings {
+  autoReconnect: boolean;
+  lastConnectedAt: Date | null;
+}
 
 const ChampSelectOverlayPage: React.FC = () => {
-  const { useMockData, toggleMockData } = useMockDataContext();
-  const { champSelectSession, isConnected, connect, isConnecting, connectionError: _connectionError } = useLCU();
   const { setActiveModule } = useNavigation();
+  const { downloadState } = useDownload();
+  const [roleIcons, setRoleIcons] = useState<Record<string, string>>({});
+  const [banPlaceholder, setBanPlaceholder] = useState<string>("");
+  
+  // LCU state
+  const [isConnected, setIsConnected] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
+  const [_isInitialized, setIsInitialized] = useState(false);
+  const [champSelectSession, setChampSelectSession] = useState<ChampSelectSession | null>(null);
+  const [autoReconnect, setAutoReconnect] = useState(true);
+  const [lastConnectedAt, setLastConnectedAt] = useState<Date | null>(null);
+  const [connectionAttempts, setConnectionAttempts] = useState(0);
 
-  // Check for URL parameters
-  const [urlMockEnabled, setUrlMockEnabled] = useState(false);
+  // LCU Connector instance
+  const [lcuConnector] = useState(
+    () =>
+      new LCUConnector({
+        autoReconnect: false,
+        maxReconnectAttempts: 5,
+        pollInterval: 1000,
+        isDownloading: () => downloadState.isDownloading
+      })
+  );
 
-  // Function to manually clear mock data setting
-  const clearMockDataSetting = () => {
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("useMockData");
-      window.location.reload();
+  const connect = useCallback(async (): Promise<void> => {
+    if (isConnecting || isConnected) return;
+
+    try {
+      await lcuConnector.connect();
+      setIsInitialized(true);
+    } catch (error) {
+      console.error("Failed to connect to LCU:", error);
     }
-  };
+  }, [lcuConnector, isConnecting, isConnected]);
+
+  const disconnect = useCallback(() => {
+    lcuConnector.disconnect();
+    setChampSelectSession(null);
+    setConnectionAttempts(0);
+  }, [lcuConnector]);
+
+  const _reconnect = useCallback(async () => {
+    disconnect();
+    setTimeout(() => connect(), 500);
+  }, [disconnect, connect]);
+
+  // Load settings
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const settings = await storage.get<LCUSettings>(LCU_SETTINGS_KEY);
+        if (settings) {
+          setAutoReconnect(settings.autoReconnect ?? true);
+          setLastConnectedAt(settings.lastConnectedAt ? new Date(settings.lastConnectedAt) : null);
+        }
+      } catch (error) {
+        console.error("Failed to load LCU settings:", error);
+      }
+    };
+    loadSettings();
+  }, []);
+
+  // Save settings
+  useEffect(() => {
+    const saveSettings = async () => {
+      try {
+        const settings: LCUSettings = {
+          autoReconnect,
+          lastConnectedAt
+        };
+        await storage.set(LCU_SETTINGS_KEY, settings);
+      } catch (error) {
+        console.error("Failed to save LCU settings:", error);
+      }
+    };
+    saveSettings();
+  }, [autoReconnect, lastConnectedAt]);
+
+  // Setup LCU connector event handlers
+  useEffect(() => {
+    lcuConnector.setOnStatusChange((status) => {
+      setIsConnecting(status === "connecting");
+      setIsConnected(status === "connected");
+
+      if (status === "connected") {
+        setConnectionError(null);
+        setLastConnectedAt(new Date());
+        setConnectionAttempts(0);
+        storage.set(LCU_CONNECTION_KEY, { wasConnected: true });
+      } else if (status === "error") {
+        setConnectionAttempts((prev) => prev + 1);
+        storage.set(LCU_CONNECTION_KEY, { wasConnected: false });
+      } else if (status === "disconnected") {
+        storage.set(LCU_CONNECTION_KEY, { wasConnected: false });
+      }
+    });
+
+    lcuConnector.setOnChampSelectUpdate((data) => {
+      setChampSelectSession(data);
+    });
+
+    lcuConnector.setOnError((error) => {
+      setConnectionError(error);
+      setConnectionAttempts((prev) => prev + 1);
+    });
+  }, [lcuConnector]);
+
+  // Auto-reconnect logic
+  useEffect(() => {
+    if (!autoReconnect || isConnected || isConnecting) return;
+
+    const timeoutId = setTimeout(() => {
+      if (connectionAttempts < 5) {
+        connect();
+      }
+    }, 5000);
+
+    return () => clearTimeout(timeoutId);
+  }, [isConnected, isConnecting, autoReconnect, connectionAttempts, connect]);
+
+  // Enable polling when connected and not downloading
+  useEffect(() => {
+    if (isConnected && !downloadState.isDownloading) {
+      lcuConnector.enablePolling();
+    } else {
+      lcuConnector.disablePolling();
+    }
+  }, [lcuConnector, isConnected, downloadState.isDownloading]);
+
+  // Auto-connect on mount
+  useEffect(() => {
+    connect();
+  }, [connect]);
 
   useEffect(() => {
+    const init = async (): Promise<void> => {
+      await Promise.allSettled([getChampions()]);
+      
+      const v = await getLatestVersion();
+      setBanPlaceholder(getDefaultAsset(v, "default_ban_placeholder.svg"));
+      setRoleIcons(getAllRoleIconAssets(v));
+      
+    };
+    init().catch(console.error);
+    
     setActiveModule(null);
   }, [setActiveModule]);
 
-  // Check URL parameters on mount
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const urlParams = new URLSearchParams(window.location.search);
-      const mockParam = urlParams.get("mock");
-
-      setUrlMockEnabled(mockParam === "true");
-    }
-  }, []);
-
-  // Auto-connect to LCU when not using mock data and URL mock is not enabled
-  useEffect(() => {
-    if (!useMockData && !urlMockEnabled && !isConnected && !isConnecting) {
-      console.log("Auto-connecting to LCU for overlay...");
-      connect().catch(console.error);
-    }
-  }, [useMockData, urlMockEnabled, isConnected, isConnecting, connect]);
-
-  // Determine which data source to use
-  const shouldUseUrlMock = urlMockEnabled;
-  const shouldUseContextMock = useMockData && !urlMockEnabled;
-  const shouldUseRealData = !shouldUseUrlMock && !shouldUseContextMock;
-
-  // Show loading state when transitioning from mock to real data
-  if (isConnecting && !champSelectSession && shouldUseRealData) {
-    console.log("Connecting to League Client...");
-  }
-
-  // If not connected and no data, show connection status
-  if (!isConnected && !champSelectSession && shouldUseRealData) {
-    console.log("Not connected to League Client...");
-    console.log("shouldUseRealData", shouldUseRealData);
-  }
-
-  // Use URL mock data if enabled
-  if (shouldUseUrlMock) {
-    const data = getDynamicMockData();
-
-    // Ensure champions cache is populated
-    if (typeof window !== "undefined") {
-      getChampions().catch(console.error);
-    }
-
+  if (!roleIcons || !banPlaceholder || !champSelectSession || !isConnected) {
     return (
-      <>
-        <ChampSelectDisplay data={data} isOverlay={true} />
-      </>
-    );
-  }
-
-  // Show mock data toggle and connection status
-  if (shouldUseContextMock) {
-    const data = getDynamicMockData();
-
-    // Ensure champions cache is populated
-    if (typeof window !== "undefined") {
-      getChampions().catch(console.error);
-    }
-
-    return (
-      <>
-        <div className="fixed top-4 left-4 z-50 bg-red-900/90 backdrop-blur-sm border border-red-600 rounded-lg p-3 text-white">
-          <div className="text-sm font-medium mb-2">⚠️ Mock Data Enabled</div>
-          <div className="text-xs text-red-200 mb-3">
-            You&apos;re seeing mock data instead of real League client data
-          </div>
-          <div className="space-y-2">
-            <Button
-              onClick={() => toggleMockData(false)}
-              className="w-full bg-green-600 hover:bg-green-700 text-white text-xs py-1"
-            >
-              Connect to Real League Client
-            </Button>
-            <Button
-              onClick={clearMockDataSetting}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs py-1"
-            >
-              Force Clear Mock Data Setting
-            </Button>
-          </div>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          {isConnecting && <p className="text-white">Connecting to League Client...</p>}
+          {connectionError && <p className="text-red-500">Connection Error: {connectionError}</p>}
+          {!isConnected && !isConnecting && <p className="text-white">Waiting for League Client connection...</p>}
         </div>
-        <ChampSelectDisplay data={data} isOverlay={true} />
-      </>
+      </div>
     );
   }
 
-  // Ensure we have valid data before destructuring
-  if (!champSelectSession) {
-    return <></>;
-  }
-
-  // Use the data directly from LCU context (which now handles both real and mock data)
   const data = champSelectSession as EnhancedChampSelectSession;
 
-  // Ensure champions cache is populated
-  if (typeof window !== "undefined") {
-    // Trigger load once; ignore errors
-    getChampions().catch(console.error);
-  }
-
   return (
-    <>
-      <div className="fixed top-4 left-4 z-50 bg-green-900/90 backdrop-blur-sm border border-green-600 rounded-lg p-3 text-white">
-        <div className="text-sm font-medium mb-2">✅ Connected to League Client</div>
-        <div className="text-xs text-green-200">Showing real champion select data</div>
-      </div>
-      <ChampSelectDisplay data={data} isOverlay={true} />
-    </>
+    <ChampSelectDisplay data={data} isOverlay={true} roleIcons={roleIcons} banPlaceholder={banPlaceholder} />
   );
 };
 

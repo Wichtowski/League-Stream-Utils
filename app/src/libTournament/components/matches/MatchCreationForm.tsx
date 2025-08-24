@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import type { Team, Tournament } from "@lib/types";
-import { useTeams, useModal, useCurrentMatch } from "@lib/contexts";
+import { useModal, useCurrentMatch } from "@lib/contexts";
 import { Button, LoadingSpinner } from "@lib/components/common";
 import { BracketNode } from "@lib/types/tournament";
 import { Match, CreateMatchRequest } from "@lib/types/match";
@@ -29,9 +29,36 @@ export const MatchCreationForm = ({
   bracketNodes,
   onMatchCreated
 }: MatchCreationFormProps): React.ReactNode => {
-  const { teams, loading: teamsLoading } = useTeams();
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [teamsLoading, setTeamsLoading] = useState(true);
   const { showAlert, showConfirm } = useModal();
   const { setCurrentMatch } = useCurrentMatch();
+
+  // Fetch teams directly
+  useEffect(() => {
+    const fetchTeams = async () => {
+      try {
+        setTeamsLoading(true);
+        const token = localStorage.getItem("token");
+        const response = await fetch("/api/v1/teams", {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          setTeams(data.teams || []);
+        }
+      } catch (error) {
+        console.error("Error fetching teams:", error);
+      } finally {
+        setTeamsLoading(false);
+      }
+    };
+
+    fetchTeams();
+  }, []);
 
   const [formData, setFormData] = useState<FormData>({
     name: "",
@@ -87,7 +114,7 @@ export const MatchCreationForm = ({
       const matchData: CreateMatchRequest = {
         name: formData.name,
         type: "tournament",
-        tournamentId: tournament.id,
+        tournamentId: tournament._id,
         bracketNodeId: formData.bracketNodeId || undefined,
         blueTeamId: formData.blueTeamId,
         redTeamId: formData.redTeamId,

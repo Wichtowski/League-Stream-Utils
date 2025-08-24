@@ -5,12 +5,12 @@ import { useRouter } from "next/navigation";
 import { TeamCreationForm } from "@libTeam/components";
 import { PageWrapper } from "@lib/layout";
 import { CreateTeamRequest } from "@lib/types";
-import { useNavigation, useTeams, useModal } from "@lib/contexts";
+import { useNavigation, useModal } from "@lib/contexts";
 
 export default function CreateTeamPage() {
   const [creating, setCreating] = useState(false);
   const { setActiveModule } = useNavigation();
-  const { createTeam } = useTeams();
+
   const { showAlert } = useModal();
   const router = useRouter();
 
@@ -21,17 +21,27 @@ export default function CreateTeamPage() {
   const handleCreateTeam = async (formData: CreateTeamRequest) => {
     setCreating(true);
     try {
-      const result = await createTeam(formData);
-      if (result.success) {
+      const token = localStorage.getItem("token");
+      const response = await fetch("/api/v1/teams", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(formData)
+      });
+      
+      if (response.ok) {
         await showAlert({
           type: "success",
           message: "Team created successfully!"
         });
         router.push("/modules/teams");
       } else {
+        const errorData = await response.json();
         await showAlert({
           type: "error",
-          message: result.error || "Failed to create team"
+          message: errorData.error || "Failed to create team"
         });
       }
     } catch (error) {

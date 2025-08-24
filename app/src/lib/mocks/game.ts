@@ -1,7 +1,6 @@
 import { Match, Tournament, Player } from "@lib/types";
 import { LivePlayer, SummonerSpell } from "@libLeagueClient/types/LivePlayer"
 import { GameEvent } from "@libLeagueClient/types"
-import { fmsLogoInBase64 } from "@lib/mocks/fmsLogoInBase64";
 
 const initialSpell = (name: string): SummonerSpell => ({ displayName: name, rawDescription: name });
 
@@ -274,7 +273,7 @@ export const MockedEvents: GameEvent[] = [
 ];
 
 export const mockTournament: Tournament = {
-  id: "tourn_1",
+  _id: "tourn_1",
   name: "Mock Tournament",
   abbreviation: "MT",
   startDate: new Date(),
@@ -302,7 +301,7 @@ export const mockTournament: Tournament = {
 
 export const mockStaticPlayersBlue: Player[] = [
   {
-    id: "1",
+    _id: "1",
     inGameName: "frajgo",
     tag: "FMS",
     role: "TOP",
@@ -311,7 +310,7 @@ export const mockStaticPlayersBlue: Player[] = [
     updatedAt: new Date()
   },
   {
-    id: "2",
+    _id: "2",
     inGameName: "Rybson",
     tag: "FMS",
     role: "JUNGLE",
@@ -320,7 +319,7 @@ export const mockStaticPlayersBlue: Player[] = [
     updatedAt: new Date()
   },
   {
-    id: "3",
+    _id: "3",
     inGameName: "Mrozku",
     tag: "FMS",
     role: "MID",
@@ -329,16 +328,16 @@ export const mockStaticPlayersBlue: Player[] = [
     updatedAt: new Date()
   },
   {
-    id: "4",
+    _id: "4",
     inGameName: "zamulek",
     tag: "FMS",
     role: "BOTTOM",
     verified: true,
     createdAt: new Date(),
     updatedAt: new Date()
-  },
+  },  
   {
-    id: "5",
+    _id: "5",
     inGameName: "minemaciek",
     tag: "FMS",
     role: "SUPPORT",
@@ -350,7 +349,7 @@ export const mockStaticPlayersBlue: Player[] = [
 
 export const mockStaticPlayersRed: Player[] = [
   {
-    id: "6",
+    _id: "6",
     inGameName: "Bausffs",
     tag: "LR",
     role: "TOP",
@@ -359,7 +358,7 @@ export const mockStaticPlayersRed: Player[] = [
     updatedAt: new Date()
   },
   {
-    id: "7",
+    _id: "7",
     inGameName: "Velja",
     tag: "LR",
     role: "JUNGLE",
@@ -368,7 +367,7 @@ export const mockStaticPlayersRed: Player[] = [
     updatedAt: new Date()
   },
   {
-    id: "8",
+    _id: "8",
     inGameName: "Nemesis",
     tag: "LR",
     role: "MID",
@@ -377,7 +376,7 @@ export const mockStaticPlayersRed: Player[] = [
     updatedAt: new Date()
   },
   {
-    id: "9",
+    _id: "9",
     inGameName: "Crownie",
     tag: "LR",
     role: "BOTTOM",
@@ -386,7 +385,7 @@ export const mockStaticPlayersRed: Player[] = [
     updatedAt: new Date()
   },
   {
-    id: "10",
+    _id: "10",
     inGameName: "Rekkles",
     tag: "LR",
     role: "SUPPORT",
@@ -397,37 +396,15 @@ export const mockStaticPlayersRed: Player[] = [
 ];
 
 export const mockMatch: Match = {
-  id: "match_1",
+  _id: "match_1",
   name: "Mock Match",
   type: "tournament",
-  tournamentId: mockTournament.id,
+  tournamentId: mockTournament._id,
   format: mockTournament.matchFormat,
   isFearlessDraft: mockTournament.fearlessDraft,
   patchName: "25.16",
-  blueTeam: {
-    id: "team_blue",
-    name: "Fajnie Mieć Skład",
-    tag: "FMS",
-    logo: {
-      type: "upload",
-      data: fmsLogoInBase64,
-      size: 48230,
-      format: "png"
-    },
-    colors: { primary: "#3B82F6", secondary: "#1E40AF", accent: "#FFFFFF" },
-    players: mockStaticPlayersBlue
-  },
-  redTeam: {
-    id: "team_red",
-    name: "Los Ratones",
-    tag: "LR",
-    logo: {
-      type: "url",
-      url: "https://liquipedia.net/commons/images/thumb/1/13/Los_Ratones_darkmode.png/600px-Los_Ratones_darkmode.png"
-    },
-    colors: { primary: "#EF4444", secondary: "#7F1D1D", accent: "#FFFFFF" },
-    players: mockStaticPlayersRed
-  },
+  blueTeamId: "68a8ce6566c50b2c86130fa6",
+  redTeamId: "68a8ce6566c50b2c86130fa6",
   status: "in-progress",
   score: { blue: 0, red: 0 },
   games: [],

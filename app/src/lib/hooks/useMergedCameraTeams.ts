@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@lib/contexts/AuthContext";
 import { useCameras } from "@/libCamera/context/CamerasContext";
-import { useTeams } from "@/libTeam/contexts/TeamsContext";
+
 import type { CameraPlayer, CameraTeam, Team } from "@lib/types";
 
 export type MergedPlayer = Team["players"]["main"][number] & {
@@ -52,7 +52,8 @@ function useMergedCameraTeams(withAllPlayers?: false): {
 function useMergedCameraTeams(withAllPlayers = false) {
   const { isLoading: authLoading } = useAuth();
   const { teams: cameraTeamsRaw, loading: camerasLoading, refreshCameras } = useCameras();
-  const { teams: userTeams, loading: teamsLoading, refreshTeams } = useTeams();
+  const [userTeams, setUserTeams] = useState<Team[]>([]);
+  const [teamsLoading, setTeamsLoading] = useState(true);
 
   const hasRefreshed = useRef(false);
   const [internalLoading, setInternalLoading] = useState(true);
@@ -65,6 +66,32 @@ function useMergedCameraTeams(withAllPlayers = false) {
     }
   }, [authLoading, camerasLoading, teamsLoading]);
 
+  // Fetch teams directly
+  useEffect(() => {
+    const fetchTeams = async () => {
+      try {
+        setTeamsLoading(true);
+        const token = localStorage.getItem("token");
+        const response = await fetch("/api/v1/teams", {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          setUserTeams(data.teams || []);
+        }
+      } catch (error) {
+        console.error("Error fetching teams:", error);
+      } finally {
+        setTeamsLoading(false);
+      }
+    };
+
+    fetchTeams();
+  }, []);
+
   useEffect(() => {
     if (!hasRefreshed.current && !authLoading) {
       hasRefreshed.current = true;
@@ -72,10 +99,10 @@ function useMergedCameraTeams(withAllPlayers = false) {
         void refreshCameras();
       }
       if (!userTeams || userTeams.length === 0) {
-        void refreshTeams();
+        // Teams are already fetched in the useEffect above
       }
     }
-  }, [authLoading, cameraTeamsRaw, userTeams, refreshCameras, refreshTeams]);
+  }, [authLoading, cameraTeamsRaw, userTeams, refreshCameras]);
 
   const mergedTeams = useMemo(() => {
     const result = userTeams.map((team) => {
@@ -109,7 +136,23 @@ function useMergedCameraTeams(withAllPlayers = false) {
   const loading = authLoading || internalLoading;
 
   const refresh = async (): Promise<void> => {
-    await Promise.all([refreshCameras(), refreshTeams()]);
+    await refreshCameras();
+    // Refresh teams by refetching
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch("/api/v1/teams", {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setUserTeams(data.teams || []);
+      }
+    } catch (error) {
+      console.error("Error refreshing teams:", error);
+    }
   };
 
   return { mergedTeams, loading, refresh };

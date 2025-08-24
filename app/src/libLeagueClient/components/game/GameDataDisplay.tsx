@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { LiveGameData } from "@libLeagueClient/types/LivePlayer";
+import { LiveGameData } from "@libLeagueClient/types";
 import { TeamScoreDisplay } from "@libLeagueClient/components/game/TeamScoreDisplay";
 import { PlayerCard } from "@libLeagueClient/components/game/PlayerCard";
 import type { Match } from "@lib/types/match";
@@ -9,29 +9,30 @@ import { motion } from "framer-motion";
 import {
   getChampionSquareImage,
   getSummonerSpellImageByName,
-  // getOverlayAsset,
   getDefaultAsset,
   getDragonPitAsset,
   getBaronPitAsset,
-  // getAtakhsanAsset,
   getScoreboardAsset,
   getAtakhanAsset
 } from "@libLeagueClient/components/common";
-import { getItemImage } from "@lib/items";
+import { getItemImage, getItems } from "@lib/items";
 import { getChampions } from "@lib/champions";
 import { getSummonerSpells } from "@lib/summoner-spells";
-import { getItems } from "@lib/items";
 import { bindLivePlayersToMatch, createFallbackLivePlayer, getRoleOrder } from "@lib/services/game/live-binding";
 import { getLatestVersion } from "@lib/services/common/unified-asset-cache";
 import { useImagePreload } from "@lib/hooks/useImagePreload";
+import { getTeamById } from "@lib/database/team";
+import { getTournamentById } from "@/lib/database/tournament";
+import { getMatchById } from "@/lib/database/match";
+import { Team } from "@/lib/types/team";
 
 interface GameDataDisplayProps {
   gameData: LiveGameData;
-  match: Match;
-  tournament: Tournament;
+  matchId: string;
+  tournamentId: string;
 }
 
-export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({ gameData, match, tournament }) => {
+export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({ gameData, matchId, tournamentId }) => {
   const [championsLoaded, setChampionsLoaded] = useState(false);
   const [summonerSpellsLoaded, setSummonerSpellsLoaded] = useState(false);
   const [itemsLoaded, setItemsLoaded] = useState(false);
@@ -45,31 +46,92 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({ gameData, matc
   const [orderLogo, setOrderLogo] = useState<string>("");
   const [chaosLogo, setChaosLogo] = useState<string>("");
   const [uiReady, setUiReady] = useState(false);
+  const [tournament, setTournament] = useState<Tournament | null>(null);
+  const [match, setMatch] = useState<Match | null>(null);
+  const [chaosTeam, setChaosTeam] = useState<Team | null>(null);
+  const [orderTeam, setOrderTeam] = useState<Team | null>(null);
   const initialPreloadDoneRef = useRef<boolean>(false);
   const seenChampionNamesRef = useRef<Set<string>>(new Set());
   const seenSpellNamesRef = useRef<Set<string>>(new Set());
   const [initialPreloadUrls, setInitialPreloadUrls] = useState<string[]>([]);
 
+  // Load tournament and match data
+  useEffect(() => {
+    const loadTournamentAndMatch = async () => {
+      try {
+        const [tournamentData, matchData] = await Promise.all([
+          getTournamentById(tournamentId),
+          getMatchById(matchId)
+        ]);
+        
+        setTournament(tournamentData);
+        setMatch(matchData);
+      } catch (error) {
+        console.error("Failed to load tournament or match data:", error);
+      }
+    };
+
+    if (tournamentId && matchId) {
+      loadTournamentAndMatch();
+    }
+  }, [tournamentId, matchId]);
+
+  // Load teams when match data is available
+  useEffect(() => {
+    const loadTeams = async () => {
+      if (!match) return;
+      
+      try {
+        const [blueTeam, redTeam] = await Promise.all([
+          getTeamById(match.blueTeamId),
+          getTeamById(match.redTeamId)
+        ]);
+        
+        setOrderTeam(blueTeam);
+        setChaosTeam(redTeam);
+      } catch (error) {
+        console.error("Failed to load team data:", error);
+      }
+    };
+
+    loadTeams();
+  }, [match]);
+
   useEffect(() => {
     const loadAssets = async () => {
       try {
-        await getChampions();
-        await getSummonerSpells();
-        await getItems();
+        await Promise.all([
+          getChampions(),
+          getSummonerSpells(),
+          getItems()
+        ]);
+        
         setChampionsLoaded(true);
         setSummonerSpellsLoaded(true);
         setItemsLoaded(true);
+      } catch (error) {
+        console.error("Failed to load assets:", error);
+      }
+    };
+
+    if (!championsLoaded || !summonerSpellsLoaded || !itemsLoaded) {
+      loadAssets();
+    }
+  }, [championsLoaded, summonerSpellsLoaded, itemsLoaded]);
+
+  // Set game version and assets when tournament data is available
+  useEffect(() => {
+    const setupGameAssets = async () => {
+      if (!tournament) return;
+      
+      try {
         const resolvedVersion = tournament.gameVersion ?? (await getLatestVersion());
         setGameVersion(resolvedVersion);
+        
         setTournamentLogo(
           tournament.logo?.data || tournament.logo?.url || getDefaultAsset(resolvedVersion, "tournament.png")
         );
-        setOrderLogo(
-          match.blueTeam.logo?.data || match.blueTeam.logo?.url || getDefaultAsset(resolvedVersion, "order.png")
-        );
-        setChaosLogo(
-          match.redTeam.logo?.data || match.redTeam.logo?.url || getDefaultAsset(resolvedVersion, "chaos.png")
-        );
+        
         setGoldIcon(getScoreboardAsset(resolvedVersion, "gold.png"));
         setTowerIcon(getScoreboardAsset(resolvedVersion, "tower.png"));
         setBaronIcon(getBaronPitAsset(resolvedVersion, "baron.png"));
@@ -87,23 +149,24 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({ gameData, matc
           getDragonPitAsset(resolvedVersion, "ocean.png")
         ]);
       } catch (error) {
-        console.error("Failed to load assets:", error);
+        console.error("Failed to setup game assets:", error);
       }
     };
 
-    if (!championsLoaded || !summonerSpellsLoaded || !itemsLoaded) {
-      loadAssets();
-    }
-  }, [
-    championsLoaded,
-    summonerSpellsLoaded,
-    itemsLoaded,
-    tournament.gameVersion,
-    gameVersion,
-    tournament.logo,
-    match.blueTeam.logo,
-    match.redTeam.logo
-  ]);
+    setupGameAssets();
+  }, [tournament]);
+
+  // Set team logos when teams are loaded
+  useEffect(() => {
+    if (!orderTeam || !chaosTeam || !gameVersion) return;
+    
+    setOrderLogo(
+      orderTeam.logo?.data || orderTeam.logo?.url || getDefaultAsset(gameVersion, "order.png")
+    );
+    setChaosLogo(
+      chaosTeam.logo?.data || chaosTeam.logo?.url || getDefaultAsset(gameVersion, "chaos.png")
+    );
+  }, [orderTeam, chaosTeam, gameVersion]);
 
   const formatGameTime = (seconds: number): string => {
     const minutes = Math.floor(seconds / 60);
@@ -126,7 +189,7 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({ gameData, matc
     ) {
       const urls: string[] = [];
       // Static UI assets
-      const tLogo = tournament.logo?.data || tournament.logo?.url || getDefaultAsset(gameVersion, "tournament.png");
+      const tLogo = tournament?.logo?.data || tournament?.logo?.url || getDefaultAsset(gameVersion, "tournament.png");
       const oLogo = orderLogo;
       const cLogo = chaosLogo;
       if (goldIcon) urls.push(goldIcon);
@@ -163,7 +226,7 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({ gameData, matc
     gameVersion,
     goldIcon,
     towerIcon,
-    tournament.logo,
+    tournament?.logo,
     orderLogo,
     chaosLogo
   ]);
@@ -211,7 +274,7 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({ gameData, matc
     }
   }, [gameData, championsLoaded, summonerSpellsLoaded, itemsLoaded, initialPreloadUrls, initialImagesLoaded]);
 
-  if (!uiReady) {
+  if (!uiReady || !match) {
     return <></>;
   }
 
@@ -271,7 +334,7 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({ gameData, matc
           {/* Blue Team (Left) */}
           <TeamScoreDisplay
             logo={orderLogo}
-            tag={match?.blueTeam?.tag || "BLUE"}
+            tag={orderTeam?.tag || "BLUE"}
             kills={blueTeamStats.kills}
             towers={blueTeamStats.towers}
             towerIcon={towerIcon}
@@ -283,7 +346,7 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({ gameData, matc
 
           {/* Center - Game Info */}
           <div className="text-center">
-            <Image src={tournamentLogo} alt={`${tournament.name} logo`} width={128} height={128} />
+            <Image src={tournamentLogo} alt={`${tournament?.name} logo`} width={128} height={128} />
             <div className="text-3xl font-bold text-white mb-1 font-mono">
               {formatGameTime(gameData.gameData.gameTime)}
             </div>
@@ -292,7 +355,7 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({ gameData, matc
           {/* Red Team (Right) */}
           <TeamScoreDisplay
             logo={chaosLogo}
-            tag={match?.redTeam?.tag || "RED"}
+            tag={chaosTeam?.tag || "RED"}
             kills={redTeamStats.kills}
             towers={redTeamStats.towers}
             towerIcon={towerIcon}
@@ -311,7 +374,7 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({ gameData, matc
         className="absolute left-0 top-20 w-64 h-full"
       >
         <div className="p-4">
-          <h3 className="text-lg font-bold mb-4 text-center">{match?.blueTeam?.tag || "BLUE"}</h3>
+          <h3 className="text-lg font-bold mb-4 text-center">{orderTeam?.tag || "BLUE"}</h3>
           <div className="space-y-3">
             {orderedBlue.map((bp, index) => {
               const fallback = bp.rosterPlayer ? createFallbackLivePlayer(bp.rosterPlayer, "ORDER") : null;
@@ -340,7 +403,7 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({ gameData, matc
         className="absolute right-0 top-20 w-64 h-full"
       >
         <div className="p-4">
-          <h3 className="text-lg font-bold mb-4 text-center">{match?.redTeam?.name || "RED"}</h3>
+          <h3 className="text-lg font-bold mb-4 text-center">{chaosTeam?.tag || "RED"}</h3>
           <div className="space-y-3">
             {orderedRed.map((bp, index) => {
               const fallback = bp.rosterPlayer ? createFallbackLivePlayer(bp.rosterPlayer, "CHAOS") : null;

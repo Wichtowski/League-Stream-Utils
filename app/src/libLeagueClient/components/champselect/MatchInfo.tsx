@@ -5,7 +5,7 @@ import { ProgressBar } from "./ProgressBar";
 // Generic team type that works with both PickbanTournamentTeam and MatchTeam
 type TeamWithLogo = {
   name: string;
-  logo: string;
+  logo?: string;
 };
 
 type MatchInfoProps = {
@@ -44,9 +44,9 @@ const MatchInfoComponent: React.FC<MatchInfoProps> = ({
       const urls: string[] = [];
       
       // Add team logos
-      if (blueTeam.logo) urls.push(blueTeam.logo);
-      if (redTeam.logo) urls.push(redTeam.logo);
-      if (tournamentLogo) urls.push(tournamentLogo);
+      if (blueTeam.logo && blueTeam.logo.trim()) urls.push(blueTeam.logo);
+      if (redTeam.logo && redTeam.logo.trim()) urls.push(redTeam.logo);
+      if (tournamentLogo && tournamentLogo.trim()) urls.push(tournamentLogo);
       
       onRegisterImages(urls);
     }
@@ -58,13 +58,19 @@ const MatchInfoComponent: React.FC<MatchInfoProps> = ({
         {/* Team Logos and Tournament Logo */}
         <div className="flex items-center gap-2 mb-3">
           <div className="w-12 h-12 rounded-lg overflow-hidden">
-            <Image
-              src={blueTeam.logo}
-              alt={blueTeam.name}
-              width={48}
-              height={48}
-              className="w-full h-full object-cover"
-            />
+            {blueTeam.logo && blueTeam.logo.trim() ? (
+              <Image
+                src={blueTeam.logo}
+                alt={blueTeam.name}
+                width={48}
+                height={48}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-gray-600 flex items-center justify-center">
+                <span className="text-white text-xs font-bold">{blueTeam.name}</span>
+              </div>
+            )}
           </div>
 
           <div className="flex flex-col items-center">
@@ -79,25 +85,37 @@ const MatchInfoComponent: React.FC<MatchInfoProps> = ({
           </div>
 
           <div className="w-12 h-12 rounded-lg overflow-hidden">
-            <Image
-              src={redTeam.logo}
-              alt={redTeam.name}
-              width={48}
-              height={48}
-              className="w-full h-full object-cover"
-            />
+            {redTeam.logo && redTeam.logo.trim() ? (
+              <Image
+                src={redTeam.logo}
+                alt={redTeam.name}
+                width={48}
+                height={48}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-gray-600 flex items-center justify-center">
+                <span className="text-white text-xs font-bold">{redTeam.name}</span>
+              </div>
+            )}
           </div>
         </div>
 
         {/* Tournament Logo */}
         <div className="w-16 h-16 rounded-lg overflow-hidden mb-3">
-          <Image
-            src={"/assets/" + tournamentLogo || "/VML-Nexus-Cup-logo.png"}
-            alt="Tournament"
-            width={64}
-            height={64}
-            className="w-full h-full object-cover"
-          />
+          {tournamentLogo && tournamentLogo.trim() ? (
+            <Image
+              src={tournamentLogo}
+              alt="Tournament"
+              width={64}
+              height={64}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full bg-gray-600 flex items-center justify-center">
+              <span className="text-white text-xs font-bold">Tournament</span>
+            </div>
+          )}
         </div>
 
         <ProgressBar progress={progress} />

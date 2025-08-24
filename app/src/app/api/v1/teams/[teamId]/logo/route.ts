@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getTeamById } from "@lib/database/team";
+import { getTeamLogoByTeamId } from "@lib/database/team";
+
+interface TeamLogoResponse {
+  params: Promise<{ teamId: string }>;
+}
 
 export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ teamId: string }> }
+  _request: NextRequest,
+  { params }: TeamLogoResponse
 ): Promise<NextResponse> {
   try {
     const { teamId } = await params;
@@ -13,28 +17,27 @@ export async function GET(
     }
 
     // Get team from database
-    const team = await getTeamById(teamId);
+    const teamLogo = await getTeamLogoByTeamId(teamId);
 
-    if (!team) {
+    if (!teamLogo) {
       return NextResponse.json({ error: "Team not found" }, { status: 404 });
     }
-
-    if (!team.logo) {
+    if (!teamLogo) {
       return NextResponse.json({ error: "Team has no logo" }, { status: 404 });
     }
 
     // If it's an external URL, redirect to it
-    if (team.logo.type === "url") {
-      return NextResponse.redirect(team.logo.url);
+    if (teamLogo.type === "url") {
+      return NextResponse.redirect(teamLogo.url);
     }
 
     // If it's an uploaded file, return the base64 data directly
-    if (team.logo.type === "upload" && team.logo.data) {
+    if (teamLogo.type === "upload" && teamLogo.data) {
       // Check if it's base64 data
-      if (team.logo.data.startsWith("data:")) {
+      if (teamLogo.data.startsWith("data:")) {
         // Extract the base64 part
-        const base64Data = team.logo.data.split(",")[1];
-        const contentType = team.logo.data.split(";")[0].split(":")[1];
+        const base64Data = teamLogo.data.split(",")[1];
+        const contentType = teamLogo.data.split(";")[0].split(":")[1];
 
         // Convert base64 to buffer
         const buffer = Buffer.from(base64Data, "base64");

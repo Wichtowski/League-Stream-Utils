@@ -44,11 +44,8 @@ if (isDev) {
 let createWindow,
   registerChampionHandlers,
   registerHostedHandlers,
-  registerLCUHandlers,
   registerUtilHandlers,
-  registerOBSHandlers,
-  broadcastLCUDataUpdate,
-  broadcastMockDataToggle;
+  registerOBSHandlers;
 
 // Load modules dynamically
 async function loadModules() {
@@ -61,18 +58,11 @@ async function loadModules() {
   const hostedAssetsModule = await import("./ipc-handlers/assets.js");
   registerHostedHandlers = hostedAssetsModule.registerHostedAssetsHandlers;
 
-  const lcuModule = await import("./ipc-handlers/lcu.js");
-  registerLCUHandlers = lcuModule.registerLCUHandlers;
-
   const utilModule = await import("./ipc-handlers/util.js");
   registerUtilHandlers = utilModule.registerUtilHandlers;
 
   const obsModule = await import("./ipc-handlers/obs.js");
   registerOBSHandlers = obsModule.registerOBSHandlers;
-
-  const broadcastModule = await import("./utils/broadcast.js");
-  broadcastLCUDataUpdate = broadcastModule.broadcastLCUDataUpdate;
-  broadcastMockDataToggle = broadcastModule.broadcastMockDataToggle;
 }
 
 // Set environment variable for Next.js to use user data directory
@@ -80,15 +70,7 @@ process.env.USE_USER_DATA = "true";
 // Keep a global reference of the window object
 let mainWindow;
 
-// LCU Data state for overlay communication
-let lcuData = {
-  isConnected: false,
-  isConnecting: false,
-  champSelectSession: null,
-  connectionError: null
-};
 
-let useMockData = false;
 
 // Simple HTTP server for web overlay data
 let dataServer;
@@ -136,17 +118,8 @@ app.whenReady().then(async () => {
   }
 
   // Register handlers after modules are loaded
-  const lcuDataRef = { value: lcuData };
-  const useMockDataRef = { value: useMockData };
-
   registerChampionHandlers(mainWindow, championsPath, userDataPath);
   registerHostedHandlers(mainWindow, hostedPath, path.join(hostedPath, "cache"));
-  registerLCUHandlers(
-    lcuDataRef,
-    useMockDataRef,
-    () => broadcastLCUDataUpdate(mainWindow, lcuData),
-    () => broadcastMockDataToggle(mainWindow, useMockData)
-  );
   registerUtilHandlers();
   registerOBSHandlers();
 

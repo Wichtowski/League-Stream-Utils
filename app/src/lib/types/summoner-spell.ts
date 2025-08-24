@@ -1,12 +1,11 @@
 export interface DataDragonSummonerSpell {
-  id: string;
+  _id: string;
   name: string;
   description: string;
-  tooltip: string;
-  maxrank: number;
   cooldown: number[];
   cost: number[];
   range: number[];
+  maxrank: number;
   image: {
     full: string;
     sprite: string;
@@ -24,25 +23,25 @@ export interface DataDragonSummonerResponse {
 }
 
 export interface SummonerSpell {
-  id: string;
+  _id: string;
   name: string;
-  key: string;
   description: string;
-  maxrank: number;
   cooldown: number[];
   cost: number[];
   range: number[];
+  maxrank: number;
   image: string;
+  key: string;
 }
 
 export interface SummonerSpellCacheData {
-  id: string;
+  _id: string;
   name: string;
-  key: string;
   description: string;
-  maxrank: number;
   cooldown: number[];
   cost: number[];
   range: number[];
+  maxrank: number;
   image: string;
+  key: string;
 }

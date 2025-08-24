@@ -72,9 +72,18 @@ export const getTournamentLogoUrl = async (tournamentId: string): Promise<string
 
 
 export const isAlmostSquare = (width: number, height: number, tolerance: number = LOGO_SQUARE_TOLERANCE): boolean => {
-  if (width <= 0 || height <= 0) return false;
+  if (width <= 0 || height <= 0) {
+    console.warn(`Invalid dimensions: width=${width}, height=${height}`);
+    return false;
+  }
+  
   const ratio = width / height;
-  return Math.abs(1 - ratio) <= tolerance;
+  const deviation = Math.abs(1 - ratio);
+  const isSquare = deviation <= tolerance;
+  
+  console.log(`Square check - Width: ${width}, Height: ${height}, Ratio: ${ratio.toFixed(3)}, Deviation: ${deviation.toFixed(3)}, Tolerance: ${tolerance}, IsSquare: ${isSquare}`);
+  
+  return isSquare;
 };
 
 const loadImageElement = (src: string): Promise<HTMLImageElement> => {

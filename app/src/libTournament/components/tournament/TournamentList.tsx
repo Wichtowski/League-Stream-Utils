@@ -34,7 +34,7 @@ export const TournamentList = ({
     <div className="grid gap-6">
       {tournaments.map((tournament) => (
         <TournamentCard
-          key={tournament.id}
+          key={tournament._id}
           tournament={tournament}
           onStatusUpdate={onStatusUpdate}
           onTournamentUpdate={onTournamentUpdate}

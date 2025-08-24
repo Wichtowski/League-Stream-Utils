@@ -96,7 +96,13 @@ export async function createMatch(userId: string, matchData: CreateMatchRequest)
 export async function getMatchById(matchId: string): Promise<Match | null> {
   await connectToDatabase();
   const match = await MatchModel.findOne({ id: matchId }).lean();
-  return match ? transformToMatch(match) : null;
+  if (!match) return null;
+  
+  // Transform the document to ensure it has an id field
+  return {
+    ...match,
+    id: match._id?.toString() || match.id
+  };
 }
 
 export async function getMatchesByTournament(tournamentId: string): Promise<Match[]> {

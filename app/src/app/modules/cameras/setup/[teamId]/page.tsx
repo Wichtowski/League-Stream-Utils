@@ -7,7 +7,8 @@ import { useModal } from "@lib/contexts/ModalContext";
 import { useAuth } from "@lib/contexts/AuthContext";
 import { useElectron } from "@/libElectron/contexts/ElectronContext";
 import { useAuthenticatedFetch } from "@lib/hooks/useAuthenticatedFetch";
-import { useTeams } from "@/libTeam/contexts/TeamsContext";
+import type { Team } from "@lib/types";
+
 import { useCameras } from "@/libCamera/context/CamerasContext";
 import { CameraPlayer, CameraTeam } from "@libCamera/types/camera";
 import {
@@ -28,7 +29,7 @@ export default function TeamCameraSetupPage() {
   const { user, isLoading: authLoading } = useAuth();
   const { isElectron, useLocalData } = useElectron();
   const { authenticatedFetch } = useAuthenticatedFetch();
-  const { teams: userTeams } = useTeams();
+  const [userTeams, setUserTeams] = useState<Team[]>([]);
   const { teams: cameraTeamsRaw, loading: camerasLoading, refreshCameras } = useCameras();
   const [team, setTeam] = useState<CameraTeam | null>(null);
   const [loading, setLoading] = useState(true);
@@ -41,6 +42,29 @@ export default function TeamCameraSetupPage() {
   useEffect(() => {
     setActiveModule("cameras");
   }, [setActiveModule]);
+
+  // Fetch teams directly
+  useEffect(() => {
+    const fetchTeams = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await fetch("/api/v1/teams", {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          setUserTeams(data.teams || []);
+        }
+      } catch (error) {
+        console.error("Error fetching teams:", error);
+      }
+    };
+
+    fetchTeams();
+  }, []);
 
   // Build team view from context (and refresh once if empty)
   useEffect(() => {

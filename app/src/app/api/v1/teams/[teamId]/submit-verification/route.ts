@@ -20,7 +20,7 @@ export const POST = withAuth(async (req: NextRequest, user: JWTPayload) => {
     }
 
     // Check if user is team owner or admin
-    if (!user.isAdmin && team.userId !== user.userId) {
+    if (!user.isAdmin && team.teamOwnerId !== user.userId) {
       console.log("User not authorized to submit verification for this team");
       return NextResponse.json(
         { error: "Forbidden - You can only submit verification for your own teams" },
@@ -111,7 +111,7 @@ export const GET = withAuth(async (req: NextRequest, user: JWTPayload) => {
     }
 
     // Check if user is team owner or admin
-    if (!user.isAdmin && team.userId !== user.userId) {
+    if (!user.isAdmin && team.teamOwnerId !== user.userId) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 

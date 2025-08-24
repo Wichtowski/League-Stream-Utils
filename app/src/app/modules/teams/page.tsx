@@ -1,30 +1,53 @@
 "use client";
 
-import { useEffect, useRef, type ReactElement } from "react";
+import { useEffect, useState, type ReactElement } from "react";
 import { useRouter } from "next/navigation";
-import { useNavigation, useTeams } from "@lib/contexts";
+import { useNavigation } from "@lib/contexts";
 import { PageWrapper } from "@lib/layout";
 import { TeamListCard } from "@/libTeam/components";
 import { GridLoader } from "@lib/components/common";
+import type { Team } from "@lib/types";
 
 export default function TeamsPage(): ReactElement {
   const router = useRouter();
-  const { teams, loading, refreshTeams } = useTeams();
   const { setActiveModule } = useNavigation();
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [_error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setActiveModule("teams");
   }, [setActiveModule]);
 
-  const hasRequestedRef = useRef(false);
   useEffect(() => {
-    if (!loading && teams.length === 0 && !hasRequestedRef.current) {
-      hasRequestedRef.current = true;
-      void refreshTeams();
-    }
-  }, [loading, teams.length, refreshTeams]);
+    const fetchTeams = async () => {
+      try {
+        setLoading(true);
+        const token = localStorage.getItem("token");
+        const response = await fetch("/api/v1/teams", {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          setTeams(data.teams || []);   
+        } else {
+          setError("Failed to fetch teams");
+        }
+      } catch (error) {
+        console.error("Error fetching teams:", error);
+        setError("Failed to fetch teams");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  if (loading || !teams || teams.length === 0) {
+    fetchTeams();
+  }, []);
+
+  if (loading) {
     return (
       <PageWrapper
         title="My Teams"

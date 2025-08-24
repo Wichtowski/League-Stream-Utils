@@ -180,10 +180,10 @@ export const AdminTournamentManager = ({ onClose }: AdminTournamentManagerProps)
               <div className="space-y-2 max-h-64 overflow-y-auto">
                 {filteredTournaments.map((tournament) => (
                   <div
-                    key={tournament.id}
-                    onClick={() => setSelectedTournament(tournament.id)}
+                    key={tournament._id}
+                    onClick={() => setSelectedTournament(tournament._id)}
                     className={`p-3 rounded-lg cursor-pointer transition-colors ${
-                      selectedTournament === tournament.id
+                      selectedTournament === tournament._id
                         ? "bg-blue-600 text-white"
                         : "bg-gray-700 text-gray-200 hover:bg-gray-600"
                     }`}

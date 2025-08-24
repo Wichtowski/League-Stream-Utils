@@ -1,11 +1,20 @@
 import type { EnhancedChampSelectSession } from "@lib/types";
 import { Team } from "@lib/types";
+import { ImageStorage } from "../types/common";
 
-const LosRatones: Team = {
+const defaultPlayerImage: ImageStorage = {
+  type: "url",
+  // Mrozku :*
+  url: "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/a/a3/FSK_Mrozku_2025_Split_1.png/revision/latest/scale-to-width-down/1024?cb=20250125122242"
+}
+
+export const LosRatones: Team = {
   id: "1",
   name: "Los Ratones",
   tag: "LR",
   region: "EUW",
+  founded: new Date(),
+  verified: true,
   tier: "professional",
   logo: {
     type: "url",
@@ -13,11 +22,160 @@ const LosRatones: Team = {
   },
   colors: {
     primary: "#000000",
-    secondary: "#000000",
-    accent: "#000000"
-  }
+    secondary: "#FFFFFF",
+    accent: "#99072b"
+  },
+  players: {
+    main: [
+      {
+        id: "1",
+        inGameName: "Baus",
+        tag: "EUW",
+        role: "TOP",
+        verified: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        profileImage: {
+          type: "url",
+          url: "/assets/default/player.png"
+        }
+      },
+      {
+        id: "2",
+        inGameName: "Velja",
+        tag: "EUW",
+        role: "JUNGLE",
+        verified: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        profileImage: {
+          type: "url",
+          url: "/assets/default/player.png"
+        }
+      },
+      
+      {
+        id: "3",
+        inGameName: "Nemesis",
+        tag: "EUW",
+        role: "MID",
+        verified: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        profileImage: {
+          type: "url",
+          url: "/assets/default/player.png"
+        }
+      },
+      {
+        id: "4",
+        inGameName: "Crownie",
+        tag: "EUW",
+        role: "BOTTOM",
+        verified: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        profileImage: {
+          type: "url",
+          url: "/assets/default/player.png"
+        }
+      },
+      {
+        id: "5",
+        inGameName: "Rekkles",
+        tag: "EUW",
+        role: "SUPPORT",
+        verified: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        profileImage: {
+          type: "url",
+          url: "/assets/default/player.png"
+        }
+      }
+    ],
+    substitutes: []
+  },
+  createdAt: new Date(),
+  updatedAt: new Date()
 };
 
+export const FajnieMiecSklad: Team = {
+  id: "2",
+  name: "Fajnie Miec Sklad",
+  tag: "FMS",
+  region: "EUW",
+  founded: new Date(),
+  verified: true,
+  tier: "professional",
+  logo: {
+    type: "url",
+    url: "",
+  },
+  colors: {
+    primary: "#000000",
+    secondary: "#FFFFFF",
+    accent: "#99072b"
+  },
+  players: {
+    main: [
+      {
+        id: "6",
+        inGameName: "frajgo",
+        tag: "EUW",
+        role: "TOP",
+        verified: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        profileImage: defaultPlayerImage
+      },
+      {
+        id: "7",
+        inGameName: "Rybson",
+        tag: "EUW",
+        role: "JUNGLE",
+        verified: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        profileImage: defaultPlayerImage
+      },
+      
+      {
+        id: "8",
+        inGameName: "Mrozku",
+        tag: "EUW",
+        role: "MID",
+        verified: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        profileImage: defaultPlayerImage
+      },
+      {
+        id: "9",
+        inGameName: "Zamulek",
+        tag: "EUW",
+        role: "BOTTOM",
+        verified: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        profileImage: defaultPlayerImage
+      },
+      {
+        id: "10",
+        inGameName: "minemaciek",
+        tag: "EUW",
+        role: "SUPPORT",
+        verified: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        profileImage: defaultPlayerImage
+      }
+    ],
+    substitutes: []
+  },
+  createdAt: new Date(),
+  updatedAt: new Date()
+};
 // Pick and ban phase configuration - 21 turns total
 const PICK_BAN_ORDER = [
   // Ban phase 1 (6 bans)
@@ -477,7 +635,7 @@ export class DynamicChampSelectMock {
         cellId: 0,
         championId: bluePicks[0] || 0,
         summonerId: 1,
-        summonerName: LosRatones.players.main[0].inGameName,
+        summonerName: "Baus",
         puuid: "mock1",
         isBot: false,
         isActingNow: getCurrentPickingPlayerIndex("blue") === 0,
@@ -486,7 +644,7 @@ export class DynamicChampSelectMock {
         team: 100,
         playerInfo: {
           id: "1",
-          name: LosRatones.players.main[0].inGameName,
+          name: "Baus",
           role: "TOP" as const,
           profileImage: "/assets/default/player.png"
         },
@@ -497,7 +655,7 @@ export class DynamicChampSelectMock {
         cellId: 1,
         championId: bluePicks[1] || 0,
         summonerId: 2,
-        summonerName: LosRatones.players.main[1].inGameName,
+        summonerName: "Velja",
         puuid: "mock2",
         isBot: false,
         isActingNow: getCurrentPickingPlayerIndex("blue") === 1,
@@ -506,7 +664,7 @@ export class DynamicChampSelectMock {
         team: 100,
         playerInfo: {
           id: "2",
-          name: LosRatones.players.main[1].inGameName,
+          name: "Velja",
           role: "JUNGLE" as const,
           profileImage: "/assets/default/player.png"
         },
@@ -517,7 +675,7 @@ export class DynamicChampSelectMock {
         cellId: 2,
         championId: bluePicks[2] || 0,
         summonerId: 3,
-        summonerName: LosRatones.players.main[2].inGameName,
+        summonerName: "Nemesis",
         puuid: "mock3",
         isBot: false,
         isActingNow: getCurrentPickingPlayerIndex("blue") === 2,
@@ -526,7 +684,7 @@ export class DynamicChampSelectMock {
         team: 100,
         playerInfo: {
           id: "3",
-          name: LosRatones.players.main[2].inGameName,
+          name: "Nemesis",
           role: "MID" as const,
           profileImage: "/assets/default/player.png"
         },
@@ -537,7 +695,7 @@ export class DynamicChampSelectMock {
         cellId: 3,
         championId: bluePicks[3] || 0,
         summonerId: 4,
-        summonerName: LosRatones.players.main[3].inGameName,
+        summonerName: "Crownie",
         puuid: "mock4",
         isBot: false,
         isActingNow: getCurrentPickingPlayerIndex("blue") === 3,
@@ -546,7 +704,7 @@ export class DynamicChampSelectMock {
         team: 100,
         playerInfo: {
           id: "4",
-          name: LosRatones.players.main[3].inGameName,
+          name: "Crownie",
           role: "BOTTOM" as const,
           profileImage: "/assets/default/player.png"
         },
@@ -557,7 +715,7 @@ export class DynamicChampSelectMock {
         cellId: 4,
         championId: bluePicks[4] || 0,
         summonerId: 5,
-        summonerName: LosRatones.players.main[4].inGameName,
+        summonerName: "Rekkles",
         puuid: "mock5",
         isBot: false,
         isActingNow: getCurrentPickingPlayerIndex("blue") === 4,
@@ -566,7 +724,7 @@ export class DynamicChampSelectMock {
         team: 100,
         playerInfo: {
           id: "5",
-          name: LosRatones.players.main[4].inGameName,
+          name: "Rekkles",
           role: "SUPPORT" as const,
           profileImage: "/assets/default/player.png"
         },
@@ -580,7 +738,7 @@ export class DynamicChampSelectMock {
         cellId: 5,
         championId: redPicks[0] || 0,
         summonerId: 6,
-        summonerName: FajnieMiecSklad.players.main[0].inGameName,
+        summonerName: "frajgo",
         puuid: "mock6",
         isBot: false,
         isActingNow: getCurrentPickingPlayerIndex("red") === 0,
@@ -589,7 +747,7 @@ export class DynamicChampSelectMock {
         team: 200,
         playerInfo: {
           id: "6",
-          name: FajnieMiecSklad.players.main[0].inGameName,
+          name: "frajgo",
           role: "TOP" as const,
           profileImage: "/assets/default/player.png"
         },
@@ -600,7 +758,7 @@ export class DynamicChampSelectMock {
         cellId: 6,
         championId: redPicks[1] || 0,
         summonerId: 7,
-        summonerName: FajnieMiecSklad.players.main[1].inGameName,
+        summonerName: "Rybson",
         puuid: "mock7",
         isBot: false,
         isActingNow: getCurrentPickingPlayerIndex("red") === 1,
@@ -609,7 +767,7 @@ export class DynamicChampSelectMock {
         team: 200,
         playerInfo: {
           id: "7",
-          name: FajnieMiecSklad.players.main[1].inGameName,
+          name: "Rybson",
           role: "JUNGLE" as const,
           profileImage: "/assets/default/player.png"
         },
@@ -620,7 +778,7 @@ export class DynamicChampSelectMock {
         cellId: 7,
         championId: redPicks[2] || 0,
         summonerId: 8,
-        summonerName: FajnieMiecSklad.players.main[2].inGameName,
+        summonerName: "Mrozku",
         puuid: "mock8",
         isBot: false,
         isActingNow: getCurrentPickingPlayerIndex("red") === 2,
@@ -629,7 +787,7 @@ export class DynamicChampSelectMock {
         team: 200,
         playerInfo: {
           id: "8",
-          name: FajnieMiecSklad.players.main[2].inGameName,
+          name: "Mrozku",
           role: "MID" as const,
           profileImage: "/assets/default/player.png"
         },
@@ -640,7 +798,7 @@ export class DynamicChampSelectMock {
         cellId: 8,
         championId: redPicks[3] || 0,
         summonerId: 9,
-        summonerName: FajnieMiecSklad.players.main[3].inGameName,
+        summonerName: "Zamulek",
         puuid: "mock9",
         isBot: false,
         isActingNow: getCurrentPickingPlayerIndex("red") === 3,
@@ -649,7 +807,7 @@ export class DynamicChampSelectMock {
         team: 200,
         playerInfo: {
           id: "9",
-          name: FajnieMiecSklad.players.main[3].inGameName,
+          name: "Zamulek",
           role: "BOTTOM" as const,
           profileImage: "/assets/default/player.png"
         },
@@ -660,7 +818,7 @@ export class DynamicChampSelectMock {
         cellId: 9,
         championId: redPicks[4] || 0,
         summonerId: 10,
-        summonerName: FajnieMiecSklad.players.main[4].inGameName,
+        summonerName: "minemaciek",
         puuid: "mock10",
         isBot: false,
         isActingNow: getCurrentPickingPlayerIndex("red") === 4,
@@ -669,7 +827,7 @@ export class DynamicChampSelectMock {
         team: 200,
         playerInfo: {
           id: "10",
-          name: FajnieMiecSklad.players.main[4].inGameName,
+          name: "minemaciek",
           role: "SUPPORT" as const,
           profileImage: "/assets/default/player.png"
         },
@@ -778,16 +936,22 @@ export class DynamicChampSelectMock {
       },
       tournamentData: {
         tournament: {
-          id: "1",
+          id: "c8ca4d50-49e6-4956-9849-a35a83fc737b",
           name: this.config.tournamentName!,
-          logoUrl: "/assets/default-team-logo.png",
+          logo: {
+            type: "upload",
+            data: "default_team_logo.png",
+            size: 100,
+            format: "png"
+          },
           matchInfo: {
             roundName: this.config.roundName!,
             matchNumber: this.config.matchNumber!,
             bestOf: this.config.bestOf!
           }
         },
-        blueTeam: LosRatones,
+        blueTeamId: "68a8ce6566c50b2c86130fa6",
+        redTeamId: "68a8ce6566c50b2c86130fa6",
         redTeam: FajnieMiecSklad
       }
     };

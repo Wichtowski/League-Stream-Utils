@@ -4,7 +4,7 @@ import { Team } from "./team";
 
 
 export interface Champion {
-  id: number;
+  _id: number;
   name: string;
   key: string;
   image: string;
@@ -30,7 +30,7 @@ export interface ChampionSpell {
 
 export interface Coach {
   name: string;
-  id?: string;
+  _id?: string;
 }
 
 export interface GameConfig {
@@ -54,7 +54,6 @@ export interface GameConfig {
 }
 
 export interface GameSession {
-  id: string;
   type?: "static" | "lcu" | "tournament" | "web";
   teams: {
     blue: SessionTeam;
@@ -107,11 +106,11 @@ export type TeamSide = "blue" | "red";
 export type ActionType = "pick" | "ban";
 
 export interface Player {
-  id: string;
+  _id: string;
   inGameName: string;
   tag: string;
   role: PlayerRole;
-  profileImage?: string;
+  profileImage?: ImageStorage;
   puuid?: string;
   firstName?: string;
   lastName?: string;
@@ -126,7 +125,6 @@ export interface Player {
 }
 
 export interface TournamentTeam {
-  id: string;
   name: string;
   tag: string;
   logo: string;
@@ -143,7 +141,6 @@ export interface TournamentTeam {
 }
 
 export interface PickbanPlayer {
-  id: string;
   name: string;
   role: PlayerRole;
   profileImage?: string;
@@ -179,7 +176,7 @@ export interface PickbanConfig {
   tournament?: {
     id: string;
     name: string;
-    logoUrl?: string;
+    logo?: ImageStorage;
     matchInfo?: {
       roundName?: string;
       matchNumber?: number;
@@ -195,7 +192,7 @@ export interface PickbanConfig {
 }
 
 export interface PickbanAction {
-  id: string;
+  _id: string;
   type: ActionType;
   championId: number;
   teamSide: TeamSide;
@@ -205,7 +202,6 @@ export interface PickbanAction {
 }
 
 export interface PickbanSession {
-  id: string;
   config: PickbanConfig;
   status: "waiting" | "active" | "paused" | "completed";
   currentPhase: GamePhase;
@@ -243,7 +239,7 @@ export interface ChampSelectPlayer {
 }
 
 export interface ChampSelectAction {
-  id: number;
+  _id: number;
   actorCellId: number;
   championId: number;
   completed: boolean;
@@ -353,7 +349,6 @@ export interface LCUStatus {
 
 // Team representation used within an in-progress GameSession (simplified vs full tournament Team).
 export interface SessionTeam {
-  id: string;
   name: string;
   side: "blue" | "red";
   bans: Champion[];

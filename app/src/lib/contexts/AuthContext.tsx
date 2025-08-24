@@ -10,7 +10,6 @@ interface AuthContextType {
   login: (username: string, password: string) => Promise<{ success: boolean; message?: string }>;
   logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
-  refreshToken: () => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -77,26 +76,6 @@ export function AuthProvider({ children }: { children: ReactNode }): React.React
     clearAuthCache();
   }, []);
 
-  const refreshToken = useCallback(async (): Promise<boolean> => {
-    try {
-      const response = await fetch("/api/v1/auth/refresh", {
-        method: "POST",
-        credentials: "include"
-      });
-
-      if (response.ok) {
-        return true;
-      } else {
-        clearAuthData();
-        return false;
-      }
-    } catch (error) {
-      console.error("Token refresh error:", error);
-      clearAuthData();
-      return false;
-    }
-  }, [clearAuthData]);
-
   const login = useCallback(
     async (username: string, password: string): Promise<{ success: boolean; message?: string }> => {
       try {
@@ -126,7 +105,7 @@ export function AuthProvider({ children }: { children: ReactNode }): React.React
     []
   );
 
-  const logout = useCallback(async (): Promise<void> => {
+  const logout = useCallback(async () => {
     try {
       await fetch("/api/v1/auth/logout", {
         method: "POST",
@@ -183,7 +162,8 @@ export function AuthProvider({ children }: { children: ReactNode }): React.React
     authCheckInProgress.current = true;
 
     try {
-      const response = await fetch("/api/v1/auth/me", {
+      // Use the new smart validate endpoint
+      const response = await fetch("/api/v1/auth/validate", {
         method: "GET",
         credentials: "include"
       });
@@ -193,21 +173,8 @@ export function AuthProvider({ children }: { children: ReactNode }): React.React
         setUser(data.user);
         setAuthCache(data.user);
       } else if (response.status === 401) {
-        // Try to refresh token only once
-        const refreshed = await refreshToken();
-        if (refreshed) {
-          // Retry getting user info
-          const retryResponse = await fetch("/api/v1/auth/me", {
-            method: "GET",
-            credentials: "include"
-          });
-
-          if (retryResponse.ok) {
-            const data = await retryResponse.json();
-            setUser(data.user);
-            setAuthCache(data.user);
-          }
-        }
+        // Session expired, user needs to login again
+        clearAuthData();
       }
     } catch (error) {
       console.error("Auth check error:", error);
@@ -216,7 +183,7 @@ export function AuthProvider({ children }: { children: ReactNode }): React.React
       setIsLoading(false);
       authCheckInProgress.current = false;
     }
-  }, [isElectronLoading, isElectron, useLocalData, refreshToken, clearAuthData]);
+  }, [isElectronLoading, isElectron, useLocalData, clearAuthData]);
 
   useEffect(() => {
     checkAuthCallback();
@@ -238,7 +205,6 @@ export function AuthProvider({ children }: { children: ReactNode }): React.React
     login,
     logout,
     checkAuth: checkAuthCallback,
-    refreshToken
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

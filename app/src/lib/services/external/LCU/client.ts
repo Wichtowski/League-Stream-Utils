@@ -1,3 +1,14 @@
+// Utility function for Unicode-safe base64 encoding
+function safeBase64Encode(str: string): string {
+  const encoder = new TextEncoder();
+  const bytes = encoder.encode(str);
+  let binary = '';
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
+
 interface LCUCredentials {
   port: string;
   password: string;
@@ -23,7 +34,7 @@ export class LCUClient {
   setCredentials(credentials: LCUCredentials): void {
     this.credentials = credentials;
     this.baseUrl = `${credentials.protocol}://127.0.0.1:${credentials.port}`;
-    this.authHeader = `Basic ${btoa(`riot:${credentials.password}`)}`;
+    this.authHeader = `Basic ${safeBase64Encode(`riot:${credentials.password}`)}`;
   }
 
   async request<T = unknown>(

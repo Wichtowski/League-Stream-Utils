@@ -1,9 +1,9 @@
-import { MatchFormat } from "./tournament";
-import { Player, Champion } from "./game";
-import { ImageStorage } from "./common";
+import { Champion } from "./game";
+
+export type MatchFormat = "BO1" | "BO3" | "BO5";
 
 export interface Match {
-  id: string;
+  _id: string;
   name: string;
   type: "tournament" | "standalone";
 
@@ -14,8 +14,8 @@ export interface Match {
   matchNumber?: number;
   
   // Teams
-  blueTeam: MatchTeam;
-  redTeam: MatchTeam;
+  blueTeamId: string;
+  redTeamId: string;
 
   // Match configuration
   format: MatchFormat;
@@ -50,70 +50,39 @@ export interface Match {
   updatedAt: Date;
 }
 
-export interface MatchTeam {
-  id: string;
-  name: string;
-  tag: string;
-  logo: ImageStorage;
-  colors: {
-    primary: string;
-    secondary: string;
-    accent: string;
-  };
-  players: Player[];
-  coach?: {
-    name: string;
-    profileImage?: string;
-  };
-}
-
 export interface MatchCommentator {
-  id: string;
+  _id: string;
   name: string;
-  xHandle?: string;
+  role: "play-by-play" | "color" | "analyst";
+  email?: string;
+  phone?: string;
   assignedAt: Date;
-  assignedBy: string;
 }
 
 export interface MatchPrediction {
-  commentatorId: string;
-  commentatorName: string;
-  prediction: string;
-  timestamp: Date;
+  userId: string;
+  username: string;
+  prediction: "blue" | "red";
+  confidence?: number;
+  submittedAt: Date;
 }
 
 export interface GameResult {
-  id: string;
+  _id: string;
   gameNumber: number;
   winner: "blue" | "red";
-  // Side mapping for this game: which match team played on each side
-  blueSideTeamId: string; // should match Match.blueTeam.id
-  redSideTeamId: string; // should match Match.redTeam.id
-  duration: number; // in seconds
-  blueTeam: {
-    kills: number;
-    gold: number;
-    towers: number;
-    dragons: number;
-    barons: number;
-    bans: Champion[];
-    picks: Champion[];
-  };
-  redTeam: {
-    kills: number;
-    gold: number;
-    towers: number;
-    dragons: number;
-    barons: number;
-    bans: Champion[];
-    picks: Champion[];
-  };
-  completedAt: Date;
+  duration?: number;
+  blueScore: number;
+  redScore: number;
+  blueTeam: string;
+  redTeam: string;
+  startTime?: Date;
+  endTime?: Date;
+  completedAt?: Date;
 }
 
 export type MatchStatus = "scheduled" | "in-progress" | "completed" | "cancelled";
 
-// API Request/Response types
 export interface CreateMatchRequest {
   name: string;
   type: "tournament" | "standalone";
@@ -125,7 +94,7 @@ export interface CreateMatchRequest {
   isFearlessDraft: boolean;
   patchName: string;
   scheduledTime?: string;
-  commentators?: string[]; // commentator IDs
+  createdBy: string;
 }
 
 export interface UpdateMatchRequest {
@@ -139,9 +108,12 @@ export interface UpdateMatchRequest {
 
 export interface AssignCommentatorRequest {
   commentatorId: string;
-  assignedBy: string;
+  matchId: string;
 }
 
 export interface SubmitPredictionRequest {
-  prediction: string;
+  userId: string;
+  username: string;
+  prediction: "blue" | "red";
+  confidence?: number;
 }

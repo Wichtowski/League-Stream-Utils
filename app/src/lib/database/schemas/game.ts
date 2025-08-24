@@ -3,7 +3,6 @@ import { ChampionSchema, CoachSchema } from "./common";
 
 // Team Schema for pickban
 const TeamSchema = new mongoose.Schema({
-  id: { type: String, required: false },
   name: { type: String, required: false },
   side: { type: String, enum: ["blue", "red"], required: false },
   bans: [ChampionSchema],
@@ -44,7 +43,6 @@ const TimerSchema = new mongoose.Schema({
 
 export const GameSessionSchema = new mongoose.Schema(
   {
-    id: { type: String, required: false, unique: true },
     type: {
       type: String,
       enum: ["static", "lcu", "tournament", "web"],

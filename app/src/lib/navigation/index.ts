@@ -84,22 +84,22 @@ export const MODULES: ModuleCard[] = [
     category: "integration"
   },
   {
-    id: "leagueclient-champselect",
+    id: "leagueclient-champselect-demo",
     name: "Champ Select",
     description: "Connect to the League of Legends client to get live champ select data",
     icon: "📱",
-    path: "/modules/leagueclient/champselect",
+    path: "/modules/leagueclient/champselect/demo",
     color: "from-cyan-500 to-blue-500",
     spotlightColor: "rgba(6, 182, 212, 0.15)",
     status: "beta",
     category: "integration"
   },
   {
-    id: "leagueclient-game",
+    id: "leagueclient-game-demo",
     name: "Live Game",
     description: "Connect to the League of Legends client to get live game data",
     icon: "🕹️",
-    path: "/modules/leagueclient/game",
+    path: "/modules/leagueclient/game/demo",
     color: "from-teal-600 to-emerald-500",
     spotlightColor: "rgba(13, 148, 136, 0.15)",
     status: "beta",

@@ -5,7 +5,7 @@ export interface RiotPlayer {
 }
 
 export interface SummonerData {
-  id: string;
+  _id: string;
   accountId: string;
   puuid: string;
   profileIconId: number;
