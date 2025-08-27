@@ -62,8 +62,8 @@ const MatchInfoComponent: React.FC<MatchInfoProps> = ({
               <SafeImage
                 src={blueTeam.logo}
                 alt={blueTeam.name}
-                width={48}
-                height={48}
+                width={64}
+                height={64}
                 className="w-full h-full object-cover"
               />
             ) : (
@@ -89,8 +89,8 @@ const MatchInfoComponent: React.FC<MatchInfoProps> = ({
               <SafeImage
                 src={redTeam.logo}
                 alt={redTeam.name}
-                width={48}
-                height={48}
+                width={64}
+                height={64}
                 className="w-full h-full object-cover"
               />
             ) : (
@@ -102,13 +102,13 @@ const MatchInfoComponent: React.FC<MatchInfoProps> = ({
         </div>
 
         {/* Tournament Logo */}
-        <div className="w-16 h-16 rounded-lg overflow-hidden mb-3">
+        <div className="w-full h-full rounded-lg overflow-hidden mb-3">
           {tournamentLogo && tournamentLogo.trim() ? (
             <SafeImage
               src={tournamentLogo}
               alt="Tournament"
-              width={64}
-              height={64}
+              width={100}
+              height={100}
               className="w-full h-full object-cover"
             />
           ) : (

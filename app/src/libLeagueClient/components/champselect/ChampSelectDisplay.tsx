@@ -4,7 +4,12 @@ import React, { useEffect, useRef, useState, useCallback, useMemo } from "react"
 import type { EnhancedChampSelectSession, Team } from "@lib/types";
 import type { Match } from "@lib/types/match";
 import type { Tournament } from "@lib/types/tournament";
-import { TournamentHeader, TeamSection, MatchInfo, TeamBans } from "./";
+import { 
+  // TournamentHeader,
+  TeamSection,
+  MatchInfo,
+  TeamBans
+} from "./";
 import { TimeBar } from "./TimeBar";
 import { MockControlPanel } from "./MockControlPanel";
 import { ChampSelectLayout } from "./ChampSelectLayout";
@@ -28,7 +33,6 @@ interface ChampSelectDisplayProps {
   tournament?: Tournament;
   roleIcons: Record<string, string>;
   banPlaceholder: string;
-  isOverlay?: boolean;
   showControls?: boolean;
   onToggleControls?: () => void;
 }
@@ -41,7 +45,6 @@ const ChampSelectDisplayComponent: React.FC<ChampSelectDisplayProps> = ({
   tournament,
   roleIcons,
   banPlaceholder,
-  isOverlay = false,
   showControls = false,
   onToggleControls
 }) => {
@@ -54,6 +57,12 @@ const ChampSelectDisplayComponent: React.FC<ChampSelectDisplayProps> = ({
   const [childImageUrls, setChildImageUrls] = useState<string[]>([]);
   const [childImagesLoaded, setChildImagesLoaded] = useState(false);
   const preloadedUrlsRef = useRef<Set<string>>(new Set());
+  
+  // Animation states
+  const [mainUIAnimated, setMainUIAnimated] = useState(false);
+  const [cardsAnimated, setCardsAnimated] = useState(false);
+  const [bansAnimated, setBansAnimated] = useState(false);
+  const [showFearlessBans, setShowFearlessBans] = useState(false);
 
   // Load tournament and match data when IDs are provided
   useEffect(() => {
@@ -114,6 +123,35 @@ const ChampSelectDisplayComponent: React.FC<ChampSelectDisplayProps> = ({
     };
     loadAssets().catch(console.error);
   }, []);
+
+  // Animation sequence coordination
+  useEffect(() => {
+    if (!childImagesLoaded) return;
+
+    // Step 1: Start main UI animation (middle portion goes up)
+    setMainUIAnimated(true);
+
+    // Step 2: After main UI animation, start card animations
+    const cardAnimationTimer = setTimeout(() => {
+      setCardsAnimated(true);
+    }, 800); // Wait for main UI animation to complete
+
+    // Step 3: After cards are animated, start bans animations
+    const bansTimer = setTimeout(() => {
+      setBansAnimated(true);
+    }, 1600); // Wait for all cards to animate
+
+    // Step 4: After bans are animated, show fearless bans
+    const fearlessTimer = setTimeout(() => {
+      setShowFearlessBans(true);
+    }, 2200); // Wait for all bans to animate
+
+    return () => {
+      clearTimeout(cardAnimationTimer);
+      clearTimeout(bansTimer);
+      clearTimeout(fearlessTimer);
+    };
+  }, [childImagesLoaded]);
 
     // Use provided match/tournament data or fall back to tournamentData from the session
   const effectiveTournamentData = useMemo(() => 
@@ -203,22 +241,6 @@ const ChampSelectDisplayComponent: React.FC<ChampSelectDisplayProps> = ({
       if (tournamentLogo && !preloadedUrlsRef.current.has(tournamentLogo)) urls.push(tournamentLogo);
     }
 
-    // Additional images that might be used by child components
-    // MatchInfo component uses a hardcoded tournament logo path
-    const tournamentLogoPath = "/assets/VML-Nexus-Cup-logo.png";
-    if (!preloadedUrlsRef.current.has(tournamentLogoPath)) urls.push(tournamentLogoPath);
-    
-    // Default images that might be used
-    const defaultImages = [
-      "/assets/default/player.png",
-      "/assets/default-team-logo.png",
-      "/assets/default-coach.png",
-      "/assets/default/default_ban_placeholder.svg"
-    ];
-    defaultImages.forEach(img => {
-      if (!preloadedUrlsRef.current.has(img)) urls.push(img);
-    });
-
     return Array.from(new Set(urls));
   }, [
     banPlaceholder, 
@@ -275,7 +297,7 @@ const ChampSelectDisplayComponent: React.FC<ChampSelectDisplayProps> = ({
 
   const content = (
     <>
-      <TournamentHeader tournamentData={effectiveTournamentData} timer={timer} />
+      {/* <TournamentHeader tournamentData={effectiveTournamentData} timer={timer} /> */}
 
       {/* Coaches */}
       <div className="flex justify-between mb-4">
@@ -297,8 +319,10 @@ const ChampSelectDisplayComponent: React.FC<ChampSelectDisplayProps> = ({
         )}
       </div>
 
-      <ChampSelectLayout
-        above={
+        <ChampSelectLayout
+          mainUIAnimated={mainUIAnimated}
+          _cardsAnimated={cardsAnimated}
+          above={
           <>
             <div className="flex justify-between mb-2 items-center">
               <TeamBans
@@ -309,6 +333,8 @@ const ChampSelectDisplayComponent: React.FC<ChampSelectDisplayProps> = ({
                 usedChampions={data.usedChampions}
                 hoverState={hoverState}
                 onRegisterImages={registerChildImages}
+                bansAnimated={bansAnimated}
+                teamSide="left"
               />
               {data.isFearlessDraft && data.fearlessBans && (
                 <FearlessDraftBans
@@ -318,6 +344,7 @@ const ChampSelectDisplayComponent: React.FC<ChampSelectDisplayProps> = ({
                     redTeam: getTeamColor(effectiveTournamentData?.redTeam, redColor)
                   }}
                   onRegisterImages={registerChildImages}
+                  showFearlessBans={showFearlessBans}
                 />
               )}
               <TeamBans
@@ -328,6 +355,8 @@ const ChampSelectDisplayComponent: React.FC<ChampSelectDisplayProps> = ({
                 hoverState={hoverState}
                 banPlaceholder={banPlaceholder}
                 onRegisterImages={registerChildImages}
+                bansAnimated={bansAnimated}
+                teamSide="right"
               />
             </div>
             <TimeBar timer={timer} tournamentData={effectiveTournamentData} hoverState={hoverState} />
@@ -345,6 +374,8 @@ const ChampSelectDisplayComponent: React.FC<ChampSelectDisplayProps> = ({
             hoverState={hoverState}
             roleIcons={roleIcons}
             onRegisterImages={registerChildImages}
+            cardsAnimated={cardsAnimated}
+            teamSide="left"
           />
         }
         center={
@@ -392,33 +423,18 @@ const ChampSelectDisplayComponent: React.FC<ChampSelectDisplayProps> = ({
             hoverState={hoverState}
             roleIcons={roleIcons}
             onRegisterImages={registerChildImages}
+            cardsAnimated={cardsAnimated}
+            teamSide="right"
           />
         }
       />
     </>
   );
 
-  if (isOverlay) {
-    return (
-      <div className="min-h-screen relative overflow-hidden bg-transparent">
-        <div className="absolute inset-0 bg-black/40"></div>
-        <div className="fixed bottom-0 left-0 w-full z-10">{content}</div>
-
-        {onToggleControls && <MockControlPanel isVisible={showControls} onToggle={onToggleControls} />}
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen relative overflow-hidden bg-transparent">
       <div className="absolute inset-0 bg-black/40"></div>
       <div className="relative z-10">
-        <div className="mb-8 text-center">
-          <h1 className="text-4xl font-bold text-white mb-4">Dynamic Mock Demo</h1>
-          <p className="text-gray-300 text-lg">
-            This demo showcases the dynamic pick/ban mock system with real-time updates
-          </p>
-        </div>
         <div className="w-full">{content}</div>
       </div>
 

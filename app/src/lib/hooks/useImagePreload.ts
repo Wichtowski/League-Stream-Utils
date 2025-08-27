@@ -8,7 +8,15 @@ interface UseImagePreloadReturn {
 
 export function useImagePreload(urls: string[]): UseImagePreloadReturn {
   const uniqueUrls = useMemo(
-    () => Array.from(new Set((urls || []).filter((u) => typeof u === "string" && u.length > 0))),
+    () => Array.from(new Set((urls || []).filter((u) => {
+      // Filter out complex external URLs that might cause issues
+      if (typeof u !== "string" || u.length === 0) return false;
+      
+      // Skip URLs with complex query parameters or special characters that might cause issues
+      if (u.includes("?cb=") || u.includes("scale-to-width-down")) return false;
+      
+      return true;
+    }))),
     [urls]
   );
   const [completed, setCompleted] = useState(0);

@@ -1,5 +1,6 @@
 import React from "react";
 import Image from "next/image";
+import { SafeImage } from "@lib/components/common/SafeImage";
 
 interface GoldDisplayProps {
   goldDiff: number;
@@ -52,7 +53,7 @@ export const TeamScoreDisplay: React.FC<TeamScoreDisplayProps> = ({
         </div>
       </div>
       <div className="text-center">
-        <Image src={logo} alt="Team Logo" width={48} height={48} />
+        <SafeImage src={logo} alt="Team Logo" width={48} height={48} />
         <div className={`text-xl font-bold`}>{tag}</div>
       </div>
     </div>

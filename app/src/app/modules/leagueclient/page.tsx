@@ -50,6 +50,7 @@ export default function LeagueClientPage(): React.ReactElement {
             </code>
             <Link
               href={`${url}/demo`}
+              target="_blank"
               className={`inline-flex items-center justify-center px-5 h-10 text-sm md:text-base font-medium rounded-md border ${accentStyles.btn} min-w-[180px]`}
             >
               Open Demo

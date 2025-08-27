@@ -1,7 +1,8 @@
 import Image from "next/image";
-import { getChampionSquareImage } from "@libLeagueClient/components/common";
+import { getChampionCenteredSplashImage } from "@libLeagueClient/components/common";
 import { getSummonerSpellImageByName } from "@libLeagueClient/components/common";
 import { LivePlayer } from "@libLeagueClient/types/LivePlayer";
+import { useMemo } from "react";
 
 interface PlayerCardProps {
   player: LivePlayer;
@@ -13,16 +14,28 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({ player, teamColor }) => 
     blue: "border-blue-500 bg-blue-900/30",
     red: "border-red-500 bg-red-900/30"
   };
-  const championImage = getChampionSquareImage(player.championName);
-  const summonerSpellOne = getSummonerSpellImageByName(player.summonerSpells?.summonerSpellOne?.displayName);
-  const summonerSpellTwo = getSummonerSpellImageByName(player.summonerSpells?.summonerSpellTwo?.displayName);
+
+  // Dynamically load champion image based on current champion
+  const championImage = useMemo(() => {
+    return getChampionCenteredSplashImage(player.championName);
+  }, [player.championName]);
+
+  // Dynamically load summoner spell images
+  const summonerSpellOne = useMemo(() => {
+    return getSummonerSpellImageByName(player.summonerSpells?.summonerSpellOne?.displayName);
+  }, [player.summonerSpells?.summonerSpellOne?.displayName]);
+
+  const summonerSpellTwo = useMemo(() => {
+    return getSummonerSpellImageByName(player.summonerSpells?.summonerSpellTwo?.displayName);
+  }, [player.summonerSpells?.summonerSpellTwo?.displayName]);
+
   const healthPercentage = Math.max(0, Math.min(100, ((player.health ?? 0) / (player.maxHealth ?? 1)) * 100));
 
   return (
     <div className={`border rounded-md p-1 ${colorClasses[teamColor]} transition-all`}>
       <div className="flex items-center">
         <div className="relative mr-1">
-          <Image src={championImage} alt={player.championName} width={28} height={28} className="rounded" />
+          {championImage && <Image src={championImage} alt={player.championName} width={28} height={28} className="rounded" />}
           <div className="absolute -bottom-1 -left-1 bg-yellow-500 text-black text-[10px] leading-none px-1 rounded">
             {player.level || 1}
           </div>

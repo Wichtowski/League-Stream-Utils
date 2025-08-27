@@ -175,8 +175,6 @@ const ChampSelectOverlayPage: React.FC = () => {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           {isConnecting && <p className="text-white">Connecting to League Client...</p>}
-          {connectionError && <p className="text-red-500">Connection Error: {connectionError}</p>}
-          {!isConnected && !isConnecting && <p className="text-white">Waiting for League Client connection...</p>}
         </div>
       </div>
     );
@@ -185,7 +183,7 @@ const ChampSelectOverlayPage: React.FC = () => {
   const data = champSelectSession as EnhancedChampSelectSession;
 
   return (
-    <ChampSelectDisplay data={data} isOverlay={true} roleIcons={roleIcons} banPlaceholder={banPlaceholder} />
+    <ChampSelectDisplay data={data}  roleIcons={roleIcons} banPlaceholder={banPlaceholder} />
   );
 };
 

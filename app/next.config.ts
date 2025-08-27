@@ -35,7 +35,7 @@ const nextConfig: NextConfig = {
               "style-src 'self'",
               "img-src 'self' data: https: blob:",
               "font-src 'self'",
-              "connect-src 'self' ws: wss: https://ddragon.leagueoflegends.com https://raw.communitydragon.org http://127.0.0.1:2999 https://127.0.0.1:2999 https://liquipedia.net",
+              `connect-src 'self' ws: wss: ${ALLOWED_IMAGE_HOSTS.join(" ")}`,
               "frame-ancestors 'none'",
               "object-src 'none'",
               "base-uri 'self'"
@@ -67,11 +67,29 @@ const nextConfig: NextConfig = {
   },
   images: {
     domains: [], // Explicitly set empty to suppress deprecation warning
-    remotePatterns: ALLOWED_IMAGE_HOSTS.map((h) => ({
-      protocol: "https",
-      hostname: h,
-      pathname: "/**"
-    })),
+    remotePatterns: ALLOWED_IMAGE_HOSTS.flatMap((h) => {
+      // For localhost and 127.0.0.1, allow both http and https
+      if (h === "localhost" || h === "127.0.0.1") {
+        return [
+          {
+            protocol: "http" as const,
+            hostname: h,
+            pathname: "/**"
+          },
+          {
+            protocol: "https" as const,
+            hostname: h,
+            pathname: "/**"
+          }
+        ];
+      }
+      // For other hosts, use https only
+      return {
+        protocol: "https" as const,
+        hostname: h,
+        pathname: "/**"
+      };
+    }),
     dangerouslyAllowSVG: true,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;"
   },

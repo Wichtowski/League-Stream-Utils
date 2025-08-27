@@ -21,9 +21,10 @@ interface FearlessDraftBansProps {
     red: FearlessBan[];
   };
   onRegisterImages?: (urls: string[]) => void;
+  showFearlessBans?: boolean;
 }
 
-export const FearlessDraftBans: React.FC<FearlessDraftBansProps> = ({ customTeamColors, bans, onRegisterImages }) => {
+export const FearlessDraftBans: React.FC<FearlessDraftBansProps> = ({ customTeamColors, bans, onRegisterImages, showFearlessBans }) => {
   const ROLE_ORDER: FearlessBan["role"][] = ["TOP", "JUNGLE", "MID", "BOTTOM", "SUPPORT"];
   const [roleIcons, setRoleIcons] = useState<Record<string, string>>({});
   const [imageUrls, setImageUrls] = useState<string[]>([]);
@@ -73,13 +74,13 @@ export const FearlessDraftBans: React.FC<FearlessDraftBansProps> = ({ customTeam
     }
   }, [imageUrls, loaded]);
 
-  // Don't render until images are loaded
+  // Always render but control visibility with opacity
   if (!imagesLoaded) {
     return <></>;
   }
 
   return (
-    <div className="flex flex-row gap-2">
+    <div className={`flex flex-row gap-2 transition-all duration-600 ${showFearlessBans ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
       {roleIcons && ROLE_ORDER.map((role) => {
         const blueBans = bans.blue.filter((ban) => ban.role === role);
         const redBans = bans.red.filter((ban) => ban.role === role);

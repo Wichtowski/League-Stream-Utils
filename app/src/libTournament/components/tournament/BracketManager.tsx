@@ -98,8 +98,10 @@ export const BracketManager = ({ tournament, isOwner }: BracketManagerProps): Re
         const updateData: UpdateMatchResultRequest = {
           matchId,
           winner,
-          score1,
-          score2
+          score: {
+            blue: score2,
+            red: score1
+          }
         };
 
         const response = await fetch(`/api/v1/tournaments/${tournament._id}/bracket`, {
@@ -269,7 +271,7 @@ export const BracketManager = ({ tournament, isOwner }: BracketManagerProps): Re
           <div className="grid gap-4 md:grid-cols-2">
             {readyMatches.map((match) => (
               <MatchCard
-                key={match.id}
+                key={match._id}
                 match={match}
                 isOwner={isOwner}
                 onUpdateResult={() => {
@@ -288,7 +290,7 @@ export const BracketManager = ({ tournament, isOwner }: BracketManagerProps): Re
           <h4 className="text-lg font-semibold text-white mb-4">Completed Matches</h4>
           <div className="grid gap-4 md:grid-cols-2">
             {completedMatches.slice(-6).map((match) => (
-              <MatchCard key={match.id} match={match} isOwner={false} showResult={true} />
+              <MatchCard key={match._id} match={match} isOwner={false} showResult={true} />
             ))}
           </div>
           {completedMatches.length > 6 && (
@@ -420,7 +422,7 @@ function MatchResultForm({ match, onSubmit, onCancel }: MatchResultFormProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!winner) return;
-    onSubmit(match.id, winner, score1, score2);
+    onSubmit(match._id, winner, score1, score2);
   };
 
   return (

@@ -55,7 +55,7 @@ export const TimeBar: React.FC<TimeBarProps> = ({ timer, tournamentData, hoverSt
             width: `${progressPercent}%`,
             maxWidth: "100%",
             background: timerColor,
-            transition: "width 1s linear",
+            transition: "width 0.35s linear",
             float: "right",
             height: "100%"
           }}
@@ -70,7 +70,7 @@ export const TimeBar: React.FC<TimeBarProps> = ({ timer, tournamentData, hoverSt
             width: `${progressPercent}%`,
             maxWidth: "100%",
             background: timerColor,
-            transition: "width 1s linear",
+            transition: "width 0.35s linear",
             float: "left",
             height: "100%"
           }}

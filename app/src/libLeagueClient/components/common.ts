@@ -133,8 +133,8 @@ export const getChampionSquareImage = (championId: number | string): string => {
   return champ.image;
 };
 
-export const getChampionCenteredSplashImage = (championId: number | string): string | null => {
-  if (!championId) return null;
+export const getChampionCenteredSplashImage = (championId: number | string): string => {
+  if (!championId) return "";
 
   let champ;
   if (typeof championId === "number") {
@@ -144,11 +144,34 @@ export const getChampionCenteredSplashImage = (championId: number | string): str
     champ = getChampionByName(championId) || getChampionByKey(championId);
   }
 
-  if (!champ?.image) return null;
+  if (!champ) return "";
 
-  // Resolve cached relative path (starts with 'cache/')
+
+
+  // Use splashCenteredImg if available
+  if (champ.splashCenteredImg) {
+    // Handle different path formats
+    if (champ.splashCenteredImg.startsWith("cache/")) {
+      return resolveCachedPath(champ.splashCenteredImg);
+    }
+    if (champ.splashCenteredImg.startsWith("assets/")) {
+      return `/api/local-image?path=${encodeURIComponent(champ.splashCenteredImg)}`;
+    }
+    if (/^https?:\/\//.test(champ.splashCenteredImg)) {
+      return champ.splashCenteredImg;
+    }
+    return champ.splashCenteredImg;
+  }
+
+  // Fallback: convert square image to splash centered
+  if (!champ.image) return "";
+
+  // Handle different path formats for the main image
   if (champ.image.startsWith("cache/")) {
     return resolveCachedPath(champ.image);
+  }
+  if (champ.image.startsWith("assets/")) {
+    return `/api/local-image?path=${encodeURIComponent(champ.image)}`;
   }
 
   // Convert DataDragon URL to asset-cache path if possible
@@ -157,6 +180,25 @@ export const getChampionCenteredSplashImage = (championId: number | string): str
     const [, version, key] = ddragonMatch;
     const rel = `assets/${version}/champions/${key}/splashCentered.jpg`;
     return resolveCachedPath(rel);
+  }
+
+  // Convert local asset paths to splash centered
+  const localMatch = champ.image.match(/\/api\/local-image\?path=assets%2F([^%]+)%2Fchampions%2F([^%]+)%2Fsquare\.png/);
+  if (localMatch) {
+    const [, version, key] = localMatch;
+    return `/api/local-image?path=${encodeURIComponent(`assets/${version}/champions/${key}/splashCentered.jpg`)}`;
+  }
+
+  // Convert direct asset paths to splash centered
+  const assetMatch = champ.image.match(/assets\/([^/]+)\/champions\/([^/]+)\/square\.png/);
+  if (assetMatch) {
+    const [, version, key] = assetMatch;
+    return `/api/local-image?path=${encodeURIComponent(`assets/${version}/champions/${key}/splashCentered.jpg`)}`;
+  }
+
+  // If it's already a centered splash image, return as is
+  if (champ.image.includes('splashCentered.jpg')) {
+    return resolveCachedPath(champ.image);
   }
 
   // If already an http/https url return directly (fallback)

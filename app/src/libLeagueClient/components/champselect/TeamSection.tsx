@@ -24,10 +24,11 @@ interface TeamSectionProps {
   };
   tournamentData?: {
     blueTeam?: { colors?: TeamColors };
-    redTeam?: { colors?: TeamColors };
   };
   roleIcons: Record<string, string>;
   onRegisterImages?: (urls: string[]) => void;
+  cardsAnimated?: boolean;
+  teamSide: "left" | "right";
 }
 
 const TeamSection: React.FC<TeamSectionProps> = ({ 
@@ -37,7 +38,9 @@ const TeamSection: React.FC<TeamSectionProps> = ({
   hoverState, 
   tournamentData, 
   roleIcons,
-  onRegisterImages 
+  onRegisterImages,
+  cardsAnimated,
+  teamSide
 }) => {
   // Register images with parent component
   useEffect(() => {
@@ -93,6 +96,8 @@ const TeamSection: React.FC<TeamSectionProps> = ({
             hoverState={hoverState}
             roleIcons={roleIcons}
             onRegisterImages={onRegisterImages}
+            cardsAnimated={cardsAnimated}
+            teamSide={teamSide}
           />
         ))}
       </div>

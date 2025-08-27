@@ -55,6 +55,8 @@ interface PlayerSlotProps {
   };
   roleIcons: Record<string, string>;
   onRegisterImages?: (urls: string[]) => void;
+  cardsAnimated?: boolean;
+  teamSide: "left" | "right";
 }
 
 export const PlayerSlot: React.FC<PlayerSlotProps> = ({ 
@@ -64,7 +66,9 @@ export const PlayerSlot: React.FC<PlayerSlotProps> = ({
   _currentPhase, 
   hoverState, 
   roleIcons,
-  onRegisterImages 
+  onRegisterImages,
+  cardsAnimated,
+  teamSide
 }) => {
   const image = getChampionCenteredSplashImage(player.championId);
   const isPlaceholder = player.cellId < 0;
@@ -125,13 +129,37 @@ export const PlayerSlot: React.FC<PlayerSlotProps> = ({
   const isCurrentPickingPlayer = getCurrentPickingPlayerIndex() === index;
   const isCurrentlyPicking = hoverState?.currentActionType === "pick" && isCurrentPickingPlayer;
 
+  // Calculate animation delay based on team side and position
+  const getAnimationDelay = (): number => {
+    if (!cardsAnimated) return 0;
+    
+    // Cards animate from middle outward
+    if (teamSide === "left") {
+      // Blue team (left): support -> bottom -> middle -> jungle -> top
+      // Index mapping: 4=SUPPORT, 3=BOTTOM, 2=MIDDLE, 1=JUNGLE, 0=TOP
+      if (index === 4) return 0;      // SUPPORT first
+      if (index === 3) return 0.2;    // BOTTOM second
+      if (index === 2) return 0.4;    // MIDDLE third
+      if (index === 1) return 0.6;    // JUNGLE fourth
+      if (index === 0) return 0.8;    // TOP last
+    } else {
+      // Red team (right): top -> jungle -> middle -> bottom -> support
+      // Index mapping: 0=TOP, 1=JUNGLE, 2=MIDDLE, 3=BOTTOM, 4=SUPPORT
+      if (index === 0) return 0;      // TOP first
+      if (index === 1) return 0.2;    // JUNGLE second
+      if (index === 2) return 0.4;    // MIDDLE third
+      if (index === 3) return 0.6;    // BOTTOM fourth
+      if (index === 4) return 0.8;    // SUPPORT last
+    }
+    return 0;
+  };
+
   return (
     <div
       key={player.cellId}
-      className="relative w-full animate-player-slot"
+      className={`relative w-full transition-all duration-500 ${cardsAnimated ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'}`}
       style={{
-        animationDelay: `${index * 0.1}s`,
-        animationFillMode: "both"
+        transitionDelay: `${getAnimationDelay()}s`
       }}
     >
       <div
@@ -155,14 +183,14 @@ export const PlayerSlot: React.FC<PlayerSlotProps> = ({
             priority
           />
         ) : (
-          <div className="absolute inset-0 w-full h-full bg-transparent flex items-center justify-center text-gray-500 text-sm z-0">
+          <div className="absolute inset-0 w-full h-full bg-transparent flex items-start justify-center text-gray-500 text-sm z-0 pt-16">
             {!isPlaceholder && player.role && roleIcons[player.role] ? (
               <Image
                 src={roleIcons[player.role] } // || PLAYER_CARD_ROLE_ICONS[player.role]}
                 alt={player.role}
-                width={24}
-                height={24}
-                className="w-full h-full object-contain"
+                width={12}
+                height={12}
+                className="w-12 h-12 object-contain"
               />
             ) : (
               <div className="text-center">
@@ -178,16 +206,8 @@ export const PlayerSlot: React.FC<PlayerSlotProps> = ({
             <div className="text-sm font-semibold text-white truncate">
               {isPlaceholder ? "Empty Slot" : player.summonerName || player.playerInfo?.name || `Player ${index + 1}`}
             </div>
-            {!isPlaceholder && player.role && roleIcons[player.role] && (
-              <div
-                className="w-6 h-6 flex-shrink-0 bg-cover bg-center bg-no-repeat"
-                style={{
-                  backgroundImage: `url(${roleIcons[player.role] })` // || PLAYER_CARD_ROLE_ICONS[player.role]})`
-                }}
-              />
-            )}
           </div>
-          <div className="text-xs" style={{ color: isPlaceholder ? "#9CA3AF" : `${teamColor}CC` }}>
+          <div className="text-sm" style={{ color: isPlaceholder ? "#9CA3AF" : `${teamColor}CC` }}>
             {isPlaceholder ? "No Champion" : getChampionName(player.championId) || "No Champion Selected"}
           </div>
         </div>

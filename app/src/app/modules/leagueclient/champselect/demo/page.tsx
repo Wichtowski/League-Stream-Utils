@@ -14,6 +14,7 @@ const DemoChampSelectPage: React.FC = () => {
   const [mockData, setMockData] = useState<EnhancedChampSelectSession | null>(null);
   const [roleIcons, setRoleIcons] = useState<Record<string, string>>({});
   const [banPlaceholder, setBanPlaceholder] = useState<string>("");
+  const [showControls, setShowControls] = useState<boolean>(true);
 
   // Memoize the initial mock data to prevent unnecessary re-renders
   const initialMockData = useMemo(() => getDynamicMockData(), []);
@@ -30,13 +31,10 @@ const DemoChampSelectPage: React.FC = () => {
     };
     init().catch(console.error);
 
-    // implement a more targeted approach that only updates specific data
-    // rather than the entire mock data object.
+    // Listen to mock state changes and update the displayed data
     const interval = setInterval(() => {
-      // Only update if there are actual changes (e.g., timer updates, phase changes)
-      // For now, we'll disable the automatic updates to prevent the API spam
-      // setMockData(getDynamicMockData());
-    }, 1000);
+      setMockData(getDynamicMockData());
+    }, 100); // Update more frequently for responsive controls
 
     return () => clearInterval(interval);
   }, [initialMockData]);
@@ -60,8 +58,8 @@ const DemoChampSelectPage: React.FC = () => {
         banPlaceholder={banPlaceholder}
         tournament={mockTournament}
         teams={[FajnieMiecSklad, LosRatones]}
-        isOverlay={false}
-        showControls={true}
+        showControls={showControls}
+        onToggleControls={() => setShowControls(!showControls)}
       />
     </>
   );

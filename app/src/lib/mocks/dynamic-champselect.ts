@@ -1,6 +1,7 @@
 import type { EnhancedChampSelectSession } from "@lib/types";
 import { Team } from "@lib/types";
 import { ImageStorage } from "../types/common";
+import { fmsLogoInBase64 } from "./fmsLogoInBase64";
 
 const defaultPlayerImage: ImageStorage = {
   type: "url",
@@ -18,7 +19,7 @@ export const LosRatones: Team = {
   tier: "professional",
   logo: {
     type: "url",
-    url: "",
+    url: "https://liquipedia.net/commons/images/1/13/Los_Ratones_darkmode.png",
   },
   colors: {
     primary: "#000000",
@@ -109,8 +110,10 @@ export const FajnieMiecSklad: Team = {
   verified: true,
   tier: "professional",
   logo: {
-    type: "url",
-    url: "",
+    type: "upload",
+    data: fmsLogoInBase64,
+    size: 49400,
+    format: "png"
   },
   colors: {
     primary: "#000000",
@@ -410,7 +413,7 @@ export class DynamicChampSelectMock {
       isHovering: false,
       blueTeamName: "FMS",
       redTeamName: "LR",
-      tournamentName: "Dynamic Tournament",
+      tournamentName: "Rift Legends",
       bestOf: 3,
       autoAdvance: false,
       autoAdvanceInterval: 5000,
@@ -939,10 +942,8 @@ export class DynamicChampSelectMock {
           id: "c8ca4d50-49e6-4956-9849-a35a83fc737b",
           name: this.config.tournamentName!,
           logo: {
-            type: "upload",
-            data: "default_team_logo.png",
-            size: 100,
-            format: "png"
+            type: "url",
+            url: "http://localhost:2137/assets/default/tournament.png"
           },
           matchInfo: {
             roundName: this.config.roundName!,

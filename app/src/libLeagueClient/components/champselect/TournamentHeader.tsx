@@ -21,9 +21,7 @@ const TournamentHeaderComponent: React.FC<TournamentHeaderProps> = ({ tournament
   return (
     <div className="text-center mb-6 animate-tournament-header">
       <div className="flex items-center justify-center gap-4 mb-4">
-        {tournament.logoUrl && (
-          <Image src={tournament.logoUrl} alt={tournament.name} width={80} height={80} className="rounded-lg" />
-        )}
+        {tournament.logo?.url && <Image src={tournament.logo.url} alt={tournament.name} width={80} height={80} className="rounded-lg" />}
         <div>
           <h1 className="text-4xl font-bold text-white">{tournament.name}</h1>
           {tournament.matchInfo && (
@@ -35,7 +33,7 @@ const TournamentHeaderComponent: React.FC<TournamentHeaderProps> = ({ tournament
         </div>
       </div>
       <div className="text-center">
-        <div className="text-2xl font-bold text-white mb-2">PATCH 15.4</div>
+        <div className="text-2xl font-bold text-white mb-2">{tournament.name}</div>
         {timer && (
           <div className="text-3xl font-mono text-yellow-400">
             {timer.isInfinite ? "∞" : formatTime(timer.adjustedTimeLeftInPhase || 0)}

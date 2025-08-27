@@ -20,6 +20,8 @@ type TeamBansProps = {
   };
   banPlaceholder: string;
   onRegisterImages?: (urls: string[]) => void;
+  bansAnimated?: boolean;
+  teamSide: "left" | "right";
 };
 
 const TeamBansComponent: React.FC<TeamBansProps> = ({
@@ -29,7 +31,9 @@ const TeamBansComponent: React.FC<TeamBansProps> = ({
   usedChampions = [],
   hoverState,
   banPlaceholder,
-  onRegisterImages
+  onRegisterImages,
+  bansAnimated,
+  teamSide
 }) => {
   const maxBans = 5; // Maximum number of bans per team
 
@@ -100,6 +104,20 @@ const TeamBansComponent: React.FC<TeamBansProps> = ({
 
   const currentBanSlot = getCurrentBanSlot();
 
+  // Calculate animation delay for each ban slot
+  const getBanAnimationDelay = (index: number): number => {
+    if (!bansAnimated) return 0;
+    
+    // Bans animate from outside inward
+    if (teamSide === "left") {
+      // Blue team (left): ban slots animate from right to left (index 4 to 0)
+      return (4 - index) * 0.1; // 0.4s, 0.3s, 0.2s, 0.1s, 0s
+    } else {
+      // Red team (right): ban slots animate from left to right (index 0 to 4)
+      return index * 0.1; // 0s, 0.1s, 0.2s, 0.3s, 0.4s
+    }
+  };
+
   // Get all banned champions (current game + series bans in Fearless Draft)
   const allBannedChampions = [...bans];
   if (isFearlessDraft && usedChampions.length > 0) {
@@ -121,7 +139,10 @@ const TeamBansComponent: React.FC<TeamBansProps> = ({
         return (
           <div
             key={index}
-            className={`relative w-16 h-16 overflow-hidden flex items-center justify-center transition-all duration-500 `}
+            className={`relative w-16 h-16 overflow-hidden flex items-center justify-center transition-all duration-500 ${bansAnimated ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+            style={{
+              transitionDelay: `${getBanAnimationDelay(index)}s`
+            }}
           >
             {champ ? (
               <>
