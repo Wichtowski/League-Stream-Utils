@@ -218,7 +218,7 @@ class RiotAPIService {
       }
 
       const summoner = await this.getSummonerByPuuid(player.puuid);
-      const rankedData = await this.getRankedData(summoner.id);
+      const rankedData = await this.getRankedData(summoner.puuid);
 
       return {
         verified: true,
@@ -242,7 +242,7 @@ class RiotAPIService {
     recentMatches: MatchData[];
   }> {
     const summoner = await this.getSummonerByPuuid(puuid);
-    const rankedData = await this.getRankedData(summoner.id);
+    const rankedData = await this.getRankedData(summoner.puuid);
     const championMastery = await this.getChampionMastery(puuid);
 
     const matchIds = await this.getRecentMatches(puuid, 3);

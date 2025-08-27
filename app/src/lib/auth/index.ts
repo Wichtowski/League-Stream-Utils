@@ -29,7 +29,7 @@ const SECURITY_HEADERS = {
 
 const activeSessions = new Map<string, SessionData>();
 
-export function generateTokens(payload: Omit<JWTPayload, "tokenType">): {
+export function generateTokens(payload: { userId: string; username: string; isAdmin: boolean }): {
   accessToken: string;
   refreshToken: string;
   sessionId: string;
@@ -51,9 +51,17 @@ export function generateTokens(payload: Omit<JWTPayload, "tokenType">): {
   return { accessToken, refreshToken, sessionId };
 }
 
-export function verifyToken(token: string, expectedType: "access" | "refresh" = "access"): JWTPayload | null {
+interface DecodedToken extends JWTPayload {
+  tokenType: "access" | "refresh";
+  sessionId?: string;
+}
+
+export function verifyToken(
+  token: string,
+  expectedType: "access" | "refresh" = "access"
+): DecodedToken | null {
   try {
-    const decoded = jwt.verify(token, config.jwt.secret) as JWTPayload;
+    const decoded = jwt.verify(token, config.jwt.secret) as DecodedToken;
 
     if (decoded.tokenType !== expectedType) {
       return null;
@@ -73,7 +81,7 @@ export function setSecurityHeaders(response: NextResponse): NextResponse {
   return response;
 }
 
-export function withAuth(handler: (request: NextRequest, user: JWTPayload) => Promise<NextResponse>) {
+export function withAuth(handler: (request: NextRequest, user: DecodedToken) => Promise<NextResponse>) {
   return async (request: NextRequest) => {
     const ip = getClientIP(request);
     const userAgent = request.headers.get("user-agent") || "unknown";

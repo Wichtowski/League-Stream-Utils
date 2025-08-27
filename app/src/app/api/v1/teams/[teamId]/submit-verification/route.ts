@@ -57,7 +57,7 @@ export const POST = withAuth(async (req: NextRequest, user: JWTPayload) => {
     await connectToDatabase();
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const updatedTeam = await (TeamModel as any).findOne({ id: teamId });
+    const updatedTeam = await (TeamModel as any).findOne({ _id: teamId });
     if (!updatedTeam) {
       return NextResponse.json({ error: "Team not found" }, { status: 404 });
     }
@@ -121,13 +121,13 @@ export const GET = withAuth(async (req: NextRequest, user: JWTPayload) => {
       canSubmit: !team.verified && [...team.players.main, ...team.players.substitutes].every((p) => p.verified),
       playersVerified: {
         main: team.players.main.map((p: Player) => ({
-          id: p.id,
+          id: p._id,
           inGameName: p.inGameName,
           verified: p.verified,
           verifiedAt: p.verifiedAt
         })),
         substitutes: team.players.substitutes.map((p: Player) => ({
-          id: p.id,
+          id: p._id,
           inGameName: p.inGameName,
           verified: p.verified,
           verifiedAt: p.verifiedAt

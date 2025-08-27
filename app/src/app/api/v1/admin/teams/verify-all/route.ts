@@ -78,29 +78,26 @@ export const GET = withAuth(async (req: NextRequest, user: JWTPayload) => {
 
     await connectToDatabase();
 
-    const teams = await TeamModel.find(
-      {},
-      {
-        id: 1,
-        name: 1,
-        tag: 1,
-        verified: 1,
-        userId: 1,
-        createdAt: 1,
-        "players.main.verified": 1,
-        "players.substitutes.verified": 1
-      }
-    )
+    const teams = await TeamModel.find({}, {
+      _id: 1,
+      name: 1,
+      tag: 1,
+      verified: 1,
+      teamOwnerId: 1,
+      createdAt: 1,
+      "players.main.verified": 1,
+      "players.substitutes.verified": 1
+    })
       .sort({ createdAt: -1 })
       .lean()
       .exec();
 
     const teamsWithStats = teams.map((team) => ({
-      id: team.id,
+      id: team._id?.toString?.() || "",
       name: team.name,
       tag: team.tag,
       verified: team.verified,
-      userId: team.userId,
+      teamOwnerId: team.teamOwnerId,
       createdAt: team.createdAt,
       playerStats: {
         mainVerified: team.players?.main?.filter((p) => p.verified).length || 0,

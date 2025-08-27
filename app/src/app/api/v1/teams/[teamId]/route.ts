@@ -17,7 +17,7 @@ export const GET = withAuth(async (req: NextRequest, user: JWTPayload) => {
     }
 
     // Users can only view their own teams (for now)
-    if (team.userId !== user.userId && !user.isAdmin) {
+    if ((team.teamOwnerId ?? "") !== user.userId && !user.isAdmin) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
@@ -60,7 +60,7 @@ export const PUT = withAuth(async (req: NextRequest, user: JWTPayload) => {
     // Check name and tag availability if they're being updated
     if (teamData.name || teamData.tag) {
       const currentTeam = await getTeamById(teamId);
-      if (!currentTeam || (currentTeam.userId !== user.userId && !user.isAdmin)) {
+      if (!currentTeam || ((currentTeam.teamOwnerId ?? "") !== user.userId && !user.isAdmin)) {
         return NextResponse.json({ error: "Team not found or forbidden" }, { status: 404 });
       }
 

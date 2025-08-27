@@ -69,12 +69,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
       // Create session with the same sessionId that's in the JWT
       createSession({
+        id: sessionId,
         userId: "admin",
+        username: adminUsername,
+        isAdmin: true,
         refreshToken,
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
         ip,
-        userAgent,
-        id: sessionId
+        userAgent
       });
       console.log("[LOGIN] Created session for admin:", sessionId);
 
@@ -149,11 +151,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     // Check if user account is locked
-    if (user.isLocked && user.lockedUntil && user.lockedUntil > new Date()) {
+    if ((user as { isLocked?: boolean }).isLocked && (user as { lockedUntil?: Date }).lockedUntil && (user as { lockedUntil?: Date }).lockedUntil! > new Date()) {
       await logSecurityEvent({
         timestamp: new Date(),
         event: "login_attempt_user_locked",
-        userId: user.id,
+        userId: (user as { _id?: string })._id ?? "",
         ip,
         userAgent,
         details: { username: sanitizedUsername }
@@ -177,7 +179,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       await logSecurityEvent({
         timestamp: new Date(),
         event: "login_invalid_password",
-        userId: user.id,
+        userId: (user as { _id?: string })._id ?? "",
         ip,
         userAgent,
         details: { username: sanitizedUsername }
@@ -187,18 +189,20 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     const { accessToken, refreshToken, sessionId } = generateTokens({
-      userId: user.id,
+      userId: (user as { _id?: string })._id ?? "",
       username: user.username,
       isAdmin: user.isAdmin
     });
 
     createSession({
-      userId: user.id,
+      id: sessionId,
+      userId: (user as { _id?: string })._id ?? "",
+      username: user.username,
+      isAdmin: user.isAdmin,
       refreshToken,
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
       ip,
-      userAgent,
-      id: sessionId
+      userAgent
     });
 
     await clearLoginAttempts(sanitizedUsername);
@@ -214,7 +218,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     await logSecurityEvent({
       timestamp: new Date(),
       event: "user_login_success",
-      userId: user.id,
+      userId: (user as { _id?: string })._id ?? "",
       ip,
       userAgent,
       details: { username: sanitizedUsername }

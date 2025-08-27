@@ -21,7 +21,7 @@ export const GET = withAuth(async (req: NextRequest, user: JWTPayload) => {
       return NextResponse.json({ hasAccess: false, reason: "team_not_found" });
     }
 
-    const hasAccess = team.userId === user.userId;
+    const hasAccess = (team.teamOwnerId ?? "") === user.userId;
 
     return NextResponse.json({
       hasAccess,

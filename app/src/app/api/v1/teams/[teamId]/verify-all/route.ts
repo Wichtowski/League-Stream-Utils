@@ -31,10 +31,10 @@ export const POST = withAuth(async (req: NextRequest, user: JWTPayload) => {
       return NextResponse.json({ error: "Team not found" }, { status: 404 });
     }
 
-    console.log("Found team:", team.name, "ID:", team.id, "Owner:", team.userId);
+    console.log("Found team:", team.name, "ID:", team._id, "Owner:", team.teamOwnerId);
 
     // Check if user is admin or team owner
-    if (!user.isAdmin && team.userId !== user.userId) {
+    if (!user.isAdmin && (team.teamOwnerId ?? "") !== user.userId) {
       console.log("User not authorized to verify this team");
       return NextResponse.json({ error: "Forbidden - You can only verify your own teams" }, { status: 403 });
     }
@@ -147,7 +147,7 @@ export const GET = withAuth(async (req: NextRequest, user: JWTPayload) => {
     }
 
     // Users can only view their own teams (for now)
-    if (team.userId !== user.userId && !user.isAdmin) {
+    if ((team.teamOwnerId ?? "") !== user.userId && !user.isAdmin) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
@@ -156,13 +156,13 @@ export const GET = withAuth(async (req: NextRequest, user: JWTPayload) => {
       verificationSubmittedAt: team.verificationSubmittedAt,
       playersVerified: {
         main: team.players.main.map((p: Player) => ({
-          id: p.id,
+          id: p._id,
           inGameName: p.inGameName,
           verified: p.verified,
           verifiedAt: p.verifiedAt
         })),
         substitutes: team.players.substitutes.map((p: Player) => ({
-          id: p.id,
+          id: p._id,
           inGameName: p.inGameName,
           verified: p.verified,
           verifiedAt: p.verifiedAt

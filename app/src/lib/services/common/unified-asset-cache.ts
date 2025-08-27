@@ -80,16 +80,16 @@ export const toLocalImageUrl = (pathOrUrl: string): string => {
     return pathOrUrl;
   }
   let rel = pathOrUrl.replace(/^file:\/\//i, "").replace(/\\/g, "/");
-  const hostedIdx = rel.indexOf("hosted/cache/assets/");
+  const hostedIdx = rel.indexOf("hosted/assets/");
   if (hostedIdx !== -1) {
-    rel = rel.substring(hostedIdx + "hosted/cache/".length);
+    rel = rel.substring(hostedIdx + "hosted/assets/".length);
   }
   // Handle bare version-prefixed paths like "15.16.1/summoner-spells/XYZ.png"
-  if (/^\d+\.\d+\.\d+\//.test(rel) && !rel.startsWith("assets/") && !rel.startsWith("cache/")) {
+  if (/^\d+\.\d+\.\d+\//.test(rel) && !rel.startsWith("assets/")) {
     rel = `assets/${rel}`;
   }
-  if (rel.startsWith("cache/assets/")) {
-    rel = rel.substring("cache/".length);
+  if (rel.startsWith("assets/")) {
+    rel = rel.substring("assets/".length);
   }
   if (!rel.startsWith("assets/")) return pathOrUrl;
   return `/api/local-image?path=${encodeURIComponent(rel)}`;

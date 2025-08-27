@@ -27,11 +27,11 @@ export const POST = withAuth(async (req: NextRequest, user: JWTPayload) => {
       return NextResponse.json({ error: "Team not found" }, { status: 404 });
     }
 
-    if (team.userId !== user.userId && !user.isAdmin) {
+    if ((team.teamOwnerId ?? "") !== user.userId && !user.isAdmin) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const player = [...team.players.main, ...team.players.substitutes].find((p) => p.id === playerId);
+    const player = [...team.players.main, ...team.players.substitutes].find((p) => p._id === playerId);
 
     if (!player) {
       return NextResponse.json({ error: "Player not found in team" }, { status: 404 });

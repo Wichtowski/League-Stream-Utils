@@ -58,7 +58,7 @@ export const GET = withAuth(async (req: NextRequest, user: JWTPayload) => {
 
     if (!user.isAdmin && Array.isArray(settings.teams)) {
       const userTeams = await getUserTeams(user.userId);
-      const userTeamIds = userTeams.map((team: Team) => team.id);
+      const userTeamIds = userTeams.map((team: Team) => team._id);
 
       settings.teams = settings.teams.filter((team: CameraTeam) => {
         const hasAccess = userTeamIds.includes(team.teamId);
@@ -88,7 +88,7 @@ export const POST = withAuth(async (req: NextRequest, user: JWTPayload) => {
     // For regular users, verify they own all teams they're setting up cameras for
     if (!user.isAdmin) {
       const userTeams = await getUserTeams(user.userId);
-      const userTeamIds = userTeams.map((team: Team) => team.id);
+      const userTeamIds = userTeams.map((team: Team) => team._id);
 
       const invalidTeams = teams.filter((team: CameraTeam) => !userTeamIds.includes(team.teamId));
 

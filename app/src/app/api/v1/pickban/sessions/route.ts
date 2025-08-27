@@ -20,14 +20,15 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   const session = await createGameSession(body.config);
 
   const baseUrl = request.nextUrl.origin;
-  const configUrl = `${baseUrl}/modules/pickban/static/${session.id}/config`;
-  const blueTeamUrl = `${baseUrl}/modules/pickban/static/${session.id}/game?team=blue`;
-  const redTeamUrl = `${baseUrl}/modules/pickban/static/${session.id}/game?team=red`;
-  const spectatorUrl = `${baseUrl}/modules/pickban/static/${session.id}/game`;
-  const obsUrl = `${baseUrl}/modules/pickban/static/${session.id}/obs`;
+  const sessionId = (session as unknown as { id: string }).id;
+  const configUrl = `${baseUrl}/modules/pickban/static/${sessionId}/config`;
+  const blueTeamUrl = `${baseUrl}/modules/pickban/static/${sessionId}/game?team=blue`;
+  const redTeamUrl = `${baseUrl}/modules/pickban/static/${sessionId}/game?team=red`;
+  const spectatorUrl = `${baseUrl}/modules/pickban/static/${sessionId}/game`;
+  const obsUrl = `${baseUrl}/modules/pickban/static/${sessionId}/obs`;
 
   return NextResponse.json({
-    sessionId: session.id,
+    sessionId,
     session,
     urls: {
       config: configUrl,

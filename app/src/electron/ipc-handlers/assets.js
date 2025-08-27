@@ -4,7 +4,7 @@ import { ipcMain } from "electron";
 import path from "path";
 import fs from "fs";
 
-function registerHostedAssetsHandlers(_mainWindow, assetsPath, assetCachePath) {
+function registerHostedAssetsHandlers(_mainWindow, assetsPath) {
   ipcMain.handle("copy-asset-file", async (_event, sourcePath, fileName) => {
     try {
       const destPath = path.join(assetsPath, fileName);
@@ -56,11 +56,11 @@ function registerHostedAssetsHandlers(_mainWindow, assetsPath, assetCachePath) {
     try {
       // For game UI assets, we want to use the assetKey as the full path structure
       let targetPath;
-      if (category === "overlay" || category === "direct") {
-        targetPath = path.join(assetCachePath, assetKey);
+      if (category === "overlay" || category === "direct" || category === "assets") {
+        targetPath = path.join(assetsPath, assetKey);
       } else {
         // For other assets, use the old logic
-        const categoryPath = path.join(assetCachePath, category);
+        const categoryPath = path.join(assetsPath, category);
         if (!fs.existsSync(categoryPath)) {
           fs.mkdirSync(categoryPath, { recursive: true });
         }
@@ -190,7 +190,7 @@ function registerHostedAssetsHandlers(_mainWindow, assetsPath, assetCachePath) {
 
       // Use the first key as the manifest file path (there should only be one)
       const manifestFile = manifestKeys[0];
-      const manifestPath = path.join(assetCachePath, manifestFile);
+      const manifestPath = path.join(assetsPath, manifestFile);
 
       // Ensure the directory exists for versioned manifests
       const manifestDir = path.dirname(manifestPath);
@@ -215,7 +215,7 @@ function registerHostedAssetsHandlers(_mainWindow, assetsPath, assetCachePath) {
     try {
       // The category parameter now includes the full path (e.g., "15.14.1/champions" or just "champions")
       const manifestFile = `${category}-manifest.json`;
-      const manifestPath = path.join(assetCachePath, manifestFile);
+      const manifestPath = path.join(assetsPath, manifestFile);
 
       // Ensure the directory exists for versioned manifests
       const manifestDir = path.dirname(manifestPath);
@@ -237,7 +237,7 @@ function registerHostedAssetsHandlers(_mainWindow, assetsPath, assetCachePath) {
   // Add new IPC handler for getting asset cache statistics
   ipcMain.handle("get-asset-cache-stats", async () => {
     try {
-      if (!fs.existsSync(assetCachePath)) {
+      if (!fs.existsSync(assetsPath)) {
         return {
           success: true,
           stats: {
@@ -267,7 +267,7 @@ function registerHostedAssetsHandlers(_mainWindow, assetsPath, assetCachePath) {
         }
       }
 
-      scanDirectory(assetCachePath);
+      scanDirectory(assetsPath);
 
       // Format the size
       const formatBytes = (bytes) => {

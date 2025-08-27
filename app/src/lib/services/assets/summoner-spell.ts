@@ -47,23 +47,29 @@ class SummonerSpellCacheService extends BaseCacheService<SummonerSpell> {
       throw new Error("Electron API not available");
     }
 
-    const dataKey = `summoner-spell-${version}-${spellKey}-data`;
-
-    const manifestResult = await window.electronAPI.loadCategoryManifest("summoner-spells");
-    if (manifestResult.success && manifestResult.data) {
-      const manifest = manifestResult.data;
-      if (manifest[dataKey]) {
-        const loadResult = await window.electronAPI.loadCategoryManifest("summoner-spells");
-        if (loadResult.success && loadResult.data) {
-          const cachedData = loadResult.data[dataKey];
-          if (cachedData) {
-            return JSON.parse(cachedData.path);
-          }
-        }
-      }
+    // Fast-path: if image already exists on disk, construct and return cache data
+    const summonerData = await this.getSummonerData(version);
+    const existingSpell = summonerData.data[spellKey];
+    if (!existingSpell) {
+      throw new Error(`Summoner spell ${spellKey} not found in DataDragon response`);
+    }
+    const existingImagePath = `${version}/summoner-spells/${existingSpell.image.full}`;
+    const cachedFullPath = this.getCachedPathForKey(existingImagePath);
+    const alreadyExists = await this.checkFileExists(cachedFullPath);
+    if (alreadyExists) {
+      return {
+        _id: existingSpell._id,
+        name: existingSpell.name,
+        key: existingSpell.key,
+        description: existingSpell.description,
+        maxrank: existingSpell.maxrank,
+        cooldown: existingSpell.cooldown,
+        cost: existingSpell.cost,
+        range: existingSpell.range,
+        image: existingImagePath
+      };
     }
 
-    const summonerData = await this.getSummonerData(version);
     const spell = summonerData.data[spellKey];
 
     if (!spell) {
@@ -73,7 +79,7 @@ class SummonerSpellCacheService extends BaseCacheService<SummonerSpell> {
     const image = await this.downloadSummonerSpellImage(spell, version);
 
     const cacheData: SummonerSpellCacheData = {
-      id: spell.id,
+      _id: spell._id,
       name: spell.name,
       key: spell.key,
       description: spell.description,
@@ -167,26 +173,31 @@ class SummonerSpellCacheService extends BaseCacheService<SummonerSpell> {
 
     try {
       const version = await this.getLatestVersion();
-      const dataKey = `summoner-spell-${version}-${key}-data`;
-
-      const manifestResult = await window.electronAPI.loadCategoryManifest("summoner-spells");
-      if (manifestResult.success && manifestResult.data) {
-        const manifest = manifestResult.data;
-        if (manifest[dataKey]) {
-          const loadResult = await window.electronAPI.loadCategoryManifest("summoner-spells");
-          if (loadResult.success && loadResult.data) {
-            const cachedData = loadResult.data[dataKey];
-            if (cachedData) {
-              return JSON.parse(cachedData.path);
-            }
-          }
+      const summonerData = await this.getSummonerData(version);
+      const spell = summonerData.data[key];
+      if (spell) {
+        const imagePath = `${version}/summoner-spells/${spell.image.full}`;
+        const cachedFullPath = this.getCachedPathForKey(imagePath);
+        const exists = await this.checkFileExists(cachedFullPath);
+        if (exists) {
+          return {
+            _id: spell._id,
+            name: spell.name,
+            key: spell.key,
+            description: spell.description,
+            maxrank: spell.maxrank,
+            cooldown: spell.cooldown,
+            cost: spell.cost,
+            range: spell.range,
+            image: imagePath
+          };
         }
       }
 
       const cacheData = await this.downloadSummonerSpellData(key, version);
 
       return {
-        id: cacheData.id,
+        _id: cacheData._id,
         name: cacheData.name,
         key: cacheData.key,
         description: cacheData.description,
@@ -220,19 +231,12 @@ class SummonerSpellCacheService extends BaseCacheService<SummonerSpell> {
       const totalExpected = allSpellKeys.length;
 
       const missingSpells: string[] = [];
-
       for (const spellKey of allSpellKeys) {
-        const dataKey = `summoner-spell-${version}-${spellKey}-data`;
-        const manifestResult = await window.electronAPI.loadCategoryManifest("summoner-spells");
-
-        if (manifestResult.success && manifestResult.data) {
-          const manifest = manifestResult.data;
-          if (!manifest[dataKey]) {
-            missingSpells.push(spellKey);
-          }
-        } else {
-          missingSpells.push(spellKey);
-        }
+        const spell = summonerData.data[spellKey]!;
+        const imagePath = `${version}/summoner-spells/${spell.image.full}`;
+        const cachedFullPath = this.getCachedPathForKey(imagePath);
+        const exists = await this.checkFileExists(cachedFullPath);
+        if (!exists) missingSpells.push(spellKey);
       }
 
       return { missingSpells, totalExpected, allSpellKeys };
@@ -278,7 +282,7 @@ class SummonerSpellCacheService extends BaseCacheService<SummonerSpell> {
       }
 
       console.log(
-        `Found ${validCompletedSet.size} summoner spells already completed on disk out of ${allSpellKeys.length} total`
+        `Found ${validCompletedSet.size} summoner spells already downloaded.`
       );
 
       const ASSETS_PER_SPELL = 2;

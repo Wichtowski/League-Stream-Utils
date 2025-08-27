@@ -41,7 +41,7 @@ async function fetchChampionsFromAPI(): Promise<{
   const data: DataDragonResponse = await response.json();
 
   const champions: Champion[] = Object.values(data.data).map((champ: DataDragonChampion) => ({
-    id: parseInt(champ.key),
+    _id: parseInt(champ.key),
     name: champ.name,
     key: champ.id,
     image: `${DDRAGON_CDN}/${version}/img/champion/${champ.image.full}`
@@ -174,7 +174,7 @@ export const getChampionByKey = (key: string): Champion | undefined => {
 
 export const getChampionById = (id: number): Champion | undefined => {
   const champions = getChampionsCached();
-  return champions.find((champ) => champ.id === id);
+  return champions.find((champ) => champ._id === id);
 };
 
 export const getChampionByName = (name: string): Champion | undefined => {

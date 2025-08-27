@@ -77,11 +77,17 @@ export abstract class BaseCacheService<T = unknown> {
 
     const userDataPath = await window.electronAPI.getUserDataPath();
     this.cacheDir = path.join(userDataPath, "hosted", "assets");
+    this.version = await this.getLatestVersion();
     this.isInitialized = true;
   }
 
   protected async getLatestVersion(): Promise<string> {
-    return DataDragonClient.getLatestVersion();
+    if (this.version && this.version.length > 0) {
+      return this.version;
+    }
+    const resolved = await DataDragonClient.getLatestVersion();
+    this.version = resolved;
+    return resolved;
   }
 
   protected ensureElectronAvailable(): void {
@@ -179,11 +185,11 @@ export abstract class BaseCacheService<T = unknown> {
     }
 
     try {
-      const manifestPath = version ? `assets/${version}/${category}-manifest.json` : `${category}-manifest.json`;
+      const manifestPath = version ? `${version}/${category}-manifest.json` : `${category}-manifest.json`;
       const manifestContent = JSON.stringify(manifest, null, 2);
 
       // Use the new category-specific IPC handler, passing the complete path
-      const categoryPath = version ? `assets/${version}/${category}` : category;
+      const categoryPath = version ? `${version}/${category}` : category;
       const result = await window.electronAPI.saveCategoryManifest(categoryPath, {
         [manifestPath]: {
           path: manifestContent,
@@ -207,10 +213,10 @@ export abstract class BaseCacheService<T = unknown> {
     }
 
     try {
-      const manifestPath = version ? `assets/${version}/${category}-manifest.json` : `${category}-manifest.json`;
+      const manifestPath = version ? `${version}/${category}-manifest.json` : `${category}-manifest.json`;
 
       // Use the new category-specific IPC handler, passing the complete path
-      const categoryPath = version ? `assets/${version}/${category}` : category;
+      const categoryPath = version ? `${version}/${category}` : category;
       const result = await window.electronAPI.loadCategoryManifest(categoryPath);
 
       if (result.success && result.data && result.data[manifestPath]) {

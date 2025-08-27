@@ -98,6 +98,15 @@ export const registerTeamToTournament = async (tournamentId: string, teamId: str
   return convertMongoDoc(tournament);
 };
 
+// Alias to match API imports
+export const registerTeamForTournament = async (
+  tournamentId: string,
+  teamId: string,
+  _bypassConstraints?: boolean
+): Promise<TournamentType | null> => {
+  return registerTeamToTournament(tournamentId, teamId);
+};
+
 export const unregisterTeamFromTournament = async (tournamentId: string, teamId: string): Promise<TournamentType | null> => {
   await connectToDatabase();
   const tournament = await TournamentModel.findById(tournamentId);
@@ -188,4 +197,12 @@ export const updateTournamentFields = async (
   const updatedTournament = await TournamentModel.findByIdAndUpdate(tournamentId, updates, { new: true });
   if (!updatedTournament) return null;
   return convertMongoDoc(updatedTournament);
+};
+
+// Minimal status updater to match API imports
+export const updateTournamentStatus = async (
+  tournamentId: string,
+  status: TournamentType["status"]
+): Promise<TournamentType | null> => {
+  return updateTournamentFields(tournamentId, { status });
 };

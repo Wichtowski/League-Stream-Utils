@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import Image from "next/image";
+import { SafeImage } from "@lib/components/common/SafeImage";
 import { ProgressBar } from "./ProgressBar";
 
 // Generic team type that works with both PickbanTournamentTeam and MatchTeam
@@ -59,7 +59,7 @@ const MatchInfoComponent: React.FC<MatchInfoProps> = ({
         <div className="flex items-center gap-2 mb-3">
           <div className="w-12 h-12 rounded-lg overflow-hidden">
             {blueTeam.logo && blueTeam.logo.trim() ? (
-              <Image
+              <SafeImage
                 src={blueTeam.logo}
                 alt={blueTeam.name}
                 width={48}
@@ -86,7 +86,7 @@ const MatchInfoComponent: React.FC<MatchInfoProps> = ({
 
           <div className="w-12 h-12 rounded-lg overflow-hidden">
             {redTeam.logo && redTeam.logo.trim() ? (
-              <Image
+              <SafeImage
                 src={redTeam.logo}
                 alt={redTeam.name}
                 width={48}
@@ -104,7 +104,7 @@ const MatchInfoComponent: React.FC<MatchInfoProps> = ({
         {/* Tournament Logo */}
         <div className="w-16 h-16 rounded-lg overflow-hidden mb-3">
           {tournamentLogo && tournamentLogo.trim() ? (
-            <Image
+            <SafeImage
               src={tournamentLogo}
               alt="Tournament"
               width={64}

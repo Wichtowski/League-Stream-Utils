@@ -7,8 +7,7 @@ import {
   checkRateLimit,
   getClientIP,
   hashPassword,
-  updatePasswordHistory,
-  debugPasswordValidation
+  updatePasswordHistory
 } from "@lib/services/common/security";
 import { logSecurityEvent } from "@lib/database/security";
 import { setSecurityHeaders } from "@/lib/auth";
@@ -71,9 +70,6 @@ export async function POST(request: NextRequest) {
     if (!emailRegex.test(sanitizedEmail)) {
       return setSecurityHeaders(NextResponse.json({ error: "Please enter a valid email address" }, { status: 400 }));
     }
-
-    // Debug password validation
-    debugPasswordValidation(password);
     
     // Strong password validation
     const passwordValidation = validatePassword(password);
@@ -126,7 +122,7 @@ export async function POST(request: NextRequest) {
     await logSecurityEvent({
       timestamp: new Date(),
       event: "user_registration_success",
-      userId: newUser.id,
+      userId: newUser._id,
       ip,
       userAgent,
       details: {

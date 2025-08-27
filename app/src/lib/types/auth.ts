@@ -36,10 +36,15 @@ export interface AuthTokens {
 }
 
 export interface SessionData {
-  _id: string;
+  id: string;
   userId: string;
   username: string;
   isAdmin: boolean;
   createdAt: Date;
   expiresAt: Date;
+  lastUsedAt: Date;
+  isValid: boolean;
+  refreshToken?: string;
+  ip?: string;
+  userAgent?: string;
 }

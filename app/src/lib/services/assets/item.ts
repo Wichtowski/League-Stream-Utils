@@ -167,8 +167,7 @@ class ItemCacheService extends BaseCacheService<ItemCacheData> {
 
     // Check if file exists on disk (avoid unnecessary downloads)
     if (typeof window !== "undefined" && window.electronAPI) {
-      const userDataPath = await window.electronAPI.getUserDataPath();
-      const fullPath = path.join(userDataPath, "hosted", "assets", imageAssetKey);
+      const fullPath = path.join(this.cacheDir, imageAssetKey);
       const fileCheck = await window.electronAPI.checkFileExists(fullPath);
 
       if (fileCheck.success && fileCheck.exists) {
@@ -267,18 +266,12 @@ class ItemCacheService extends BaseCacheService<ItemCacheData> {
 
       // Check for file existence directly on disk - simple and reliable
       if (typeof window !== "undefined" && window.electronAPI) {
-        const userDataPath = await window.electronAPI.getUserDataPath();
 
         for (const itemKey of allItemKeys) {
           // Check if the main item image exists (this is the key asset)
           const itemImagePath = path.join(
-            userDataPath,
-            "hosted",
-            "cache",
-            "assets",
-            version,
-            "items",
-            `${itemKey}.png`
+            this.cacheDir,
+            `${version}/items/${itemKey}.png`
           );
           const fileCheck = await window.electronAPI.checkFileExists(itemImagePath);
 
@@ -466,14 +459,13 @@ class ItemCacheService extends BaseCacheService<ItemCacheData> {
 
   // Blueprint downloader methods (merged from ItemsBlueprintDownloader)
 
-  async downloadBlueprint(version: string): Promise<void> {
-    this.version = version;
+  async downloadBlueprint(): Promise<void> {
     await this.initialize();
 
     try {
-      const fullEndpoint = `${DDRAGON_CDN}/${version}/data/en_US/${this.config.endpoint}`;
+      const fullEndpoint = `${DDRAGON_CDN}/${this.version}/data/en_US/${this.config.endpoint}`;
       const data = await this.fetchJson<DataDragonItemResponse>(fullEndpoint);
-      await this.downloadItemAssets(data, version);
+      await this.downloadItemAssets(data, this.version);
     } catch (error) {
       console.error(`Error downloading ${this.config.assetType} blueprint:`, error);
       throw error;
@@ -481,8 +473,7 @@ class ItemCacheService extends BaseCacheService<ItemCacheData> {
   }
 
   async downloadBlueprintForCurrentVersion(): Promise<void> {
-    const version = await this.getLatestVersion();
-    await this.downloadBlueprint(version);
+    await this.downloadBlueprint();
   }
 
   private async downloadItemAssets(data: DataDragonItemResponse, version: string): Promise<void> {

@@ -57,6 +57,20 @@ export const getTeamById = async (teamId: string): Promise<Team | null> => {
   return convertMongoDoc(team);
 };
 
+export const getTeamLogoByTeamId = async (
+  teamId: string
+): Promise<{ type: "url"; url: string } | { type: "upload"; data: string } | null> => {
+  await connectToDatabase();
+  const team = await TeamModel.findOne({ id: teamId }).select({ logo: 1 }).lean().exec();
+  if (!team) return null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const logo = (team as any).logo;
+  if (!logo) return null;
+  if (logo.url) return { type: "url", url: logo.url };
+  if (logo.data) return { type: "upload", data: logo.data };
+  return null;
+};
+
 export const updateTeam = async (
   teamId: string,
   userId: string,

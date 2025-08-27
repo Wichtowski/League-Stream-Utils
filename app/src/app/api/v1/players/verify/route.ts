@@ -89,7 +89,7 @@ export async function GET(request: NextRequest) {
     // Get basic player info
     const player = await riotAPI.getPlayerByRiotId(gameName, tagLine);
     const summoner = await riotAPI.getSummonerByPuuid(player.puuid);
-    const rankedData = await riotAPI.getRankedData(summoner.id);
+    const rankedData = await riotAPI.getRankedData((summoner as { id?: string; _id?: string }).id || summoner._id);
 
     return NextResponse.json({
       success: true,

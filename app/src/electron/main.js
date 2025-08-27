@@ -16,7 +16,6 @@ const isDev = process.env.NODE_ENV === "development";
 // ⬇ Next.js handler ⬇
 const appRootDir = path.join(__dirname, "..", "..");
 const appPath = isDev ? appRootDir : app.getAppPath();
-console.log("App path:", appPath);
 
 let createInterceptor;
 let localhostUrl;
@@ -79,9 +78,7 @@ let dataServer;
 const userDataPath = app.getPath("userData");
 const hostedPath = path.join(userDataPath, "hosted");
 const databasePath = path.join(userDataPath, "database");
-const championsPath = (version) => {
-  return path.join(userDataPath, "hosted", version, "champions");
-};
+// championsPath removed; champions cache is resolved in IPC via assets root
 // Ensure directories exist
 [hostedPath, databasePath].forEach((dir) => {
   if (!fs.existsSync(dir)) {
@@ -118,8 +115,9 @@ app.whenReady().then(async () => {
   }
 
   // Register handlers after modules are loaded
-  registerChampionHandlers(mainWindow, championsPath, userDataPath);
-  registerHostedHandlers(mainWindow, hostedPath, path.join(hostedPath, "cache"));
+  registerChampionHandlers(mainWindow, path.join(hostedPath, "assets"));
+  // Serve assets under hosted/assets
+  registerHostedHandlers(mainWindow, path.join(hostedPath, "assets"));
   registerUtilHandlers();
   registerOBSHandlers();
 

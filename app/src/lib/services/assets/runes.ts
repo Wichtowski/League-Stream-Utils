@@ -25,7 +25,7 @@ export class RunesBlueprintDownloader extends BaseCacheService<CommunityDragonRu
     basePath: "assets/"
   };
 
-  async downloadBlueprint(version: string): Promise<void> {
+  async downloadBlueprint(): Promise<void> {
     await this.initialize();
 
     try {
@@ -62,12 +62,12 @@ export class RunesBlueprintDownloader extends BaseCacheService<CommunityDragonRu
       );
 
       // Check category progress instead of individual file checks (use League version for runes too)
-      const categoryProgress = await this.getCategoryProgress("runes", version);
+      const categoryProgress = await this.getCategoryProgress("runes", this.version);
       let completedRunes = categoryProgress.completedItems;
 
       // If no runes in manifest but files might exist, migrate them
       if (completedRunes.length === 0) {
-        const existingRunes = await this.migrateExistingRunes(validRunes, version);
+        const existingRunes = await this.migrateExistingRunes(validRunes);
         if (existingRunes.length > 0) {
           completedRunes = existingRunes;
         }
@@ -87,7 +87,7 @@ export class RunesBlueprintDownloader extends BaseCacheService<CommunityDragonRu
       });
 
       // Download rune icons using the filtered valid runes
-      const downloadedCount = await this.downloadRuneIcons(validRunes, version, completedRunes);
+      const downloadedCount = await this.downloadRuneIcons(validRunes, completedRunes);
 
       // Update progress - complete with actual count
       this.updateProgress({
@@ -116,11 +116,10 @@ export class RunesBlueprintDownloader extends BaseCacheService<CommunityDragonRu
   }
 
   async downloadBlueprintForCurrentVersion(): Promise<void> {
-    const version = await this.getLatestVersion();
-    await this.downloadBlueprint(version);
+    await this.downloadBlueprint();
   }
 
-  private async migrateExistingRunes(validRunes: CommunityDragonRune[], version: string): Promise<string[]> {
+  private async migrateExistingRunes(validRunes: CommunityDragonRune[]): Promise<string[]> {
     const existingRunes: string[] = [];
     try {
       for (const rune of validRunes) {
@@ -132,7 +131,7 @@ export class RunesBlueprintDownloader extends BaseCacheService<CommunityDragonRu
           style = pathParts.length > 0 ? pathParts[0] : "Unknown";
         }
         const iconFileName = iconPath.split("/").pop() || `${rune.name}.png`;
-        const iconKey = `${version}/runes/${style}/${iconFileName}`;
+        const iconKey = `${this.version}/runes/${style}/${iconFileName}`;
         const fileExists = await this.checkFileExists(iconKey);
         if (fileExists) {
           existingRunes.push(rune.id.toString());
@@ -141,7 +140,7 @@ export class RunesBlueprintDownloader extends BaseCacheService<CommunityDragonRu
       if (existingRunes.length > 0) {
         await this.updateCategoryProgress(
           "runes",
-          version,
+          this.version,
           existingRunes[existingRunes.length - 1],
           validRunes.length,
           existingRunes.length,
@@ -157,14 +156,13 @@ export class RunesBlueprintDownloader extends BaseCacheService<CommunityDragonRu
 
   private async downloadRuneIcons(
     validRunes: CommunityDragonRune[],
-    version: string,
     completedRunes: string[]
   ): Promise<number> {
     if (typeof window === "undefined" || !window.electronAPI) {
       throw new Error("Electron API not available");
     }
 
-    const runeDir = `${version}/runes`;
+    const runeDir = `${this.version}/runes`;
     const totalRunes = validRunes.length;
 
     // Filter out runes that have already been downloaded
@@ -222,7 +220,7 @@ export class RunesBlueprintDownloader extends BaseCacheService<CommunityDragonRu
         // Update category progress
         await this.updateCategoryProgress(
           "runes",
-          version,
+          this.version,
           rune.id.toString(),
           totalRunes,
           downloadedCount,

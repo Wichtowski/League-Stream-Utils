@@ -1,4 +1,3 @@
-import { v4 as uuidv4 } from "uuid";
 import { connectToDatabase } from "./connection";
 import { UserModel } from "./models";
 import type { User as UserType, UserRegistration, UserQueryResult } from "@lib/types";
@@ -18,31 +17,33 @@ export async function createUser(userData: UserRegistration & { passwordHistory?
 
   await newUser.save();
 
-  return newUser.toObject();
+  // Re-fetch lean to ensure plain object with correct typing
+  const created = await UserModel.findById(newUser._id).lean<UserType>().exec();
+  return created as UserType;
 }
 
 export async function getUserByUsername(username: string): Promise<UserQueryResult> {
   await connectToDatabase();
-  const user = await UserModel.findOne({ username });
-  return user;
+  const user = await UserModel.findOne({ username }).lean<UserType>().exec();
+  return (user as unknown) as UserQueryResult;
 }
 
 export async function getUserById(userId: string): Promise<UserQueryResult> {
   await connectToDatabase();
-  const user = await UserModel.findById(userId);
-  return user;
+  const user = await UserModel.findById(userId).lean<UserType>().exec();
+  return (user as unknown) as UserQueryResult;
 }
 
 export async function getUserByEmail(email: string): Promise<UserQueryResult> {
   await connectToDatabase();
-  const user = await UserModel.findOne({ email });
-  return user;
+  const user = await UserModel.findOne({ email }).lean<UserType>().exec();
+  return (user as unknown) as UserQueryResult;
 }
 
 export async function updateUser(userId: string, updates: Partial<UserType>): Promise<UserType | null> {
   await connectToDatabase();
-  const updatedUser = await UserModel.findByIdAndUpdate(userId, updates, { new: true });
-  return updatedUser?.toObject() || null;
+  const updatedUser = await UserModel.findByIdAndUpdate(userId, updates, { new: true }).lean<UserType>().exec();
+  return (updatedUser as UserType) || null;
 }
 
 export async function deleteUser(userId: string): Promise<boolean> {
@@ -53,28 +54,35 @@ export async function deleteUser(userId: string): Promise<boolean> {
 
 export async function getAllUsers(): Promise<UserType[]> {
   await connectToDatabase();
-  const users = await UserModel.find({});
-  return users.map(user => user.toObject());
+  const users = await UserModel.find({}).lean<UserType[]>().exec();
+  return users as UserType[];
 }
 
 export async function updateUserSessionCount(userId: string): Promise<void> {
   await connectToDatabase();
 
   const today = new Date();
-  const user: UserQueryResult = await UserModel.findOne({ id: userId });
+  const user = await UserModel.findOne({ id: userId }).lean<UserType>().exec();
 
   if (!user) {
     throw new Error("User not found");
   }
 
-  if (user.lastSessionDate !== today) {
-    user.sessionsCreatedToday = 1;
-    user.lastSessionDate = today;
-  } else {
-    user.sessionsCreatedToday += 1;
-  }
+  const isSameDay =
+    user.lastSessionDate &&
+    new Date(user.lastSessionDate).toDateString() === today.toDateString();
 
-  await user.save();
+  const nextSessionsCount = isSameDay ? user.sessionsCreatedToday + 1 : 1;
+
+  await UserModel.updateOne(
+    { id: userId },
+    {
+      $set: {
+        sessionsCreatedToday: nextSessionsCount,
+        lastSessionDate: today
+      }
+    }
+  );
 }
 
 export async function canUserCreateSession(userId: string): Promise<boolean> {

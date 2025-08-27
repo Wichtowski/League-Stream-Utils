@@ -9,7 +9,7 @@ const defaultPlayerImage: ImageStorage = {
 }
 
 export const LosRatones: Team = {
-  id: "1",
+  _id: "1",
   name: "Los Ratones",
   tag: "LR",
   region: "EUW",
@@ -28,7 +28,7 @@ export const LosRatones: Team = {
   players: {
     main: [
       {
-        id: "1",
+        _id: "1",
         inGameName: "Baus",
         tag: "EUW",
         role: "TOP",
@@ -41,7 +41,7 @@ export const LosRatones: Team = {
         }
       },
       {
-        id: "2",
+        _id: "2",
         inGameName: "Velja",
         tag: "EUW",
         role: "JUNGLE",
@@ -55,7 +55,7 @@ export const LosRatones: Team = {
       },
       
       {
-        id: "3",
+        _id: "3",
         inGameName: "Nemesis",
         tag: "EUW",
         role: "MID",
@@ -68,7 +68,7 @@ export const LosRatones: Team = {
         }
       },
       {
-        id: "4",
+        _id: "4",
         inGameName: "Crownie",
         tag: "EUW",
         role: "BOTTOM",
@@ -81,7 +81,7 @@ export const LosRatones: Team = {
         }
       },
       {
-        id: "5",
+        _id: "5",
         inGameName: "Rekkles",
         tag: "EUW",
         role: "SUPPORT",
@@ -101,7 +101,7 @@ export const LosRatones: Team = {
 };
 
 export const FajnieMiecSklad: Team = {
-  id: "2",
+  _id: "2",
   name: "Fajnie Miec Sklad",
   tag: "FMS",
   region: "EUW",
@@ -120,7 +120,7 @@ export const FajnieMiecSklad: Team = {
   players: {
     main: [
       {
-        id: "6",
+        _id: "6",
         inGameName: "frajgo",
         tag: "EUW",
         role: "TOP",
@@ -130,7 +130,7 @@ export const FajnieMiecSklad: Team = {
         profileImage: defaultPlayerImage
       },
       {
-        id: "7",
+        _id: "7",
         inGameName: "Rybson",
         tag: "EUW",
         role: "JUNGLE",
@@ -141,7 +141,7 @@ export const FajnieMiecSklad: Team = {
       },
       
       {
-        id: "8",
+        _id: "8",
         inGameName: "Mrozku",
         tag: "EUW",
         role: "MID",
@@ -151,7 +151,7 @@ export const FajnieMiecSklad: Team = {
         profileImage: defaultPlayerImage
       },
       {
-        id: "9",
+        _id: "9",
         inGameName: "Zamulek",
         tag: "EUW",
         role: "BOTTOM",
@@ -161,7 +161,7 @@ export const FajnieMiecSklad: Team = {
         profileImage: defaultPlayerImage
       },
       {
-        id: "10",
+        _id: "10",
         inGameName: "minemaciek",
         tag: "EUW",
         role: "SUPPORT",
@@ -950,8 +950,7 @@ export class DynamicChampSelectMock {
             bestOf: this.config.bestOf!
           }
         },
-        blueTeamId: "68a8ce6566c50b2c86130fa6",
-        redTeamId: "68a8ce6566c50b2c86130fa6",
+        blueTeam: LosRatones,
         redTeam: FajnieMiecSklad
       }
     };

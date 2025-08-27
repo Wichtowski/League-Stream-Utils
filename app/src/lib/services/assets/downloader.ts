@@ -356,7 +356,7 @@ export class AssetDownloader {
       type: type as "champion" | "item" | "spell" | "rune",
       url,
       assetKey,
-      category: "cache",
+      category: "assets",
       priority,
       size
     });
@@ -417,7 +417,7 @@ export class AssetDownloader {
       type: "champion",
       url: `https://ddragon.leagueoflegends.com/cdn/${version}/data/en_US/champion/${championKey}.json`,
       assetKey: `${championDir}/data.json`,
-      category: "cache",
+      category: "assets",
       priority: 1,
       size: 5000 // Estimated size
     });
@@ -444,7 +444,7 @@ export class AssetDownloader {
         type: "champion",
         url,
         assetKey: `${championDir}/${fileName}`,
-        category: "cache",
+        category: "assets",
         priority: 2,
         size: imageSizes[key as keyof typeof imageSizes]
       });
@@ -459,7 +459,7 @@ export class AssetDownloader {
         type: "champion",
         url: `https://ddragon.leagueoflegends.com/cdn/${version}/img/spell/${championKey}${ability === "passive" ? "Passive" : ability}.png`,
         assetKey: `${championDir}/abilities/${fileName}`,
-        category: "cache",
+        category: "assets",
         priority: 3,
         size: 30000 // Estimated size
       });

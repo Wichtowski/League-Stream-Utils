@@ -1,5 +1,3 @@
-import { Champion } from "./game";
-
 export type MatchFormat = "BO1" | "BO3" | "BO5";
 
 export interface Match {
@@ -109,6 +107,7 @@ export interface UpdateMatchRequest {
 export interface AssignCommentatorRequest {
   commentatorId: string;
   matchId: string;
+  assignedBy?: string;
 }
 
 export interface SubmitPredictionRequest {

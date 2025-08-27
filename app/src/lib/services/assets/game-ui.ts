@@ -25,7 +25,7 @@ interface GameUIDownloadResult {
   totalSize: number;
 }
 
-class GameUIBlueprintDownloader extends BaseCacheService {
+class GameUIBlueprintDownloader extends BaseCacheService<GameUIAsset> {
   private isDownloading = false;
   private assetCategories = {
     dragonpit: ["infernal.png", "ocean.png", "hextech.png", "chemtech.png", "mountain.png", "elder.png", "cloud.png"],
@@ -38,11 +38,11 @@ class GameUIBlueprintDownloader extends BaseCacheService {
   private gameUIProgressCallback?: (progress: GameUIDownloadProgress) => void;
 
   // Abstract method implementations
-  async getAll(): Promise<unknown[]> {
+  async getAll(): Promise<GameUIAsset[]> {
     throw new Error("Not implemented");
   }
 
-  async getById(_id: string): Promise<unknown | null> {
+  async getById(_id: string): Promise<GameUIAsset | null> {
     throw new Error("Not implemented");
   }
 
@@ -68,6 +68,8 @@ class GameUIBlueprintDownloader extends BaseCacheService {
     if (this.isDownloading) {
       throw new Error("Download already in progress");
     }
+
+    await this.initialize();
 
     this.isDownloading = true;
     const errors: string[] = [];
@@ -220,6 +222,7 @@ class GameUIBlueprintDownloader extends BaseCacheService {
     files: string[],
     completedAssets: string[]
   ): Promise<{ processedCount: number; totalSize: number; errors: string[] }> {
+    await this.initialize();
     const errors: string[] = [];
     let processedCount = 0;
     let totalSize = 0;
@@ -239,9 +242,9 @@ class GameUIBlueprintDownloader extends BaseCacheService {
         try {
           // Use versioned path for game-ui assets
           const version = await this.getLatestVersion();
-          const assetKey = `${version}/overlay/${category}/${filename}`;
-          // Check if file already exists using asset validator
-          const cachedPath = AssetValidator.generateCachedPath(assetKey);
+          const versionedKey = `${version}/overlay/${category}/${filename}`;
+          // Check if file already exists using asset validator (resolves against cache dir)
+          const cachedPath = AssetValidator.generateCachedPath(versionedKey);
           const fileExists = await AssetValidator.checkFileExists(cachedPath);
 
           if (fileExists) {
@@ -254,8 +257,7 @@ class GameUIBlueprintDownloader extends BaseCacheService {
             // Try to copy directly from public folder first (more reliable for local files)
             try {
               const sourcePath = `public/assets/${category}/${filename}`;
-              const targetPath = `assets/${assetKey}`;
-              const copyResult = await window.electronAPI.copyAssetFile(sourcePath, targetPath);
+              const copyResult = await window.electronAPI.copyAssetFile(sourcePath, `${versionedKey}`);
 
               if (copyResult.success && copyResult.localPath) {
                 const sizeResult = await window.electronAPI.getFileSize(copyResult.localPath);
@@ -272,7 +274,7 @@ class GameUIBlueprintDownloader extends BaseCacheService {
                 const assetUrl = `http://localhost:2137/api/assets/${category}/${filename}`;
 
                 try {
-                  const downloadResult = await window.electronAPI.downloadAsset(assetUrl, "assets", assetKey);
+                  const downloadResult = await window.electronAPI.downloadAsset(assetUrl, "assets", versionedKey);
 
                   if (downloadResult.success && downloadResult.localPath) {
                     // Get file size from the downloaded result

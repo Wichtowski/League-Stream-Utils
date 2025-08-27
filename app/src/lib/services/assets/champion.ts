@@ -188,8 +188,7 @@ class ChampionCacheService extends BaseCacheService<Champion> {
       try {
         if (typeof window !== "undefined" && window.electronAPI) {
           // Check if file already exists by checking the actual file path
-          const userDataPath = await window.electronAPI.getUserDataPath();
-          const fullPath = path.join(userDataPath, "hosted", "assets", assetKey);
+          const fullPath = path.join(this.cacheDir, assetKey);
           const result = await window.electronAPI.checkFileExists(fullPath);
 
           if (result.success && result.exists === true) {
@@ -206,7 +205,7 @@ class ChampionCacheService extends BaseCacheService<Champion> {
             // For splashCentered and loading, fallback to regular splash
             if (key === "splashCentered" || key === "loading") {
               const fallbackUrl = imageUrls.splash;
-              const fallbackResult = await window.electronAPI.downloadAsset(fallbackUrl, "assets", assetKey);
+              const fallbackResult = await window.electronAPI.downloadAsset(fallbackUrl, "direct", assetKey);
               if (fallbackResult.success) {
                 downloadedImages[key] = `assets/${assetKey}`;
               } else {
@@ -270,8 +269,7 @@ class ChampionCacheService extends BaseCacheService<Champion> {
         (async () => {
           if (typeof window !== "undefined" && window.electronAPI) {
             // Check if file already exists by checking the actual file path
-            const userDataPath = await window.electronAPI.getUserDataPath();
-            const fullPath = path.join(userDataPath, "assets", baseAssetKey);
+            const fullPath = path.join(this.cacheDir, baseAssetKey);
             const result = await window.electronAPI.checkFileExists(fullPath);
 
             if (result.success && result.exists === true) {
@@ -314,8 +312,7 @@ class ChampionCacheService extends BaseCacheService<Champion> {
           (async () => {
             if (typeof window !== "undefined" && window.electronAPI) {
               // Check if file already exists by checking the actual file path
-              const userDataPath = await window.electronAPI.getUserDataPath();
-              const fullPath = path.join(userDataPath, "assets", recastAssetKey);
+              const fullPath = path.join(this.cacheDir, recastAssetKey);
               const result = await window.electronAPI.checkFileExists(fullPath);
 
               if (result.success && result.exists === true) {
@@ -332,7 +329,7 @@ class ChampionCacheService extends BaseCacheService<Champion> {
 
               const recastDownloadResult = await window.electronAPI.downloadAsset(
                 recastImageUrl,
-                "cache",
+                "assets",
                 recastAssetKey
               );
               if (recastDownloadResult.success) {
@@ -371,8 +368,7 @@ class ChampionCacheService extends BaseCacheService<Champion> {
       (async () => {
         if (typeof window !== "undefined" && window.electronAPI) {
           // Check if file already exists by checking the actual file path
-          const userDataPath = await window.electronAPI.getUserDataPath();
-          const fullPath = path.join(userDataPath, "assets", passiveAssetKey);
+          const fullPath = path.join(this.cacheDir, passiveAssetKey);
           const result = await window.electronAPI.checkFileExists(fullPath);
 
           if (result.success && result.exists === true) {
@@ -520,7 +516,7 @@ class ChampionCacheService extends BaseCacheService<Champion> {
           const cacheData = await this.downloadChampionData(championKey, version);
 
           champions.push({
-            id: cacheData.id,
+            _id: cacheData.id,
             name: cacheData.name,
             key: cacheData.alias,
             image: cacheData.squareImg,
@@ -536,7 +532,7 @@ class ChampionCacheService extends BaseCacheService<Champion> {
           // Add basic champion data as fallback
           const basicChamp = data.data[championKey];
           champions.push({
-            id: parseInt(basicChamp.key),
+            _id: parseInt(basicChamp.key),
             name: basicChamp.name,
             key: basicChamp.id,
             image: `${DDRAGON_CDN}/${version}/img/champion/${basicChamp.image.full}`
@@ -570,7 +566,7 @@ class ChampionCacheService extends BaseCacheService<Champion> {
       const cacheData = await this.downloadChampionData(key, version);
 
       return {
-        id: cacheData.id,
+        _id: cacheData.id,
         name: cacheData.name,
         key: cacheData.alias,
         image: cacheData.squareImg,
@@ -663,17 +659,14 @@ class ChampionCacheService extends BaseCacheService<Champion> {
 
         let championExists = false;
         if (typeof window !== "undefined" && window.electronAPI) {
-          const userDataPath = await window.electronAPI.getUserDataPath();
-          const fullPath = `${userDataPath}/hosted/cache/assets/${squareImagePath}`;
+          const fullPath = `${this.cacheDir}/${squareImagePath}`;
           const fileCheck = await window.electronAPI.checkFileExists(fullPath);
           championExists = fileCheck.success && fileCheck.exists === true;
         }
 
         if (!championExists) {
           missingChampions.push(championKey);
-        } /* else {
-                    console.log(`✓ Champion ${championKey} found`);
-                }*/
+        }
       }
 
       console.log(

@@ -27,9 +27,9 @@ export const getSummonerSpellImageByName = (summonerSpellName: string): string =
     // If it already points to our API, use it
     if (spell.image.startsWith("/api/local-image")) return spell.image;
     // If it's a cached/asset relative path, resolve via API
-    if (spell.image.startsWith("assets/") || spell.image.startsWith("cache/")) {
+    if (spell.image.startsWith("assets/")) {
       return `/api/local-image?path=${encodeURIComponent(
-        spell.image.startsWith("cache/") ? spell.image.replace(/^cache\//, "") : spell.image
+        spell.image.replace(/^cache\//, "")
       )}`;
     }
     // If it's an http/https URL, return as-is
@@ -42,9 +42,9 @@ export const getSummonerSpellImageByName = (summonerSpellName: string): string =
   const byName = all.find((s) => s.name.toLowerCase() === original.toLowerCase());
   if (byName?.image) {
     if (byName.image.startsWith("/api/local-image")) return byName.image;
-    if (byName.image.startsWith("assets/") || byName.image.startsWith("cache/")) {
+    if (byName.image.startsWith("assets/")) {
       return `/api/local-image?path=${encodeURIComponent(
-        byName.image.startsWith("cache/") ? byName.image.replace(/^cache\//, "") : byName.image
+        byName.image.replace(/^cache\//, "")
       )}`;
     }
     if (/^https?:\/\//.test(byName.image)) return byName.image;
@@ -81,7 +81,7 @@ export const getChampionLoadingImage = (championId: number | string): string | n
   if (!champ?.image) return null;
 
   // Resolve cached relative path (starts with 'cache/')
-  if (champ.image.startsWith("hosted/cache/assets/")) {
+  if (champ.image.startsWith("hosted/assets/")) {
     return resolveCachedPath(champ.image);
   }
 
@@ -89,7 +89,7 @@ export const getChampionLoadingImage = (championId: number | string): string | n
   const ddragonMatch = champ.image.match(/\/cdn\/([^/]+)\/img\/champion\/([^.]+)\.png$/);
   if (ddragonMatch) {
     const [, version, key] = ddragonMatch;
-    const rel = `hosted/cache/assets/${version}/champion/${key}/loading.png`;
+    const rel = `hosted/assets/${version}/champion/${key}/loading.png`;
     return resolveCachedPath(rel);
   }
 
@@ -114,7 +114,7 @@ export const getChampionSquareImage = (championId: number | string): string => {
   if (!champ?.image) return "";
 
   // Resolve cached relative path (starts with 'cache/')
-  if (champ.image.startsWith("cache/")) {
+  if (champ.image.startsWith("hosted/assets/")) {
     return resolveCachedPath(champ.image);
   }
 

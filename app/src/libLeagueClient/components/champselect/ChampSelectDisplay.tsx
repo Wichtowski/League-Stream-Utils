@@ -49,7 +49,7 @@ const ChampSelectDisplayComponent: React.FC<ChampSelectDisplayProps> = ({
   const [uiReady, setUiReady] = useState(false);
   const [loadedTournament, setLoadedTournament] = useState<Tournament | null>(null);
   const [loadedMatch, setLoadedMatch] = useState<Match | null>(null);
-  const [loadedTeams, setLoadedTeams] = useState<Team[]>([]);
+  const [_loadedTeams, setLoadedTeams] = useState<Team[]>([]);
   const initialPreloadDoneRef = useRef<boolean>(false);
   const [childImageUrls, setChildImageUrls] = useState<string[]>([]);
   const [childImagesLoaded, setChildImagesLoaded] = useState(false);
@@ -61,7 +61,7 @@ const ChampSelectDisplayComponent: React.FC<ChampSelectDisplayProps> = ({
       if (!matchId && !tournamentId) return;
       
       try {
-        const promises: Promise<any>[] = [];
+        const promises: Promise<void>[] = [];
         
         if (tournamentId) {
           promises.push(getTournamentById(tournamentId).then(setLoadedTournament));
@@ -105,7 +105,6 @@ const ChampSelectDisplayComponent: React.FC<ChampSelectDisplayProps> = ({
   // Use provided data or loaded data
   const effectiveTournament = tournament || loadedTournament;
   const effectiveMatch = match || loadedMatch;
-  const effectiveTeams = teams || loadedTeams;
 
   useEffect(() => {
     const loadAssets = async () => {
@@ -229,8 +228,8 @@ const ChampSelectDisplayComponent: React.FC<ChampSelectDisplayProps> = ({
     theirTeam,
     bans.myTeamBans,
     bans.theirTeamBans,
-    effectiveTournamentData?.blueTeam?.logo,
-    effectiveTournamentData?.redTeam?.logo,
+    effectiveTournamentData?.blueTeam,
+    effectiveTournamentData?.redTeam,
     effectiveTournamentData?.tournament?.logo
   ]);
 

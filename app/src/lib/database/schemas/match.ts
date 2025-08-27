@@ -1,6 +1,5 @@
 import { Schema } from "mongoose";
 import { ImageStorageSchema } from "./common";
-import { ChampionSchema } from "./common";
 
 const MatchCommentatorSchema = new Schema(
   {
