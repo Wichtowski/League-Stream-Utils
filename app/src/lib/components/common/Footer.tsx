@@ -4,7 +4,7 @@ import Link from "next/link";
 import { getVisibleModules } from "@lib/navigation";
 import { useNavigation } from "@lib/contexts/NavigationContext";
 import { usePathname } from "next/navigation";
-import { useElectron } from "@/libElectron/contexts/ElectronContext";
+import { useElectron } from "@libElectron/contexts/ElectronContext";
 import { useAuth } from "@lib/contexts/AuthContext";
 
 export function Footer() {

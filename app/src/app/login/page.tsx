@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { AuthTabs, MessageDisplay, LoginForm, RegisterForm, ContactInfo } from "@/lib/auth/components";
+import { AuthTabs, MessageDisplay, LoginForm, RegisterForm, ContactInfo } from "@lib/auth/components";
 import { useAuth } from "@lib/contexts/AuthContext";
 import { useNavigation } from "@lib/contexts/NavigationContext";
 import { SettingsCog, PageWrapper } from "@lib/components/common";
-import { useElectron } from "@/libElectron/contexts/ElectronContext";
+import { useElectron } from "@libElectron/contexts/ElectronContext";
 
 export default function AuthPage() {
   const router = useRouter();

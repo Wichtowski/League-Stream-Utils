@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { withAuth } from "@/lib/auth";
+import { withAuth } from "@lib/auth";
 import { registerTeamForTournament, unregisterTeamFromTournament, getTournamentById } from "@lib/database/tournament";
 import { getTeamById } from "@lib/database/team";
 import { JWTPayload } from "@lib/types/auth";

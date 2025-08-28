@@ -1,5 +1,5 @@
 import type { User, SessionUrls } from "@lib/types";
-import { SessionUrlDisplay } from "@/libPickban/components/SessionUrlDisplay";
+import { SessionUrlDisplay } from "@libPickban/components/SessionUrlDisplay";
 
 interface SessionCreatorProps {
   user: User;

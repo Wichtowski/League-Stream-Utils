@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@lib/contexts/AuthContext";
-import { useElectron } from "@/libElectron/contexts/ElectronContext";
+import { useElectron } from "@libElectron/contexts/ElectronContext";
 
 interface AuthGuardProps {
   children: React.ReactNode;

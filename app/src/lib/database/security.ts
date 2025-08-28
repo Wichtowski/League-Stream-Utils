@@ -1,6 +1,6 @@
 import { connectToDatabase } from "./connection";
 import { LoginAttemptModel, SecurityEventModel } from "./models";
-import { config } from "@lib/config";
+import { config } from "@lib/services/system/config";
 import { LoginAttempt, SecurityEvent } from "@lib/types/security";
 
 function transformToSecurityEvent(doc: { _id?: unknown; __v?: number; [key: string]: unknown }): SecurityEvent {

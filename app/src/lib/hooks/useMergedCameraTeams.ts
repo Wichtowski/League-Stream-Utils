@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@lib/contexts/AuthContext";
-import { useCameras } from "@/libCamera/context/CamerasContext";
+import { useCameras } from "@libCamera/context/CamerasContext";
 
 import type { CameraPlayer, CameraTeam, Team } from "@lib/types";
 

@@ -3,7 +3,7 @@
 import React, { useEffect } from "react";
 import { useNavigation } from "@lib/contexts/NavigationContext";
 import { useAuth } from "@lib/contexts/AuthContext";
-import { CopyButton } from "@/lib/components/common";
+import { CopyButton } from "@lib/components/common";
 import Link from "next/link";
 
 export default function LeagueClientPage(): React.ReactElement {

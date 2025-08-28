@@ -4,7 +4,7 @@ import React, { useEffect, useState, Suspense } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import { useNavigation } from "@lib/contexts/NavigationContext";
-import { AuthGuard } from "@/lib/auth/components";
+import { AuthGuard } from "@lib/auth/components";
 import { useAuthenticatedFetch } from "@lib/hooks/useAuthenticatedFetch";
 import { CameraFeed, CameraNavigation, PlayerInfoHeader, CameraLayout } from "@libCamera/components";
 import { CameraPlayer, CameraTeam } from "@libCamera/types/camera";

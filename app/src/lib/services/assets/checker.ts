@@ -1,7 +1,7 @@
 import { championCacheService } from "./champion";
 import { itemCacheService } from "./item";
-import { gameUIBlueprintDownloader } from "./game-ui";
-import { runesBlueprintDownloader } from "./runes";
+import { gameUIBlueprintDownloader } from "@lib/services/assets/game-ui";
+import { runesBlueprintDownloader } from "@lib/services/assets/runes";
 import { NextRouter } from "next/router";
 
 export interface AssetCheckResult {

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import jwt, { SignOptions } from "jsonwebtoken";
 import { canUserCreateSession, updateUserSessionCount } from "../database";
 import { JWTPayload, SessionData } from "../types/auth";
-import { config } from "@lib/config";
+import { config } from "@lib/services/system/config";
 import { checkRateLimit, getClientIP } from "@lib/services/common/security";
 import { logSecurityEvent } from "../database/security";
 

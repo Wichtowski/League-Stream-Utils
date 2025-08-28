@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { withAuth } from "@/lib/auth";
+import { withAuth } from "@lib/auth";
 import { createMatch, getStandaloneMatches } from "@lib/database/match";
 import type { CreateMatchRequest } from "@lib/types/match";
 

@@ -6,7 +6,7 @@ import { useNavigation } from "@lib/contexts/NavigationContext";
 import { useAuthenticatedFetch } from "@lib/hooks/useAuthenticatedFetch";
 import { CameraPlayer, CameraTeam } from "@lib/types";
 import { PageWrapper } from "@lib/layout/PageWrapper";
-import { useCameras } from "@/libCamera/context/CamerasContext";
+import { useCameras } from "@libCamera/context/CamerasContext";
 import { SafeImage } from "@lib/components/common/SafeImage";
 
 export default function TeamCameraStreamPage() {

@@ -2,13 +2,13 @@
 
 import { useEffect, useState, Suspense } from "react";
 import { useRouter } from "next/navigation";
-import { useTournaments } from "@/libTournament/contexts/TournamentsContext";
+import { useTournaments } from "@libTournament/contexts/TournamentsContext";
 import { useNavigation } from "@lib/contexts/NavigationContext";
 import { useModal } from "@lib/contexts/ModalContext";
 import { LoadingSpinner } from "@lib/components/common";
 import { PageWrapper } from "@lib/layout";
 import { Tournament, TournamentStatus } from "@lib/types";
-import { TournamentEditor } from "@/libTournament/components/tournament/TournamentEditor";
+import { TournamentEditor } from "@libTournament/components/tournament/TournamentEditor";
 
 interface TournamentDetailPageProps {
   params: Promise<{

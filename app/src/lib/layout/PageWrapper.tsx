@@ -1,7 +1,7 @@
 import React from "react";
 import { PageLayout } from "./PageLayout";
 import { BreadcrumbItem } from "@lib/components/common";
-import { AuthGuard } from "@/lib/auth/components/AuthGuard";
+import { AuthGuard } from "@lib/auth/components/AuthGuard";
 
 interface PageWrapperProps {
   children: React.ReactNode;

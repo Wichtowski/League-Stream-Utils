@@ -4,7 +4,7 @@ import { useState } from "react";
 import type { Tournament, CreateTournamentRequest, MatchFormat, TournamentFormat } from "@lib/types";
 import { useModal } from "@lib/contexts/ModalContext";
 import Image from "next/image";
-import { useTournaments } from "@/libTournament/contexts/TournamentsContext";
+import { useTournaments } from "@libTournament/contexts/TournamentsContext";
 
 interface TournamentCreationFormProps {
   onTournamentCreated: (tournament: Tournament) => void;

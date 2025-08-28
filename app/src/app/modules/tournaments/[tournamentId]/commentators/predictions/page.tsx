@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useUser } from "@lib/contexts/AuthContext";
-import { useTournaments } from "@/libTournament/contexts/TournamentsContext";
+import { useTournaments } from "@libTournament/contexts/TournamentsContext";
 import { PageWrapper } from "@lib/layout/PageWrapper";
 import type { Tournament } from "@lib/types";
 import type { BracketStructure, BracketNode } from "@lib/types/tournament";

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { withAuth } from "@/lib/auth";
+import { withAuth } from "@lib/auth";
 import { getMatchById, assignCommentator } from "@lib/database/match";
 import type { AssignCommentatorRequest } from "@lib/types/match";
 

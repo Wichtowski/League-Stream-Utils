@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState, type ReactElement } from "react";
 import { useNavigation } from "@lib/contexts/NavigationContext";
 import { useAuth } from "@lib/contexts/AuthContext";
-import { useCameras } from "@/libCamera/context/CamerasContext";
+import { useCameras } from "@libCamera/context/CamerasContext";
 import type { Team } from "@lib/types";
 
 import { useMergedCameraTeams, type MergedTeamWithPlayers, type MergedPlayer } from "@lib/hooks/useMergedCameraTeams";

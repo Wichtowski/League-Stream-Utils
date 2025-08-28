@@ -4,7 +4,7 @@ import { useEffect, useState, type ReactElement } from "react";
 import { useRouter } from "next/navigation";
 import { useNavigation } from "@lib/contexts";
 import { PageWrapper } from "@lib/layout";
-import { TeamListCard } from "@/libTeam/components";
+import { TeamListCard } from "@libTeam/components";
 import { GridLoader } from "@lib/components/common";
 import type { Team } from "@lib/types";
 

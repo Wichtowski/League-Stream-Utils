@@ -1,5 +1,5 @@
 import NodeCache from "node-cache";
-import { config } from "@lib/config";
+import { config } from "@lib/services/system/config";
 import { SummonerData, RankedData, ChampionMastery, MatchData, RiotPlayer } from "@lib/types/riot";
 
 class RiotAPIService {

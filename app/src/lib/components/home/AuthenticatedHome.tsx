@@ -2,7 +2,7 @@
 
 import React from "react";
 import type { User, GameSession, SessionUrls } from "@lib/types";
-import { useElectron } from "@/libElectron/contexts/ElectronContext";
+import { useElectron } from "@libElectron/contexts/ElectronContext";
 import { SessionCreator, SessionList } from "./index";
 import { useRouter } from "next/navigation";
 

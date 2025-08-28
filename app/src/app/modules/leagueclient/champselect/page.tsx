@@ -8,8 +8,8 @@ import { useDownload } from "@lib/contexts/DownloadContext";
 import { LCUConnector } from "@lib/services/external/LCU/connector";
 import { storage } from "@lib/services/common/UniversalStorage";
 import { ChampSelectDisplay } from "@libLeagueClient/components/champselect/ChampSelectDisplay";
-import { getAllRoleIconAssets, getDefaultAsset } from "@/libLeagueClient/components/common";
-import { getLatestVersion } from "@/lib/services/common/unified-asset-cache";
+import { getAllRoleIconAssets, getDefaultAsset } from "@libLeagueClient/components/common";
+import { getLatestVersion } from "@lib/services/common/unified-asset-cache";
 
 const LCU_SETTINGS_KEY = "lcu-settings";
 const LCU_CONNECTION_KEY = "lcu-connection";

@@ -22,9 +22,9 @@ import { bindLivePlayersToMatch, createFallbackLivePlayer, getRoleOrder } from "
 import { getLatestVersion } from "@lib/services/common/unified-asset-cache";
 import { useImagePreload } from "@lib/hooks/useImagePreload";
 import { getTeamById } from "@lib/database/team";
-import { getTournamentById } from "@/lib/database/tournament";
-import { getMatchById } from "@/lib/database/match";
-import { Team } from "@/lib/types/team";
+import { getTournamentById } from "@lib/database/tournament";
+import { getMatchById } from "@lib/database/match";
+import { Team } from "@lib/types/team";
 
 interface GameDataDisplayProps {
   gameData: LiveGameData;

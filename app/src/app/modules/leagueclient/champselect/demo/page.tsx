@@ -6,7 +6,7 @@ import { ChampSelectDisplay } from "@libLeagueClient/components/champselect/Cham
 import { Breadcrumbs } from "@lib/components/common";
 import { getChampions } from "@lib/champions";
 import { getLatestVersion } from "@lib/services/common/unified-asset-cache";
-import { getDefaultAsset, getAllRoleIconAssets } from "@/libLeagueClient/components/common";
+import { getDefaultAsset, getAllRoleIconAssets } from "@libLeagueClient/components/common";
 import { getDynamicMockData, FajnieMiecSklad, LosRatones } from "@lib/mocks/dynamic-champselect";
 import { mockTournament } from "@lib/mocks/game";
 

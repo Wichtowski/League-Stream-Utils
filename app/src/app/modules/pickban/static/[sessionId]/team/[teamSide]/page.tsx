@@ -13,7 +13,7 @@ import { API_BASE_URL } from "@lib/services/common/constants";
 import { useChampionHoverAnimation, useTurnSequence } from "@lib/hooks/useChampSelectData";
 import { PageWrapper } from "@lib/layout";
 import { getTeamLogoUrl, getTournamentLogoUrl } from "@lib/services/common/image";
-import { TeamPasswordModal } from "@/libPickban/components/TeamPasswordModal";
+import { TeamPasswordModal } from "@libPickban/components/TeamPasswordModal";
 
 interface PickBanAction {
   id: string;

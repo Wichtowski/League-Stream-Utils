@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode, useMemo } from "react";
 import { useAuthenticatedFetch } from "@lib/hooks/useAuthenticatedFetch";
 import { useAuth } from "@lib/contexts/AuthContext";
-import { useElectron } from "@/libElectron/contexts/ElectronContext";
+import { useElectron } from "@libElectron/contexts/ElectronContext";
 import { storage } from "@lib/services/common/UniversalStorage";
 import type { Team, CameraPlayer } from "@lib/types";
 

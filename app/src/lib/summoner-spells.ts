@@ -29,7 +29,7 @@ async function fetchSummonerSpellsFromAPI(): Promise<{
 
   const spells: SummonerSpell[] = Object.values(data.data).map((spell: unknown) => {
     const s = spell as {
-      id: string;
+      _id: string;
       name: string;
       key: string;
       description: string;
@@ -40,7 +40,7 @@ async function fetchSummonerSpellsFromAPI(): Promise<{
       image: { full: string };
     };
     return {
-      id: s.id,
+      _id: s._id,
       name: s.name,
       key: s.key,
       description: s.description,
@@ -178,7 +178,7 @@ export const getSummonerSpellByKey = (key: string): SummonerSpell | undefined =>
 
 export const getSummonerSpellById = (id: string): SummonerSpell | undefined => {
   const spells = getSummonerSpellsCached();
-  return spells.find((spell) => spell.id === id);
+  return spells.find((spell) => spell._id === id);
 };
 
 export const getSummonerSpellByName = (name: string): SummonerSpell | undefined => {

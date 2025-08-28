@@ -1,5 +1,5 @@
 import mongoose, { connect, disconnect } from "mongoose";
-import { config } from "@lib/config";
+import { config } from "@lib/services/system/config";
 
 const mongooseInstance = mongoose;
 

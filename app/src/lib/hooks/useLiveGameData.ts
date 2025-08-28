@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { useElectron } from "@/libElectron/contexts/ElectronContext";
+import { useElectron } from "@libElectron/contexts/ElectronContext";
 import { GameEvent, LiveItem, LivePlayer } from "@libLeagueClient/types";
 
 interface PlayerScores {

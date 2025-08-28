@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUserByUsername } from "@lib/database/user";
-import { verifyToken, generateTokens, setSecurityHeaders } from "@/lib/auth";
+import { verifyToken, generateTokens, setSecurityHeaders } from "@lib/auth";
 import { getClientIP } from "@lib/services/common/security";
 import { logSecurityEvent } from "@lib/database/security";
 

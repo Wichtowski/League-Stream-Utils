@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import type { GameSession, SessionUrls } from "@lib/types";
-import { PickBanContent } from "@/libPickban/components/PickBanContent";
+import { PickBanContent } from "@libPickban/components/PickBanContent";
 import { useAuth } from "@lib/contexts/AuthContext";
 import { useNavigation } from "@lib/contexts/NavigationContext";
 import { useModal } from "@lib/contexts/ModalContext";

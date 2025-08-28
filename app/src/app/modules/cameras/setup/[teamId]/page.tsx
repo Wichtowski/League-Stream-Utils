@@ -5,11 +5,11 @@ import { useRouter, useParams } from "next/navigation";
 import { useNavigation } from "@lib/contexts/NavigationContext";
 import { useModal } from "@lib/contexts/ModalContext";
 import { useAuth } from "@lib/contexts/AuthContext";
-import { useElectron } from "@/libElectron/contexts/ElectronContext";
+import { useElectron } from "@libElectron/contexts/ElectronContext";
 import { useAuthenticatedFetch } from "@lib/hooks/useAuthenticatedFetch";
 import type { Team } from "@lib/types";
 
-import { useCameras } from "@/libCamera/context/CamerasContext";
+import { useCameras } from "@libCamera/context/CamerasContext";
 import { CameraPlayer, CameraTeam } from "@libCamera/types/camera";
 import {
   TeamSetupHeader,

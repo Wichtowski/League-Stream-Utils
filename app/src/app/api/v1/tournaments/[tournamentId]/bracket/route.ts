@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { withAuth } from "@/lib/auth";
+import { withAuth } from "@lib/auth";
 import { getTournamentById } from "@lib/database/tournament";
 import { BracketGenerator } from "@lib/services/tournament";
 import { connectToDatabase } from "@lib/database/connection";

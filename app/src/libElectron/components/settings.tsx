@@ -21,7 +21,7 @@ import { OBSControl } from "./obsControl";
 import { LocalDatabaseManager } from "./LocalDatabaseManager";
 import { Button } from "@lib/components/common";
 import { PageWrapper } from "@lib/layout";
-import { useElectron } from "@/libElectron/contexts/ElectronContext";
+import { useElectron } from "@libElectron/contexts/ElectronContext";
 
 interface RiotAPISettings {
   apiKey: string;

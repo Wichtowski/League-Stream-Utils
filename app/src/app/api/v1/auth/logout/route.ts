@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyToken, invalidateSession, setSecurityHeaders } from "@/lib/auth";
+import { verifyToken, invalidateSession, setSecurityHeaders } from "@lib/auth";
 import { getClientIP } from "@lib/services/common/security";
 import { logSecurityEvent } from "@lib/database/security";
 

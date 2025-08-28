@@ -20,9 +20,9 @@ import { useImagePreload } from "@lib/hooks/useImagePreload";
 import { getItems } from "@lib/items";
 import { getChampions } from "@lib/champions";
 import { getSummonerSpells } from "@lib/summoner-spells";
-import { getTournamentById } from "@/lib/database/tournament";
-import { getMatchById } from "@/lib/database/match";
-import { getTeamById } from "@/lib/database/team";
+import { getTournamentById } from "@lib/database/tournament";
+import { getMatchById } from "@lib/database/match";
+import { getTeamById } from "@lib/database/team";
 
 interface ChampSelectDisplayProps {
   data: EnhancedChampSelectSession;

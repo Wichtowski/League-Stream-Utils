@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useNavigation } from "@lib/contexts/NavigationContext";
-import { useCameras } from "@/libCamera/context/CamerasContext";
+import { useCameras } from "@libCamera/context/CamerasContext";
 import { CameraTeam } from "@libCamera/types/camera";
 import { Accordion, AccordionItem } from "@lib/components/common/Accordion";
 import { PageWrapper } from "@lib/layout/PageWrapper";
