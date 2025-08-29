@@ -30,10 +30,22 @@ class GameUIBlueprintDownloader extends BaseCacheService<GameUIAsset> {
   private assetCategories = {
     dragonpit: ["infernal.png", "ocean.png", "hextech.png", "chemtech.png", "mountain.png", "elder.png", "cloud.png"],
     default: ["player.png", "tournament.png", "default_ban_placeholder.svg"],
-    scoreboard: ["gold.png", "grubs.png", "tower.png"],
-    atakhan: ["atakhan_ruinous.png", "atakhan_voracious.png"],
+    atakhan: ["atakhan.png"],
     baronpit: ["baron.png", "grubs.png", "herald.png"],
-    roleIcons: ["top_splash_placeholder.svg", "jung_splash_placeholder.svg", "mid_splash_placeholder.svg", "sup_splash_placeholder.svg", "bot_splash_placeholder.svg"]
+    common: ["crossed_sword.png", "crossed_sword_gray.png", "tower.png", "tower_gray.png", "turret.png", "turret_gray.png"],
+    roleIcons: [
+      "top_black_splash_placeholder.svg",
+      "top_splash_placeholder.svg",
+      "jung_splash_placeholder.svg",
+      "jung_black_splash_placeholder.svg",
+      "mid_splash_placeholder.svg",
+      "mid_black_splash_placeholder.svg",
+      "sup_splash_placeholder.svg",
+      "sup_black_splash_placeholder.svg",
+      "bot_splash_placeholder.svg",
+      "bot_black_splash_placeholder.svg"
+    ],
+    scoreboard: ["gold.png", "grubs.png", "gold_gray.png", "grubs_gray.png"],
   };
   private gameUIProgressCallback?: (progress: GameUIDownloadProgress) => void;
 
