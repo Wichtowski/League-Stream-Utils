@@ -59,11 +59,8 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({ gameData, matc
   useEffect(() => {
     const loadTournamentAndMatch = async () => {
       try {
-        const [tournamentData, matchData] = await Promise.all([
-          getTournamentById(tournamentId),
-          getMatchById(matchId)
-        ]);
-        
+        const [tournamentData, matchData] = await Promise.all([getTournamentById(tournamentId), getMatchById(matchId)]);
+
         setTournament(tournamentData);
         setMatch(matchData);
       } catch (error) {
@@ -80,13 +77,10 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({ gameData, matc
   useEffect(() => {
     const loadTeams = async () => {
       if (!match) return;
-      
+
       try {
-        const [blueTeam, redTeam] = await Promise.all([
-          getTeamById(match.blueTeamId),
-          getTeamById(match.redTeamId)
-        ]);
-        
+        const [blueTeam, redTeam] = await Promise.all([getTeamById(match.blueTeamId), getTeamById(match.redTeamId)]);
+
         setOrderTeam(blueTeam);
         setChaosTeam(redTeam);
       } catch (error) {
@@ -100,12 +94,8 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({ gameData, matc
   useEffect(() => {
     const loadAssets = async () => {
       try {
-        await Promise.all([
-          getChampions(),
-          getSummonerSpells(),
-          getItems()
-        ]);
-        
+        await Promise.all([getChampions(), getSummonerSpells(), getItems()]);
+
         setChampionsLoaded(true);
         setSummonerSpellsLoaded(true);
         setItemsLoaded(true);
@@ -123,15 +113,15 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({ gameData, matc
   useEffect(() => {
     const setupGameAssets = async () => {
       if (!tournament) return;
-      
+
       try {
         const resolvedVersion = tournament.gameVersion ?? (await getLatestVersion());
         setGameVersion(resolvedVersion);
-        
+
         setTournamentLogo(
           tournament.logo?.data || tournament.logo?.url || getDefaultAsset(resolvedVersion, "tournament.png")
         );
-        
+
         setGoldIcon(getScoreboardAsset(resolvedVersion, "gold.png"));
         setTowerIcon(getScoreboardAsset(resolvedVersion, "tower.png"));
         setBaronIcon(getBaronPitAsset(resolvedVersion, "baron.png"));
@@ -159,13 +149,9 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({ gameData, matc
   // Set team logos when teams are loaded
   useEffect(() => {
     if (!orderTeam || !chaosTeam || !gameVersion) return;
-    
-    setOrderLogo(
-      orderTeam.logo?.data || orderTeam.logo?.url || getDefaultAsset(gameVersion, "order.png")
-    );
-    setChaosLogo(
-      chaosTeam.logo?.data || chaosTeam.logo?.url || getDefaultAsset(gameVersion, "chaos.png")
-    );
+
+    setOrderLogo(orderTeam.logo?.data || orderTeam.logo?.url || getDefaultAsset(gameVersion, "order.png"));
+    setChaosLogo(chaosTeam.logo?.data || chaosTeam.logo?.url || getDefaultAsset(gameVersion, "chaos.png"));
   }, [orderTeam, chaosTeam, gameVersion]);
 
   const formatGameTime = (seconds: number): string => {

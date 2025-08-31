@@ -266,13 +266,9 @@ class ItemCacheService extends BaseCacheService<ItemCacheData> {
 
       // Check for file existence directly on disk - simple and reliable
       if (typeof window !== "undefined" && window.electronAPI) {
-
         for (const itemKey of allItemKeys) {
           // Check if the main item image exists (this is the key asset)
-          const itemImagePath = path.join(
-            this.cacheDir,
-            `${version}/items/${itemKey}.png`
-          );
+          const itemImagePath = path.join(this.cacheDir, `${version}/items/${itemKey}.png`);
           const fileCheck = await window.electronAPI.checkFileExists(itemImagePath);
 
           if (!fileCheck.success || !fileCheck.exists) {

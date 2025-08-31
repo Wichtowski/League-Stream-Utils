@@ -17,6 +17,7 @@ export const GET = withAuth(async (_req: NextRequest, _user) => {
 // POST: create a new match
 export const POST = withAuth(async (req: NextRequest, user) => {
   try {
+    console.log("Creating match:", user);
     const matchData: CreateMatchRequest = await req.json();
 
     // Validate required fields

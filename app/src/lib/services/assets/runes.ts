@@ -154,10 +154,7 @@ export class RunesBlueprintDownloader extends BaseCacheService<CommunityDragonRu
     }
   }
 
-  private async downloadRuneIcons(
-    validRunes: CommunityDragonRune[],
-    completedRunes: string[]
-  ): Promise<number> {
+  private async downloadRuneIcons(validRunes: CommunityDragonRune[], completedRunes: string[]): Promise<number> {
     if (typeof window === "undefined" || !window.electronAPI) {
       throw new Error("Electron API not available");
     }

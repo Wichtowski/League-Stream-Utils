@@ -28,9 +28,7 @@ export const getSummonerSpellImageByName = (summonerSpellName: string): string =
     if (spell.image.startsWith("/api/local-image")) return spell.image;
     // If it's a cached/asset relative path, resolve via API
     if (spell.image.startsWith("assets/")) {
-      return `/api/local-image?path=${encodeURIComponent(
-        spell.image.replace(/^cache\//, "")
-      )}`;
+      return `/api/local-image?path=${encodeURIComponent(spell.image.replace(/^cache\//, ""))}`;
     }
     // If it's an http/https URL, return as-is
     if (/^https?:\/\//.test(spell.image)) return spell.image;
@@ -43,9 +41,7 @@ export const getSummonerSpellImageByName = (summonerSpellName: string): string =
   if (byName?.image) {
     if (byName.image.startsWith("/api/local-image")) return byName.image;
     if (byName.image.startsWith("assets/")) {
-      return `/api/local-image?path=${encodeURIComponent(
-        byName.image.replace(/^cache\//, "")
-      )}`;
+      return `/api/local-image?path=${encodeURIComponent(byName.image.replace(/^cache\//, ""))}`;
     }
     if (/^https?:\/\//.test(byName.image)) return byName.image;
     return byName.image;
@@ -146,8 +142,6 @@ export const getChampionCenteredSplashImage = (championId: number | string): str
 
   if (!champ) return "";
 
-
-
   // Use splashCenteredImg if available
   if (champ.splashCenteredImg) {
     // Handle different path formats
@@ -197,7 +191,7 @@ export const getChampionCenteredSplashImage = (championId: number | string): str
   }
 
   // If it's already a centered splash image, return as is
-  if (champ.image.includes('splashCentered.jpg')) {
+  if (champ.image.includes("splashCentered.jpg")) {
     return resolveCachedPath(champ.image);
   }
 
@@ -250,7 +244,12 @@ export const getScoreboardAsset = (version: string, asset: ScoreboardAsset): str
   return getAsset(version, "scoreboard", asset);
 };
 
-type RoleIconAsset = "top_splash_placeholder.svg" | "jung_splash_placeholder.svg" | "mid_splash_placeholder.svg" | "sup_splash_placeholder.svg" | "bot_splash_placeholder.svg";
+type RoleIconAsset =
+  | "top_splash_placeholder.svg"
+  | "jung_splash_placeholder.svg"
+  | "mid_splash_placeholder.svg"
+  | "sup_splash_placeholder.svg"
+  | "bot_splash_placeholder.svg";
 export const getRoleIconAsset = (version: string, asset: RoleIconAsset): string => {
   return getAsset(version, "role", asset);
 };

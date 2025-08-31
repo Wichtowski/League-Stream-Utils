@@ -21,7 +21,9 @@ const TournamentHeaderComponent: React.FC<TournamentHeaderProps> = ({ tournament
   return (
     <div className="text-center mb-6 animate-tournament-header">
       <div className="flex items-center justify-center gap-4 mb-4">
-        {tournament.logo?.url && <Image src={tournament.logo.url} alt={tournament.name} width={80} height={80} className="rounded-lg" />}
+        {tournament.logo?.url && (
+          <Image src={tournament.logo.url} alt={tournament.name} width={80} height={80} className="rounded-lg" />
+        )}
         <div>
           <h1 className="text-4xl font-bold text-white">{tournament.name}</h1>
           {tournament.matchInfo && (

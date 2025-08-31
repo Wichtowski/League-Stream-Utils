@@ -139,14 +139,14 @@ button {
 
 .is-picking-blue {
   animation: pulse-shadow-blue 3s infinite;
-  z-index: 10;
+  z-index: 20; /* Higher than recently-picked (15) */
   background-color: rgba(59, 130, 246, 0.3) !important;
   will-change: box-shadow;
 }
 
 .is-picking-red {
   animation: pulse-shadow-red 3s infinite;
-  z-index: 10;
+  z-index: 20; /* Higher than recently-picked (15) */
   background-color: rgba(239, 68, 68, 0.3) !important;
   will-change: box-shadow;
 }
@@ -242,8 +242,6 @@ button {
   animation: champ-select-layout-enter 0.8s ease-out forwards;
 }
 
-
-
 /* Prefers reduced motion support */
 @media (prefers-reduced-motion: reduce) {
   .animate-player-slot {
@@ -264,11 +262,117 @@ button {
     opacity: 1;
   }
 
-
-
   .is-picking,
   .is-picking-blue,
   .is-picking-red {
     animation: none;
   }
 }
+
+.score-rectangle {
+  @apply w-6 h-4 rounded-sm border transition-all duration-200;
+  background: transparent;
+  border: 1px solid white;
+}
+
+.score-rectangle-blue {
+  background: rgba(59, 130, 246, 0.8);
+  border-color: #3b82f6;
+}
+
+.score-rectangle-point {
+  background: rgba(255, 255, 255, 1);
+  border-color: rgba(255, 255, 255, 1);
+}
+
+.score-rectangle-empty {
+  background: transparent;
+  border-color: white;
+}
+
+.score-rectangle:hover {
+  transform: scale(1.1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+/* Side Indicator Styles */
+.side-indicator {
+  @apply text-xs font-semibold px-2 py-1 rounded-md;
+  background: linear-gradient(135deg, #374151, #1f2937);
+  border: 1px solid #4b5563;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.side-indicator-blue {
+  @apply text-blue-200;
+  border-color: #3b82f6;
+  box-shadow: 0 1px 3px rgba(59, 130, 246, 0.3);
+}
+
+.side-indicator-red {
+  @apply text-red-200;
+  border-color: #ef4444;
+  box-shadow: 0 1px 3px rgba(239, 68, 68, 0.3);
+}
+
+/* Series Format Indicator */
+.series-format-indicator {
+  @apply text-xs font-bold px-2 py-1 rounded-md;
+  background: linear-gradient(135deg, #1e40af, #1e3a8a);
+  color: #dbeafe;
+  border: 1px solid #3b82f6;
+  box-shadow: 0 1px 3px rgba(59, 130, 246, 0.4);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+/* Champion Select - Recently Picked Animation */
+.recently-picked {
+  /* animation: stretch-horizontally 3s ease-in-out; */
+  width: 300px !important;
+  transition: 3s;
+  z-index: 15; /* Between picking (20) and normal (10) */
+}
+
+/* @keyframes stretch-horizontally {
+  0% {
+    transform: scaleX(1);
+    margin-left: 0;
+    margin-right: 0;
+  }
+  10% {
+    transform: scaleX(1.1);
+    margin-left: -5%;
+    margin-right: -5%;
+  }
+  20% {
+    transform: scaleX(1.2);
+    margin-left: -10%;
+    margin-right: -10%;
+  }
+  80% {
+    transform: scaleX(1.2);
+    margin-left: -10%;
+    margin-right: -10%;
+  }
+  100% {
+    transform: scaleX(1);
+    margin-left: 0;
+    margin-right: 0;
+  }
+}
+
+.recently-picked .champion-stats-overlay {
+  animation: fade-in-stats 0.5s ease-in-out;
+}
+
+@keyframes fade-in-stats {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+} */

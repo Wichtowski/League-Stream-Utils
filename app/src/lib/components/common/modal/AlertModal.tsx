@@ -111,7 +111,6 @@ export function AlertModal({ isOpen, onClose, title, message, type = "info", tim
 
   // Calculate progress percentage for countdown
   const progressPercentage = timeout && timeout > 0 ? (remainingTime / timeout) * 100 : 0;
-  const secondsRemaining = Math.ceil(remainingTime / 1000);
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title} showCloseButton={false}>
@@ -122,10 +121,6 @@ export function AlertModal({ isOpen, onClose, title, message, type = "info", tim
         {/* Auto-dismiss countdown indicator */}
         {timeout && timeout > 0 && remainingTime > 0 && (
           <div className="mb-4">
-            <div className="flex items-center justify-between text-sm text-gray-400 mb-2">
-              <span>Auto-closing in:</span>
-              <span className="font-mono">{secondsRemaining}s</span>
-            </div>
             <div className="w-full bg-gray-700 rounded-full h-2">
               <div
                 className={`h-2 rounded-full transition-all duration-100 ease-linear ${

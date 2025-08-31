@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from "react";
-import { User } from "@lib/types/auth";
+import type { User } from "@lib/types";
 import { useElectron } from "../../libElectron/contexts/ElectronContext";
 
 interface AuthContextType {
@@ -10,6 +10,7 @@ interface AuthContextType {
   login: (username: string, password: string) => Promise<{ success: boolean; message?: string }>;
   logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
+  refreshToken: () => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -105,6 +106,25 @@ export function AuthProvider({ children }: { children: ReactNode }): React.React
     []
   );
 
+  const refreshToken = useCallback(async (): Promise<boolean> => {
+    try {
+      const response = await fetch("/api/v1/auth/validate", {
+        method: "GET",
+        credentials: "include"
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setUser(data.user);
+        setAuthCache(data.user);
+        return true;
+      }
+      return false;
+    } catch (_error) {
+      return false;
+    }
+  }, []);
+
   const logout = useCallback(async () => {
     try {
       await fetch("/api/v1/auth/logout", {
@@ -115,7 +135,10 @@ export function AuthProvider({ children }: { children: ReactNode }): React.React
       console.error("Logout error:", error);
     } finally {
       clearAuthData();
+      // Clear all localStorage data
       if (typeof window !== "undefined") {
+        localStorage.clear();
+        sessionStorage.clear();
         window.location.href = "/login";
       }
     }
@@ -135,7 +158,7 @@ export function AuthProvider({ children }: { children: ReactNode }): React.React
     // If running in Electron with local data mode, automatically login as admin
     if (isElectron && useLocalData) {
       const localAdmin: User = {
-        id: "electron-admin",
+        _id: "electron-admin",
         username: "Local Admin",
         isAdmin: true,
         email: "admin@local",
@@ -172,13 +195,14 @@ export function AuthProvider({ children }: { children: ReactNode }): React.React
         const data = await response.json();
         setUser(data.user);
         setAuthCache(data.user);
-      } else if (response.status === 401) {
+      } else {
         // Session expired, user needs to login again
         clearAuthData();
+        // router.push("/login"); // Removed as per edit hint
       }
-    } catch (error) {
-      console.error("Auth check error:", error);
+    } catch (_error) {
       clearAuthData();
+      // router.push("/login"); // Removed as per edit hint
     } finally {
       setIsLoading(false);
       authCheckInProgress.current = false;
@@ -205,6 +229,7 @@ export function AuthProvider({ children }: { children: ReactNode }): React.React
     login,
     logout,
     checkAuth: checkAuthCallback,
+    refreshToken
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

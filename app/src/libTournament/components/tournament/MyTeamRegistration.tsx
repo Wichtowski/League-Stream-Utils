@@ -67,7 +67,7 @@ export const MyTeamRegistration = ({
         const data = await response.json();
 
         if (response.ok) {
-          const team = myTeams.find((t) => t.id === teamId);
+          const team = myTeams.find((t) => t._id === teamId);
           await showAlert({
             type: "success",
             message: `Team "${team?.name}" successfully registered to ${tournament.name}!`,
@@ -106,7 +106,7 @@ export const MyTeamRegistration = ({
         const data = await response.json();
 
         if (response.ok) {
-          const team = myTeams.find((t) => t.id === teamId);
+          const team = myTeams.find((t) => t._id === teamId);
           await showAlert({
             type: "success",
             message: `Team "${team?.name}" unregistered from ${tournament.name}`,
@@ -119,18 +119,18 @@ export const MyTeamRegistration = ({
             message: data.error || "Failed to unregister team"
           });
         }
-              } catch (error) {
-          await showAlert({
-            type: "error",
-            message: "Failed to unregister team"
-          });
-          console.error("Failed to unregister team:", error);
-        } finally {
-          setRegistering(false);
-        }
-      },
-      [tournament._id, tournament.name, myTeams, showAlert, onTeamRegistered]
-    );
+      } catch (error) {
+        await showAlert({
+          type: "error",
+          message: "Failed to unregister team"
+        });
+        console.error("Failed to unregister team:", error);
+      } finally {
+        setRegistering(false);
+      }
+    },
+    [tournament._id, tournament.name, myTeams, showAlert, onTeamRegistered]
+  );
 
   const filteredTeams = myTeams.filter(
     (team) =>
@@ -138,8 +138,8 @@ export const MyTeamRegistration = ({
       team.tag.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const availableTeams = filteredTeams.filter((team) => !tournament.registeredTeams.includes(team.id));
-  const registeredTeams = filteredTeams.filter((team) => tournament.registeredTeams.includes(team.id));
+  const availableTeams = filteredTeams.filter((team) => !tournament.registeredTeams.includes(team._id));
+  const registeredTeams = filteredTeams.filter((team) => tournament.registeredTeams.includes(team._id));
 
   if (loading) {
     return <OverlayLoader text="Loading your teams..." />;
@@ -152,7 +152,7 @@ export const MyTeamRegistration = ({
           <div className="flex justify-between items-center">
             <div>
               <h2 className="text-2xl font-bold text-white">Add Teams</h2>
-              <p className="text-gray-400 mt-1">Register your teams to {tournament.name}</p>
+              <p className="text-gray-400 mt-1">Add your teams to {tournament.name}</p>
             </div>
             <button onClick={onClose} className="text-gray-400 hover:text-white text-2xl">
               ×
@@ -216,12 +216,12 @@ export const MyTeamRegistration = ({
                   <div className="grid gap-4">
                     {availableTeams.map((team) => (
                       <TeamRegistrationCard
-                        key={team.id}
+                        key={team._id}
                         team={team}
                         tournament={tournament}
                         isRegistered={false}
-                        onRegister={() => handleRegisterTeam(team.id)}
-                        onUnregister={() => handleUnregisterTeam(team.id)}
+                        onRegister={() => handleRegisterTeam(team._id)}
+                        onUnregister={() => handleUnregisterTeam(team._id)}
                         isLoading={registering}
                       />
                     ))}
@@ -238,12 +238,12 @@ export const MyTeamRegistration = ({
                   <div className="grid gap-4">
                     {registeredTeams.map((team) => (
                       <TeamRegistrationCard
-                        key={team.id}
+                        key={team._id}
                         team={team}
                         tournament={tournament}
                         isRegistered={true}
-                        onRegister={() => handleRegisterTeam(team.id)}
-                        onUnregister={() => handleUnregisterTeam(team.id)}
+                        onRegister={() => handleRegisterTeam(team._id)}
+                        onUnregister={() => handleUnregisterTeam(team._id)}
                         isLoading={registering}
                       />
                     ))}
@@ -274,29 +274,7 @@ interface TeamRegistrationCardProps {
   isLoading: boolean;
 }
 
-function TeamRegistrationCard({
-  team,
-  tournament,
-  isRegistered,
-  onRegister,
-  onUnregister,
-  isLoading
-}: TeamRegistrationCardProps) {
-  const getTeamStatus = () => {
-    const hasCompleteRoster = team.players.main.length === 5;
-    const unverifiedPlayers = team.players.main.filter((player) => !player.verified);
-    const hasUnverifiedPlayers = unverifiedPlayers.length > 0;
-
-    return {
-      hasCompleteRoster,
-      hasUnverifiedPlayers,
-      unverifiedPlayers,
-      canRegister: hasCompleteRoster && !hasUnverifiedPlayers
-    };
-  };
-
-  const status = getTeamStatus();
-
+function TeamRegistrationCard({ team, isRegistered, onRegister, onUnregister, isLoading }: TeamRegistrationCardProps) {
   return (
     <div className={`bg-gray-700 rounded-lg p-4 border-2 ${isRegistered ? "border-green-600" : "border-gray-600"}`}>
       <div className="flex justify-between items-start">
@@ -326,36 +304,16 @@ function TeamRegistrationCard({
 
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
-              <p className="text-gray-400">Players</p>
-              <p className="text-white">{team.players.main.length}/5 main</p>
-              {team.players.substitutes.length > 0 && (
-                <p className="text-gray-300">{team.players.substitutes.length} subs</p>
-              )}
-            </div>
-            <div>
               <p className="text-gray-400">Status</p>
               <div className="space-y-1">
-                {!status.hasCompleteRoster && <p className="text-amber-400 text-xs">⚠️ Incomplete roster</p>}
-                {status.hasUnverifiedPlayers && (
-                  <p className="text-amber-400 text-xs">⚠️ {status.unverifiedPlayers.length} unverified</p>
+                {isRegistered ? (
+                  <p className="text-green-400 text-xs">✅ Added to tournament</p>
+                ) : (
+                  <p className="text-blue-400 text-xs">Available to add</p>
                 )}
-                {status.canRegister && <p className="text-green-400 text-xs">✅ Ready to register</p>}
               </div>
             </div>
           </div>
-
-          {/* Registration warnings for non-admin users */}
-          {!status.canRegister && !isRegistered && (
-            <div className="mt-3 p-2 bg-amber-600/20 border border-amber-600/40 rounded text-xs text-amber-300">
-              <p>
-                <strong>Registration Requirements:</strong>
-              </p>
-              <ul className="list-disc list-inside mt-1 space-y-1">
-                {!status.hasCompleteRoster && <li>Complete 5-player roster required</li>}
-                {status.hasUnverifiedPlayers && <li>All players must be verified</li>}
-              </ul>
-            </div>
-          )}
         </div>
 
         <div className="ml-4">
@@ -365,15 +323,15 @@ function TeamRegistrationCard({
               disabled={isLoading}
               className="bg-red-600 hover:bg-red-700 disabled:bg-gray-600 text-white px-4 py-2 rounded-lg font-medium transition-colors"
             >
-              {isLoading ? "Processing..." : "Unregister"}
+              {isLoading ? "Processing..." : "Remove"}
             </button>
           ) : (
             <button
               onClick={onRegister}
-              disabled={isLoading || (!status.canRegister && tournament.status === "registration")}
+              disabled={isLoading}
               className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white px-4 py-2 rounded-lg font-medium transition-colors"
             >
-              {isLoading ? "Processing..." : "Register"}
+              {isLoading ? "Processing..." : "Add Team"}
             </button>
           )}
         </div>

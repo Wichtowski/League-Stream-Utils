@@ -4,7 +4,6 @@ import { getChampionById } from "@lib/champions";
 import { getChampionSquareImage } from "../common";
 import type { Champion } from "@lib/types";
 
-
 type TeamBansProps = {
   bans: number[];
   teamColor: string;
@@ -41,31 +40,39 @@ const TeamBansComponent: React.FC<TeamBansProps> = ({
   useEffect(() => {
     if (onRegisterImages) {
       const urls: string[] = [];
-      
+
       // Add ban placeholder
       if (banPlaceholder) urls.push(banPlaceholder);
-      
-      // Add champion images
-      bans.forEach(championId => {
+
+      // Add champion images from bans
+      bans.forEach((championId) => {
         if (championId) {
+          const champ = getChampionById(championId);
+          if (champ && champ.image) {
+            urls.push(champ.image);
+          }
           const squareImage = getChampionSquareImage(championId);
           if (squareImage) urls.push(squareImage);
         }
       });
-      
-      // Add used champions images for fearless draft
+
+      // Add used champions in Fearless Draft
       if (isFearlessDraft && usedChampions.length > 0) {
-        usedChampions.forEach(champ => {
-          if (champ.id) {
-            const squareImage = getChampionSquareImage(champ.id);
-            if (squareImage) urls.push(squareImage);
+        usedChampions.forEach((champ) => {
+          if (champ.image) {
+            urls.push(champ.image);
           }
+          const squareImage = getChampionSquareImage(champ._id);
+          if (squareImage) urls.push(squareImage);
         });
       }
-      
-      onRegisterImages(urls);
+
+      // Only call onRegisterImages once to prevent infinite loops
+      if (urls.length > 0) {
+        onRegisterImages(urls);
+      }
     }
-  }, [bans, banPlaceholder, isFearlessDraft, usedChampions, onRegisterImages]);
+  }, [bans, banPlaceholder, isFearlessDraft, usedChampions]); // Remove onRegisterImages dependency
 
   // Check if this team should show hover effect for bans
   const isBanHovering =
@@ -107,7 +114,7 @@ const TeamBansComponent: React.FC<TeamBansProps> = ({
   // Calculate animation delay for each ban slot
   const getBanAnimationDelay = (index: number): number => {
     if (!bansAnimated) return 0;
-    
+
     // Bans animate from outside inward
     if (teamSide === "left") {
       // Blue team (left): ban slots animate from right to left (index 4 to 0)
@@ -123,8 +130,8 @@ const TeamBansComponent: React.FC<TeamBansProps> = ({
   if (isFearlessDraft && usedChampions.length > 0) {
     // Add usedChampions that aren't already in current bans
     usedChampions.forEach((champ) => {
-      if (!allBannedChampions.includes(champ.id)) {
-        allBannedChampions.push(champ.id);
+      if (!allBannedChampions.includes(champ._id)) {
+        allBannedChampions.push(champ._id);
       }
     });
   }
@@ -132,14 +139,14 @@ const TeamBansComponent: React.FC<TeamBansProps> = ({
   return (
     <div className="flex flex-row justify-start">
       {Array.from({ length: maxBans }, (_, index) => {
-        const championId = bans[index];
+        // Invert ban order for red team (right side)
+        const actualIndex = teamSide === "right" ? maxBans - 1 - index : index;
+        const championId = bans[actualIndex];
         const champ = championId ? getChampionById(championId) : null;
-        const isSeriesBan = isFearlessDraft && usedChampions.some((c) => c.id === championId);
-
         return (
           <div
             key={index}
-            className={`relative w-16 h-16 overflow-hidden flex items-center justify-center transition-all duration-500 ${bansAnimated ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+            className={`relative w-16 h-16 overflow-hidden flex items-center justify-center transition-all duration-500 ${bansAnimated ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
             style={{
               transitionDelay: `${getBanAnimationDelay(index)}s`
             }}
@@ -151,24 +158,19 @@ const TeamBansComponent: React.FC<TeamBansProps> = ({
                   alt={champ.name}
                   width={64}
                   height={64}
-                  className={`w-full h-full object-cover ${isSeriesBan ? "opacity-30" : "opacity-50"}`}
+                  className="w-full h-full object-cover"
                 />
-                {/* Ban placeholder overlay to indicate banned champion */}
-                <div
-                  className={`absolute inset-0 flex items-center justify-center ${isSeriesBan ? "bg-gray-900/50" : "bg-red-900/30"}`}
-                >
+                <div className="absolute inset-0 flex items-center justify-center bg-red-600/30">
+                  {/* Ban placeholder overlay to indicate banned champion */}
                   <Image
                     src={banPlaceholder}
                     alt="Ban Placeholder"
                     width={64}
                     height={64}
-                    className={`w-full h-full object-cover ${isSeriesBan ? "opacity-40" : "opacity-60"}`}
+                    style={{ opacity: 0.7 }}
+                    className="w-full h-full object-cover"
                   />
                 </div>
-                {/* Series ban indicator */}
-                {isSeriesBan && (
-                  <div className="absolute top-0 right-0 bg-gray-600 text-white text-xs px-1 rounded-bl">S</div>
-                )}
               </>
             ) : (
               <Image
@@ -176,7 +178,7 @@ const TeamBansComponent: React.FC<TeamBansProps> = ({
                 alt="Ban Placeholder"
                 width={64}
                 height={64}
-                className="w-full h-full object-cover opacity-40"
+                className="w-full h-full object-cover"
               />
             )}
 
@@ -188,7 +190,7 @@ const TeamBansComponent: React.FC<TeamBansProps> = ({
                   alt="Ban Placeholder"
                   width={64}
                   height={64}
-                  className="w-full h-full object-cover opacity-60"
+                  className="w-full h-full object-cover"
                 />
               </div>
             )}

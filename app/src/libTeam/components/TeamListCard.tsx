@@ -17,24 +17,24 @@ export const TeamListCard: React.FC<TeamListCardProps> = ({ team }) => {
 
   useEffect(() => {
     // Skip if team ID is invalid or if it's a mock ID
-    if (!team.id || team.id === "1") {
+    if (!team._id || team._id === "1") {
       return;
     }
 
     const getTeamLogo = async () => {
       try {
-        const logoSrc = await getTeamLogoUrl(team.id);
+        const logoSrc = await getTeamLogoUrl(team._id);
         setLogoSrc(logoSrc);
       } catch (error) {
         console.error("Failed to load team logo:", error);
       }
     };
     getTeamLogo();
-  }, [team.id]);
+  }, [team._id]);
 
   return (
     <div
-      onClick={() => router.push(`/modules/teams/${team.id}`)}
+      onClick={() => router.push(`/modules/teams/${team._id}`)}
       className="group cursor-pointer bg-gray-800 hover:bg-gray-750 rounded-xl p-6 transition-all duration-200 hover:shadow-lg hover:scale-[1.02] border border-gray-700 hover:border-gray-600"
     >
       <div className="flex flex-col items-center text-center space-y-4">

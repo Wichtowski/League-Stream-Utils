@@ -35,7 +35,9 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({ player, teamColor }) => 
     <div className={`border rounded-md p-1 ${colorClasses[teamColor]} transition-all`}>
       <div className="flex items-center">
         <div className="relative mr-1">
-          {championImage && <Image src={championImage} alt={player.championName} width={28} height={28} className="rounded" />}
+          {championImage && (
+            <Image src={championImage} alt={player.championName} width={28} height={28} className="rounded" />
+          )}
           <div className="absolute -bottom-1 -left-1 bg-yellow-500 text-black text-[10px] leading-none px-1 rounded">
             {player.level || 1}
           </div>

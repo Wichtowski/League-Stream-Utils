@@ -7,7 +7,7 @@ import {
   updateTournamentStatus,
   getTournamentStats
 } from "@lib/database/tournament";
-import type { CreateTournamentRequest, TournamentStatus } from "@lib/types";
+import type { CreateTournamentRequest, Tournament, TournamentStatus } from "@lib/types";
 import { JWTPayload } from "@lib/types/auth";
 
 // GET /api/v1/tournaments/[tournamentId] - Get specific tournament
@@ -95,7 +95,17 @@ export const PUT = withAuth(async (req: NextRequest, user: JWTPayload) => {
       return NextResponse.json({ error: "Maximum teams must be between 2 and 128" }, { status: 400 });
     }
 
-    const updatedTournament = await updateTournament(tournamentId, user.userId, tournamentData);
+    // Convert string dates to Date objects for database compatibility
+    const processedData: Partial<Tournament> = {
+      ...tournamentData,
+      startDate: tournamentData.startDate ? new Date(tournamentData.startDate) : undefined,
+      endDate: tournamentData.endDate ? new Date(tournamentData.endDate) : undefined,
+      registrationDeadline: tournamentData.registrationDeadline
+        ? new Date(tournamentData.registrationDeadline)
+        : undefined
+    };
+
+    const updatedTournament = await updateTournament(tournamentId, processedData);
 
     if (!updatedTournament) {
       return NextResponse.json({ error: "Tournament not found or forbidden" }, { status: 404 });
@@ -109,10 +119,10 @@ export const PUT = withAuth(async (req: NextRequest, user: JWTPayload) => {
 });
 
 // DELETE /api/v1/tournaments/[tournamentId] - Delete tournament
-export const DELETE = withAuth(async (req: NextRequest, user: JWTPayload) => {
+export const DELETE = withAuth(async (req: NextRequest, _user: JWTPayload) => {
   try {
     const tournamentId = new URL(req.url).pathname.split("/").pop()!;
-    const success = await deleteTournament(tournamentId, user.userId);
+    const success = await deleteTournament(tournamentId);
 
     if (!success) {
       return NextResponse.json({ error: "Tournament not found or forbidden" }, { status: 404 });
@@ -131,11 +141,20 @@ export const PATCH = withAuth(async (req: NextRequest, user: JWTPayload) => {
     const tournamentId = new URL(req.url).pathname.split("/").pop()!;
     const { status }: { status: TournamentStatus } = await req.json();
 
+    // Debug logging
+    console.log("PATCH /api/v1/tournaments/[tournamentId] - Received status:", status);
+    console.log("Tournament ID:", tournamentId);
+    console.log("User ID:", user.userId);
+
     if (!status || !["draft", "registration", "ongoing", "completed", "cancelled"].includes(status)) {
+      console.error("Invalid status received:", status);
       return NextResponse.json({ error: "Invalid status" }, { status: 400 });
     }
 
-    const updatedTournament = await updateTournamentStatus(tournamentId, user.userId, status);
+    const updatedTournament = await updateTournamentStatus(tournamentId, status);
+
+    // Debug logging
+    console.log("Updated tournament status result:", updatedTournament?.status);
 
     if (!updatedTournament) {
       return NextResponse.json({ error: "Tournament not found or forbidden" }, { status: 404 });

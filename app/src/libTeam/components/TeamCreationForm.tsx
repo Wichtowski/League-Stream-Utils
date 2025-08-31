@@ -5,10 +5,23 @@ import { createDefaultTeamRequest } from "@lib/types";
 import { useModal } from "@lib/contexts";
 import { LOGO_SQUARE_TOLERANCE, ALLOWED_IMAGE_HOSTS } from "@lib/services/common/constants";
 import { isAlmostSquare, extractTeamColorsFromImage } from "@lib/services/common/image";
+import { ColorPalette } from "./ColorPalette";
+
+// Helper function to check if a URL supports CORS based on allowed hosts
+const supportsCORS = (url: string): boolean => {
+  try {
+    const urlObj = new URL(url);
+    const hostname = urlObj.hostname.toLowerCase();
+
+    return !ALLOWED_IMAGE_HOSTS.some((noCorsHost) => hostname.includes(noCorsHost));
+  } catch {
+    return false;
+  }
+};
 
 // Input sanitization functions
 const sanitizeText = (text: string): string => {
-  return text.trim().replace(/\s+/g, ' '); // Trim and normalize whitespace
+  return text.trim().replace(/\s+/g, " "); // Trim and normalize whitespace
 };
 
 const sanitizeTeamName = (name: string): string => {
@@ -19,19 +32,9 @@ const sanitizeTeamTag = (tag: string): string => {
   return sanitizeText(tag).slice(0, 5).toUpperCase(); // Limit length and uppercase
 };
 
-const sanitizeRegion = (region: string): string => {
-  return sanitizeText(region).slice(0, 10).toUpperCase(); // Limit length and uppercase
-};
+const sanitizeRegion = (region: string): string => sanitizeText(region);
 
-const sanitizePlayerName = (name: string): string => {
-  return sanitizeText(name).slice(0, 50); // Limit length
-};
-
-const sanitizePlayerTag = (tag: string): string => {
-  return sanitizeText(tag).slice(0, 20); // Limit length
-};
-
-const ALLOWED_IMAGE_HOSTS_DISPLAY = ALLOWED_IMAGE_HOSTS.slice(3, ALLOWED_IMAGE_HOSTS.length)
+const ALLOWED_IMAGE_HOSTS_DISPLAY = ALLOWED_IMAGE_HOSTS.slice(3, ALLOWED_IMAGE_HOSTS.length);
 
 interface TeamCreationFormProps {
   onSubmit: (formData: CreateTeamRequest) => Promise<void>;
@@ -43,6 +46,8 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
   const { showAlert } = useModal();
   const [logoPreview, setLogoPreview] = useState<string>("");
   const [logoUrlInput, setLogoUrlInput] = useState<string>("");
+  const [extractedColors, setExtractedColors] = useState<string[]>([]);
+  const [useManualColors, setUseManualColors] = useState(false);
   const [formData, setFormData] = useState<Partial<CreateTeamRequest>>(createDefaultTeamRequest());
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const urlAutoPreviewTimer = useRef<number | null>(null);
@@ -81,26 +86,30 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
     try {
       await new Promise<void>((resolve, reject) => {
         const img = new Image();
-        img.crossOrigin = "anonymous";
-        
+
+        // Only set crossOrigin for hosts that support CORS
+        if (supportsCORS(url)) {
+          img.crossOrigin = "anonymous";
+        }
+
         // Add a small delay to ensure image is fully loaded
         img.onload = () => {
-                  // Wait a bit more for WebP images to fully decode
-        setTimeout(() => {
-          // Try to get natural dimensions if available
-          const width = img.naturalWidth || img.width;
-          const height = img.naturalHeight || img.height;
-          
-          // Add debugging for image dimensions
-          console.log(`Image loaded - Width: ${width}, Height: ${height}, Ratio: ${(width / height).toFixed(3)}`);
-          console.log(`Image natural dimensions - NaturalWidth: ${img.naturalWidth}, NaturalHeight: ${img.naturalHeight}`);
-          
-          if (!isAlmostSquare(width, height)) {
-            reject(new Error(`Not square - Width: ${width}, Height: ${height}, Ratio: ${(width / height).toFixed(3)}`));
-            return;
-          }
-          resolve();
-        }, 100);
+          // Wait a bit more for WebP images to fully decode
+          setTimeout(() => {
+            // Try to get natural dimensions if available
+            const width = img.naturalWidth || img.width;
+            const height = img.naturalHeight || img.height;
+
+            // Image dimensions validation
+
+            if (!isAlmostSquare(width, height)) {
+              reject(
+                new Error(`Not square - Width: ${width}, Height: ${height}, Ratio: ${(width / height).toFixed(3)}`)
+              );
+              return;
+            }
+            resolve();
+          }, 100);
         };
         img.onerror = () => reject(new Error("Failed to load image from URL"));
         img.src = url;
@@ -154,20 +163,27 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
     try {
       await new Promise<void>((resolve, reject) => {
         const img = new Image();
-        img.crossOrigin = "anonymous";
+
+        // Only set crossOrigin for hosts that support CORS
+        if (supportsCORS(url)) {
+          img.crossOrigin = "anonymous";
+        }
+
         img.onload = () => {
           // Wait a bit more for WebP images to fully decode
           setTimeout(() => {
             // Try to get natural dimensions if available
             const width = img.naturalWidth || img.width;
             const height = img.naturalHeight || img.height;
-            
-            // Add debugging for image dimensions
-            console.log(`Preview validation - Width: ${width}, Height: ${height}, Ratio: ${(width / height).toFixed(3)}`);
-            console.log(`Image natural dimensions - NaturalWidth: ${img.naturalWidth}, NaturalHeight: ${img.naturalHeight}`);
-            
+
+            // Image dimensions validation
+
             if (!isAlmostSquare(width, height)) {
-              reject(new Error(`Logo should be square. Current ratio ${(width / height).toFixed(3)}. Allowed deviation ±${LOGO_SQUARE_TOLERANCE}.`));
+              reject(
+                new Error(
+                  `Logo should be square. Current ratio ${(width / height).toFixed(3)}. Allowed deviation ±${LOGO_SQUARE_TOLERANCE}.`
+                )
+              );
               return;
             }
             resolve();
@@ -180,6 +196,8 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
       await showAlert({ type: "warning", message: err instanceof Error ? err.message : "Invalid image URL" });
       return;
     }
+
+    // Store the URL for display, but we'll transform it when submitting
     setFormData({
       ...formData,
       logo: {
@@ -238,11 +256,9 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
             // Try to get natural dimensions if available
             const width = img.naturalWidth || img.width;
             const height = img.naturalHeight || img.height;
-            
-            // Add debugging for image dimensions
-            console.log(`File upload validation - Width: ${width}, Height: ${height}, Ratio: ${(width / height).toFixed(3)}`);
-            console.log(`Image natural dimensions - NaturalWidth: ${img.naturalWidth}, NaturalHeight: ${img.naturalHeight}`);
-            
+
+            // Image dimensions validation
+
             if (!isAlmostSquare(width, height)) {
               await showAlert({
                 type: "warning",
@@ -274,24 +290,44 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
     if (!logoPreview) return;
     try {
       const colors = await extractTeamColorsFromImage(logoPreview);
-      setFormData({
-        ...formData,
-        colors: {
-          ...formData.colors!,
-          primary: colors.primary,
-          secondary: colors.secondary,
-          accent: colors.accent
-        }
-      });
-    } catch (_err) {
-      await showAlert({ type: "warning", message: "Failed to generate colors from logo" });
+      setExtractedColors(colors);
+      setUseManualColors(false); // Switch to generated colors mode
+
+      // Set the first 3 colors as default team colors
+      if (colors.length >= 3) {
+        setFormData({
+          ...formData,
+          colors: {
+            ...formData.colors!,
+            primary: colors[0],
+            secondary: colors[1],
+            accent: colors[2]
+          }
+        });
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to generate colors from logo";
+      await showAlert({ type: "warning", message: errorMessage });
     }
+  };
+
+  const handleColorsChange = (colors: { primary: string; secondary: string; accent: string }) => {
+    setFormData({
+      ...formData,
+      colors: {
+        ...formData.colors!,
+        ...colors
+      }
+    });
+  };
+
+  const toggleColorMode = () => {
+    setUseManualColors(!useManualColors);
   };
 
   const updatePlayer = (index: number, field: "inGameName" | "tag", value: string) => {
     const newPlayers = [...(formData.players?.main || [])];
-    const sanitizedValue = field === "inGameName" ? sanitizePlayerName(value) : sanitizePlayerTag(value);
-    newPlayers[index] = { ...newPlayers[index], [field]: sanitizedValue };
+    newPlayers[index] = { ...newPlayers[index], [field]: value };
     setFormData({
       ...formData,
       players: { ...formData.players!, main: newPlayers }
@@ -318,13 +354,7 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
 
   const updateSubstitute = (index: number, field: "role" | "inGameName" | "tag", value: string) => {
     const newSubs = [...(formData.players?.substitutes || [])];
-    let sanitizedValue = value;
-    if (field === "inGameName") {
-      sanitizedValue = sanitizePlayerName(value);
-    } else if (field === "tag") {
-      sanitizedValue = sanitizePlayerTag(value);
-    }
-    newSubs[index] = { ...newSubs[index], [field]: sanitizedValue };
+    newSubs[index] = { ...newSubs[index], [field]: value };
     setFormData({
       ...formData,
       players: { ...formData.players!, substitutes: newSubs }
@@ -333,7 +363,7 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Final sanitization before submission
     const sanitizedFormData: CreateTeamRequest = {
       ...formData,
@@ -341,19 +371,19 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
       tag: sanitizeTeamTag(formData.tag || ""),
       region: sanitizeRegion(formData.region || ""),
       players: {
-        main: (formData.players?.main || []).map(player => ({
+        main: (formData.players?.main || []).map((player) => ({
           ...player,
-          inGameName: sanitizePlayerName(player.inGameName || ""),
-          tag: sanitizePlayerTag(player.tag || "")
+          inGameName: player.inGameName || "",
+          tag: player.tag || ""
         })),
-        substitutes: (formData.players?.substitutes || []).map(player => ({
+        substitutes: (formData.players?.substitutes || []).map((player) => ({
           ...player,
-          inGameName: sanitizePlayerName(player.inGameName || ""),
-          tag: sanitizePlayerTag(player.tag || "")
+          inGameName: player.inGameName || "",
+          tag: player.tag || ""
         }))
       }
     } as CreateTeamRequest;
-    
+
     await onSubmit(sanitizedFormData);
   };
 
@@ -364,54 +394,93 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
         {/* Basic Info */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="teamName" className="block text-sm font-medium mb-2">Team Name</label>
+            <label htmlFor="teamName" className="block text-sm font-medium mb-2">
+              Team Name
+            </label>
             <input
               type="text"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: sanitizeTeamName(e.target.value) })}
-              className="w-full bg-gray-700 rounded px-3 py-2 text-white placeholder-gray-400"
               placeholder="Enter team name"
+              value={formData.name || ""}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  name: e.target.value
+                })
+              }
+              className="w-full bg-gray-700 rounded px-3 py-2 text-white placeholder-gray-400"
+              autoComplete="off"
               id="teamName"
               required
             />
           </div>
           <div>
-            <label htmlFor="teamTag" className="block text-sm font-medium mb-2">Team Tag</label>
+            <label htmlFor="teamTag" className="block text-sm font-medium mb-2">
+              Team Tag
+            </label>
             <input
               type="text"
-              value={formData.tag}
-              onChange={(e) => setFormData({ ...formData, tag: sanitizeTeamTag(e.target.value) })}
+              placeholder="Enter team tag (e.g., TSM)"
+              value={formData.tag || ""}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  tag: e.target.value
+                })
+              }
               className="w-full bg-gray-700 rounded px-3 py-2 text-white placeholder-gray-400"
-              placeholder="Enter team tag"
-              maxLength={5}
+              autoComplete="off"
               id="teamTag"
               required
             />
           </div>
           <div>
-            <label htmlFor="region" className="block text-sm font-medium mb-2">Region</label>
-            <input
-              type="text"
-              value={formData.region}
-              onChange={(e) => setFormData({ ...formData, region: sanitizeRegion(e.target.value) })}
-              className="w-full bg-gray-700 rounded px-3 py-2 text-white placeholder-gray-400"
-              placeholder="e.g., EUNE, EUW, NA"
-              autoComplete="off"
+            <label htmlFor="region" className="block text-sm font-medium mb-2">
+              Region
+            </label>
+            <select
+              value={formData.region || ""}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  region: e.target.value
+                })
+              }
+              className="w-full bg-gray-700 rounded px-3 py-2 text-white border-gray-600 h-[40px]"
               id="region"
               required
-            />
+            >
+              <option value="euw1">EUW - Europe West</option>
+              <option value="eun1">EUNE - Europe Nordic & East</option>
+              <option value="na1">NA - North America</option>
+              <option value="kr">KR - Korea</option>
+              <option value="jp1">JP - Japan</option>
+              <option value="lan1">LAN - Latin America North</option>
+              <option value="las1">LAS - Latin America South</option>
+              <option value="br1">BR - Brazil</option>
+              <option value="tr1">TR - Turkey</option>
+              <option value="ru">RU - Russia</option>
+              <option value="oc1">OCE - Oceania</option>
+              <option value="pbe1">PBE - Public Beta Environment</option>
+            </select>
           </div>
           <div>
-            <label htmlFor="tier" className="block text-sm font-medium mb-2">Tier</label>
+            <label htmlFor="teamTier" className="block text-sm font-medium mb-2">
+              Team Tier
+            </label>
             <select
-              value={formData.tier}
-              onChange={(e) => setFormData({ ...formData, tier: e.target.value as TeamTier })}
-              className="w-full bg-gray-700 rounded px-3 py-2 text-white"
-              id="tier"
-              style={{ height: '40px' }}
+              value={formData.tier || "amateur"}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  tier: e.target.value as TeamTier
+                })
+              }
+              className="w-full bg-gray-700 rounded px-3 py-2 text-white border-gray-600 h-[40px]"
+              id="teamTier"
+              required
             >
               <option value="amateur">Amateur</option>
-              <option value="semi-pro">Semi-Professional</option>
+              <option value="semi-pro">Semi-Pro</option>
               <option value="professional">Professional</option>
             </select>
           </div>
@@ -419,10 +488,14 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
 
         {/* Team Logo */}
         <div>
-          <label htmlFor="teamLogo" className="block text-sm font-medium mb-2">Team Logo</label>
+          <label htmlFor="teamLogo" className="block text-sm font-medium mb-2">
+            Team Logo
+          </label>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="teamLogo" className="block text-xs text-gray-400 mb-1">Upload Image</label>
+              <label htmlFor="teamLogo" className="block text-xs text-gray-400 mb-1">
+                Upload Image
+              </label>
               <input
                 type="file"
                 accept="image/*"
@@ -439,10 +512,16 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
             </div>
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <label htmlFor="teamLogoUrl" className="block text-xs text-gray-400">Or Paste URL</label>
+                <label htmlFor="teamLogoUrl" className="block text-xs text-gray-400">
+                  Or Paste URL
+                </label>
                 <div className="relative group">
                   <svg className="w-4 h-4 text-gray-500 cursor-help" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                    <path
+                      fillRule="evenodd"
+                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z"
+                      clipRule="evenodd"
+                    />
                   </svg>
                   <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-4 py-3 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10 w-80">
                     <div className="font-semibold mb-2">Allowed URL&apos;s:</div>
@@ -464,7 +543,7 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
                 value={logoUrlInput}
                 onChange={(e) => handleLogoUrlChange(e.target.value)}
                 className="w-full bg-gray-700 rounded px-3 py-2 text-white placeholder-gray-400"
-                style={{ height: '52px' }}
+                style={{ height: "52px" }}
                 placeholder="https://example.com/logo.png"
                 id="teamLogoUrl"
               />
@@ -516,62 +595,123 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-lg font-medium">Team Colors</h3>
             {logoPreview && (
-              <button
-                type="button"
-                onClick={() => { void generateColorsFromCurrentLogo(); }}
-                className="bg-purple-600 hover:bg-purple-700 px-3 py-1 rounded text-sm"
-              >
-                Extract Most Dominant Colors
-              </button>
+              <div className="flex items-center space-x-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    void generateColorsFromCurrentLogo();
+                  }}
+                  className="bg-purple-600 hover:bg-purple-700 px-3 py-1 rounded text-sm"
+                >
+                  Extract Most Dominant Colors
+                </button>
+                <button
+                  type="button"
+                  onClick={toggleColorMode}
+                  className={`px-3 py-1 rounded text-sm transition-colors ${
+                    useManualColors ? "bg-blue-600 hover:bg-blue-700" : "bg-gray-600 hover:bg-gray-700"
+                  }`}
+                >
+                  {useManualColors ? "Use Generated Colors" : "Use Manual Colors"}
+                </button>
+              </div>
             )}
           </div>
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <label htmlFor="primaryColor" className="block text-sm font-medium mb-2">Primary Color</label>
-              <input
-                type="color"
-                value={formData.colors?.primary}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    colors: { ...formData.colors!, primary: e.target.value }
-                  })
-                }
-                className="w-full h-10 rounded border-gray-600"
-                id="primaryColor"
-              />
+
+          {/* Always show team colors after providing image */}
+          {logoPreview && (
+            <div className="mb-4 p-4 bg-gray-700 rounded-lg">
+              <h4 className="text-sm font-medium text-gray-300 mb-3">Current Team Colors</h4>
+              <div className="flex space-x-4">
+                <div className="flex items-center space-x-2">
+                  <div
+                    className="w-8 h-8 rounded border-2 border-gray-600"
+                    style={{ backgroundColor: formData.colors?.primary }}
+                  />
+                  <span className="text-sm text-gray-300">Primary: {formData.colors?.primary}</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div
+                    className="w-8 h-8 rounded border-2 border-gray-600"
+                    style={{ backgroundColor: formData.colors?.secondary }}
+                  />
+                  <span className="text-sm text-gray-300">Secondary: {formData.colors?.secondary}</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div
+                    className="w-8 h-8 rounded border-2 border-gray-600"
+                    style={{ backgroundColor: formData.colors?.accent }}
+                  />
+                  <span className="text-sm text-gray-300">Accent: {formData.colors?.accent}</span>
+                </div>
+              </div>
             </div>
-            <div>
-              <label htmlFor="secondaryColor" className="block text-sm font-medium mb-2">Secondary Color</label>
-              <input
-                type="color"
-                value={formData.colors?.secondary}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    colors: { ...formData.colors!, secondary: e.target.value }
-                  })
-                }
-                className="w-full h-10 rounded border-gray-600"
-                id="secondaryColor"
-              />
+          )}
+
+          {/* Color Selection Interface */}
+          {logoPreview && extractedColors.length > 0 && !useManualColors ? (
+            <ColorPalette
+              colors={extractedColors}
+              primaryColor={formData.colors?.primary || "#3B82F6"}
+              secondaryColor={formData.colors?.secondary || "#1E40AF"}
+              accentColor={formData.colors?.accent || "#F59E0B"}
+              onColorsChange={handleColorsChange}
+            />
+          ) : (
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <label htmlFor="primaryColor" className="block text-sm font-medium mb-2">
+                  Primary Color
+                </label>
+                <input
+                  type="color"
+                  value={formData.colors?.primary}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      colors: { ...formData.colors!, primary: e.target.value }
+                    })
+                  }
+                  className="w-full h-10 rounded border-gray-600"
+                  id="primaryColor"
+                />
+              </div>
+              <div>
+                <label htmlFor="secondaryColor" className="block text-sm font-medium mb-2">
+                  Secondary Color
+                </label>
+                <input
+                  type="color"
+                  value={formData.colors?.secondary}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      colors: { ...formData.colors!, secondary: e.target.value }
+                    })
+                  }
+                  className="w-full h-10 rounded border-gray-600"
+                  id="secondaryColor"
+                />
+              </div>
+              <div>
+                <label htmlFor="accentColor" className="block text-sm font-medium mb-2">
+                  Accent Color
+                </label>
+                <input
+                  type="color"
+                  value={formData.colors?.accent}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      colors: { ...formData.colors!, accent: e.target.value }
+                    })
+                  }
+                  className="w-full h-10 rounded border-gray-600"
+                  id="accentColor"
+                />
+              </div>
             </div>
-            <div>
-              <label htmlFor="accentColor" className="block text-sm font-medium mb-2">Accent Color</label>
-              <input
-                type="color"
-                value={formData.colors?.accent}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    colors: { ...formData.colors!, accent: e.target.value }
-                  })
-                }
-                className="w-full h-10 rounded border-gray-600"
-                id="accentColor"
-              />
-            </div>
-          </div>
+          )}
         </div>
 
         {/* Main Roster */}

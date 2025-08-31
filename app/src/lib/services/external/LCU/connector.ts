@@ -1,3 +1,5 @@
+"use client";
+
 import type { ChampSelectSession } from "@lib/types";
 
 interface LCUCredentials {
@@ -12,7 +14,6 @@ interface LCUConnectorOptions {
   maxReconnectAttempts?: number;
   pollInterval?: number;
   useMockData?: boolean;
-  isDownloading?: () => boolean;
 }
 
 class LCUConnector {
@@ -21,13 +22,11 @@ class LCUConnector {
   private pollingInterval: NodeJS.Timeout | null = null;
   private retryTimeout: NodeJS.Timeout | null = null;
   private reconnectAttempts = 0;
-  private pollingEnabled = false;
 
-  private readonly autoReconnect: boolean;
+  private autoReconnect: boolean;
   private readonly maxReconnectAttempts: number;
   private readonly pollInterval: number;
   private readonly useMockData: boolean;
-  private readonly isDownloading: (() => boolean) | undefined;
 
   // Event handlers
   private onStatusChange?: (status: ConnectionStatus) => void;
@@ -39,7 +38,6 @@ class LCUConnector {
     this.maxReconnectAttempts = options.maxReconnectAttempts ?? 5;
     this.pollInterval = options.pollInterval ?? 1000;
     this.useMockData = options.useMockData ?? false;
-    this.isDownloading = options.isDownloading;
   }
 
   // Event handler setters
@@ -55,34 +53,66 @@ class LCUConnector {
     this.onError = handler;
   }
 
-  // Polling control methods
-  public enablePolling(): void {
-    this.pollingEnabled = true;
-    if (this.connectionStatus === "connected" && (!this.isDownloading || !this.isDownloading())) {
+  // Public methods
+  public async connect(): Promise<void> {
+    this.setConnectionStatus("connecting");
+    this.reconnectAttempts = 0;
+
+    try {
+      // Get credentials from the working endpoint
+      const credentials = await this.findLCUCredentials();
+
+      if (!credentials) {
+        this.setConnectionStatus("error");
+        this.onError?.("Could not find League Client process. Make sure League of Legends is running.");
+        if (this.autoReconnect && this.reconnectAttempts < this.maxReconnectAttempts) {
+          this.scheduleReconnect();
+        }
+        return;
+      }
+
+      // Connection successful
+      this.credentials = credentials;
+      this.setConnectionStatus("connected");
+
+      // Start polling immediately when connected
       this.startPolling();
+    } catch (error) {
+      console.warn(error instanceof Error ? error.message : "Failed to connect to League Client");
+      this.setConnectionStatus("error");
+      const errorMessage = error instanceof Error ? error.message : "Failed to connect to League Client";
+      this.onError?.(errorMessage);
+
+      if (this.autoReconnect && this.reconnectAttempts < this.maxReconnectAttempts) {
+        this.scheduleReconnect();
+      }
     }
   }
 
-  public disablePolling(): void {
-    this.pollingEnabled = false;
+  public disconnect(): void {
     this.stopPolling();
+    this.clearRetryTimeout();
+    this.setConnectionStatus("disconnected");
+    this.credentials = null;
+    this.reconnectAttempts = 0;
+    this.onChampSelectUpdate?.(null);
   }
 
-  public isPollingEnabled(): boolean {
-    return this.pollingEnabled;
+  private async scheduleReconnect(): Promise<void> {
+    this.reconnectAttempts++;
+    const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 10000);
+
+    this.retryTimeout = setTimeout(() => {
+      console.log(`Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`);
+      this.connect();
+    }, delay);
   }
 
-  // Getters
-  public getConnectionStatus(): ConnectionStatus {
-    return this.connectionStatus;
-  }
-
-  public getCredentials(): LCUCredentials | null {
-    return this.credentials;
-  }
-
-  public isConnected(): boolean {
-    return this.connectionStatus === "connected";
+  private clearRetryTimeout(): void {
+    if (this.retryTimeout) {
+      clearTimeout(this.retryTimeout);
+      this.retryTimeout = null;
+    }
   }
 
   // Private methods
@@ -121,7 +151,6 @@ class LCUConnector {
   }
 
   private async pollChampSelect(): Promise<void> {
-    // If using mock data, don't make real API calls
     if (this.useMockData) {
       return;
     }
@@ -143,19 +172,7 @@ class LCUConnector {
   }
 
   private startPolling(): void {
-    // Don't start polling if using mock data
     if (this.useMockData) {
-      return;
-    }
-
-    // Don't start polling if polling is disabled
-    if (!this.pollingEnabled) {
-      return;
-    }
-
-    // Don't start polling if downloads are in progress
-    if (this.isDownloading && this.isDownloading()) {
-      console.log("Downloads in progress, delaying champion select polling");
       return;
     }
 
@@ -173,79 +190,6 @@ class LCUConnector {
       clearInterval(this.pollingInterval);
       this.pollingInterval = null;
     }
-  }
-
-  private clearRetryTimeout(): void {
-    if (this.retryTimeout) {
-      clearTimeout(this.retryTimeout);
-      this.retryTimeout = null;
-    }
-  }
-
-  // Public methods
-  public async connect(): Promise<void> {
-    this.setConnectionStatus("connecting");
-    this.reconnectAttempts = 0;
-
-    try {
-      // Use the test endpoint to verify LCU connection
-      const testResponse = await fetch("/api/v1/pickban/leagueclient/lcu-test");
-      const testResult = await testResponse.json();
-
-      if (!testResult.success) {
-        console.warn(testResult.message || testResult.error || "LCU test failed");
-      }
-
-      // Get credentials from the working endpoint
-      const credentials = await this.findLCUCredentials();
-
-      if (!credentials) {
-        this.setConnectionStatus("error");
-        this.onError?.("Could not find League Client process. Make sure League of Legends is running.");
-        if (this.autoReconnect && this.reconnectAttempts < this.maxReconnectAttempts) {
-          this.scheduleReconnect();
-        }
-        return;
-      }
-
-      // Connection successful
-      this.credentials = credentials;
-      this.setConnectionStatus("connected");
-
-      // Start polling for champion select data if ready (downloads complete)
-      this.startPollingIfReady();
-    } catch (error) {
-      console.warn(error instanceof Error ? error.message : "Failed to connect to League Client");
-      this.setConnectionStatus("error");
-      const errorMessage = error instanceof Error ? error.message : "Failed to connect to League Client";
-      this.onError?.(errorMessage);
-
-      if (this.autoReconnect && this.reconnectAttempts < this.maxReconnectAttempts) {
-        this.scheduleReconnect();
-      }
-    }
-  }
-
-  private scheduleReconnect(): void {
-    this.reconnectAttempts++;
-    const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 10000);
-
-    this.retryTimeout = setTimeout(() => {
-      console.log(`Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`);
-      this.connect();
-    }, delay);
-  }
-
-  public disconnect(): void {
-    // Only stop polling if not using mock data
-    this.stopPolling();
-    this.clearRetryTimeout();
-
-    this.setConnectionStatus("disconnected");
-    this.credentials = null;
-    this.reconnectAttempts = 0;
-
-    this.onChampSelectUpdate?.(null);
   }
 
   public async testConnection(): Promise<{
@@ -284,7 +228,6 @@ class LCUConnector {
     checks?: unknown;
   }> {
     try {
-      // Use the test endpoint to check LCU status
       const response = await fetch("/api/v1/pickban/leagueclient/lcu-test");
       const result = await response.json();
 
@@ -316,17 +259,6 @@ class LCUConnector {
         success: false,
         message: `❌ Status check error: ${err instanceof Error ? err.message : "Unknown error"}`
       };
-    }
-  }
-
-  public startPollingIfReady(): void {
-    // Only start polling if we're connected, downloads are not in progress, and polling is enabled
-    if (
-      this.connectionStatus === "connected" &&
-      (!this.isDownloading || !this.isDownloading()) &&
-      this.pollingEnabled
-    ) {
-      this.startPolling();
     }
   }
 

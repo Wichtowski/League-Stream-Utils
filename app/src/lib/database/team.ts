@@ -1,13 +1,26 @@
 import { connectToDatabase } from "./connection";
 import { TeamModel } from "./models";
-import type { Team, CreateTeamRequest, RiotPlayerData } from "@lib/types";
+import type { Team, CreateTeamRequest } from "@lib/types";
 import type { Document } from "mongoose";
 
 const convertMongoDoc = (doc: Document): Team => {
   const obj = doc.toObject();
+
+  // Convert player _id fields to strings
+  const convertPlayerIds = (players: Array<Record<string, unknown>>) => {
+    return players.map((player) => ({
+      ...player,
+      _id: (player._id as { toString?: () => string })?.toString?.() || player._id
+    }));
+  };
+
   return {
     ...obj,
     _id: obj._id.toString(),
+    players: {
+      main: convertPlayerIds(obj.players?.main || []),
+      substitutes: convertPlayerIds(obj.players?.substitutes || [])
+    },
     createdAt: new Date(obj.createdAt),
     updatedAt: new Date(obj.updatedAt),
     founded: new Date(obj.founded)
@@ -27,7 +40,7 @@ export const createTeam = async (userId: string, teamData: CreateTeamRequest): P
     region: teamData.region,
     tier: teamData.tier,
     founded: new Date(),
-    verified: false,
+
     socialMedia: teamData.socialMedia,
     teamOwnerId: userId,
     isStandalone: teamData.isStandalone || false,
@@ -39,15 +52,34 @@ export const createTeam = async (userId: string, teamData: CreateTeamRequest): P
 };
 
 export const getUserTeams = async (teamOwnerId: string): Promise<Team[]> => {
-  await connectToDatabase();
-  const teams = await TeamModel.find({ teamOwnerId }).sort({ createdAt: -1 });
-  return teams.map(convertMongoDoc);
+  try {
+    await connectToDatabase();
+    console.log("Fetching teams for user:", teamOwnerId);
+
+    const teams = await TeamModel.find({ teamOwnerId }).sort({ createdAt: -1 });
+    console.log("Raw teams from database:", teams.length);
+
+    const convertedTeams = teams.map(convertMongoDoc);
+    console.log("Converted teams:", convertedTeams.length);
+
+    return convertedTeams;
+  } catch (error) {
+    console.error("Error in getUserTeams:", error);
+    throw error;
+  }
 };
 
 export const getAllTeams = async (): Promise<Team[]> => {
   await connectToDatabase();
+  console.log("getAllTeams: Connected to database");
+
   const teams = await TeamModel.find({}).sort({ createdAt: -1 });
-  return teams.map(convertMongoDoc);
+  console.log("getAllTeams: Raw teams from DB:", teams.length);
+
+  const convertedTeams = teams.map(convertMongoDoc);
+  console.log("getAllTeams: Converted teams:", convertedTeams.length);
+
+  return convertedTeams;
 };
 
 export const getTeamById = async (teamId: string): Promise<Team | null> => {
@@ -60,15 +92,30 @@ export const getTeamById = async (teamId: string): Promise<Team | null> => {
 export const getTeamLogoByTeamId = async (
   teamId: string
 ): Promise<{ type: "url"; url: string } | { type: "upload"; data: string } | null> => {
-  await connectToDatabase();
-  const team = await TeamModel.findOne({ id: teamId }).select({ logo: 1 }).lean().exec();
-  if (!team) return null;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const logo = (team as any).logo;
-  if (!logo) return null;
-  if (logo.url) return { type: "url", url: logo.url };
-  if (logo.data) return { type: "upload", data: logo.data };
-  return null;
+  try {
+    await connectToDatabase();
+
+    const team = await TeamModel.findOne({ _id: teamId }).select({ logo: 1 }).lean().exec();
+
+    if (!team) return null;
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const logo = (team as any).logo;
+
+    if (!logo) return null;
+
+    if (logo.url) {
+      return { type: "url", url: logo.url };
+    }
+
+    if (logo.data) {
+      return { type: "upload", data: logo.data };
+    }
+
+    return null;
+  } catch (_error) {
+    return null;
+  }
 };
 
 export const updateTeam = async (
@@ -104,21 +151,6 @@ export const updateTeam = async (
   return convertMongoDoc(team);
 };
 
-export const updateTeamVerification = async (teamId: string, userId: string, verified: boolean): Promise<Team | null> => {
-  await connectToDatabase();
-
-  const team = await TeamModel.findById(teamId);
-  if (!team || team.teamOwnerId !== userId) {
-    return null;
-  }
-
-  team.verified = verified;
-  team.updatedAt = new Date();
-
-  await team.save();
-  return convertMongoDoc(team);
-};
-
 export const deleteTeam = async (teamId: string, userId: string): Promise<boolean> => {
   await connectToDatabase();
   const team = await TeamModel.findById(teamId);
@@ -133,136 +165,6 @@ export const getTeamsByIds = async (teamIds: string[]): Promise<Team[]> => {
   await connectToDatabase();
   const teams = await TeamModel.find({ _id: { $in: teamIds } });
   return teams.map(convertMongoDoc);
-};
-
-export const verifyTeamPlayers = async (
-  teamId: string,
-  playerUpdates: {
-    playerId: string;
-    verified: boolean;
-    riotData?: RiotPlayerData;
-  }[]
-): Promise<Team | null> => {
-  await connectToDatabase();
-
-  const team = await TeamModel.findById(teamId);
-  if (!team) return null;
-
-  playerUpdates.forEach((update) => {
-    const mainPlayer = team.players?.main?.find((p) => p._id?.toString() === update.playerId);
-    if (mainPlayer) {
-      mainPlayer.verified = update.verified;
-      if (update.verified) {
-        mainPlayer.verifiedAt = new Date();
-      }
-      if (update.riotData) {
-        mainPlayer.puuid = update.riotData.puuid;
-        mainPlayer.summonerLevel = update.riotData.summonerLevel;
-        mainPlayer.rank = update.riotData.rank;
-        mainPlayer.lastGameAt = new Date();
-      }
-    }
-
-    const subPlayer = team.players?.substitutes?.find((p) => p._id?.toString() === update.playerId);
-    if (subPlayer) {
-      subPlayer.verified = update.verified;
-      if (update.verified) {
-        subPlayer.verifiedAt = new Date();
-      }
-      if (update.riotData) {
-        subPlayer.puuid = update.riotData.puuid;
-        subPlayer.summonerLevel = update.riotData.summonerLevel;
-        subPlayer.rank = update.riotData.rank;
-        subPlayer.lastGameAt = new Date();
-      }
-    }
-  });
-
-  const allMainVerified = (team.players?.main?.length || 0) > 0 && team.players?.main?.every((p) => p.verified);
-  const allSubsVerified =
-    (team.players?.substitutes?.length || 0) === 0 || team.players?.substitutes?.every((p) => p.verified);
-  if (allMainVerified && allSubsVerified) {
-    team.verified = true;
-  } else {
-    team.verified = false;
-  }
-
-  team.updatedAt = new Date();
-  await team.save();
-  return convertMongoDoc(team);
-};
-
-export const updatePlayerVerification = async (
-  teamId: string,
-  userId: string,
-  playerId: string,
-  verified: boolean
-): Promise<Team | null> => {
-  await connectToDatabase();
-
-  const team = await TeamModel.findById(teamId);
-  if (!team || team.teamOwnerId !== userId) {
-    return null;
-  }
-
-  team.players?.main?.forEach((player, index: number) => {
-    if (player._id?.toString() === playerId) {
-      team.players!.main[index] = {
-        ...player,
-        verified,
-        verifiedAt: verified ? new Date() : undefined,
-        updatedAt: new Date()
-      } as typeof player;
-    }
-  });
-
-  team.players?.substitutes?.forEach((player, index: number) => {
-    if (player._id?.toString() === playerId) {
-      team.players!.substitutes[index] = {
-        ...player,
-        verified,
-        verifiedAt: verified ? new Date() : undefined,
-        updatedAt: new Date()
-      } as typeof player;
-    }
-  });
-
-  team.updatedAt = new Date();
-  await team.save();
-  return convertMongoDoc(team);
-};
-
-export const verifyAllTeamPlayers = async (teamId: string, userId: string): Promise<Team | null> => {
-  await connectToDatabase();
-
-  const team = await TeamModel.findById(teamId);
-  if (!team || team.teamOwnerId !== userId) {
-    return null;
-  }
-
-  const now = new Date();
-
-  team.players?.main?.forEach((player, index: number) => {
-    team.players!.main[index] = {
-      ...player,
-      verified: true,
-      verifiedAt: now,
-      updatedAt: now
-    } as typeof player;
-  });
-
-  team.players?.substitutes?.forEach((player, index: number) => {
-    team.players!.substitutes[index] = {
-      ...player,
-      verified: true,
-      verifiedAt: now,
-      updatedAt: now
-    } as typeof player;
-  });
-
-  team.updatedAt = now;
-  await team.save();
-  return convertMongoDoc(team);
 };
 
 export const checkTeamAvailability = async (

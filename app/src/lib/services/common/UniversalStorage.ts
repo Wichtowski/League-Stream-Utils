@@ -28,7 +28,7 @@ export class UniversalStorage implements Storage {
   private safeBase64Encode(str: string): string {
     const encoder = new TextEncoder();
     const bytes = encoder.encode(str);
-    let binary = '';
+    let binary = "";
     for (let i = 0; i < bytes.length; i++) {
       binary += String.fromCharCode(bytes[i]);
     }

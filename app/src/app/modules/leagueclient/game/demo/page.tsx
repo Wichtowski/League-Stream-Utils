@@ -6,11 +6,7 @@ import { GameDataDisplay } from "@libLeagueClient/components/game/GameDataDispla
 import { Breadcrumbs } from "@lib/components/common";
 import { getChampions } from "@lib/champions";
 import { getSummonerSpells } from "@lib/summoner-spells";
-import {
-  staticPlayersOrderMock,
-  staticPlayersChaosMock,
-  MockedEvents,
-} from "@lib/mocks/game";
+import { staticPlayersOrderMock, staticPlayersChaosMock, MockedEvents } from "@lib/mocks/game";
 
 const makeLiveGameData = (elapsedSeconds: number): LiveGameData => {
   return {

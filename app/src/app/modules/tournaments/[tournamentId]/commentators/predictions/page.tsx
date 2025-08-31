@@ -62,7 +62,7 @@ export default function ComentatorPredictionsPage({ params }: ComentatorPredicti
   useEffect(() => {
     if (mode === "tournament" && selectedTournament) {
       setLoadingMatches(true);
-              getBracket(selectedTournament._id)
+      getBracket(selectedTournament._id)
         .then((res) => {
           if (res.success && res.bracket) {
             const structure = res.bracket.structure as BracketStructure;

@@ -65,7 +65,7 @@ export default function ConfigPage() {
 
   useEffect(() => {
     if (selectedTournament) {
-              getTournamentLogoUrl(selectedTournament._id).then(setTournamentLogoUrl);
+      getTournamentLogoUrl(selectedTournament._id).then(setTournamentLogoUrl);
     } else {
       setTournamentLogoUrl("");
     }
@@ -146,7 +146,7 @@ export default function ConfigPage() {
       }));
 
       // Load teams for this tournament
-              loadTournamentTeams(tournament._id);
+      loadTournamentTeams(tournament._id);
     },
     [loadTournamentTeams]
   );
@@ -282,9 +282,9 @@ export default function ConfigPage() {
                 {tournaments
                   .filter((tournament) => user?.isAdmin || tournament.userId === user?.id)
                   .map((tournament) => (
-                                    <option key={tournament._id} value={tournament._id}>
-                  {tournament.name}
-                </option>
+                    <option key={tournament._id} value={tournament._id}>
+                      {tournament.name}
+                    </option>
                   ))}
               </select>
               {loadingTournaments && <p className="text-xs text-gray-400 mt-1">Loading tournaments...</p>}

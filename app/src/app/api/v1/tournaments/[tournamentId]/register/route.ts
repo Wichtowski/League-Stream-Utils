@@ -58,26 +58,11 @@ export const POST = withAuth(async (req: NextRequest, user: JWTPayload) => {
       }
     }
 
-    // Admin and tournament organizer bypass: Allow teams with incomplete rosters or unverified players
+    // Admin and tournament organizer bypass: Allow teams with incomplete rosters
     if (!isAdminOrOrganizer) {
       // Validate team has complete roster
       if (team.players.main.length !== 5) {
         return NextResponse.json({ error: "Team must have a complete 5-player roster to register" }, { status: 400 });
-      }
-
-      // Check if team players are verified (if required)
-      const unverifiedPlayers = team.players.main.filter((player: Player) => !player.verified);
-      if (unverifiedPlayers.length > 0) {
-        return NextResponse.json(
-          {
-            error: `The following players need to be verified: ${unverifiedPlayers.map((p: Player) => p.inGameName).join(", ")}`,
-            unverifiedPlayers: unverifiedPlayers.map((p: Player) => ({
-              id: p.id,
-              inGameName: p.inGameName
-            }))
-          },
-          { status: 400 }
-        );
       }
     }
 

@@ -34,14 +34,17 @@ export function useAuthenticatedFetch(): {
 
         // Try to refresh token on 401
         if (response.status === 401 && !skipAuth) {
+          console.log("401 Unauthorized - attempting token refresh...");
           const refreshed = await refreshToken();
 
           if (refreshed) {
+            console.log("Token refreshed, retrying request...");
             response = await fetch(url, defaultOptions);
           }
 
           // If refresh failed or the retried request is still unauthorized, force logout
           if (!refreshed || response.status === 401) {
+            console.log("Token refresh failed or still unauthorized - logging out...");
             await logout();
           }
         }

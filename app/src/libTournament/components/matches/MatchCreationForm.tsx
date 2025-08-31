@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import type { Team, Tournament } from "@lib/types";
-import { useModal, useCurrentMatch } from "@lib/contexts";
+import { useModal, useCurrentMatch, useUser } from "@lib/contexts";
 import { Button, LoadingSpinner } from "@lib/components/common";
 import { BracketNode } from "@lib/types/tournament";
 import { Match, CreateMatchRequest } from "@lib/types/match";
@@ -33,19 +33,17 @@ export const MatchCreationForm = ({
   const [teamsLoading, setTeamsLoading] = useState(true);
   const { showAlert, showConfirm } = useModal();
   const { setCurrentMatch } = useCurrentMatch();
+  const user = useUser();
 
   // Fetch teams directly
   useEffect(() => {
     const fetchTeams = async () => {
       try {
         setTeamsLoading(true);
-        const token = localStorage.getItem("token");
         const response = await fetch("/api/v1/teams", {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
+          credentials: "include"
         });
-        
+
         if (response.ok) {
           const data = await response.json();
           setTeams(data.teams || []);
@@ -78,7 +76,7 @@ export const MatchCreationForm = ({
   useEffect(() => {
     if (teams.length > 0) {
       const tournamentTeams = teams.filter(
-        (team) => tournament.selectedTeams.includes(team.id) || tournament.registeredTeams.includes(team.id)
+        (team) => tournament.selectedTeams.includes(team._id) || tournament.registeredTeams.includes(team._id)
       );
       setAvailableTeams(tournamentTeams);
     }
@@ -121,15 +119,16 @@ export const MatchCreationForm = ({
         format: formData.format,
         isFearlessDraft: formData.isFearlessDraft,
         patchName: formData.patchName,
-        scheduledTime: formData.scheduledTime || undefined
+        scheduledTime: formData.scheduledTime || undefined,
+        createdBy: user?._id || ""
       };
 
       const response = await fetch("/api/v1/matches", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`
+          "Content-Type": "application/json"
         },
+        credentials: "include",
         body: JSON.stringify(matchData)
       });
 
@@ -183,7 +182,7 @@ export const MatchCreationForm = ({
     } finally {
       setCreating(false);
     }
-  }, [formData, tournament, onMatchCreated, showAlert, showConfirm, setCurrentMatch]);
+  }, [formData, tournament, onMatchCreated, showAlert, showConfirm, setCurrentMatch, user?._id]);
 
   const handleCreateFromBracket = useCallback(
     async (node: BracketNode): Promise<void> => {
@@ -195,8 +194,8 @@ export const MatchCreationForm = ({
         return;
       }
 
-      const blueTeam = availableTeams.find((t) => t.id === node.team1);
-      const redTeam = availableTeams.find((t) => t.id === node.team2);
+      const blueTeam = availableTeams.find((t) => t._id === node.team1);
+      const redTeam = availableTeams.find((t) => t._id === node.team2);
 
       if (!blueTeam || !redTeam) {
         await showAlert({
@@ -213,7 +212,7 @@ export const MatchCreationForm = ({
         name: matchName,
         blueTeamId: node.team1!,
         redTeamId: node.team2!,
-        bracketNodeId: node.id
+        bracketNodeId: node._id
       }));
     },
     [availableTeams, showAlert]
@@ -262,7 +261,7 @@ export const MatchCreationForm = ({
             >
               <option value="">Select Blue Team</option>
               {availableTeams.map((team) => (
-                <option key={team.id} value={team.id}>
+                <option key={team._id} value={team._id}>
                   {team.name}
                 </option>
               ))}
@@ -278,7 +277,7 @@ export const MatchCreationForm = ({
             >
               <option value="">Select Red Team</option>
               {availableTeams.map((team) => (
-                <option key={team.id} value={team.id}>
+                <option key={team._id} value={team._id}>
                   {team.name}
                 </option>
               ))}
@@ -335,13 +334,13 @@ export const MatchCreationForm = ({
           <h3 className="text-lg font-semibold text-white mb-4">Create from Bracket</h3>
           <div className="space-y-3">
             {availableBracketNodes.map((node) => {
-              const blueTeam = availableTeams.find((t) => t.id === node.team1);
-              const redTeam = availableTeams.find((t) => t.id === node.team2);
+              const blueTeam = availableTeams.find((t) => t._id === node.team1);
+              const redTeam = availableTeams.find((t) => t._id === node.team2);
 
               if (!blueTeam || !redTeam) return null;
 
               return (
-                <div key={node.id} className="flex items-center justify-between p-3 bg-gray-800 rounded-md">
+                <div key={node._id} className="flex items-center justify-between p-3 bg-gray-800 rounded-md">
                   <div className="flex items-center space-x-4">
                     <span className="text-sm text-gray-400">Round {node.round}</span>
                     <div className="flex items-center space-x-2">

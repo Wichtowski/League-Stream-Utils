@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useModal } from "@lib/contexts/ModalContext";
 import { LoadingSpinner } from "@lib/components/common";
-import type { Sponsorship, ImageStorage, Tournament } from "@lib/types";
+import type { Sponsorship, Tournament } from "@lib/types";
+import type { SponsorFormData } from "@lib/types/forms";
 import Image from "next/image";
 
 interface SponsorManagerProps {
@@ -12,20 +13,14 @@ interface SponsorManagerProps {
   onSponsorsUpdated: () => void;
 }
 
-interface SponsorFormData {
-  name: string;
-  logo: ImageStorage | null;
-  website: string;
-  tier: "title" | "presenting" | "official" | "partner";
-  displayPriority: number;
-}
-
 const createDefaultSponsorForm = (): SponsorFormData => ({
   name: "",
   logo: null,
   website: "",
-  tier: "partner",
-  displayPriority: 0
+  tier: "bronze",
+  startDate: new Date(),
+  endDate: new Date(),
+  isActive: true
 });
 
 export const SponsorManager = ({ tournamentId, tournament: _tournament, onSponsorsUpdated }: SponsorManagerProps) => {
@@ -102,7 +97,7 @@ export const SponsorManager = ({ tournamentId, tournament: _tournament, onSponso
     }
 
     try {
-      const response = await fetch(`/api/v1/tournaments/${tournamentId}/sponsors/${editingSponsor.id}`, {
+      const response = await fetch(`/api/v1/tournaments/${tournamentId}/sponsors/${editingSponsor._id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData)
@@ -141,7 +136,7 @@ export const SponsorManager = ({ tournamentId, tournament: _tournament, onSponso
     if (!confirmed) return;
 
     try {
-      const response = await fetch(`/api/v1/tournaments/${tournamentId}/sponsors/${sponsor.id}`, {
+      const response = await fetch(`/api/v1/tournaments/${tournamentId}/sponsors/${sponsor._id}`, {
         method: "DELETE"
       });
 
@@ -172,7 +167,9 @@ export const SponsorManager = ({ tournamentId, tournament: _tournament, onSponso
       logo: sponsor.logo,
       website: sponsor.website || "",
       tier: sponsor.tier,
-      displayPriority: sponsor.displayPriority
+      startDate: sponsor.startDate,
+      endDate: sponsor.endDate,
+      isActive: sponsor.isActive
     });
   };
 
@@ -224,7 +221,9 @@ export const SponsorManager = ({ tournamentId, tournament: _tournament, onSponso
     return <LoadingSpinner text="Loading sponsors..." />;
   }
 
-  const sortedSponsors = [...sponsors].sort((a, b) => b.displayPriority - a.displayPriority);
+  const sortedSponsors = [...sponsors].sort(
+    (a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+  );
 
   return (
     <div className="space-y-6">
@@ -279,10 +278,10 @@ export const SponsorManager = ({ tournamentId, tournament: _tournament, onSponso
                 }
                 className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2"
               >
-                <option value="title">Title Sponsor</option>
-                <option value="presenting">Presenting Sponsor</option>
-                <option value="official">Official Sponsor</option>
-                <option value="partner">Partner</option>
+                <option value="platinum">Platinum</option>
+                <option value="gold">Gold</option>
+                <option value="silver">Silver</option>
+                <option value="bronze">Bronze</option>
               </select>
             </div>
 
@@ -298,20 +297,51 @@ export const SponsorManager = ({ tournamentId, tournament: _tournament, onSponso
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">Display Priority</label>
+              <label className="block text-sm font-medium mb-2">Start Date</label>
               <input
-                type="number"
-                value={formData.displayPriority}
+                type="date"
+                value={formData.startDate.toISOString().split("T")[0]}
                 onChange={(e) =>
                   setFormData((prev) => ({
                     ...prev,
-                    displayPriority: parseInt(e.target.value) || 0
+                    startDate: new Date(e.target.value)
                   }))
                 }
                 className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2"
-                placeholder="0"
               />
-              <p className="text-xs text-gray-400 mt-1">Higher numbers display first</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">End Date</label>
+              <input
+                type="date"
+                value={formData.endDate.toISOString().split("T")[0]}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    endDate: new Date(e.target.value)
+                  }))
+                }
+                className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Active Status</label>
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={formData.isActive}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      isActive: e.target.checked
+                    }))
+                  }
+                  className="mr-2"
+                />
+                <span className="text-sm">Sponsor is active</span>
+              </label>
             </div>
 
             <div className="md:col-span-2">
@@ -371,22 +401,26 @@ export const SponsorManager = ({ tournamentId, tournament: _tournament, onSponso
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {sortedSponsors.map((sponsor) => (
-            <div key={sponsor.id} className="bg-gray-800 rounded-lg p-4">
+            <div key={sponsor._id} className="bg-gray-800 rounded-lg p-4">
               <div className="flex items-center justify-between mb-3">
                 <span
                   className={`px-2 py-1 rounded text-xs font-medium ${
-                    sponsor.tier === "title"
-                      ? "bg-yellow-600 text-yellow-100"
-                      : sponsor.tier === "presenting"
-                        ? "bg-purple-600 text-purple-100"
-                        : sponsor.tier === "official"
-                          ? "bg-blue-600 text-blue-100"
-                          : "bg-gray-600 text-gray-100"
+                    sponsor.tier === "platinum"
+                      ? "bg-purple-600 text-purple-100"
+                      : sponsor.tier === "gold"
+                        ? "bg-yellow-600 text-yellow-100"
+                        : sponsor.tier === "silver"
+                          ? "bg-gray-400 text-gray-100"
+                          : "bg-amber-600 text-amber-100"
                   }`}
                 >
                   {sponsor.tier.charAt(0).toUpperCase() + sponsor.tier.slice(1)}
                 </span>
-                <span className="text-xs text-gray-400">Priority: {sponsor.displayPriority}</span>
+                <span
+                  className={`text-xs px-2 py-1 rounded ${sponsor.isActive ? "text-green-400 bg-green-900" : "text-red-400 bg-red-900"}`}
+                >
+                  {sponsor.isActive ? "Active" : "Inactive"}
+                </span>
               </div>
 
               <div className="text-center mb-3">

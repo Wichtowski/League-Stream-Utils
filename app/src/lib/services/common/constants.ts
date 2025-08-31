@@ -60,7 +60,7 @@ export const ALLOWED_IMAGE_HOSTS: string[] = [
 
   // Google/CDN storage
   "storage.googleapis.com",
-  "lh3.googleusercontent.com",
+  "lh3.googleusercontent.com"
 ];
 
 export const LOGO_SQUARE_TOLERANCE = 0.15; // Increased tolerance for WebP images and other formats

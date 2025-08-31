@@ -151,7 +151,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     // Check if user account is locked
-    if ((user as { isLocked?: boolean }).isLocked && (user as { lockedUntil?: Date }).lockedUntil && (user as { lockedUntil?: Date }).lockedUntil! > new Date()) {
+    if (
+      (user as { isLocked?: boolean }).isLocked &&
+      (user as { lockedUntil?: Date }).lockedUntil &&
+      (user as { lockedUntil?: Date }).lockedUntil! > new Date()
+    ) {
       await logSecurityEvent({
         timestamp: new Date(),
         event: "login_attempt_user_locked",

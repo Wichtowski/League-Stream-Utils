@@ -1,22 +1,12 @@
 "use client";
 
-import type { ImageStorage, Sponsorship } from "@lib/types";
+import type { Sponsorship } from "@lib/types";
+import type { SponsorFormData } from "@lib/types/forms";
 import { SponsorWindow } from "./SponsorWindow";
-
-interface SponsorFormData {
-  name: string;
-  logo: ImageStorage | null;
-  website: string;
-  tier: "title" | "presenting" | "official" | "partner";
-  displayPriority: number;
-  showName: boolean;
-  namePosition: "left" | "right";
-  fillContainer: boolean;
-}
 
 interface SponsorFormProps {
   formData: SponsorFormData;
-  setFormData: (data: SponsorFormData) => void;
+  setFormData: React.Dispatch<React.SetStateAction<SponsorFormData>>;
   editingSponsor: Sponsorship | null;
   onAddSponsor: () => void;
   onUpdateSponsor: () => void;
@@ -70,10 +60,10 @@ export const SponsorForm = ({
             }
             className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2"
           >
-            <option value="title">Title Sponsor</option>
-            <option value="presenting">Presenting Sponsor</option>
-            <option value="official">Official Sponsor</option>
-            <option value="partner">Partner</option>
+            <option value="platinum">Platinum</option>
+            <option value="gold">Gold</option>
+            <option value="silver">Silver</option>
+            <option value="bronze">Bronze</option>
           </select>
         </div>
 
@@ -89,79 +79,55 @@ export const SponsorForm = ({
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-2">Display Priority</label>
+          <label className="block text-sm font-medium mb-2">Start Date</label>
           <input
-            type="number"
-            value={formData.displayPriority}
+            type="date"
+            value={formData.startDate.toISOString().split("T")[0]}
             onChange={(e) =>
               setFormData({
                 ...formData,
-                displayPriority: parseInt(e.target.value) || 0
+                startDate: new Date(e.target.value)
               })
             }
             className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2"
-            placeholder="0"
           />
-          <p className="text-xs text-gray-400 mt-1">Higher numbers display first</p>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-2">End Date</label>
+          <input
+            type="date"
+            value={formData.endDate.toISOString().split("T")[0]}
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                endDate: new Date(e.target.value)
+              })
+            }
+            className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-2">Active Status</label>
+          <label className="flex items-center">
+            <input
+              type="checkbox"
+              checked={formData.isActive}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  isActive: e.target.checked
+                })
+              }
+              className="mr-2"
+            />
+            <span className="text-sm">Sponsor is active</span>
+          </label>
         </div>
 
         <div className="md:col-span-2">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Display Options */}
-            <div>
-              <label className="block text-sm font-medium mb-2">Display Options</label>
-              <div className="space-y-2">
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={formData.showName}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        showName: e.target.checked,
-                        fillContainer: e.target.checked ? false : formData.fillContainer
-                      })
-                    }
-                    className="mr-2"
-                  />
-                  <span className="text-sm">Show sponsor name</span>
-                </label>
-                {formData.showName && (
-                  <div className="ml-6">
-                    <label className="block text-xs text-gray-400 mb-1">Name position:</label>
-                    <select
-                      value={formData.namePosition}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          namePosition: e.target.value as "left" | "right"
-                        })
-                      }
-                      className="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-sm"
-                    >
-                      <option value="left">Left of logo</option>
-                      <option value="right">Right of logo</option>
-                    </select>
-                  </div>
-                )}
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={formData.fillContainer}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        fillContainer: e.target.checked,
-                        showName: e.target.checked ? false : formData.showName
-                      })
-                    }
-                    className="mr-2"
-                  />
-                  <span className="text-sm">Fill container (no black background)</span>
-                </label>
-              </div>
-            </div>
-
             {/* Live Preview */}
             <div>
               <label className="block text-sm font-medium mb-2">Live Preview</label>
@@ -169,15 +135,16 @@ export const SponsorForm = ({
                 <div className="relative">
                   <SponsorWindow
                     currentSponsor={{
-                      id: "preview",
+                      _id: "preview",
                       name: formData.name || "Sponsor Name",
                       logo: formData.logo,
                       website: formData.website,
                       tier: formData.tier,
-                      displayPriority: formData.displayPriority,
-                      showName: formData.showName,
-                      namePosition: formData.namePosition,
-                      fillContainer: formData.fillContainer
+                      startDate: formData.startDate,
+                      endDate: formData.endDate,
+                      isActive: formData.isActive,
+                      createdAt: new Date(),
+                      updatedAt: new Date()
                     }}
                     isVisible={true}
                     fixed={false}

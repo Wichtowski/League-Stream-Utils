@@ -17,8 +17,6 @@ const TeamEditPage: React.FC = () => {
   const { showAlert, showConfirm } = useModal();
   const user = useUser();
   const { authenticatedFetch } = useAuthenticatedFetch();
-  const [verifyingPlayers, setVerifyingPlayers] = useState<Set<string>>(new Set());
-  const [verifyingAllTeams, setVerifyingAllTeams] = useState<Set<string>>(new Set());
   const [showEditForm, setShowEditForm] = useState(false);
   const [team, setTeam] = useState<Team | null>(null);
   const [loading, setLoading] = useState(true);
@@ -27,16 +25,16 @@ const TeamEditPage: React.FC = () => {
   useEffect(() => {
     const fetchTeam = async () => {
       if (!teamId) return;
-      
+
       try {
         setLoading(true);
         console.log("Fetching team with ID:", teamId);
 
         console.log("Making API call to:", `/api/v1/teams/${teamId}`);
         const response = await authenticatedFetch(`/api/v1/teams/${teamId}`);
-        
+
         console.log("Response status:", response.status);
-        
+
         if (response.ok) {
           const data = await response.json();
           console.log("Team data received:", data);
@@ -93,7 +91,9 @@ const TeamEditPage: React.FC = () => {
       >
         <div className="text-center py-8">
           <h2 className="text-xl font-semibold text-gray-300 mb-2">Team Not Found</h2>
-          <p className="text-gray-400 mb-4">The team you&apos;re looking for doesn&apos;t exist or you don&apos;t have access to it.</p>
+          <p className="text-gray-400 mb-4">
+            The team you&apos;re looking for doesn&apos;t exist or you don&apos;t have access to it.
+          </p>
           <Button
             onClick={() => router.push("/modules/teams")}
             className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded"
@@ -104,173 +104,13 @@ const TeamEditPage: React.FC = () => {
       </PageWrapper>
     );
   }
-  const handleVerifyPlayer = async (teamId: string, playerId: string, playerName: string, playerTag: string) => {
-    if (!teamId || !playerId || !playerName || !playerTag) {
-      await showAlert({
-        type: "error",
-        message: "Missing required data for player verification"
-      });
-      return;
-    }
-
-    setVerifyingPlayers((prev) => new Set(prev).add(playerId));
-    try {
-      const response = await authenticatedFetch(`/api/v1/teams/${teamId}/players/${playerId}/verify`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ playerName, playerTag })
-      });
-      
-      if (response.ok) {
-        await showAlert({
-          type: "success",
-          message: `Player ${playerName}${playerTag} verified successfully!`
-        });
-        // Refresh team data
-        const teamResponse = await authenticatedFetch(`/api/v1/teams/${teamId}`);
-        if (teamResponse.ok) {
-          const data = await teamResponse.json();
-          setTeam(data.team);
-        }
-      } else {
-        const errorData = await response.json();
-        await showAlert({
-          type: "error",
-          message: errorData.error || "Failed to verify player"
-        });
-      }
-    } catch (error) {
-      console.error("Failed to verify player:", error);
-      await showAlert({
-        type: "error",
-        message: "Failed to verify player"
-      });
-    } finally {
-      setVerifyingPlayers((prev) => {
-        const newSet = new Set(prev);
-        newSet.delete(playerId);
-        return newSet;
-      });
-    }
-  };
-
-  const handleVerifyAllPlayers = async (team: Team) => {
-    if (!team || !team.id) {
-      await showAlert({
-        type: "error",
-        message: "Invalid team data"
-      });
-      return;
-    }
-
-    setVerifyingAllTeams((prev) => new Set(prev).add(team.id));
-    try {
-      const response = await authenticatedFetch(`/api/v1/teams/${team.id}/verify`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ verified: true, verifyPlayers: true })
-      });
-      
-      if (response.ok) {
-        await showAlert({
-          type: "success",
-          message: "All players verified successfully!"
-        });
-        // Refresh team data
-        const teamResponse = await authenticatedFetch(`/api/v1/teams/${team.id}`);
-        if (teamResponse.ok) {
-          const data = await teamResponse.json();
-          setTeam(data.team);
-        }
-      } else {
-        const errorData = await response.json();
-        console.error("Verification failed:", errorData.error);
-        await showAlert({
-          type: "error",
-          message: `Failed to verify team: ${errorData.error || "Unknown error"}`
-        });
-      }
-    } catch (error) {
-      console.error("Failed to verify team:", error);
-      await showAlert({ type: "error", message: "Failed to verify team" });
-    } finally {
-      setVerifyingAllTeams((prev) => {
-        const newSet = new Set(prev);
-        newSet.delete(team.id);
-        return newSet;
-      });
-    }
-  };
-
-  const handleAdminVerify = async (team: Team) => {
-    if (!team || !team.id) {
-      await showAlert({
-        type: "error",
-        message: "Invalid team data"
-      });
-      return;
-    }
-
-    const confirmed = await showConfirm({
-      title: "Admin Verify Team",
-      message: `Are you sure you want to admin verify ${team.name}? This will mark all players as verified.`,
-      confirmText: "Verify",
-      cancelText: "Cancel"
-    });
-
-    if (!confirmed) return;
-
-    setVerifyingAllTeams((prev) => new Set(prev).add(team.id));
-    try {
-      const response = await authenticatedFetch(`/api/v1/teams/${team.id}/verify`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ verified: true, verifyPlayers: true })
-      });
-      
-      if (response.ok) {
-        await showAlert({
-          type: "success",
-          message: "Team verified successfully!"
-        });
-        // Refresh team data
-        const teamResponse = await authenticatedFetch(`/api/v1/teams/${team.id}`);
-        if (teamResponse.ok) {
-          const data = await teamResponse.json();
-          setTeam(data.team);
-        }
-      } else {
-        const errorData = await response.json();
-        console.error("Verification failed:", errorData.error);
-        await showAlert({
-          type: "error",
-          message: `Failed to verify team: ${errorData.error || "Unknown error"}`
-        });
-      }
-    } catch (error) {
-      console.error("Failed to verify team:", error);
-      await showAlert({ type: "error", message: "Failed to verify team" });
-    } finally {
-      setVerifyingAllTeams((prev) => {
-        const newSet = new Set(prev);
-        newSet.delete(team.id);
-        return newSet;
-      });
-    }
-  };
 
   const handleEditTeam = () => {
     setShowEditForm(true);
   };
 
   const handleSaveTeam = async (updatedTeam: Partial<CreateTeamRequest>) => {
-    if (!team || !team.id) {
+    if (!team || !team._id) {
       await showAlert({
         type: "error",
         message: "Invalid team data"
@@ -279,14 +119,14 @@ const TeamEditPage: React.FC = () => {
     }
 
     try {
-      const response = await authenticatedFetch(`/api/v1/teams/${team.id}`, {
+      const response = await authenticatedFetch(`/api/v1/teams/${team._id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json"
         },
         body: JSON.stringify(updatedTeam)
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         setTeam(data.team);
@@ -311,53 +151,72 @@ const TeamEditPage: React.FC = () => {
     }
   };
 
-  const handleCancelEdit = () => {
-    setShowEditForm(false);
+  const handleDeleteTeam = async () => {
+    if (!team || !team._id) {
+      await showAlert({
+        type: "error",
+        message: "Invalid team data"
+      });
+      return;
+    }
+
+    const confirmed = await showConfirm({
+      title: "Delete Team",
+      message: `Are you sure you want to delete ${team.name}? This action cannot be undone.`,
+      confirmText: "Delete",
+      cancelText: "Cancel"
+    });
+
+    if (!confirmed) return;
+
+    try {
+      const response = await authenticatedFetch(`/api/v1/teams/${team._id}`, {
+        method: "DELETE"
+      });
+
+      if (response.ok) {
+        await showAlert({
+          type: "success",
+          message: "Team deleted successfully!"
+        });
+        router.push("/modules/teams");
+      } else {
+        const errorData = await response.json();
+        await showAlert({
+          type: "error",
+          message: errorData.error || "Failed to delete team"
+        });
+      }
+    } catch (error) {
+      console.error("Failed to delete team:", error);
+      await showAlert({
+        type: "error",
+        message: "Failed to delete team"
+      });
+    }
   };
 
   return (
     <PageWrapper
-      requireAuth={true}
+      title={team.name}
       breadcrumbs={[
         { label: "Teams", href: "/modules/teams" },
-        { label: team.name, href: `/modules/teams/${teamId}`, isActive: true }
+        { label: team.name, href: `/modules/teams/${team._id}`, isActive: true }
       ]}
-      title={team.name}
-      actions={
-        <div className="flex gap-2">
-          <Button
-            onClick={() => router.push(`/modules/cameras/stream/${team.id}`)}
-            variant="secondary"
-            className="cursor-pointer bg-gray-600 hover:bg-gray-700 px-6 py-2 rounded-lg text-white"
-          >
-            Open Cameras
-          </Button>
-          {(user?.id === team.teamOwnerId || user?.isAdmin) && (
-            <Button
-              onClick={handleEditTeam}
-              className="cursor-pointer bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-lg"
-            >
-              Edit Team
-            </Button>
-          )}
-        </div>
-      }
     >
-      {showEditForm ? (
-        <TeamEditForm team={team} onSave={handleSaveTeam} onCancel={handleCancelEdit} />
-      ) : (
-        <TeamCard
-          team={team}
-          currentUserId={user?.id}
-          isAdmin={user?.isAdmin}
-          verifyingPlayers={verifyingPlayers}
-          verifyingAllTeams={verifyingAllTeams}
-          onEditTeam={handleEditTeam}
-          onVerifyPlayer={handleVerifyPlayer}
-          onVerifyAllPlayers={handleVerifyAllPlayers}
-          onAdminVerify={handleAdminVerify}
-        />
-      )}
+      <div className="space-y-6">
+        {showEditForm ? (
+          <TeamEditForm team={team} onSave={handleSaveTeam} onCancel={() => setShowEditForm(false)} />
+        ) : (
+          <TeamCard
+            team={team}
+            currentUserId={user?._id}
+            isAdmin={user?.isAdmin}
+            onEditTeam={handleEditTeam}
+            onDeleteTeam={handleDeleteTeam}
+          />
+        )}
+      </div>
     </PageWrapper>
   );
 };

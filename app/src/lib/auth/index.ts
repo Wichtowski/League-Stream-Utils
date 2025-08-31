@@ -56,10 +56,7 @@ interface DecodedToken extends JWTPayload {
   sessionId?: string;
 }
 
-export function verifyToken(
-  token: string,
-  expectedType: "access" | "refresh" = "access"
-): DecodedToken | null {
+export function verifyToken(token: string, expectedType: "access" | "refresh" = "access"): DecodedToken | null {
   try {
     const decoded = jwt.verify(token, config.jwt.secret) as DecodedToken;
 

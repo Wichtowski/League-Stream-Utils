@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState, useCallback, useMemo } from "react"
 import type { EnhancedChampSelectSession, Team } from "@lib/types";
 import type { Match } from "@lib/types/match";
 import type { Tournament } from "@lib/types/tournament";
-import { 
+import {
   // TournamentHeader,
   TeamSection,
   MatchInfo,
@@ -26,11 +26,9 @@ import { getTeamById } from "@lib/database/team";
 
 interface ChampSelectDisplayProps {
   data: EnhancedChampSelectSession;
-  matchId?: string;
-  tournamentId?: string;
-  match?: Match;
+  match: Match;
   teams?: Team[];
-  tournament?: Tournament;
+  tournament: Tournament;
   roleIcons: Record<string, string>;
   banPlaceholder: string;
   showControls?: boolean;
@@ -39,9 +37,8 @@ interface ChampSelectDisplayProps {
 
 const ChampSelectDisplayComponent: React.FC<ChampSelectDisplayProps> = ({
   data,
-  matchId,
-  tournamentId,
   match,
+  teams,
   tournament,
   roleIcons,
   banPlaceholder,
@@ -57,29 +54,35 @@ const ChampSelectDisplayComponent: React.FC<ChampSelectDisplayProps> = ({
   const [childImageUrls, setChildImageUrls] = useState<string[]>([]);
   const [childImagesLoaded, setChildImagesLoaded] = useState(false);
   const preloadedUrlsRef = useRef<Set<string>>(new Set());
-  
+
   // Animation states
   const [mainUIAnimated, setMainUIAnimated] = useState(false);
   const [cardsAnimated, setCardsAnimated] = useState(false);
   const [bansAnimated, setBansAnimated] = useState(false);
   const [showFearlessBans, setShowFearlessBans] = useState(false);
+  const [centerAnimated, setCenterAnimated] = useState(false);
 
   // Load tournament and match data when IDs are provided
   useEffect(() => {
     const loadData = async () => {
-      if (!matchId && !tournamentId) return;
-      
+      // Skip database operations if we have mock data provided directly
+      if (tournament._id || match._id) {
+        return;
+      }
+
+      if (!match._id) return;
+
       try {
         const promises: Promise<void>[] = [];
-        
-        if (tournamentId) {
-          promises.push(getTournamentById(tournamentId).then(setLoadedTournament));
+
+        if (tournament._id) {
+          promises.push(getTournamentById(tournament._id).then(setLoadedTournament));
         }
-        
-        if (matchId) {
-          promises.push(getMatchById(matchId).then(setLoadedMatch));
+
+        if (match._id) {
+          promises.push(getMatchById(match._id).then(setLoadedMatch));
         }
-        
+
         await Promise.all(promises);
       } catch (error) {
         console.error("Failed to load tournament or match data:", error);
@@ -87,19 +90,24 @@ const ChampSelectDisplayComponent: React.FC<ChampSelectDisplayProps> = ({
     };
 
     loadData();
-  }, [matchId, tournamentId]);
+  }, [match._id, tournament, match]);
 
   // Load teams when match data is available
   useEffect(() => {
     const loadTeams = async () => {
+      // Skip database operations if we have mock data provided directly
+      if (teams) {
+        return;
+      }
+
       if (!loadedMatch) return;
-      
+
       try {
         const [blueTeam, redTeam] = await Promise.all([
           getTeamById(loadedMatch.blueTeamId),
           getTeamById(loadedMatch.redTeamId)
         ]);
-        
+
         if (blueTeam && redTeam) {
           setLoadedTeams([blueTeam, redTeam]);
         }
@@ -109,7 +117,7 @@ const ChampSelectDisplayComponent: React.FC<ChampSelectDisplayProps> = ({
     };
 
     loadTeams();
-  }, [loadedMatch]);
+  }, [loadedMatch, teams]);
 
   // Use provided data or loaded data
   const effectiveTournament = tournament || loadedTournament;
@@ -153,19 +161,47 @@ const ChampSelectDisplayComponent: React.FC<ChampSelectDisplayProps> = ({
     };
   }, [childImagesLoaded]);
 
-    // Use provided match/tournament data or fall back to tournamentData from the session
-  const effectiveTournamentData = useMemo(() => 
-    tournamentData || (effectiveMatch && effectiveTournament ? ({
-      tournament: {
-        id: effectiveTournament._id,
-        name: effectiveTournament.name,
-        logo: effectiveTournament.logo
-      },
-      blueTeam: effectiveMatch.blueTeamId,
-      redTeam: effectiveMatch.redTeamId
-    } as unknown as typeof tournamentData) : undefined),
-    [tournamentData, effectiveMatch, effectiveTournament]
-  );
+  // Use provided match/tournament data or fall back to tournamentData from the session
+  const effectiveTournamentData = useMemo(() => {
+    // If we have tournamentData from the session, use it
+    if (tournamentData) {
+      return tournamentData;
+    }
+
+    // If we have teams and match provided directly, create tournament data
+    if (teams && match && tournament) {
+      // Find the actual blue and red teams by their IDs from the match
+      const actualBlueTeam = teams.find((team) => team._id === match.blueTeamId);
+      const actualRedTeam = teams.find((team) => team._id === match.redTeamId);
+
+      if (actualBlueTeam && actualRedTeam) {
+        return {
+          tournament: {
+            id: tournament._id,
+            name: tournament.name,
+            logo: tournament.logo
+          },
+          blueTeam: actualBlueTeam,
+          redTeam: actualRedTeam
+        };
+      }
+    }
+
+    // Fallback to creating from match/tournament if available
+    if (effectiveMatch && effectiveTournament) {
+      return {
+        tournament: {
+          id: effectiveTournament._id,
+          name: effectiveTournament.name,
+          logo: effectiveTournament.logo
+        },
+        blueTeam: effectiveMatch.blueTeamId,
+        redTeam: effectiveMatch.redTeamId
+      } as unknown as typeof tournamentData;
+    }
+
+    return undefined;
+  }, [tournamentData, teams, match, tournament, effectiveMatch, effectiveTournament]);
 
   // Helper function to get team color
   const getTeamColor = (team: { colors?: { primary?: string } } | undefined, fallback: string): string => {
@@ -180,7 +216,7 @@ const ChampSelectDisplayComponent: React.FC<ChampSelectDisplayProps> = ({
 
   // Callback for child components to register their required images
   const registerChildImages = useCallback((urls: string[]) => {
-    setChildImageUrls(prev => {
+    setChildImageUrls((prev) => {
       const newUrls = [...prev, ...urls];
       return Array.from(new Set(newUrls));
     });
@@ -189,23 +225,23 @@ const ChampSelectDisplayComponent: React.FC<ChampSelectDisplayProps> = ({
   // Memoize the initial preload URLs to prevent unnecessary recalculations
   const initialPreloadUrls = useMemo(() => {
     if (!data || initialPreloadDoneRef.current) return [];
-    
+
     const urls: string[] = [];
-    
+
     // Static UI assets
     if (banPlaceholder) urls.push(banPlaceholder);
-    
+
     // Role icons
-    Object.values(roleIcons).forEach(icon => {
+    Object.values(roleIcons).forEach((icon) => {
       if (icon) urls.push(icon);
     });
 
     // Champion images from data - only depend on champion IDs, not entire player objects
     const championIds = [
-      ...myTeam.map(p => p.championId).filter(Boolean),
-      ...theirTeam.map(p => p.championId).filter(Boolean)
+      ...myTeam.map((p) => p.championId).filter(Boolean),
+      ...theirTeam.map((p) => p.championId).filter(Boolean)
     ];
-    championIds.forEach(championId => {
+    championIds.forEach((championId) => {
       const splashImage = getChampionCenteredSplashImage(championId);
       const squareImage = getChampionSquareImage(championId);
       if (splashImage && !preloadedUrlsRef.current.has(splashImage)) urls.push(splashImage);
@@ -213,11 +249,8 @@ const ChampSelectDisplayComponent: React.FC<ChampSelectDisplayProps> = ({
     });
 
     // Ban images - only depend on champion IDs, not entire ban objects
-    const banChampionIds = [
-      ...bans.myTeamBans.filter(Boolean),
-      ...bans.theirTeamBans.filter(Boolean)
-    ];
-    banChampionIds.forEach(championId => {
+    const banChampionIds = [...bans.myTeamBans.filter(Boolean), ...bans.theirTeamBans.filter(Boolean)];
+    banChampionIds.forEach((championId) => {
       const squareImage = getChampionSquareImage(championId);
       if (squareImage && !preloadedUrlsRef.current.has(squareImage)) urls.push(squareImage);
     });
@@ -227,7 +260,7 @@ const ChampSelectDisplayComponent: React.FC<ChampSelectDisplayProps> = ({
       const blueLogo = getTeamLogo(effectiveTournamentData.blueTeam);
       if (blueLogo && !preloadedUrlsRef.current.has(blueLogo)) urls.push(blueLogo);
     }
-    
+
     if (effectiveTournamentData?.redTeam?.logo) {
       const redLogo = getTeamLogo(effectiveTournamentData.redTeam);
       if (redLogo && !preloadedUrlsRef.current.has(redLogo)) urls.push(redLogo);
@@ -235,15 +268,16 @@ const ChampSelectDisplayComponent: React.FC<ChampSelectDisplayProps> = ({
 
     // Get tournament logo from the tournament object
     if (effectiveTournamentData?.tournament?.logo) {
-      const tournamentLogo = typeof effectiveTournamentData.tournament.logo === "string" 
-        ? effectiveTournamentData.tournament.logo 
-        : effectiveTournamentData.tournament.logo.data || effectiveTournamentData.tournament.logo.url || "";
+      const tournamentLogo =
+        typeof effectiveTournamentData.tournament.logo === "string"
+          ? effectiveTournamentData.tournament.logo
+          : effectiveTournamentData.tournament.logo.data || effectiveTournamentData.tournament.logo.url || "";
       if (tournamentLogo && !preloadedUrlsRef.current.has(tournamentLogo)) urls.push(tournamentLogo);
     }
 
     return Array.from(new Set(urls));
   }, [
-    banPlaceholder, 
+    banPlaceholder,
     roleIcons,
     data,
     myTeam,
@@ -269,7 +303,7 @@ const ChampSelectDisplayComponent: React.FC<ChampSelectDisplayProps> = ({
   // Track which URLs have been preloaded to prevent re-preloading
   useEffect(() => {
     if (initialPreloadUrls.length > 0) {
-      initialPreloadUrls.forEach(url => preloadedUrlsRef.current.add(url));
+      initialPreloadUrls.forEach((url) => preloadedUrlsRef.current.add(url));
     }
   }, [initialPreloadUrls]);
 
@@ -277,7 +311,7 @@ const ChampSelectDisplayComponent: React.FC<ChampSelectDisplayProps> = ({
     if (!initialPreloadDoneRef.current && initialPreloadUrls.length > 0 && initialImagesLoaded) {
       initialPreloadDoneRef.current = true;
       // Mark all initial URLs as preloaded to prevent future preloading
-      initialPreloadUrls.forEach(url => preloadedUrlsRef.current.add(url));
+      initialPreloadUrls.forEach((url) => preloadedUrlsRef.current.add(url));
     }
 
     if (childImageUrls.length > 0 && childImagesLoadedStatus) {
@@ -288,6 +322,19 @@ const ChampSelectDisplayComponent: React.FC<ChampSelectDisplayProps> = ({
 
     if (data && initialPreloadDoneRef.current && childImagesLoaded) {
       setUiReady(true);
+
+      // Start animation sequence
+      setTimeout(() => {
+        setCenterAnimated(true);
+      }, 100);
+
+      setTimeout(() => {
+        setCardsAnimated(true);
+      }, 600);
+
+      setTimeout(() => {
+        setBansAnimated(true);
+      }, 1200);
     }
   }, [data, initialPreloadUrls, initialImagesLoaded, childImageUrls, childImagesLoadedStatus, childImagesLoaded]);
 
@@ -319,12 +366,12 @@ const ChampSelectDisplayComponent: React.FC<ChampSelectDisplayProps> = ({
         )}
       </div>
 
-        <ChampSelectLayout
-          mainUIAnimated={mainUIAnimated}
-          _cardsAnimated={cardsAnimated}
-          above={
+      <ChampSelectLayout
+        mainUIAnimated={mainUIAnimated}
+        _cardsAnimated={cardsAnimated}
+        above={
           <>
-            <div className="flex justify-between mb-2 items-center">
+            <div className="flex justify-between items-center items-end">
               <TeamBans
                 bans={bans.myTeamBans}
                 banPlaceholder={banPlaceholder}
@@ -359,7 +406,12 @@ const ChampSelectDisplayComponent: React.FC<ChampSelectDisplayProps> = ({
                 teamSide="right"
               />
             </div>
-            <TimeBar timer={timer} tournamentData={effectiveTournamentData} hoverState={hoverState} />
+            <TimeBar
+              timer={timer}
+              tournamentData={effectiveTournamentData}
+              hoverState={hoverState}
+              animated={bansAnimated}
+            />
           </>
         }
         left={
@@ -383,11 +435,13 @@ const ChampSelectDisplayComponent: React.FC<ChampSelectDisplayProps> = ({
             <MatchInfo
               blueTeam={{
                 name: effectiveTournamentData.blueTeam.name,
-                logo: getTeamLogo(effectiveTournamentData.blueTeam)
+                logo: getTeamLogo(effectiveTournamentData.blueTeam),
+                id: effectiveTournamentData.blueTeam._id
               }}
               redTeam={{
                 name: effectiveTournamentData.redTeam.name,
-                logo: getTeamLogo(effectiveTournamentData.redTeam)
+                logo: getTeamLogo(effectiveTournamentData.redTeam),
+                id: effectiveTournamentData.redTeam._id
               }}
               tournamentLogo={(() => {
                 const logo = effectiveTournamentData.tournament?.logo;
@@ -396,12 +450,26 @@ const ChampSelectDisplayComponent: React.FC<ChampSelectDisplayProps> = ({
                 if (logo?.type === "url" && logo.url) return logo.url;
                 return "";
               })()}
-              timer={timer.adjustedTimeLeftInPhase}
-              maxTimer={timer.totalTimeInPhase}
-              isBO3={true}
-              blueScore={1}
-              redScore={0}
+              matchFormat={match?.format || "BO5"}
+              games={match?.games}
+              currentGameSides={(() => {
+                if (!match?.games || match.games.length === 0) {
+                  // Default side assignment for first game
+                  return {
+                    blueTeamId: effectiveTournamentData.blueTeam._id,
+                    redTeamId: effectiveTournamentData.redTeam._id
+                  };
+                }
+
+                // Get the most recent game's side assignment
+                const latestGame = match.games[match.games.length - 1];
+                return {
+                  blueTeamId: latestGame.blueTeam,
+                  redTeamId: latestGame.redTeam
+                };
+              })()}
               onRegisterImages={registerChildImages}
+              animated={centerAnimated}
             />
           ) : (
             <div className="flex items-center justify-center h-full">
@@ -433,7 +501,7 @@ const ChampSelectDisplayComponent: React.FC<ChampSelectDisplayProps> = ({
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-transparent">
-      <div className="absolute inset-0 bg-black/40"></div>
+      <div className="absolute inset-0"></div>
       <div className="relative z-10">
         <div className="w-full">{content}</div>
       </div>

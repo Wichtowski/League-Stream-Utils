@@ -13,6 +13,10 @@ export interface User {
   sessionsCreatedToday: number;
   lastSessionDate: Date;
   createdAt: Date;
+  isLocked?: boolean;
+  lockedUntil?: Date;
+  lastLoginAt?: Date;
+  lastLoginIP?: string;
 }
 
 export interface UserRegistration {

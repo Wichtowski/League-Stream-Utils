@@ -1,6 +1,6 @@
 import { Match, Tournament, Player } from "@lib/types";
-import { LivePlayer, SummonerSpell } from "@libLeagueClient/types/LivePlayer"
-import { GameEvent } from "@libLeagueClient/types"
+import { LivePlayer, SummonerSpell } from "@libLeagueClient/types/LivePlayer";
+import { GameEvent } from "@libLeagueClient/types";
 
 const initialSpell = (name: string): SummonerSpell => ({ displayName: name, rawDescription: name });
 
@@ -335,7 +335,7 @@ export const mockStaticPlayersBlue: Player[] = [
     verified: true,
     createdAt: new Date(),
     updatedAt: new Date()
-  },  
+  },
   {
     _id: "5",
     inGameName: "minemaciek",
@@ -397,17 +397,54 @@ export const mockStaticPlayersRed: Player[] = [
 
 export const mockMatch: Match = {
   _id: "match_1",
-  name: "Mock Match",
+  name: "Los Ratones vs FMS - BO5",
   type: "tournament",
-  tournamentId: mockTournament._id,
-  format: mockTournament.matchFormat,
-  isFearlessDraft: mockTournament.fearlessDraft,
-  patchName: "25.16",
-  blueTeamId: "68a8ce6566c50b2c86130fa6",
-  redTeamId: "68a8ce6566c50b2c86130fa6",
+  tournamentId: "tourn_1",
+  blueTeamId: "1", // Los Ratones
+  redTeamId: "2", // FMS
+  format: "BO5",
+  isFearlessDraft: false,
+  patchName: "25.13",
   status: "in-progress",
-  score: { blue: 0, red: 0 },
-  games: [],
+
+  games: [
+    {
+      _id: "game1",
+      winner: "blue",
+      blueTeam: "1", // Los Ratones
+      redTeam: "2", // FMS
+      gameNumber: 1,
+      blueScore: 1,
+      redScore: 0
+    },
+    {
+      _id: "game2",
+      winner: "red",
+      blueTeam: "1", // Los Ratones
+      redTeam: "2", // FMS
+      gameNumber: 2,
+      blueScore: 0,
+      redScore: 1
+    },
+    {
+      _id: "game3",
+      winner: "blue",
+      blueTeam: "1", // Los Ratones
+      redTeam: "2", // FMS
+      gameNumber: 3,
+      blueScore: 1,
+      redScore: 0
+    },
+    {
+      _id: "game4",
+      winner: "red",
+      blueTeam: "1", // Los Ratones
+      redTeam: "2", // FMS
+      gameNumber: 4,
+      blueScore: 0,
+      redScore: 1
+    }
+  ],
   commentators: [],
   predictions: [],
   createdBy: "mock-user",

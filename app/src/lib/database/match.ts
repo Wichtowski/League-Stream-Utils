@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from "uuid";
+import { Types } from "mongoose";
 import { connectToDatabase } from "./connection";
 import { MatchModel } from "./models";
 import { TeamModel } from "./models";
@@ -9,23 +9,25 @@ import type {
   UpdateMatchRequest,
   AssignCommentatorRequest,
   SubmitPredictionRequest,
-  MatchCommentator,
+  MatchCommentator
 } from "@lib/types/match";
-import { ImageStorage, TeamColors } from "@lib/types/common";
-import { Player } from "@lib/types/game";
 
 // Helper function to transform mongoose document to Match
-function transformToMatch(doc: { _id?: unknown; __v?: number; [key: string]: unknown }): Match {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const transformToMatch = (doc: any): Match => {
   const { _id, __v, ...match } = doc;
-  return match as unknown as Match;
-}
+  return {
+    ...match,
+    _id: _id?.toString() || ""
+  } as Match;
+};
 
 export async function createMatch(userId: string, matchData: CreateMatchRequest): Promise<Match> {
   await connectToDatabase();
 
   // Fetch team data
-  const blueTeam = await TeamModel.findOne({ id: matchData.blueTeamId }).lean();
-  const redTeam = await TeamModel.findOne({ id: matchData.redTeamId }).lean();
+  const blueTeam = await TeamModel.findOne({ _id: matchData.blueTeamId });
+  const redTeam = await TeamModel.findOne({ _id: matchData.redTeamId });
 
   if (!blueTeam || !redTeam) {
     throw new Error("One or both teams not found");
@@ -35,7 +37,7 @@ export async function createMatch(userId: string, matchData: CreateMatchRequest)
   let tournamentData = null;
   if (matchData.tournamentId) {
     tournamentData = await TournamentModel.findOne({
-      id: matchData.tournamentId
+      _id: matchData.tournamentId
     }).lean();
     if (!tournamentData) {
       throw new Error("Tournament not found");
@@ -43,43 +45,18 @@ export async function createMatch(userId: string, matchData: CreateMatchRequest)
   }
 
   const matchDoc: Match = {
-    id: uuidv4(),
+    _id: new Types.ObjectId().toString(),
     name: matchData.name,
     type: matchData.type,
     tournamentId: matchData.tournamentId,
     bracketNodeId: matchData.bracketNodeId,
-    blueTeam: {
-      id: blueTeam.id,
-      name: blueTeam.name,
-      tag: blueTeam.tag,
-      logo: blueTeam.logo as ImageStorage,
-      colors: blueTeam.colors as TeamColors,
-      players: blueTeam.players?.main as Player[],
-      coach: blueTeam.staff?.coach
-        ? {
-            name: blueTeam.staff.coach.name
-          }
-        : undefined
-    },
-    redTeam: {
-      id: redTeam.id,
-      name: redTeam.name,
-      tag: redTeam.tag,
-      logo: redTeam.logo as ImageStorage,
-      colors: redTeam.colors as TeamColors,
-      players: redTeam.players?.main as Player[],
-      coach: redTeam.staff?.coach
-        ? {
-            name: redTeam.staff.coach.name
-          }
-        : undefined
-    },
+    blueTeamId: blueTeam._id?.toString() || "",
+    redTeamId: redTeam._id?.toString() || "",
     format: matchData.format,
     isFearlessDraft: matchData.isFearlessDraft,
     patchName: matchData.patchName,
     scheduledTime: matchData.scheduledTime ? new Date(matchData.scheduledTime) : undefined,
     status: "scheduled",
-    score: { blue: 0, red: 0 },
     games: [],
     commentators: [],
     predictions: [],
@@ -95,29 +72,31 @@ export async function createMatch(userId: string, matchData: CreateMatchRequest)
 
 export async function getMatchById(matchId: string): Promise<Match | null> {
   await connectToDatabase();
-  const match = await MatchModel.findOne({ id: matchId }).lean();
+  const match = await MatchModel.findOne({ _id: matchId });
   if (!match) return null;
-  
-  // Transform the document to ensure it has an id field
-  return {
-    ...match,
-    id: match._id?.toString() || match.id
-  };
+
+  return transformToMatch(match);
 }
 
 export async function getMatchesByTournament(tournamentId: string): Promise<Match[]> {
   await connectToDatabase();
-  const matches = await MatchModel.find({ tournamentId }).sort({
-    scheduledTime: 1
-  }).lean();
+  const matches = await MatchModel.find({ tournamentId })
+    .populate("blueTeamId", "name tag logo colors")
+    .populate("redTeamId", "name tag logo colors")
+    .sort({
+      scheduledTime: 1
+    })
+    .lean();
   return matches.map(transformToMatch);
 }
 
 export async function getStandaloneMatches(): Promise<Match[]> {
   await connectToDatabase();
-  const matches = await MatchModel.find({ type: "standalone" }).sort({
-    scheduledTime: 1
-  }).lean();
+  const matches = await MatchModel.find({ type: "standalone" })
+    .sort({
+      scheduledTime: 1
+    })
+    .lean();
   return matches.map(transformToMatch);
 }
 
@@ -125,7 +104,9 @@ export async function getMatchesByCommentator(commentatorId: string): Promise<Ma
   await connectToDatabase();
   const matches = await MatchModel.find({
     "commentators.id": commentatorId
-  }).sort({ scheduledTime: 1 }).lean();
+  })
+    .sort({ scheduledTime: 1 })
+    .lean();
   return matches.map(transformToMatch);
 }
 
@@ -207,7 +188,7 @@ export async function submitPrediction(
 
   // Check if commentator is assigned to this match
   const matchData = transformToMatch(match);
-  const commentator = matchData.commentators.find((c: MatchCommentator) => c.id === commentatorId);
+  const commentator = matchData.commentators.find((c: MatchCommentator) => c._id === commentatorId);
   if (!commentator) {
     throw new Error("Forbidden: Only assigned commentators can submit predictions");
   }
@@ -215,12 +196,14 @@ export async function submitPrediction(
   const updatedMatch = await MatchModel.findOneAndUpdate(
     { id: matchId },
     {
-      $push: { predictions: {
-        commentatorId,
-        commentatorName: commentator.name,
-        prediction: request.prediction,
-        timestamp: new Date()
-      }},
+      $push: {
+        predictions: {
+          commentatorId,
+          commentatorName: commentator.name,
+          prediction: request.prediction,
+          timestamp: new Date()
+        }
+      },
       $pull: { predictions: { commentatorId } },
       updatedAt: new Date()
     },

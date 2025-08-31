@@ -27,25 +27,16 @@ export const SponsorWindow = ({ currentSponsor, isVisible, fixed = true }: Spons
           isVisible ? "opacity-100" : "opacity-0"
         }`}
       >
-        <div className="flex items-center gap-2">
-          {currentSponsor.showName && currentSponsor.namePosition === "left" && (
-            <span className="text-white text-sm font-semibold whitespace-nowrap">{currentSponsor.name}</span>
-          )}
+        <div className="flex flex-col items-center gap-2">
+          <span className="text-white text-sm font-semibold text-center">{currentSponsor.name}</span>
 
           {currentSponsor.logo.type === "url" ? (
             <Image
               width={128}
               height={128}
-              style={{
-                width: currentSponsor.fillContainer ? "100%" : "auto",
-                height: currentSponsor.fillContainer ? "100%" : "auto",
-                padding: currentSponsor.fillContainer ? "0" : "10px"
-              }}
               src={currentSponsor.logo.url}
               alt={currentSponsor.name}
-              className={
-                currentSponsor.fillContainer ? "w-full h-full object-cover" : "max-w-32 max-h-32 object-contain"
-              }
+              className="max-w-32 max-h-32 object-contain"
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
                 target.style.display = "none";
@@ -55,25 +46,14 @@ export const SponsorWindow = ({ currentSponsor, isVisible, fixed = true }: Spons
             <Image
               width={128}
               height={128}
-              style={{
-                width: currentSponsor.fillContainer ? "100%" : "auto",
-                height: currentSponsor.fillContainer ? "100%" : "auto",
-                padding: currentSponsor.fillContainer ? "0" : "10px"
-              }}
               src={`data:image/${currentSponsor.logo.format};base64,${currentSponsor.logo.data}`}
               alt={currentSponsor.name}
-              className={
-                currentSponsor.fillContainer ? "w-full h-full object-cover" : "max-w-32 max-h-32 object-contain"
-              }
+              className="max-w-32 max-h-32 object-contain"
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
                 target.style.display = "none";
               }}
             />
-          )}
-
-          {currentSponsor.showName && currentSponsor.namePosition === "right" && (
-            <span className="text-white text-sm font-semibold whitespace-nowrap">{currentSponsor.name}</span>
           )}
         </div>
       </div>

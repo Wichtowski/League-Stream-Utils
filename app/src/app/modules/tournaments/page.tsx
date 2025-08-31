@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { useTournaments } from "@libTournament/contexts/TournamentsContext";
 import { useNavigation } from "@lib/contexts/NavigationContext";
@@ -10,9 +10,10 @@ import { PageWrapper } from "@lib/layout";
 import { TournamentPageCard } from "@libTournament/components";
 
 export default function TournamentsPage() {
-  const { tournaments, loading: tournamentsLoading, error } = useTournaments();
+  const { tournaments, loading: tournamentsLoading, error, refreshTournaments } = useTournaments();
   const { setActiveModule } = useNavigation();
   const { showAlert } = useModal();
+  const hasRefreshed = useRef(false);
 
   const placeholderTournament = {
     _id: "placeholder",
@@ -29,7 +30,14 @@ export default function TournamentsPage() {
 
   useEffect(() => {
     setActiveModule("tournaments");
-  }, [setActiveModule]);
+
+    // Only refresh tournaments data once when entering the page
+    // This prevents rate limiting from multiple rapid calls
+    if (!hasRefreshed.current) {
+      hasRefreshed.current = true;
+      refreshTournaments();
+    }
+  }, [setActiveModule]); // Removed refreshTournaments from dependencies
 
   useEffect(() => {
     if (error) {

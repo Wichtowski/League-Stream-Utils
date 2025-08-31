@@ -13,14 +13,11 @@ const CONTENT_TYPES: Record<string, string> = {
   ".txt": "text/plain"
 };
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ path: string[] }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
   try {
     const { path: pathSegments } = await params;
     const relativePath = pathSegments.join("/");
-    
+
     // Prevent directory traversal
     if (relativePath.includes("..") || relativePath.startsWith("/")) {
       return new NextResponse("Invalid path", { status: 400 });

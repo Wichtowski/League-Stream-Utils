@@ -281,9 +281,7 @@ class SummonerSpellCacheService extends BaseCacheService<SummonerSpell> {
         }
       }
 
-      console.log(
-        `Found ${validCompletedSet.size} summoner spells already downloaded.`
-      );
+      console.log(`Found ${validCompletedSet.size} summoner spells already downloaded.`);
 
       const ASSETS_PER_SPELL = 2;
 

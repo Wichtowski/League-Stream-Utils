@@ -9,7 +9,8 @@ import {
   CameraSettingsSchema,
   LoginAttemptSchema,
   SecurityEventSchema,
-  MatchSchema
+  MatchSchema,
+  PlayerStatsSchema
 } from "./schemas";
 
 // Lazy initialization function to ensure models are only created after connection
@@ -60,3 +61,6 @@ export const LoginAttemptModel = getModel("LoginAttempt", LoginAttemptSchema);
 export const SecurityEventModel = getModel("SecurityEvent", SecurityEventSchema);
 
 export const MatchModel = getModel("Match", MatchSchema);
+
+export type PlayerStatsDoc = InferSchemaType<typeof PlayerStatsSchema>;
+export const PlayerStatsModel = getModel<PlayerStatsDoc>("PlayerStats", PlayerStatsSchema);

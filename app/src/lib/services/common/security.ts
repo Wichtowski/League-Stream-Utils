@@ -1,7 +1,6 @@
 import bcrypt from "bcryptjs";
 import { NextRequest } from "next/server";
 
-
 export function validatePassword(password: string): {
   isValid: boolean;
   message?: string;

@@ -25,19 +25,19 @@ export async function createUser(userData: UserRegistration & { passwordHistory?
 export async function getUserByUsername(username: string): Promise<UserQueryResult> {
   await connectToDatabase();
   const user = await UserModel.findOne({ username }).lean<UserType>().exec();
-  return (user as unknown) as UserQueryResult;
+  return user as unknown as UserQueryResult;
 }
 
 export async function getUserById(userId: string): Promise<UserQueryResult> {
   await connectToDatabase();
   const user = await UserModel.findById(userId).lean<UserType>().exec();
-  return (user as unknown) as UserQueryResult;
+  return user as unknown as UserQueryResult;
 }
 
 export async function getUserByEmail(email: string): Promise<UserQueryResult> {
   await connectToDatabase();
   const user = await UserModel.findOne({ email }).lean<UserType>().exec();
-  return (user as unknown) as UserQueryResult;
+  return user as unknown as UserQueryResult;
 }
 
 export async function updateUser(userId: string, updates: Partial<UserType>): Promise<UserType | null> {
@@ -68,9 +68,7 @@ export async function updateUserSessionCount(userId: string): Promise<void> {
     throw new Error("User not found");
   }
 
-  const isSameDay =
-    user.lastSessionDate &&
-    new Date(user.lastSessionDate).toDateString() === today.toDateString();
+  const isSameDay = user.lastSessionDate && new Date(user.lastSessionDate).toDateString() === today.toDateString();
 
   const nextSessionsCount = isSameDay ? user.sessionsCreatedToday + 1 : 1;
 

@@ -1,7 +1,6 @@
-import { MatchFormat } from "./tournament";
+import { MatchFormat } from "./match";
 import { GamePhase, PlayerRole, ImageStorage } from "./common";
 import { Team } from "./team";
-
 
 export interface Champion {
   _id: number;
@@ -118,8 +117,7 @@ export interface Player {
   summonerLevel?: number;
   rank?: string;
   lastGameAt?: Date;
-  verified: boolean;
-  verifiedAt?: Date;
+
   createdAt: Date;
   updatedAt: Date;
 }

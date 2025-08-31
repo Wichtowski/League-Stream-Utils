@@ -7,7 +7,7 @@ const defaultPlayerImage: ImageStorage = {
   type: "url",
   // Mrozku :*
   url: "https://static.wikia.nocookie.net/lolesports_gamepedia_en/images/a/a3/FSK_Mrozku_2025_Split_1.png/revision/latest/scale-to-width-down/1024?cb=20250125122242"
-}
+};
 
 export const LosRatones: Team = {
   _id: "1",
@@ -19,7 +19,7 @@ export const LosRatones: Team = {
   tier: "professional",
   logo: {
     type: "url",
-    url: "https://liquipedia.net/commons/images/1/13/Los_Ratones_darkmode.png",
+    url: "https://liquipedia.net/commons/images/1/13/Los_Ratones_darkmode.png"
   },
   colors: {
     primary: "#000000",
@@ -54,7 +54,7 @@ export const LosRatones: Team = {
           url: "/assets/default/player.png"
         }
       },
-      
+
       {
         _id: "3",
         inGameName: "Nemesis",
@@ -142,7 +142,7 @@ export const FajnieMiecSklad: Team = {
         updatedAt: new Date(),
         profileImage: defaultPlayerImage
       },
-      
+
       {
         _id: "8",
         inGameName: "Mrozku",
@@ -948,7 +948,7 @@ export class DynamicChampSelectMock {
           matchInfo: {
             roundName: this.config.roundName!,
             matchNumber: this.config.matchNumber!,
-            bestOf: this.config.bestOf!
+            bestOf: 3
           }
         },
         blueTeam: LosRatones,

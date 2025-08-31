@@ -121,8 +121,8 @@ export interface CreateTeamRequest {
   logo: ImageStorage;
   colors: TeamColors;
   players: {
-    main: Omit<Player, "_id" | "createdAt" | "updatedAt" | "verified" | "verifiedAt">[];
-    substitutes: Omit<Player, "_id" | "createdAt" | "updatedAt" | "verified" | "verifiedAt">[];
+    main: Omit<Player, "_id" | "createdAt" | "updatedAt">[];
+    substitutes: Omit<Player, "_id" | "createdAt" | "updatedAt">[];
   };
   staff?: {
     coach?: Omit<Staff, "_id">;
@@ -145,60 +145,47 @@ export type UpdateTeamRequest = Partial<CreateTeamRequest> & {
   _id: string;
 };
 
-export const createDefaultTeamRequest = (): Partial<CreateTeamRequest> => ({
-  name: "",
-  tag: "",
-  logo: {
-    type: "url",
-    url: "",
-    format: "png"
-  },
-  colors: {
-    primary: "#3B82F6",
-    secondary: "#1E40AF",
-    accent: "#F59E0B"
-  },
-  players: {
-    main: [],
-    substitutes: []
-  },
-  region: "NA",
-  tier: "amateur",
-  socialMedia: {
-    twitter: "",
-    discord: "",
-    website: ""
-  },
-  isStandalone: true
-});
+export const createDefaultTeamRequest = (): Partial<CreateTeamRequest> => {
+  const result = {
+    name: "",
+    tag: "",
+    logo: {
+      type: "url" as const,
+      url: "",
+      format: "png" as const
+    },
+    colors: {
+      primary: "#3B82F6",
+      secondary: "#1E40AF",
+      accent: "#F59E0B"
+    },
+    players: {
+      main: [
+        { role: "TOP" as const, inGameName: "", tag: "" },
+        { role: "JUNGLE" as const, inGameName: "", tag: "" },
+        { role: "MID" as const, inGameName: "", tag: "" },
+        { role: "BOTTOM" as const, inGameName: "", tag: "" },
+        { role: "SUPPORT" as const, inGameName: "", tag: "" }
+      ],
+      substitutes: []
+    },
+    region: "",
+    tier: "amateur" as const,
+    socialMedia: {
+      twitter: "",
+      discord: "",
+      website: ""
+    },
+    isStandalone: true
+  };
+
+  return result;
+};
 
 export interface TeamColors {
   primary: string;
   secondary: string;
   accent: string;
-}
-
-export interface PlayerVerificationRequest {
-  playerId: string;
-  puuid: string;
-  summonerName: string;
-  tag: string;
-}
-
-export interface RiotPlayerData {
-  puuid: string;
-  summonerName: string;
-  tag: string;
-  summonerLevel: number;
-  rank: string;
-  lastGameAt: Date;
-}
-
-export interface PlayerVerificationResult {
-  player: Player;
-  success: boolean;
-  riotData?: RiotPlayerData;
-  error?: string;
 }
 
 // Champion Statistics for tournaments

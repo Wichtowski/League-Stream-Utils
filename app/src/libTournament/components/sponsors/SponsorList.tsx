@@ -28,22 +28,26 @@ export const SponsorList = ({ sponsors, loading, onEditSponsor, onDeleteSponsor 
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {sponsors.map((sponsor) => (
-            <div key={sponsor.id} className="bg-gray-700 rounded-lg p-4">
+            <div key={sponsor._id} className="bg-gray-700 rounded-lg p-4">
               <div className="flex items-center justify-between mb-3">
                 <span
                   className={`px-2 py-1 rounded text-xs font-medium ${
-                    sponsor.tier === "title"
-                      ? "bg-yellow-600 text-yellow-100"
-                      : sponsor.tier === "presenting"
-                        ? "bg-purple-600 text-purple-100"
-                        : sponsor.tier === "official"
-                          ? "bg-blue-600 text-blue-100"
-                          : "bg-gray-600 text-gray-100"
+                    sponsor.tier === "platinum"
+                      ? "bg-purple-600 text-purple-100"
+                      : sponsor.tier === "gold"
+                        ? "bg-yellow-600 text-yellow-100"
+                        : sponsor.tier === "silver"
+                          ? "bg-gray-400 text-gray-100"
+                          : "bg-amber-600 text-amber-100"
                   }`}
                 >
                   {sponsor.tier.charAt(0).toUpperCase() + sponsor.tier.slice(1)}
                 </span>
-                <span className="text-xs text-gray-400">Priority: {sponsor.displayPriority}</span>
+                <span
+                  className={`text-xs px-2 py-1 rounded ${sponsor.isActive ? "text-green-400 bg-green-900" : "text-red-400 bg-red-900"}`}
+                >
+                  {sponsor.isActive ? "Active" : "Inactive"}
+                </span>
               </div>
 
               <div className="text-center mb-3">
@@ -78,9 +82,8 @@ export const SponsorList = ({ sponsors, loading, onEditSponsor, onDeleteSponsor 
               {sponsor.website && <p className="text-xs text-gray-400 text-center mb-3">{sponsor.website}</p>}
 
               <div className="text-xs text-gray-400 mb-3">
-                <p>Show name: {sponsor.showName ? "Yes" : "No"}</p>
-                {sponsor.showName && <p>Position: {sponsor.namePosition === "left" ? "Left" : "Right"}</p>}
-                <p>Fill container: {sponsor.fillContainer ? "Yes" : "No"}</p>
+                <p>Start: {new Date(sponsor.startDate).toLocaleDateString()}</p>
+                <p>End: {new Date(sponsor.endDate).toLocaleDateString()}</p>
               </div>
 
               <div className="flex justify-center space-x-2">

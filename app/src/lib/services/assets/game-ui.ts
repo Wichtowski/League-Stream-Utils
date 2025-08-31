@@ -28,11 +28,18 @@ interface GameUIDownloadResult {
 class GameUIBlueprintDownloader extends BaseCacheService<GameUIAsset> {
   private isDownloading = false;
   private assetCategories = {
+    atakhan: ["atakhan.png", "atakhan_grey.png"],
+    baronpit: ["baron.png", "grubs.png", "herald.png"],
     dragonpit: ["infernal.png", "ocean.png", "hextech.png", "chemtech.png", "mountain.png", "elder.png", "cloud.png"],
     default: ["player.png", "tournament.png", "default_ban_placeholder.svg"],
-    atakhan: ["atakhan.png"],
-    baronpit: ["baron.png", "grubs.png", "herald.png"],
-    common: ["crossed_sword.png", "crossed_sword_gray.png", "tower.png", "tower_gray.png", "turret.png", "turret_gray.png"],
+    common: [
+      "crossed_swords.png",
+      "crossed_swords_gray.png",
+      "tower.png",
+      "tower_gray.png",
+      "turret.png",
+      "turret_gray.png"
+    ],
     roleIcons: [
       "top_black_splash_placeholder.svg",
       "top_splash_placeholder.svg",
@@ -45,7 +52,7 @@ class GameUIBlueprintDownloader extends BaseCacheService<GameUIAsset> {
       "bot_splash_placeholder.svg",
       "bot_black_splash_placeholder.svg"
     ],
-    scoreboard: ["gold.png", "grubs.png", "gold_gray.png", "grubs_gray.png"],
+    scoreboard: ["gold.png", "grubs.png", "gold_gray.png", "grubs_gray.png", "lotus.png", "lotus_gray.png"]
   };
   private gameUIProgressCallback?: (progress: GameUIDownloadProgress) => void;
 
@@ -281,37 +288,36 @@ class GameUIBlueprintDownloader extends BaseCacheService<GameUIAsset> {
                 throw new Error(`Copy failed: ${copyResult.error}`);
               }
             } catch (_copyError: unknown) {
-                
-                // Fallback: Download from local development server
-                const assetUrl = `http://localhost:2137/api/assets/${category}/${filename}`;
+              // Fallback: Download from local development server
+              const assetUrl = `http://localhost:2137/api/assets/${category}/${filename}`;
 
-                try {
-                  const downloadResult = await window.electronAPI.downloadAsset(assetUrl, "assets", versionedKey);
+              try {
+                const downloadResult = await window.electronAPI.downloadAsset(assetUrl, "assets", versionedKey);
 
-                  if (downloadResult.success && downloadResult.localPath) {
-                    // Get file size from the downloaded result
-                    const sizeResult = await window.electronAPI.getFileSize(downloadResult.localPath);
-                    const fileSize = sizeResult.success ? sizeResult.size || 0 : 0;
+                if (downloadResult.success && downloadResult.localPath) {
+                  // Get file size from the downloaded result
+                  const sizeResult = await window.electronAPI.getFileSize(downloadResult.localPath);
+                  const fileSize = sizeResult.success ? sizeResult.size || 0 : 0;
 
-                    processedCount++;
-                    totalSize += fileSize;
-                  } else {
-                    const errorMsg = `Failed to download ${assetUrl}: ${downloadResult.error}`;
-                    console.error(errorMsg);
-                    errors.push(errorMsg);
-                  }
-                } catch (fileError) {
-                  console.error(`Failed to download file ${assetUrl}:`, fileError);
-                  const errorMsg = `Failed to download asset from local server: ${fileError}`;
+                  processedCount++;
+                  totalSize += fileSize;
+                } else {
+                  const errorMsg = `Failed to download ${assetUrl}: ${downloadResult.error}`;
                   console.error(errorMsg);
                   errors.push(errorMsg);
                 }
+              } catch (fileError) {
+                console.error(`Failed to download file ${assetUrl}:`, fileError);
+                const errorMsg = `Failed to download asset from local server: ${fileError}`;
+                console.error(errorMsg);
+                errors.push(errorMsg);
               }
-            } else {
-              throw new Error(
-                "Electron API not available - game UI assets can only be processed in Electron environment"
-              );
             }
+          } else {
+            throw new Error(
+              "Electron API not available - game UI assets can only be processed in Electron environment"
+            );
+          }
 
           this.updateGameUIProgress({
             current: processedCount,

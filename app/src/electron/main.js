@@ -40,11 +40,7 @@ if (isDev) {
 }
 
 // Import modules using dynamic imports
-let createWindow,
-  registerChampionHandlers,
-  registerHostedHandlers,
-  registerUtilHandlers,
-  registerOBSHandlers;
+let createWindow, registerChampionHandlers, registerHostedHandlers, registerUtilHandlers, registerOBSHandlers;
 
 // Load modules dynamically
 async function loadModules() {
@@ -68,8 +64,6 @@ async function loadModules() {
 process.env.USE_USER_DATA = "true";
 // Keep a global reference of the window object
 let mainWindow;
-
-
 
 // Simple HTTP server for web overlay data
 let dataServer;

@@ -510,20 +510,21 @@ export default function TeamPickBanPage() {
           <div className="grid grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-3 max-h-96 overflow-y-auto">
             {filteredChampions
               .filter(
-                (champion) => !getBannedChampions().includes(champion.id) && !getPickedChampions().includes(champion.id)
+                (champion) =>
+                  !getBannedChampions().includes(champion._id) && !getPickedChampions().includes(champion._id)
               )
               .map((champion) => (
                 <button
-                  key={champion.id}
-                  onClick={() => handleChampionAction(champion.id, pendingAction!)}
-                  onMouseEnter={() => hoverAnimation.setHoveredChampionId(champion.id)}
+                  key={champion._id}
+                  onClick={() => handleChampionAction(champion._id, pendingAction!)}
+                  onMouseEnter={() => hoverAnimation.setHoveredChampionId(champion._id)}
                   onMouseLeave={() => hoverAnimation.setHoveredChampionId(null)}
                   className={`group relative aspect-square bg-gray-700 rounded-lg overflow-hidden border-2 border-gray-600 hover:border-blue-500 transition-colors ${
-                    hoverAnimation.hoveredChampionId === champion.id ? hoverAnimation.animationClasses : ""
+                    hoverAnimation.hoveredChampionId === champion._id ? hoverAnimation.animationClasses : ""
                   }`}
                 >
                   <Image
-                    src={getChampionSquareImage(champion.id) || champion.image}
+                    src={getChampionSquareImage(champion._id) || champion.image}
                     alt={champion.name}
                     width={80}
                     height={80}
@@ -580,7 +581,7 @@ export default function TeamPickBanPage() {
                     {champion ? (
                       <>
                         <Image
-                          src={getChampionSquareImage(champion.id) || champion.image}
+                          src={getChampionSquareImage(champion._id) || champion.image}
                           alt={champion.name}
                           width={60}
                           height={60}
@@ -617,7 +618,7 @@ export default function TeamPickBanPage() {
                     <div className="w-12 h-12 bg-gray-800 rounded border border-gray-600 overflow-hidden mr-3">
                       {champion ? (
                         <Image
-                          src={getChampionSquareImage(champion.id) || champion.image}
+                          src={getChampionSquareImage(champion._id) || champion.image}
                           alt={champion.name}
                           width={48}
                           height={48}
@@ -631,7 +632,7 @@ export default function TeamPickBanPage() {
                     </div>
                     <div>
                       <div className="font-medium">{champion?.name || `Player ${i + 1}`}</div>
-                      <div className="text-xs text-gray-400">{champion?.title || "No champion selected"}</div>
+                      <div className="text-xs text-gray-400">{champion?.title || ""}</div>
                     </div>
                   </div>
                 );
@@ -680,7 +681,7 @@ export default function TeamPickBanPage() {
                     {champion ? (
                       <>
                         <Image
-                          src={getChampionSquareImage(champion.id) || champion.image}
+                          src={getChampionSquareImage(champion._id) || champion.image}
                           alt={champion.name}
                           width={60}
                           height={60}
@@ -717,7 +718,7 @@ export default function TeamPickBanPage() {
                     <div className="w-12 h-12 bg-gray-800 rounded border border-gray-600 overflow-hidden mr-3">
                       {champion ? (
                         <Image
-                          src={getChampionSquareImage(champion.id) || champion.image}
+                          src={getChampionSquareImage(champion._id) || champion.image}
                           alt={champion.name}
                           width={48}
                           height={48}
@@ -731,7 +732,7 @@ export default function TeamPickBanPage() {
                     </div>
                     <div>
                       <div className="font-medium">{champion?.name || `Player ${i + 1}`}</div>
-                      <div className="text-xs text-gray-400">{champion?.title || "No champion selected"}</div>
+                      <div className="text-xs text-gray-400">{champion?.title || ""}</div>
                     </div>
                   </div>
                 );
@@ -755,7 +756,7 @@ export default function TeamPickBanPage() {
                     <div className="w-8 h-8 bg-gray-600 rounded overflow-hidden">
                       {champion && (
                         <Image
-                          src={getChampionSquareImage(champion.id) || champion.image}
+                          src={getChampionSquareImage(champion._id) || champion.image}
                           alt={champion.name}
                           width={32}
                           height={32}

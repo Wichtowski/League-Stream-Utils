@@ -10,7 +10,7 @@ export interface Match {
   bracketNodeId?: string;
   roundName?: string;
   matchNumber?: number;
-  
+
   // Teams
   blueTeamId: string;
   redTeamId: string;
@@ -28,10 +28,6 @@ export interface Match {
   // Status and results
   status: MatchStatus;
   winner?: "blue" | "red";
-  score: {
-    blue: number;
-    red: number;
-  };
 
   // Game results (for BO3/BO5)
   games: GameResult[];

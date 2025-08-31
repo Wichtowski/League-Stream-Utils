@@ -5,12 +5,10 @@ interface TeamLogoResponse {
   params: Promise<{ teamId: string }>;
 }
 
-export async function GET(
-  _request: NextRequest,
-  { params }: TeamLogoResponse
-): Promise<NextResponse> {
+export async function GET(_request: NextRequest, { params }: TeamLogoResponse): Promise<NextResponse> {
   try {
     const { teamId } = await params;
+    console.log("Logo endpoint called for team ID:", teamId);
 
     if (!teamId) {
       return NextResponse.json({ error: "Team ID is required" }, { status: 400 });
@@ -18,6 +16,7 @@ export async function GET(
 
     // Get team from database
     const teamLogo = await getTeamLogoByTeamId(teamId);
+    console.log("Retrieved team logo:", teamLogo ? "yes" : "no", "Type:", teamLogo?.type);
 
     if (!teamLogo) {
       return NextResponse.json({ error: "Team not found" }, { status: 404 });
@@ -26,9 +25,31 @@ export async function GET(
       return NextResponse.json({ error: "Team has no logo" }, { status: 404 });
     }
 
-    // If it's an external URL, redirect to it
+    // If it's an external URL, proxy it to avoid CORS issues
     if (teamLogo.type === "url") {
-      return NextResponse.redirect(teamLogo.url);
+      try {
+        // Fetch the external image
+        const imageResponse = await fetch(teamLogo.url);
+        if (!imageResponse.ok) {
+          throw new Error(`Failed to fetch external image: ${imageResponse.status}`);
+        }
+
+        // Get the image data
+        const imageBuffer = await imageResponse.arrayBuffer();
+        const contentType = imageResponse.headers.get("content-type") || "image/png";
+
+        // Return the proxied image
+        return new NextResponse(imageBuffer, {
+          status: 200,
+          headers: {
+            "Content-Type": contentType,
+            "Cache-Control": "public, max-age=3600",
+            "Access-Control-Allow-Origin": "*"
+          }
+        });
+      } catch (_error) {
+        return NextResponse.json({ error: "Failed to proxy external logo" }, { status: 500 });
+      }
     }
 
     // If it's an uploaded file, return the base64 data directly
@@ -56,8 +77,7 @@ export async function GET(
     }
 
     return NextResponse.json({ error: "Unsupported logo format" }, { status: 400 });
-  } catch (error) {
-    console.error("Error in team logo endpoint:", error);
+  } catch (_error) {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

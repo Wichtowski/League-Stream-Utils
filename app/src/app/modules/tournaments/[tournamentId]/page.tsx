@@ -38,7 +38,7 @@ export default function TournamentDetailPage({ params }: TournamentDetailPagePro
 
   useEffect(() => {
     if (tournaments.length > 0 && tournamentId) {
-      const foundTournament = tournaments.find((t) => t.id === tournamentId);
+      const foundTournament = tournaments.find((t) => t._id === tournamentId);
       if (foundTournament) {
         setTournament(foundTournament);
       } else {

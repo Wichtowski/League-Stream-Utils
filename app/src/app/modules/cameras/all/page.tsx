@@ -93,7 +93,13 @@ export default function AllCamerasPage() {
         {team.logo && team.logo.type === "url" && team.logo.url ? (
           <SafeImage src={team.logo.url} alt={team.name} width={40} height={40} className="rounded-full object-cover" />
         ) : team.logo && team.logo.type === "upload" && team.logo.data ? (
-          <SafeImage src={team.logo.data} alt={team.name} width={40} height={40} className="rounded-full object-cover" />
+          <SafeImage
+            src={team.logo.data}
+            alt={team.name}
+            width={40}
+            height={40}
+            className="rounded-full object-cover"
+          />
         ) : (
           <div className="w-10 h-10 bg-gray-600 rounded-full flex items-center justify-center">
             <span className="text-white text-sm font-bold">{team.name.charAt(0).toUpperCase()}</span>

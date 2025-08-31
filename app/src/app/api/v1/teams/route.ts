@@ -5,7 +5,7 @@ import type { CreateTeamRequest, PlayerRole } from "@lib/types";
 
 // Server-side sanitization functions
 const sanitizeText = (text: string): string => {
-  return text.trim().replace(/\s+/g, ' ');
+  return text.trim().replace(/\s+/g, " ");
 };
 
 const sanitizeTeamName = (name: string): string => {
@@ -35,12 +35,12 @@ const sanitizeTeamData = (teamData: CreateTeamRequest): CreateTeamRequest => {
     tag: sanitizeTeamTag(teamData.tag || ""),
     region: sanitizeRegion(teamData.region || ""),
     players: {
-      main: (teamData.players?.main || []).map(player => ({
+      main: (teamData.players?.main || []).map((player) => ({
         ...player,
         inGameName: sanitizePlayerName(player.inGameName || ""),
         tag: sanitizePlayerTag(player.tag || "")
       })),
-      substitutes: (teamData.players?.substitutes || []).map(player => ({
+      substitutes: (teamData.players?.substitutes || []).map((player) => ({
         ...player,
         inGameName: sanitizePlayerName(player.inGameName || ""),
         tag: sanitizePlayerTag(player.tag || "")
@@ -52,10 +52,9 @@ const sanitizeTeamData = (teamData: CreateTeamRequest): CreateTeamRequest => {
 export const GET = withAuth(async (req: NextRequest, user) => {
   try {
     const teams = await getUserTeams(user.userId);
-    
+
     return NextResponse.json({ teams });
-  } catch (error) {
-    console.error("Error fetching teams:", error);
+  } catch (_error) {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 });

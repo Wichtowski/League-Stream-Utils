@@ -6,7 +6,7 @@ import { useNavigation } from "@lib/contexts/NavigationContext";
 import { useModal } from "@lib/contexts/ModalContext";
 import { LoadingSpinner } from "@lib/components/common";
 import { Tournament, Sponsorship } from "@lib/types/tournament";
-import { ImageStorage } from "@lib/types/common";
+import { SponsorFormData } from "@lib/types/forms";
 import {
   OBSDisplayInfo,
   SponsorWindow,
@@ -22,26 +22,14 @@ interface TournamentSponsorsPageProps {
   }>;
 }
 
-interface SponsorFormData {
-  name: string;
-  logo: ImageStorage | null;
-  website: string;
-  tier: "title" | "presenting" | "official" | "partner";
-  displayPriority: number;
-  showName: boolean;
-  namePosition: "left" | "right";
-  fillContainer: boolean;
-}
-
 const createDefaultSponsorForm = (): SponsorFormData => ({
   name: "",
   logo: null,
   website: "",
-  tier: "partner",
-  displayPriority: 0,
-  showName: true,
-  namePosition: "right",
-  fillContainer: false
+  tier: "bronze",
+  startDate: new Date(),
+  endDate: new Date(),
+  isActive: true
 });
 
 export default function TournamentSponsorsPage({ params }: TournamentSponsorsPageProps) {
@@ -77,7 +65,7 @@ export default function TournamentSponsorsPage({ params }: TournamentSponsorsPag
 
   useEffect(() => {
     if (!tournamentsLoading && tournaments.length > 0 && tournamentId) {
-      const foundTournament = tournaments.find((t) => t.id === tournamentId);
+      const foundTournament = tournaments.find((t) => t._id === tournamentId);
       if (foundTournament) {
         setTournament(foundTournament);
       }
@@ -192,7 +180,7 @@ export default function TournamentSponsorsPage({ params }: TournamentSponsorsPag
     }
 
     try {
-      const response = await fetch(`/api/v1/tournaments/${tournamentId}/sponsors/${editingSponsor.id}`, {
+      const response = await fetch(`/api/v1/tournaments/${tournamentId}/sponsors/${editingSponsor._id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData)
@@ -231,7 +219,7 @@ export default function TournamentSponsorsPage({ params }: TournamentSponsorsPag
     if (!confirmed) return;
 
     try {
-      const response = await fetch(`/api/v1/tournaments/${tournamentId}/sponsors/${sponsor.id}`, {
+      const response = await fetch(`/api/v1/tournaments/${tournamentId}/sponsors/${sponsor._id}`, {
         method: "DELETE"
       });
 
@@ -262,10 +250,9 @@ export default function TournamentSponsorsPage({ params }: TournamentSponsorsPag
       logo: sponsor.logo,
       website: sponsor.website || "",
       tier: sponsor.tier,
-      displayPriority: sponsor.displayPriority,
-      showName: sponsor.showName ?? true,
-      namePosition: sponsor.namePosition ?? "right",
-      fillContainer: sponsor.fillContainer ?? false
+      startDate: sponsor.startDate,
+      endDate: sponsor.endDate,
+      isActive: sponsor.isActive
     });
   };
 

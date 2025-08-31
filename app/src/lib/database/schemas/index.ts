@@ -7,3 +7,4 @@ export * from "./user";
 export * from "./security";
 export * from "./match";
 export * from "./team";
+export * from "./playerStats";

@@ -24,8 +24,15 @@ interface CamerasContextType {
 
 const CamerasContext = createContext<CamerasContextType | undefined>(undefined);
 
-const CACHE_KEY = "cameras-settings";
+const CACHE_KEY = "cameras-data";
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+// Helper function to check if data is empty and warn if so
+function checkAndWarnEmptyData<T>(data: T, operation: string): void {
+  if (!data || (Array.isArray(data) && data.length === 0)) {
+    console.warn(`Warning: Attempting to set empty data in localStorage for operation: ${operation}`);
+  }
+}
 
 // Simple electron storage helper
 const electronStorage = {
@@ -134,6 +141,7 @@ export function CamerasProvider({ children }: { children: ReactNode }) {
         setTeams(fetchedTeams);
         processPlayers(fetchedTeams);
 
+        checkAndWarnEmptyData(fetchedTeams, "fetchCamerasFromAPI");
         await storage.set(CACHE_KEY, { teams: fetchedTeams }, { enableChecksum: true });
         return fetchedTeams;
       } catch (err) {
@@ -237,6 +245,7 @@ export function CamerasProvider({ children }: { children: ReactNode }) {
           const updatedTeams = settings.teams || [];
           setTeams(updatedTeams);
           processPlayers(updatedTeams);
+          checkAndWarnEmptyData(updatedTeams, "updateCameraSettings (local)");
           await electronStorage.set(CACHE_KEY, { teams: updatedTeams });
           return { success: true };
         }
@@ -253,6 +262,7 @@ export function CamerasProvider({ children }: { children: ReactNode }) {
           const updatedTeams = data.teams || [];
           setTeams(updatedTeams);
           processPlayers(updatedTeams);
+          checkAndWarnEmptyData(updatedTeams, "updateCameraSettings (online)");
           await storage.set(CACHE_KEY, { teams: updatedTeams }, { enableChecksum: true });
           return { success: true };
         } else {

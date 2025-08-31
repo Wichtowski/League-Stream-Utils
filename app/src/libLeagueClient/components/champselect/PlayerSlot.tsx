@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import type { EnhancedChampSelectPlayer } from "@lib/types";
 import { getChampionName, getChampionCenteredSplashImage } from "../common";
@@ -59,35 +59,37 @@ interface PlayerSlotProps {
   teamSide: "left" | "right";
 }
 
-export const PlayerSlot: React.FC<PlayerSlotProps> = ({ 
-  player, 
-  index, 
-  teamColor, 
-  _currentPhase, 
-  hoverState, 
+export const PlayerSlotComponent: React.FC<PlayerSlotProps> = ({
+  player,
+  index,
+  teamColor,
+  _currentPhase,
+  hoverState,
   roleIcons,
   onRegisterImages,
   cardsAnimated,
   teamSide
 }) => {
   const image = getChampionCenteredSplashImage(player.championId);
+  const [recentlyPicked, setRecentlyPicked] = useState(false);
   const isPlaceholder = player.cellId < 0;
+  const championPicked = player.championId > 0;
 
   // Register images with parent component
   useEffect(() => {
     if (onRegisterImages) {
       const urls: string[] = [];
-      
+
       // Add champion splash image
       if (player.championId && image) {
         urls.push(image);
       }
-      
+
       // Add role icon if player has a role
       if (player.role && roleIcons[player.role]) {
         urls.push(roleIcons[player.role]);
       }
-      
+
       onRegisterImages(urls);
     }
   }, [player.championId, player.role, image, roleIcons, onRegisterImages]);
@@ -100,7 +102,11 @@ export const PlayerSlot: React.FC<PlayerSlotProps> = ({
     const currentTurn = hoverState.currentTurn;
     const currentAction = PICK_BAN_ORDER[currentTurn];
 
-    if (!currentAction || currentAction.type !== "pick" || currentAction.team !== teamColor) {
+    // Use teamSide instead of teamColor since teamColor is a CSS color value
+    const isBlueTeam = teamSide === "left";
+    const expectedTeam = isBlueTeam ? "blue" : "red";
+
+    if (!currentAction || currentAction.type !== "pick" || currentAction.team !== expectedTeam) {
       return -1;
     }
 
@@ -110,7 +116,7 @@ export const PlayerSlot: React.FC<PlayerSlotProps> = ({
       9: 1, // Blue second pick
       10: 2, // Blue third pick
       17: 3, // Blue fourth pick
-      18: 4 // Blue fifth pick
+      18: 4 // Blue fourth pick
     };
 
     const redPlayerMapping: Record<number, number> = {
@@ -121,7 +127,7 @@ export const PlayerSlot: React.FC<PlayerSlotProps> = ({
       19: 4 // Red fifth pick
     };
 
-    const mapping = teamColor === "blue" ? bluePlayerMapping : redPlayerMapping;
+    const mapping = isBlueTeam ? bluePlayerMapping : redPlayerMapping;
     return mapping[currentTurn] ?? -1;
   };
 
@@ -129,41 +135,66 @@ export const PlayerSlot: React.FC<PlayerSlotProps> = ({
   const isCurrentPickingPlayer = getCurrentPickingPlayerIndex() === index;
   const isCurrentlyPicking = hoverState?.currentActionType === "pick" && isCurrentPickingPlayer;
 
-  // Calculate animation delay based on team side and position
+  useEffect(() => {
+    // Only trigger recentlyPicked when this specific player's champion was just picked
+    // We need to track if this player was previously picking and now has a confirmed champion
+    if (championPicked && !recentlyPicked && isCurrentPickingPlayer && !isCurrentlyPicking) {
+      // Small delay to ensure the pick is confirmed
+      const confirmTimer = setTimeout(() => {
+        setRecentlyPicked(true);
+
+        // Reset recently picked state after animation
+        const resetTimer = setTimeout(() => {
+          setRecentlyPicked(false);
+        }, 3000); // 3 seconds for stats display
+
+        // Cleanup the reset timer
+        return () => clearTimeout(resetTimer);
+      }, 500); // 500ms delay to ensure pick is confirmed
+
+      return () => clearTimeout(confirmTimer);
+    }
+  }, [championPicked, recentlyPicked, isCurrentPickingPlayer, isCurrentlyPicking]);
+
   const getAnimationDelay = (): number => {
     if (!cardsAnimated) return 0;
-    
+
     // Cards animate from middle outward
     if (teamSide === "left") {
       // Blue team (left): support -> bottom -> middle -> jungle -> top
       // Index mapping: 4=SUPPORT, 3=BOTTOM, 2=MIDDLE, 1=JUNGLE, 0=TOP
-      if (index === 4) return 0;      // SUPPORT first
-      if (index === 3) return 0.2;    // BOTTOM second
-      if (index === 2) return 0.4;    // MIDDLE third
-      if (index === 1) return 0.6;    // JUNGLE fourth
-      if (index === 0) return 0.8;    // TOP last
+      if (index === 4) return 0; // SUPPORT first
+      if (index === 3) return 0.2; // BOTTOM second
+      if (index === 2) return 0.4; // MIDDLE third
+      if (index === 1) return 0.6; // JUNGLE fourth
+      if (index === 0) return 0.8; // TOP last
     } else {
       // Red team (right): top -> jungle -> middle -> bottom -> support
       // Index mapping: 0=TOP, 1=JUNGLE, 2=MIDDLE, 3=BOTTOM, 4=SUPPORT
-      if (index === 0) return 0;      // TOP first
-      if (index === 1) return 0.2;    // JUNGLE second
-      if (index === 2) return 0.4;    // MIDDLE third
-      if (index === 3) return 0.6;    // BOTTOM fourth
-      if (index === 4) return 0.8;    // SUPPORT last
+      if (index === 0) return 0; // TOP first
+      if (index === 1) return 0.2; // JUNGLE second
+      if (index === 2) return 0.4; // MIDDLE third
+      if (index === 3) return 0.6; // BOTTOM fourth
+      if (index === 4) return 0.8; // SUPPORT last
     }
     return 0;
   };
 
+  setTimeout(() => {
+    console.log("recentlyPicked", recentlyPicked);
+  }, 3000);
   return (
     <div
       key={player.cellId}
-      className={`relative w-full transition-all duration-500 ${cardsAnimated ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'}`}
+      className={`relative w-full transition-all duration-500 ${cardsAnimated ? "translate-y-0 opacity-100" : "translate-y-full opacity-0"} `}
       style={{
         transitionDelay: `${getAnimationDelay()}s`
       }}
     >
       <div
-        className={`flex-1 h-96 max-h-screen ${isPlaceholder ? "bg-gray-800/50 border-gray-600/50" : ""} overflow-hidden relative flex flex-col justify-end transition-all duration-3000 ${isCurrentlyPicking ? "is-picking-custom" : ""}`}
+        className={`flex-1 h-80 max-h-screen ${isPlaceholder ? "bg-black/80 border-gray-600/80" : "bg-black/950"} overflow-hidden relative flex flex-col justify-end transition-all duration-3000 ${
+          isCurrentlyPicking ? (teamSide === "left" ? "is-picking-blue" : "is-picking-red") : ""
+        } ${recentlyPicked ? "recently-picked" : ""}`}
         style={
           !isPlaceholder
             ? {
@@ -179,6 +210,7 @@ export const PlayerSlot: React.FC<PlayerSlotProps> = ({
             src={image}
             alt={getChampionName(player.championId) || player.summonerName || `Player ${index + 1}`}
             fill
+            sizes="100vw"
             className="object-cover object-center absolute inset-0 z-0"
             priority
           />
@@ -186,7 +218,7 @@ export const PlayerSlot: React.FC<PlayerSlotProps> = ({
           <div className="absolute inset-0 w-full h-full bg-transparent flex items-start justify-center text-gray-500 text-sm z-0 pt-16">
             {!isPlaceholder && player.role && roleIcons[player.role] ? (
               <Image
-                src={roleIcons[player.role] } // || PLAYER_CARD_ROLE_ICONS[player.role]}
+                src={roleIcons[player.role]} // || PLAYER_CARD_ROLE_ICONS[player.role]}
                 alt={player.role}
                 width={12}
                 height={12}
@@ -201,14 +233,25 @@ export const PlayerSlot: React.FC<PlayerSlotProps> = ({
           </div>
         )}
         <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/80 to-transparent z-10" />
-        <div className="relative z-20 p-3 flex flex-col">
-          <div className="flex items-center justify-between mb-2">
-            <div className="text-sm font-semibold text-white truncate">
+        <div className="relative z-20 p-3 pl-0 flex flex-col items-center text-center justify-end max-w-full">
+          <div className="flex items-end mb-3 w-full">
+            <div
+              className="text-3xl font-semibold text-white max-w-full rotate-270 origin-bottom-left transform-gpu"
+              style={{ position: "absolute", bottom: "10px", left: "40px" }}
+            >
               {isPlaceholder ? "Empty Slot" : player.summonerName || player.playerInfo?.name || `Player ${index + 1}`}
             </div>
-          </div>
-          <div className="text-sm" style={{ color: isPlaceholder ? "#9CA3AF" : `${teamColor}CC` }}>
-            {isPlaceholder ? "No Champion" : getChampionName(player.championId) || "No Champion Selected"}
+            {!isPlaceholder && player.role && roleIcons[player.role] && championPicked && (
+              <div className="absolute bottom-5 right-5">
+                <Image
+                  src={roleIcons[player.role]}
+                  alt={player.role}
+                  width={64}
+                  height={64}
+                  className="w-8 h-8 object-contain"
+                />
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -216,6 +259,6 @@ export const PlayerSlot: React.FC<PlayerSlotProps> = ({
   );
 };
 
-// const PlayerSlot = React.memo(PlayerSlotComponent);
+const PlayerSlot = React.memo(PlayerSlotComponent);
 
-// export { PlayerSlot };
+export { PlayerSlot };

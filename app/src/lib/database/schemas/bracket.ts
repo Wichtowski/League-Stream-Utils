@@ -1,30 +1,28 @@
 import { Schema } from "mongoose";
 
-const BracketNodeSchema = new Schema(
-  {
-    round: { type: Number, required: true },
-    position: { type: Number, required: true },
-    team1: { type: String },
-    team2: { type: String },
-    winner: { type: String },
-    score1: { type: Number },
-    score2: { type: Number },
-    status: {
-      type: String,
-      enum: ["pending", "in-progress", "completed"],
-      default: "pending"
-    },
-    scheduledTime: { type: Date },
-    completedAt: { type: Date },
-    nextMatchId: { type: String }, // Where winner advances
-    loserNextMatchId: { type: String }, // For double elimination
-    bracketType: {
-      type: String,
-      enum: ["winner", "loser", "grand-final"],
-      required: true
-    }
+const BracketNodeSchema = new Schema({
+  round: { type: Number, required: true },
+  position: { type: Number, required: true },
+  team1: { type: String },
+  team2: { type: String },
+  winner: { type: String },
+  score1: { type: Number },
+  score2: { type: Number },
+  status: {
+    type: String,
+    enum: ["pending", "in-progress", "completed"],
+    default: "pending"
+  },
+  scheduledTime: { type: Date },
+  completedAt: { type: Date },
+  nextMatchId: { type: String }, // Where winner advances
+  loserNextMatchId: { type: String }, // For double elimination
+  bracketType: {
+    type: String,
+    enum: ["winner", "loser", "grand-final"],
+    required: true
   }
-);
+});
 
 export const BracketSchema = new Schema({
   tournamentId: { type: String, required: true, unique: true },

@@ -23,17 +23,18 @@ export default function LeagueClientPage(): React.ReactElement {
   }
 
   const LeagueClientCard = ({ title, description, url, icon, accent }: LeagueClientCardProps): React.ReactElement => {
-    const accentStyles = accent === "blue" 
-      ? {
-          iconBg: "bg-blue-600/20 border-blue-500/30 text-blue-400",
-          chip: "text-blue-300/90 bg-blue-950/40 border-blue-800/40",
-          btn: "border-blue-600/40 bg-blue-600/10 text-blue-300 hover:bg-blue-600/20"
-        }
-      : {
-          iconBg: "bg-green-600/20 border-green-500/30 text-green-400",
-          chip: "text-green-300/90 bg-green-950/40 border-green-800/40",
-          btn: "border-green-600/40 bg-green-600/10 text-green-300 hover:bg-green-600/20"
-        };
+    const accentStyles =
+      accent === "blue"
+        ? {
+            iconBg: "bg-blue-600/20 border-blue-500/30 text-blue-400",
+            chip: "text-blue-300/90 bg-blue-950/40 border-blue-800/40",
+            btn: "border-blue-600/40 bg-blue-600/10 text-blue-300 hover:bg-blue-600/20"
+          }
+        : {
+            iconBg: "bg-green-600/20 border-green-500/30 text-green-400",
+            chip: "text-green-300/90 bg-green-950/40 border-green-800/40",
+            btn: "border-green-600/40 bg-green-600/10 text-green-300 hover:bg-green-600/20"
+          };
 
     return (
       <div className="flex items-start gap-4 group bg-gray-900/50 rounded-2xl p-6 transition-colors border border-white/10 hover:border-white/20 shadow-lg">
@@ -59,14 +60,16 @@ export default function LeagueClientPage(): React.ReactElement {
         </div>
       </div>
     );
-  }
+  };
 
   return (
     <div className="min-h-screen text-white p-6">
       <div className="max-w-6xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-semibold tracking-tight mb-2">League Client Integration</h1>
-          <p className="text-gray-400">Quick links to demo overlays. Open to preview or copy URL for OBS/browser source.</p>
+          <p className="text-gray-400">
+            Quick links to demo overlays. Open to preview or copy URL for OBS/browser source.
+          </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -96,8 +99,6 @@ export default function LeagueClientPage(): React.ReactElement {
             }
             accent="green"
           />
-
-
         </div>
 
         {/* Info Section */}

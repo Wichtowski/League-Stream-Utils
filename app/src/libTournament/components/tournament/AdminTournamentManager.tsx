@@ -22,24 +22,21 @@ export const AdminTournamentManager = ({ onClose }: AdminTournamentManagerProps)
   const fetchAdminData = useCallback(async (): Promise<void> => {
     try {
       const response = await fetch("/api/v1/admin/tournaments/register", {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`
-        }
+        credentials: "include"
       });
 
       if (response.ok) {
         const data = await response.json();
-        setTournaments(data.tournaments);
-        setTeams(data.teams);
+        setTournaments(data.tournaments || []);
+        setTeams(data.teams || []);
       } else {
         await showAlert({
           type: "error",
           message: "Failed to fetch admin data"
         });
       }
-    } catch (error) {
+    } catch (_error) {
       await showAlert({ type: "error", message: "Failed to fetch admin data" });
-      console.error("Failed to fetch admin data:", error);
     } finally {
       setLoading(false);
     }
@@ -63,9 +60,9 @@ export const AdminTournamentManager = ({ onClose }: AdminTournamentManagerProps)
       const response = await fetch("/api/v1/admin/tournaments/register", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`
+          "Content-Type": "application/json"
         },
+        credentials: "include",
         body: JSON.stringify({
           tournamentId: selectedTournament,
           teamId: selectedTeam,
@@ -78,7 +75,7 @@ export const AdminTournamentManager = ({ onClose }: AdminTournamentManagerProps)
       if (response.ok) {
         await showAlert({ type: "success", message: data.message });
         // Update local tournaments data
-        setTournaments(tournaments.map((t) => (t.id === selectedTournament ? data.tournament : t)));
+        setTournaments(tournaments.map((t) => (t._id === selectedTournament ? data.tournament : t)));
         setSelectedTeam("");
       } else {
         await showAlert({
@@ -100,9 +97,9 @@ export const AdminTournamentManager = ({ onClose }: AdminTournamentManagerProps)
         const response = await fetch("/api/v1/admin/tournaments/register", {
           method: "DELETE",
           headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`
+            "Content-Type": "application/json"
           },
+          credentials: "include",
           body: JSON.stringify({ tournamentId, teamId })
         });
 
@@ -111,7 +108,7 @@ export const AdminTournamentManager = ({ onClose }: AdminTournamentManagerProps)
         if (response.ok) {
           await showAlert({ type: "success", message: data.message });
           // Update local tournaments data
-          setTournaments(tournaments.map((t) => (t.id === tournamentId ? data.tournament : t)));
+          setTournaments(tournaments.map((t) => (t._id === tournamentId ? data.tournament : t)));
         } else {
           await showAlert({
             type: "error",
@@ -141,8 +138,8 @@ export const AdminTournamentManager = ({ onClose }: AdminTournamentManagerProps)
       team.tag.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const selectedTournamentData = tournaments.find((t) => t.id === selectedTournament);
-  const selectedTeamData = teams.find((t) => t.id === selectedTeam);
+  const selectedTournamentData = tournaments.find((t) => t._id === selectedTournament);
+  const selectedTeamData = teams.find((t) => t._id === selectedTeam);
 
   if (loading) {
     return <OverlayLoader text="Loading admin data..." />;
@@ -223,10 +220,10 @@ export const AdminTournamentManager = ({ onClose }: AdminTournamentManagerProps)
               <div className="space-y-2 max-h-64 overflow-y-auto">
                 {filteredTeams.map((team) => (
                   <div
-                    key={team.id}
-                    onClick={() => setSelectedTeam(team.id)}
+                    key={team._id}
+                    onClick={() => setSelectedTeam(team._id)}
                     className={`p-3 rounded-lg cursor-pointer transition-colors ${
-                      selectedTeam === team.id
+                      selectedTeam === team._id
                         ? "bg-green-600 text-white"
                         : "bg-gray-700 text-gray-200 hover:bg-gray-600"
                     }`}
@@ -238,7 +235,6 @@ export const AdminTournamentManager = ({ onClose }: AdminTournamentManagerProps)
                         <p className="text-xs opacity-60">{team.players.main.length}/5 players</p>
                       </div>
                       <div className="flex items-center space-x-2">
-                        {team.verified && <span className="text-green-400 text-xs">✓ Verified</span>}
                         <span
                           className={`px-2 py-1 rounded text-xs ${
                             team.tier === "professional"
@@ -301,7 +297,7 @@ export const AdminTournamentManager = ({ onClose }: AdminTournamentManagerProps)
               </h3>
               <div className="space-y-2 max-h-32 overflow-y-auto">
                 {selectedTournamentData.registeredTeams.map((teamId) => {
-                  const team = teams.find((t) => t.id === teamId);
+                  const team = teams.find((t) => t._id === teamId);
                   return (
                     <div key={teamId} className="flex items-center justify-between bg-gray-700 p-3 rounded-lg">
                       <div>
@@ -309,7 +305,7 @@ export const AdminTournamentManager = ({ onClose }: AdminTournamentManagerProps)
                         <span className="text-gray-400 ml-2">({team?.tag || "N/A"})</span>
                       </div>
                       <button
-                        onClick={() => handleUnregisterTeam(selectedTournamentData.id, teamId)}
+                        onClick={() => handleUnregisterTeam(selectedTournamentData._id, teamId)}
                         className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
                       >
                         Unregister

@@ -33,8 +33,6 @@ contextBridge.exposeInMainWorld("electronAPI", {
   resumeBackgroundProcesses: () => ipcRenderer.invoke("resume-background-processes"),
   setModeSwitching: (enabled) => ipcRenderer.invoke("set-mode-switching", enabled),
 
-
-
   // Electron menu events
   onUpdateChampions: (callback) => ipcRenderer.on("update-champions", callback),
   onChampionsCacheCleared: (callback) => ipcRenderer.on("champions-cache-cleared", callback),

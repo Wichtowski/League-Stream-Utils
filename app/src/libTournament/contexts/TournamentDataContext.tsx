@@ -91,6 +91,13 @@ function stripLogos<T extends { logo?: { type?: string; data?: string; url?: str
   });
 }
 
+// Helper function to check if data is empty and warn if so
+function checkAndWarnEmptyData<T>(data: T, operation: string): void {
+  if (!data || (Array.isArray(data) && data.length === 0)) {
+    console.warn(`Warning: Attempting to set empty data in localStorage for operation: ${operation}`);
+  }
+}
+
 export function TournamentDataProvider({ children }: { children: ReactNode }) {
   const { user, isLoading: authLoading } = useAuth();
   const { isElectron, useLocalData } = useElectron();
@@ -104,11 +111,11 @@ export function TournamentDataProvider({ children }: { children: ReactNode }) {
   const isLocalDataMode = isElectron && useLocalData;
 
   // Computed data
-  const myTournaments = useMemo(() => tournaments.filter((t) => t.userId === user?.id), [tournaments, user?.id]);
+  const myTournaments = useMemo(() => tournaments.filter((t) => t.userId === user?._id), [tournaments, user?._id]);
 
   const registeredTournaments = useMemo(
-    () => tournaments.filter((t) => t.registeredTeams?.includes(user?.id || "")),
-    [tournaments, user?.id]
+    () => tournaments.filter((t) => t.registeredTeams?.includes(user?._id || "")),
+    [tournaments, user?._id]
   );
 
   const areTournamentsEqual = useCallback((tournaments1: Tournament[], tournaments2: Tournament[]): boolean => {
@@ -157,6 +164,7 @@ export function TournamentDataProvider({ children }: { children: ReactNode }) {
 
         if (dataChanged || tournaments.length === 0) {
           setTournaments(fetchedTournaments);
+          checkAndWarnEmptyData(fetchedTournaments, "fetchTournamentsFromAPI");
           await storage.set(CACHE_KEY, stripLogos(fetchedTournaments), {
             enableChecksum: true
           });
@@ -251,7 +259,7 @@ export function TournamentDataProvider({ children }: { children: ReactNode }) {
   }, [user, fetchTournamentsFromAPI, isLocalDataMode]);
 
   useEffect(() => {
-    if (!authLoading) {
+    if (!authLoading && user) {
       // Use requestIdleCallback for better performance if available
       if (typeof window !== "undefined" && "requestIdleCallback" in window) {
         (window as unknown as Window).requestIdleCallback(
@@ -308,7 +316,7 @@ export function TournamentDataProvider({ children }: { children: ReactNode }) {
         if (isLocalDataMode) {
           // Create tournament locally
           const newTournament: Tournament = {
-            id: `local-${Date.now()}`,
+            _id: `local-${Date.now()}`,
             name: tournamentData.name,
             abbreviation: tournamentData.abbreviation,
             startDate: new Date(tournamentData.startDate),
@@ -335,7 +343,7 @@ export function TournamentDataProvider({ children }: { children: ReactNode }) {
             defaultMatchTime: tournamentData.defaultMatchTime,
             broadcastLanguage: tournamentData.broadcastLanguage,
             gameVersion: tournamentData.gameVersion,
-            userId: user?.id || "electron-admin",
+            userId: user?._id || "electron-admin",
             createdAt: new Date(),
             updatedAt: new Date()
           };
@@ -377,7 +385,7 @@ export function TournamentDataProvider({ children }: { children: ReactNode }) {
         return { success: false, error };
       }
     },
-    [authenticatedFetch, isLocalDataMode, tournaments, user?.id]
+    [authenticatedFetch, isLocalDataMode, tournaments, user?._id]
   );
 
   const updateTournament = useCallback(
@@ -393,12 +401,12 @@ export function TournamentDataProvider({ children }: { children: ReactNode }) {
         if (isLocalDataMode) {
           // Update tournament locally
           const updatedTournaments = tournaments.map((t) =>
-            t.id === tournamentId ? { ...t, ...updates, updatedAt: new Date() } : t
+            t._id === tournamentId ? { ...t, ...updates, updatedAt: new Date() } : t
           );
           setTournaments(updatedTournaments);
           await electronStorage.set(CACHE_KEY, stripLogos(updatedTournaments));
 
-          const updatedTournament = updatedTournaments.find((t) => t.id === tournamentId);
+          const updatedTournament = updatedTournaments.find((t) => t._id === tournamentId);
           return { success: true, tournament: updatedTournament };
         }
 
@@ -414,7 +422,7 @@ export function TournamentDataProvider({ children }: { children: ReactNode }) {
           const updatedTournament = data.tournament;
 
           // Update local state
-          const updatedTournaments = tournaments.map((t) => (t.id === tournamentId ? updatedTournament : t));
+          const updatedTournaments = tournaments.map((t) => (t._id === tournamentId ? updatedTournament : t));
           setTournaments(updatedTournaments);
           await storage.set(CACHE_KEY, stripLogos(updatedTournaments), {
             enableChecksum: true
@@ -441,7 +449,7 @@ export function TournamentDataProvider({ children }: { children: ReactNode }) {
       try {
         if (isLocalDataMode) {
           // Delete tournament locally
-          const updatedTournaments = tournaments.filter((t) => t.id !== tournamentId);
+          const updatedTournaments = tournaments.filter((t) => t._id !== tournamentId);
           setTournaments(updatedTournaments);
           await electronStorage.set(CACHE_KEY, stripLogos(updatedTournaments));
           return { success: true };
@@ -454,7 +462,8 @@ export function TournamentDataProvider({ children }: { children: ReactNode }) {
 
         if (response.ok) {
           // Update local state
-          const updatedTournaments = tournaments.filter((t) => t.id !== tournamentId);
+          const updatedTournaments = tournaments.filter((t) => t._id !== tournamentId);
+
           setTournaments(updatedTournaments);
           await storage.set(CACHE_KEY, stripLogos(updatedTournaments), {
             enableChecksum: true
@@ -482,7 +491,7 @@ export function TournamentDataProvider({ children }: { children: ReactNode }) {
         if (isLocalDataMode) {
           // Register team locally
           const updatedTournaments = tournaments.map((t) => {
-            if (t.id === tournamentId) {
+            if (t._id === tournamentId) {
               const registeredTeams = t.registeredTeams || [];
               if (!registeredTeams.includes(teamId)) {
                 return { ...t, registeredTeams: [...registeredTeams, teamId] };
@@ -527,7 +536,7 @@ export function TournamentDataProvider({ children }: { children: ReactNode }) {
         if (isLocalDataMode) {
           // Unregister team locally
           const updatedTournaments = tournaments.map((t) => {
-            if (t.id === tournamentId) {
+            if (t._id === tournamentId) {
               const registeredTeams = t.registeredTeams || [];
               return {
                 ...t,

@@ -5,21 +5,30 @@ export type ImageStorage =
   | {
       type: "upload";
       data: string; // base64 string
-      size: number; // size in bytes
+      size: string | number; // size in bytes (string for legacy compatibility)
       format: "png" | "jpg" | "webp";
       url?: never;
+      // Legacy fields for backward compatibility
+      filename?: string;
+      originalName?: string;
+      mimeType?: string;
+      uploadedAt?: Date;
     }
   | {
       type: "url";
       url: string; // external or CDN url
-      size?: number;
+      size?: string | number;
       format?: "png" | "jpg" | "webp";
       data?: never;
+      // Legacy fields for backward compatibility
+      filename?: string;
+      originalName?: string;
+      mimeType?: string;
+      uploadedAt?: Date;
     };
-    
+
 export interface TeamColors {
-    primary: string;
-    secondary: string;
-    accent: string;
+  primary: string;
+  secondary: string;
+  accent: string;
 }
-  

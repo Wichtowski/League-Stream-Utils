@@ -24,6 +24,10 @@ interface TeamSectionProps {
   };
   tournamentData?: {
     blueTeam?: { colors?: TeamColors };
+    redTeam?: { colors?: TeamColors };
+    tournament?: {
+      _id: string;
+    };
   };
   roleIcons: Record<string, string>;
   onRegisterImages?: (urls: string[]) => void;
@@ -31,12 +35,12 @@ interface TeamSectionProps {
   teamSide: "left" | "right";
 }
 
-const TeamSection: React.FC<TeamSectionProps> = ({ 
-  team, 
-  teamColor, 
-  currentPhase, 
-  hoverState, 
-  tournamentData, 
+const TeamSection: React.FC<TeamSectionProps> = ({
+  team,
+  teamColor,
+  currentPhase,
+  hoverState,
+  tournamentData,
   roleIcons,
   onRegisterImages,
   cardsAnimated,
@@ -46,14 +50,14 @@ const TeamSection: React.FC<TeamSectionProps> = ({
   useEffect(() => {
     if (onRegisterImages) {
       const urls: string[] = [];
-      
+
       // Add role icons
-      Object.values(roleIcons).forEach(icon => {
+      Object.values(roleIcons).forEach((icon) => {
         if (icon) urls.push(icon);
       });
-      
+
       // Add champion images from team players
-      team.forEach(player => {
+      team.forEach((player) => {
         if (player.championId) {
           const splashImage = getChampionCenteredSplashImage(player.championId);
           const squareImage = getChampionSquareImage(player.championId);
@@ -61,7 +65,7 @@ const TeamSection: React.FC<TeamSectionProps> = ({
           if (squareImage) urls.push(squareImage);
         }
       });
-      
+
       onRegisterImages(urls);
     }
   }, [team, roleIcons, onRegisterImages]);
@@ -87,18 +91,19 @@ const TeamSection: React.FC<TeamSectionProps> = ({
     <div className="w-full">
       <div className="flex flex-row items-end w-full max-h-screen">
         {fullTeam.map((player, index) => (
-          <PlayerSlot
-            key={player.cellId}
-            player={player}
-            index={index}
-            teamColor={tournamentData?.blueTeam?.colors?.primary || teamColor}
-            _currentPhase={currentPhase}
-            hoverState={hoverState}
-            roleIcons={roleIcons}
-            onRegisterImages={onRegisterImages}
-            cardsAnimated={cardsAnimated}
-            teamSide={teamSide}
-          />
+          <div key={player.cellId} className="w-full flex-1">
+            <PlayerSlot
+              player={player}
+              index={index}
+              teamColor={tournamentData?.blueTeam?.colors?.primary || teamColor}
+              _currentPhase={currentPhase}
+              hoverState={hoverState}
+              roleIcons={roleIcons}
+              onRegisterImages={onRegisterImages}
+              cardsAnimated={cardsAnimated}
+              teamSide={teamSide}
+            />
+          </div>
         ))}
       </div>
     </div>

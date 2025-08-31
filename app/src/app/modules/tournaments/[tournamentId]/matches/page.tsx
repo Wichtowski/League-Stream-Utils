@@ -121,7 +121,7 @@ export default function TournamentMatchesPage({ params }: TournamentMatchesPageP
     );
   }
 
-  const canCreateMatches = user.id === tournament.userId || user.isAdmin;
+  const canCreateMatches = user._id === tournament.userId || user.isAdmin;
 
   return (
     <PageWrapper
@@ -166,11 +166,11 @@ export default function TournamentMatchesPage({ params }: TournamentMatchesPageP
               ) : (
                 <div className="space-y-3">
                   {matches.map((match) => (
-                    <div key={match.id} className="flex items-center justify-between p-3 bg-gray-800 rounded-md">
+                    <div key={match._id} className="flex items-center justify-between p-3 bg-gray-800 rounded-md">
                       <div className="flex-1">
                         <div className="text-white font-medium">{match.name}</div>
                         <div className="text-sm text-gray-400">
-                          {match.blueTeam.name} vs {match.redTeam.name}
+                          {match.blueTeamId || "Unknown Team"} vs {match.redTeamId || "Unknown Team"}
                         </div>
                         <div className="text-xs text-gray-500 mt-1">
                           {match.format} • {match.status}
@@ -191,7 +191,7 @@ export default function TournamentMatchesPage({ params }: TournamentMatchesPageP
                           {match.status}
                         </span>
                         <Button
-                          onClick={() => router.push(`/modules/tournaments/${tournamentId}/matches/${match.id}`)}
+                          onClick={() => router.push(`/modules/tournaments/${tournamentId}/matches/${match._id}`)}
                           size="sm"
                           variant="secondary"
                         >

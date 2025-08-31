@@ -16,14 +16,32 @@ type SafeImageProps = {
   fill?: boolean;
 };
 
-export const SafeImage = ({ src, alt, width = 48, height = 48, className, priority, fill = false }: SafeImageProps): React.ReactElement => {
+export const SafeImage = ({
+  src,
+  alt,
+  width = 48,
+  height = 48,
+  className,
+  priority,
+  fill = false
+}: SafeImageProps): React.ReactElement => {
   try {
     const url = new URL(src, typeof window !== "undefined" ? window.location.origin : "http://localhost");
     const isSameOrigin = typeof window !== "undefined" && url.origin === window.location.origin;
     const isLocalBase64 = typeof src === "string" && src.startsWith("data:");
 
     if (isSameOrigin || isLocalBase64 || ALLOWED.has(url.hostname)) {
-      return <Image src={src} alt={alt} width={width} height={height} className={className} priority={priority} fill={fill} />;
+      return (
+        <Image
+          src={src}
+          alt={alt}
+          width={width}
+          height={height}
+          className={className}
+          priority={priority}
+          fill={fill}
+        />
+      );
     }
   } catch {
     // fall through to fallback below
@@ -35,7 +53,16 @@ export const SafeImage = ({ src, alt, width = 48, height = 48, className, priori
     return <img src={src} alt={alt} className={className} referrerPolicy="no-referrer" />;
   } catch {
     return (
-      <div className={className} style={{ display: "flex", alignItems: "center", justifyContent: "center", background: "#374151", color: "#9CA3AF" }}>
+      <div
+        className={className}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "#374151",
+          color: "#9CA3AF"
+        }}
+      >
         <span className="text-xs">Image host not allowed by policy</span>
       </div>
     );

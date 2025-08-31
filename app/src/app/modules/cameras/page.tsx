@@ -27,16 +27,17 @@ export default function CamerasPage(): ReactElement {
     const fetchTeams = async () => {
       try {
         setTeamsLoading(true);
-        const token = localStorage.getItem("token");
         const response = await fetch("/api/v1/teams", {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
+          credentials: "include"
         });
-        
+
         if (response.ok) {
           const data = await response.json();
           setUserTeams(data.teams || []);
+        } else if (response.status === 401) {
+          // Redirect to login if unauthorized
+          window.location.href = "/login";
+          return;
         }
       } catch (error) {
         console.error("Error fetching teams:", error);

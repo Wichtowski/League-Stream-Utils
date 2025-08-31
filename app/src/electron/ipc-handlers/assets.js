@@ -114,21 +114,21 @@ function registerHostedAssetsHandlers(_mainWindow, assetsPath) {
                 chunks.push(chunk);
                 downloadedBytes += chunk.length;
               });
-              
+
               response.on("end", () => {
                 const buffer = Buffer.concat(chunks);
 
-                const isTextFile = targetPath.endsWith('.svg') || targetPath.endsWith('.json') || targetPath.endsWith('.txt');
-                 
+                const isTextFile =
+                  targetPath.endsWith(".svg") || targetPath.endsWith(".json") || targetPath.endsWith(".txt");
+
                 if (isTextFile) {
-                   const content = buffer.toString('utf8');
-                   fs.writeFileSync(targetPath, content, 'utf8');
-                   
-                 } else {
-                   // For binary files, write as buffer
-                   fs.writeFileSync(targetPath, buffer);
-                 }
-                
+                  const content = buffer.toString("utf8");
+                  fs.writeFileSync(targetPath, content, "utf8");
+                } else {
+                  // For binary files, write as buffer
+                  fs.writeFileSync(targetPath, buffer);
+                }
+
                 const downloadTime = (Date.now() - startTime) / 1000;
                 const downloadSpeed = downloadedBytes / downloadTime;
                 resolve({

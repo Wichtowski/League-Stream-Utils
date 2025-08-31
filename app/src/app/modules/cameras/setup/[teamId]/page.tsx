@@ -47,13 +47,10 @@ export default function TeamCameraSetupPage() {
   useEffect(() => {
     const fetchTeams = async () => {
       try {
-        const token = localStorage.getItem("token");
         const response = await fetch("/api/v1/teams", {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
+          credentials: "include"
         });
-        
+
         if (response.ok) {
           const data = await response.json();
           setUserTeams(data.teams || []);
@@ -120,7 +117,18 @@ export default function TeamCameraSetupPage() {
     return () => {
       cancelled = true;
     };
-  }, [authLoading, user, isElectron, useLocalData, router, teamId, fullTeam, cameraTeamsRaw, camerasLoading, refreshCameras]);
+  }, [
+    authLoading,
+    user,
+    isElectron,
+    useLocalData,
+    router,
+    teamId,
+    fullTeam,
+    cameraTeamsRaw,
+    camerasLoading,
+    refreshCameras
+  ]);
 
   const updatePlayerUrl = (playerId: string, url: string) => {
     if (!team) return;

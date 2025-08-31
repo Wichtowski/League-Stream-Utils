@@ -75,7 +75,7 @@ export const StandaloneTeamManager = ({
           await fetchTeams();
           setShowCreateForm(false);
           // Auto-select the newly created team
-          setSelectedTeam(data.team.id);
+          setSelectedTeam(data.team._id);
         } else {
           await showAlert({
             type: "error",
@@ -163,7 +163,7 @@ export const StandaloneTeamManager = ({
     [tournament._id, showAlert, onTeamAdded]
   );
 
-  const selectedTeamData = teams.find((t) => t.id === selectedTeam);
+  const selectedTeamData = teams.find((t) => t._id === selectedTeam);
 
   if (loading) {
     return <OverlayLoader text="Loading teams..." />;
@@ -224,10 +224,12 @@ export const StandaloneTeamManager = ({
             <div className="space-y-2 max-h-64 overflow-y-auto">
               {teams.map((team) => (
                 <div
-                  key={team.id}
-                  onClick={() => setSelectedTeam(team.id)}
+                  key={team._id}
+                  onClick={() => setSelectedTeam(team._id)}
                   className={`p-3 rounded-lg cursor-pointer transition-colors ${
-                    selectedTeam === team.id ? "bg-green-600 text-white" : "bg-gray-700 text-gray-200 hover:bg-gray-600"
+                    selectedTeam === team._id
+                      ? "bg-green-600 text-white"
+                      : "bg-gray-700 text-gray-200 hover:bg-gray-600"
                   }`}
                 >
                   <div className="flex items-center justify-between">
@@ -286,7 +288,7 @@ export const StandaloneTeamManager = ({
               </h3>
               <div className="space-y-2 max-h-32 overflow-y-auto">
                 {tournament.registeredTeams.map((teamId) => {
-                  const team = teams.find((t) => t.id === teamId);
+                  const team = teams.find((t) => t._id === teamId);
                   return (
                     <div key={teamId} className="flex items-center justify-between bg-gray-700 p-3 rounded-lg">
                       <div>

@@ -49,8 +49,6 @@ export type {
   CreateTournamentRequest,
   CreateTeamRequest,
   UpdateTeamRequest,
-  RiotPlayerData,
-  PlayerVerificationResult,
   ChampionStats,
   TournamentChampionStats,
   GameResult,

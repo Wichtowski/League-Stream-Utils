@@ -116,6 +116,3 @@ export async function GET(request: NextRequest) {
     return setSecurityHeaders(NextResponse.json({ error: "Internal server error" }, { status: 500 }));
   }
 }
-
-
-

@@ -15,11 +15,9 @@ export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const { isElectron, useLocalData, isElectronLoading } = useElectron();
+  const { isElectron, useLocalData } = useElectron();
 
   // Debug logging
-  console.log("Login page render:", { user, isLoading, isElectron, isElectronLoading, useLocalData });
-
   useEffect(() => {
     setActiveModule("auth");
 

@@ -1,4 +1,4 @@
-import mongoose, { connect, disconnect } from "mongoose";
+import mongoose from "mongoose";
 import { config } from "@lib/services/system/config";
 
 const mongooseInstance = mongoose;
@@ -60,10 +60,12 @@ class DatabaseConnection {
   }
 
   public async connect(): Promise<typeof mongoose> {
+    // If already connected, return existing connection
     if (connection.isConnected && mongooseInstance.connection.readyState === 1) {
       return mongooseInstance;
     }
 
+    // If connection is in progress, wait for it
     if (this.connectionPromise) {
       console.log("🔄 Database connection in progress, waiting...");
       return this.connectionPromise;
@@ -74,7 +76,7 @@ class DatabaseConnection {
 
       const mongoUri = config.database.uri!;
 
-      this.connectionPromise = connect(mongoUri, {
+      this.connectionPromise = mongoose.connect(mongoUri, {
         bufferCommands: false,
         maxPoolSize: 10,
         serverSelectionTimeoutMS: 5000,
@@ -84,6 +86,7 @@ class DatabaseConnection {
       const result = await this.connectionPromise;
 
       connection.isConnected = true;
+      this.connectionPromise = null; // Clear the promise after successful connection
       console.log("✅ Database connection established successfully");
 
       this.attachEventListeners();
@@ -99,7 +102,7 @@ class DatabaseConnection {
 
   public async disconnect(): Promise<void> {
     if (connection.isConnected) {
-      await disconnect();
+      await mongoose.disconnect();
       connection.isConnected = false;
       this.connectionPromise = null;
       console.log("🔌 MongoDB disconnected - by method");
@@ -141,23 +144,27 @@ class DatabaseConnection {
 const dbConnection = DatabaseConnection.getInstance();
 
 export const connectToDatabase = async (): Promise<typeof mongoose> => {
+  // If already connected, return immediately without calling connect()
+  if (dbConnection.isConnected()) {
+    return mongoose;
+  }
   return dbConnection.connect();
-}
+};
 
 export const isConnectionEstablished = (): boolean => {
   return dbConnection.isConnected();
-}
+};
 
 export const getConnectionState = (): string => {
   return dbConnection.getConnectionState();
-}
+};
 
 export const getConnectionInfo = () => {
   return dbConnection.getConnectionInfo();
-}
+};
 
 export const disconnectFromDatabase = async (): Promise<void> => {
   return dbConnection.disconnect();
-}
+};
 
 export { dbConnection };

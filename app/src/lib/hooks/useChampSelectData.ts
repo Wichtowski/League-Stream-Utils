@@ -241,7 +241,7 @@ export const useChampSelectData = (): UseChampSelectDataResult => {
     const backend = getBackendUrl();
 
     if (!backend) {
-              setData(getDynamicMockData());
+      setData(getDynamicMockData());
       setLoading(false);
       return;
     }

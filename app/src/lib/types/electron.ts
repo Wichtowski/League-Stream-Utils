@@ -21,8 +21,6 @@ export interface CachedAsset {
   checksum: string;
 }
 
-
-
 export interface ElectronAPI {
   // Platform info
   isElectron: boolean;
@@ -150,8 +148,6 @@ export interface ElectronAPI {
     isModeSwitching?: boolean;
     error?: string;
   }>;
-
-
 
   // Storage operations (AppData persistent storage)
   storage?: {

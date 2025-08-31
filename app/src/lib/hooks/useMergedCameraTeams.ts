@@ -71,13 +71,10 @@ function useMergedCameraTeams(withAllPlayers = false) {
     const fetchTeams = async () => {
       try {
         setTeamsLoading(true);
-        const token = localStorage.getItem("token");
         const response = await fetch("/api/v1/teams", {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
+          credentials: "include"
         });
-        
+
         if (response.ok) {
           const data = await response.json();
           setUserTeams(data.teams || []);
@@ -139,13 +136,10 @@ function useMergedCameraTeams(withAllPlayers = false) {
     await refreshCameras();
     // Refresh teams by refetching
     try {
-      const token = localStorage.getItem("token");
       const response = await fetch("/api/v1/teams", {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+        credentials: "include"
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         setUserTeams(data.teams || []);
@@ -159,4 +153,3 @@ function useMergedCameraTeams(withAllPlayers = false) {
 }
 
 export { useMergedCameraTeams };
-

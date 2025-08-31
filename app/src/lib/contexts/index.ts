@@ -26,7 +26,6 @@ export {
   AuthProvider,
   ElectronProvider,
   CamerasProvider,
-
   TournamentsProvider,
   TournamentDataProvider,
   TournamentBracketProvider,
@@ -38,7 +37,6 @@ export {
   PredictionsProvider,
   CurrentMatchProvider,
   useUser,
-
   useModal,
   useNavigation,
   useCurrentMatch

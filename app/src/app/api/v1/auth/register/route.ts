@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
     if (!emailRegex.test(sanitizedEmail)) {
       return setSecurityHeaders(NextResponse.json({ error: "Please enter a valid email address" }, { status: 400 }));
     }
-    
+
     // Strong password validation
     const passwordValidation = validatePassword(password);
     if (!passwordValidation.isValid) {

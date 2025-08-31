@@ -1,9 +1,10 @@
 import { connectToDatabase } from "./connection";
 import { TournamentModel } from "./models";
 import type { Tournament as TournamentType, CreateTournamentRequest } from "@lib/types";
+import { Document } from "mongoose";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const convertMongoDoc = (doc: any): TournamentType => {
+// Clean MongoDB document converter
+const convertMongoDoc = (doc: Document): TournamentType => {
   const obj = doc.toObject();
   return {
     ...obj,
@@ -16,7 +17,11 @@ const convertMongoDoc = (doc: any): TournamentType => {
   };
 };
 
-export const createTournament = async (userId: string, tournamentData: CreateTournamentRequest): Promise<TournamentType> => {
+// Create a new tournament
+export const createTournament = async (
+  userId: string,
+  tournamentData: CreateTournamentRequest
+): Promise<TournamentType> => {
   await connectToDatabase();
 
   const newTournament = new TournamentModel({
@@ -25,7 +30,9 @@ export const createTournament = async (userId: string, tournamentData: CreateTou
     startDate: new Date(tournamentData.startDate),
     endDate: new Date(tournamentData.endDate),
     requireRegistrationDeadline: tournamentData.requireRegistrationDeadline,
-    registrationDeadline: tournamentData.registrationDeadline ? new Date(tournamentData.registrationDeadline) : undefined,
+    registrationDeadline: tournamentData.registrationDeadline
+      ? new Date(tournamentData.registrationDeadline)
+      : undefined,
     matchFormat: tournamentData.matchFormat,
     tournamentFormat: tournamentData.tournamentFormat,
     phaseMatchFormats: tournamentData.phaseMatchFormats,
@@ -48,48 +55,70 @@ export const createTournament = async (userId: string, tournamentData: CreateTou
   return convertMongoDoc(newTournament);
 };
 
-export async function getUserTournaments(userId: string): Promise<TournamentType[]> {
+// Get tournaments for a specific user
+export const getUserTournaments = async (userId: string): Promise<TournamentType[]> => {
   await connectToDatabase();
-  const tournaments = await TournamentModel.find({ userId }).sort({
-    createdAt: -1
-  });
+  const tournaments = await TournamentModel.find({ userId }).sort({ createdAt: -1 });
   return tournaments.map(convertMongoDoc);
-}
+};
 
-export async function getAllTournaments(): Promise<TournamentType[]> {
+// Get all tournaments (admin function)
+export const getAllTournaments = async (): Promise<TournamentType[]> => {
   await connectToDatabase();
+  console.log("getAllTournaments: Connected to database");
+
   const tournaments = await TournamentModel.find({}).sort({ createdAt: -1 });
-  return tournaments.map(convertMongoDoc);
-}
+  console.log("getAllTournaments: Raw tournaments from DB:", tournaments.length);
 
-export async function getTournamentById(tournamentId: string): Promise<TournamentType | null> {
+  const convertedTournaments = tournaments.map(convertMongoDoc);
+  console.log("getAllTournaments: Converted tournaments:", convertedTournaments.length);
+
+  return convertedTournaments;
+};
+
+// Get tournament by ID
+export const getTournamentById = async (tournamentId: string): Promise<TournamentType | null> => {
   await connectToDatabase();
+
   const tournament = await TournamentModel.findById(tournamentId);
   if (!tournament) return null;
-  return convertMongoDoc(tournament);
-}
 
+  return convertMongoDoc(tournament);
+};
+
+// Update tournament
 export const updateTournament = async (
   tournamentId: string,
   updates: Partial<TournamentType>
 ): Promise<TournamentType | null> => {
   await connectToDatabase();
+
   const updatedTournament = await TournamentModel.findByIdAndUpdate(tournamentId, updates, { new: true });
   if (!updatedTournament) return null;
+
   return convertMongoDoc(updatedTournament);
 };
 
+// Delete tournament
 export const deleteTournament = async (tournamentId: string): Promise<boolean> => {
   await connectToDatabase();
+
   const result = await TournamentModel.findByIdAndDelete(tournamentId);
   return !!result;
 };
 
-export const registerTeamToTournament = async (tournamentId: string, teamId: string): Promise<TournamentType | null> => {
+// Register a team to a tournament
+export const registerTeamForTournament = async (
+  tournamentId: string,
+  teamId: string,
+  _bypassConstraints: boolean = false
+): Promise<TournamentType | null> => {
   await connectToDatabase();
+
   const tournament = await TournamentModel.findById(tournamentId);
   if (!tournament) return null;
 
+  // Add team if not already registered
   if (!tournament.registeredTeams.includes(teamId)) {
     tournament.registeredTeams.push(teamId);
     await tournament.save();
@@ -98,30 +127,29 @@ export const registerTeamToTournament = async (tournamentId: string, teamId: str
   return convertMongoDoc(tournament);
 };
 
-// Alias to match API imports
-export const registerTeamForTournament = async (
+// Unregister a team from a tournament
+export const unregisterTeamFromTournament = async (
   tournamentId: string,
-  teamId: string,
-  _bypassConstraints?: boolean
+  teamId: string
 ): Promise<TournamentType | null> => {
-  return registerTeamToTournament(tournamentId, teamId);
-};
-
-export const unregisterTeamFromTournament = async (tournamentId: string, teamId: string): Promise<TournamentType | null> => {
   await connectToDatabase();
+
   const tournament = await TournamentModel.findById(tournamentId);
   if (!tournament) return null;
 
-  tournament.registeredTeams = tournament.registeredTeams.filter(id => id !== teamId);
+  // Remove team from registered teams
+  tournament.registeredTeams = tournament.registeredTeams.filter((id) => id !== teamId);
   await tournament.save();
 
   return convertMongoDoc(tournament);
 };
 
+// Get public tournaments (for display)
 export const getPublicTournaments = async (limit: number = 20, offset: number = 0): Promise<TournamentType[]> => {
   await connectToDatabase();
+
   const tournaments = await TournamentModel.find({
-    status: { $in: ["registration", "ongoing"] }
+    status: { $in: ["draft", "registration", "ongoing"] } // Added "draft" status
   })
     .sort({ createdAt: -1 })
     .limit(limit)
@@ -130,13 +158,14 @@ export const getPublicTournaments = async (limit: number = 20, offset: number = 
   return tournaments.map(convertMongoDoc);
 };
 
+// Search tournaments
 export const searchTournaments = async (query: string, limit: number = 20): Promise<TournamentType[]> => {
   await connectToDatabase();
 
   const searchRegex = new RegExp(query, "i");
   const tournaments = await TournamentModel.find({
     $or: [{ name: searchRegex }, { abbreviation: searchRegex }],
-    status: { $in: ["registration", "ongoing"] }
+    status: { $in: ["draft", "registration", "ongoing"] } // Added "draft" status
   })
     .sort({ createdAt: -1 })
     .limit(limit);
@@ -144,7 +173,10 @@ export const searchTournaments = async (query: string, limit: number = 20): Prom
   return tournaments.map(convertMongoDoc);
 };
 
-export const getTournamentStats = async (tournamentId: string): Promise<{
+// Get tournament statistics
+export const getTournamentStats = async (
+  tournamentId: string
+): Promise<{
   totalTeams: number;
   registeredTeams: number;
   totalMatches: number;
@@ -152,6 +184,7 @@ export const getTournamentStats = async (tournamentId: string): Promise<{
   pendingMatches: number;
 } | null> => {
   await connectToDatabase();
+
   const tournament = await TournamentModel.findById(tournamentId);
   if (!tournament) return null;
 
@@ -159,11 +192,12 @@ export const getTournamentStats = async (tournamentId: string): Promise<{
     totalTeams: tournament.maxTeams,
     registeredTeams: tournament.registeredTeams.length,
     totalMatches: tournament.matches?.length || 0,
-    completedMatches: 0, // This would need to be calculated from actual matches
-    pendingMatches: 0 // This would need to be calculated from actual matches
+    completedMatches: 0, // TODO: Calculate from actual matches
+    pendingMatches: 0 // TODO: Calculate from actual matches
   };
 };
 
+// Check tournament name and abbreviation availability
 export const checkTournamentAvailability = async (
   name: string,
   abbreviation: string,
@@ -182,27 +216,23 @@ export const checkTournamentAvailability = async (
   };
 };
 
+// Alias for getTournamentById (for API compatibility)
 export const getTournament = async (tournamentId: string): Promise<TournamentType | null> => {
-  await connectToDatabase();
-  const tournament = await TournamentModel.findById(tournamentId);
-  if (!tournament) return null;
-  return convertMongoDoc(tournament);
+  return getTournamentById(tournamentId);
 };
 
+// Alias for updateTournament (for API compatibility)
 export const updateTournamentFields = async (
   tournamentId: string,
   updates: Partial<TournamentType>
 ): Promise<TournamentType | null> => {
-  await connectToDatabase();
-  const updatedTournament = await TournamentModel.findByIdAndUpdate(tournamentId, updates, { new: true });
-  if (!updatedTournament) return null;
-  return convertMongoDoc(updatedTournament);
+  return updateTournament(tournamentId, updates);
 };
 
-// Minimal status updater to match API imports
+// Update tournament status
 export const updateTournamentStatus = async (
   tournamentId: string,
   status: TournamentType["status"]
 ): Promise<TournamentType | null> => {
-  return updateTournamentFields(tournamentId, { status });
+  return updateTournament(tournamentId, { status });
 };

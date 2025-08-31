@@ -1,12 +1,13 @@
-// Feature-based Services Export
-export * as Assets from "./assets";
-export * as External from "./external";
-export * as Tournament from "./tournament";
-export * as Common from "./common";
-export * as System from "./system";
+// Export all services
+export { champSelectService } from "./champselect";
+export { settingsService } from "./settings";
+export { connectionService } from "./connection";
 
-// Direct exports for commonly used services
-export * from "./common/constants";
-export * from "./external/LCU/connector";
-export * from "./external/RIOT/api";
-export * from "./assets/downloader-manager";
+// Export types
+export type { ChampSelectAssets, ChampSelectSessionManager } from "./champselect";
+export type { AppSettings, SettingsManager } from "./settings";
+export type { ConnectionManager } from "./connection";
+
+// Export hooks
+export { useLCU } from "../hooks/useLCU";
+export { useChampSelectAssets } from "../hooks/useChampSelectAssets";

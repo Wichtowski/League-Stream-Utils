@@ -3,18 +3,26 @@ import { withAuth } from "@lib/auth";
 import { registerTeamForTournament, unregisterTeamFromTournament, getTournamentById } from "@lib/database/tournament";
 import { getTeamById, getAllTeams } from "@lib/database/team";
 import { JWTPayload } from "@lib/types/auth";
+import { getAllTournaments } from "@lib/database/tournament";
 
 export const GET = withAuth(async (req: NextRequest, user: JWTPayload) => {
   try {
+    console.log("Admin tournaments/register GET request from user:", user.userId, "isAdmin:", user.isAdmin);
+
     if (!user.isAdmin) {
+      console.log("User is not admin, denying access");
       return NextResponse.json({ error: "Admin access required" }, { status: 403 });
     }
 
+    console.log("Fetching teams...");
     const teams = await getAllTeams();
+    console.log("Teams fetched:", teams.length);
 
-    const { getAllTournaments } = await import("@lib/database/tournament");
+    console.log("Fetching tournaments...");
     const tournaments = await getAllTournaments();
+    console.log("Tournaments fetched:", tournaments.length);
 
+    console.log("Sending response with", teams.length, "teams and", tournaments.length, "tournaments");
     return NextResponse.json({
       teams,
       tournaments
