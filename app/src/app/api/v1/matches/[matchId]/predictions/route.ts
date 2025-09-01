@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@lib/auth";
-import { getMatchById, submitPrediction } from "@lib/database/match";
+import { getMatchById, submitPrediction } from "@/libTournament/database/match";
 import type { SubmitPredictionRequest } from "@lib/types/match";
 
 // GET: get predictions for a match

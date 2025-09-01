@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@lib/auth";
-import { createTeam, getUserTeams, checkTeamAvailability } from "@lib/database/team";
+import { createTeam, getUserTeams, checkTeamAvailability } from "@libTeam/database";
 import type { CreateTeamRequest, PlayerRole } from "@lib/types";
 
 // Server-side sanitization functions

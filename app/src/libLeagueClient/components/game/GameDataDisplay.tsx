@@ -21,9 +21,9 @@ import { getSummonerSpells } from "@lib/summoner-spells";
 import { bindLivePlayersToMatch, createFallbackLivePlayer, getRoleOrder } from "@lib/services/game/live-binding";
 import { getLatestVersion } from "@lib/services/common/unified-asset-cache";
 import { useImagePreload } from "@lib/hooks/useImagePreload";
-import { getTeamById } from "@lib/database/team";
-import { getTournamentById } from "@lib/database/tournament";
-import { getMatchById } from "@lib/database/match";
+import { getTeamById } from "@libTeam/database";
+import { getTournamentById } from "@/libTournament/database/tournament";
+import { getMatchById } from "@/libTournament/database/match";
 import { Team } from "@lib/types/team";
 
 interface GameDataDisplayProps {

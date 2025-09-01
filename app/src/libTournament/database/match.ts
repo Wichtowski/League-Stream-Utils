@@ -1,8 +1,7 @@
 import { Types } from "mongoose";
-import { connectToDatabase } from "./connection";
-import { MatchModel } from "./models";
-import { TeamModel } from "./models";
-import { TournamentModel } from "./models";
+import { connectToDatabase } from "@lib/database/connection";
+import { MatchModel, TournamentModel } from "@libTournament/database/models";
+import { TeamModel } from "@libTeam/database/models";
 import type {
   Match,
   CreateMatchRequest,

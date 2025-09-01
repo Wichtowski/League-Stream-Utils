@@ -6,7 +6,7 @@ import {
   deleteTournament,
   updateTournamentStatus,
   getTournamentStats
-} from "@lib/database/tournament";
+} from "@libTournament/database/tournament";
 import type { CreateTournamentRequest, Tournament, TournamentStatus } from "@lib/types";
 import { JWTPayload } from "@lib/types/auth";
 

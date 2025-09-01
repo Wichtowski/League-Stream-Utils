@@ -29,6 +29,29 @@ export const TournamentEditor = ({
     setShowStandaloneTeamManager(false);
   };
 
+  const handleGenerateMatches = async () => {
+    try {
+      const response = await fetch(`/api/v1/tournaments/${tournament._id}/matches/generate`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to generate matches");
+      }
+
+      const result = await response.json();
+      alert(`Successfully generated ${result.matches.length} matches for ${tournament.tournamentFormat} format!`);
+      onTournamentUpdate();
+    } catch (error) {
+      console.error("Error generating matches:", error);
+      alert(error instanceof Error ? error.message : "Failed to generate matches");
+    }
+  };
+
   return (
     <div className="space-y-8">
       {/* Tournament Info */}
@@ -95,6 +118,15 @@ export const TournamentEditor = ({
           >
             Matches
           </button>
+
+          {(tournament.status === "draft" || tournament.status === "ongoing") && (
+            <button
+              onClick={() => handleGenerateMatches()}
+              className={`${buttonStyle} bg-green-600 hover:bg-green-700`}
+            >
+              Generate {tournament.tournamentFormat === "Ladder" ? "Ladder" : "Matches"}
+            </button>
+          )}
 
           <button
             onClick={() => router.push(`/modules/tournaments/${tournament._id}/standalone`)}

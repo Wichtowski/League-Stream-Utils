@@ -1,12 +1,42 @@
 "use client";
 
-import { useCurrentMatch } from "@lib/contexts";
 import { Button } from "@lib/components/common";
 import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useCurrentMatch } from "@libTournament/contexts/CurrentMatchContext";
 
 export const CurrentMatchStatus = (): React.ReactElement => {
   const { currentMatch, loading, clearCurrentMatch } = useCurrentMatch();
+  const [tournamentName, setTournamentName] = useState<string>("");
+  const [blueTeamName, setBlueTeamName] = useState<string>("");
+  const [redTeamName, setRedTeamName] = useState<string>("");
   const router = useRouter();
+
+  useEffect(() => {
+    if (currentMatch?.tournamentId) {
+      // Fetch tournament name
+      fetch(`/api/v1/tournaments/${currentMatch.tournamentId}`)
+        .then(res => res.json())
+        .then(data => setTournamentName(data.tournament?.name || ""))
+        .catch(() => setTournamentName(""));
+    }
+    
+    if (currentMatch?.blueTeamId) {
+      // Fetch blue team name
+      fetch(`/api/v1/teams/${currentMatch.blueTeamId}`)
+        .then(res => res.json())
+        .then(data => setBlueTeamName(data.team?.name || ""))
+        .catch(() => setBlueTeamName(""));
+    }
+    
+    if (currentMatch?.redTeamId) {
+      // Fetch red team name
+      fetch(`/api/v1/teams/${currentMatch.redTeamId}`)
+        .then(res => res.json())
+        .then(data => setRedTeamName(data.team?.name || ""))
+        .catch(() => setRedTeamName(""));
+    }
+  }, [currentMatch?.tournamentId, currentMatch?.blueTeamId, currentMatch?.redTeamId]);
 
   if (loading) {
     return (
@@ -59,15 +89,15 @@ export const CurrentMatchStatus = (): React.ReactElement => {
         <div className="flex items-center justify-between">
           <span className="text-gray-400">Teams:</span>
           <div className="text-right">
-            <div className="text-blue-400">{currentMatch.blueTeam.name}</div>
-            <div className="text-red-400">{currentMatch.redTeam.name}</div>
+            <div className="text-blue-400">{blueTeamName || `Blue Team (ID: ${currentMatch.blueTeamId})`}</div>
+            <div className="text-red-400">{redTeamName || `Red Team (ID: ${currentMatch.redTeamId})`}</div>
           </div>
         </div>
 
         {currentMatch.tournamentId && (
           <div className="flex items-center justify-between">
             <span className="text-gray-400">Tournament:</span>
-            <span className="text-white">{currentMatch.tournamentName}</span>
+            <span className="text-white">{tournamentName || `Tournament ID: ${currentMatch.tournamentId}`}</span>
           </div>
         )}
 

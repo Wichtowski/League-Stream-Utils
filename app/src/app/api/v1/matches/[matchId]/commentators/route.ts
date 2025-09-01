@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@lib/auth";
-import { getMatchById, assignCommentator } from "@lib/database/match";
+import { getMatchById, assignCommentator } from "@/libTournament/database/match";
 import type { AssignCommentatorRequest } from "@lib/types/match";
 
 // GET: get commentators for a match

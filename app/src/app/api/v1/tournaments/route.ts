@@ -6,7 +6,7 @@ import {
   getPublicTournaments,
   searchTournaments,
   checkTournamentAvailability
-} from "@lib/database/tournament";
+} from "@libTournament/database/tournament";
 import type { CreateTournamentRequest } from "@lib/types";
 
 // GET /api/v1/tournaments - Get tournaments

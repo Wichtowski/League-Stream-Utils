@@ -11,6 +11,8 @@ import { tournamentStorage, LastSelectedTournament } from "@lib/services/tournam
 import { PageWrapper } from "@lib/layout/PageWrapper";
 import { SpotlightCard } from "@lib/components/modules/SpotlightCard";
 import { Button } from "@lib/components/common/button/Button";
+import { matchStorage } from "@lib/services/match/match-storage";
+import { LastSelectedMatch } from "@lib/services/match/match-storage";
 
 export default function ModulesPage() {
   const router = useRouter();
@@ -21,6 +23,8 @@ export default function ModulesPage() {
   const [hasLastSelectedTournament, setHasLastSelectedTournament] = useState(false);
   const [lastSelectedTournament, setLastSelectedTournament] = useState<LastSelectedTournament | null>(null);
   const [loading, setIsLoading] = useState(true);
+  const [hasLastSelectedMatch, setHasLastSelectedMatch] = useState(false);
+  const [lastSelectedMatch, setLastSelectedMatch] = useState<LastSelectedMatch | null>(null);
 
   useEffect(() => {
     setActiveModule("modules");
@@ -29,14 +33,21 @@ export default function ModulesPage() {
   useEffect(() => {
     const checkLastSelectedTournament = async () => {
       try {
-        const lastSelected = await tournamentStorage.getLastSelectedTournament();
+        const lastSelectedTournament = await tournamentStorage.getLastSelectedTournament();
         const isValid = await tournamentStorage.isLastSelectedTournamentValid();
         setHasLastSelectedTournament(isValid);
-        setLastSelectedTournament(lastSelected);
+        setLastSelectedTournament(lastSelectedTournament);
+
+        const lastSelectedMatch = await matchStorage.getLastSelectedMatch();
+        const isValidMatch = await matchStorage.isLastSelectedMatchValid();
+        setHasLastSelectedMatch(isValidMatch);
+        setLastSelectedMatch(lastSelectedMatch);
       } catch (error) {
         console.error("Failed to check last selected tournament:", error);
         setHasLastSelectedTournament(false);
         setLastSelectedTournament(null);
+        setHasLastSelectedMatch(false);
+        setLastSelectedMatch(null);
       } finally {
         setIsLoading(false);
       }
@@ -63,11 +74,12 @@ export default function ModulesPage() {
       useLocalData,
       isAuthenticated,
       isAdmin,
-      hasLastSelectedTournament
+      hasLastSelectedTournament,
+      hasLastSelectedMatch
     });
 
     return modules;
-  }, [user, isElectron, useLocalData, hasLastSelectedTournament]);
+  }, [user, isElectron, useLocalData, hasLastSelectedTournament, hasLastSelectedMatch]);
 
   useEffect(() => {
     if (
@@ -114,6 +126,16 @@ export default function ModulesPage() {
     }
   };
 
+  const handleRemoveLastSelectedTournament = () => {
+    tournamentStorage.clearLastSelectedTournament();
+    setLastSelectedTournament(null);
+  }
+
+  const handleRemoveLastSelectedMatch = () => {
+    matchStorage.clearLastSelectedMatch();
+    setLastSelectedMatch(null);
+  }
+
   const isHiddenBehindTournament = (module: ModuleCard) =>
     module.name === "Matches" || module.name === "Commentators" || module.name === "Sponsors";
 
@@ -153,10 +175,20 @@ export default function ModulesPage() {
       subtitle={`Welcome back, ${user?.username ? user.username.charAt(0).toUpperCase() + user.username.slice(1) : "User"}! Choose a module to get started.`}
       contentClassName="max-w-7xl mx-auto"
       actions={
-        lastSelectedTournament ? (
-          <Button onClick={() => tournamentStorage.clearLastSelectedTournament()}>
-            <span>Remove Last Selected Tournament</span>
-          </Button>
+        lastSelectedTournament || lastSelectedMatch ? (
+          <>
+            <span>Remove Last Selected:</span>
+            {lastSelectedTournament ? (
+              <Button onClick={() => handleRemoveLastSelectedTournament()}>
+                Tournament
+              </Button>
+            ) : null}
+            {lastSelectedMatch ? (
+              <Button onClick={() => handleRemoveLastSelectedMatch()}>
+                Match
+              </Button>
+            ) : null}
+          </>
         ) : null
       }
     >

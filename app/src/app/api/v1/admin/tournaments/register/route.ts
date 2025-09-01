@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@lib/auth";
-import { registerTeamForTournament, unregisterTeamFromTournament, getTournamentById } from "@lib/database/tournament";
-import { getTeamById, getAllTeams } from "@lib/database/team";
+import { getTeamById, getAllTeams } from "@libTeam/database";
 import { JWTPayload } from "@lib/types/auth";
-import { getAllTournaments } from "@lib/database/tournament";
+import { getAllTournaments, registerTeamForTournament, unregisterTeamFromTournament, getTournamentById } from "@/libTournament/database/tournament";
 
 export const GET = withAuth(async (req: NextRequest, user: JWTPayload) => {
   try {

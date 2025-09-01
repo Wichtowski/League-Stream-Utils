@@ -160,9 +160,9 @@ export function CurrentMatchProvider({ children }: { children: ReactNode }) {
       setLoading(true);
       setError(null);
 
-      if (currentMatch?.id) {
+      if (currentMatch?._id) {
         // Fetch fresh match data from API
-        const response = await authenticatedFetch(`/api/v1/matches/${currentMatch.id}`);
+        const response = await authenticatedFetch(`/api/v1/matches/${currentMatch._id}`);
 
         if (response.ok) {
           const data = await response.json();
@@ -188,7 +188,7 @@ export function CurrentMatchProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false);
     }
-  }, [currentMatch?.id, authenticatedFetch, isLocalDataMode, electronStorage]);
+  }, [currentMatch?._id, authenticatedFetch, isLocalDataMode, electronStorage]);
 
   const value: CurrentMatchContextType = useMemo(
     () => ({

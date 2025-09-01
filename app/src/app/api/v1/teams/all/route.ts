@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@lib/auth";
-import { getAllTeams } from "@lib/database/team";
+import { getAllTeams } from "@libTeam/database";
 import { JWTPayload } from "@lib/types/auth";
 
 // GET /api/v1/teams/all - Get all teams (for tournament organizers)

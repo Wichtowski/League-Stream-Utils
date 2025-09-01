@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getTournamentById } from "@lib/database/tournament";
+import { getTournamentById } from "@/libTournament/database/tournament";
 
 interface RouteContext {
   params: Promise<{ tournamentId: string }>;

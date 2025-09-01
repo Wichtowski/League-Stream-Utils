@@ -1,77 +1,100 @@
 import { Schema } from "mongoose";
-import { ImageStorageSchema } from "@lib/database/schemas/common";
-import { MatchPredictionSchema, MatchCommentatorSchema } from "./prediction";
-
-
-const GameResultSchema = new Schema({
-  gameNumber: { type: Number, required: true },
-  winner: { type: String, enum: ["blue", "red"], required: true },
-  duration: { type: Number, required: false },
-  blueScore: { type: Number, default: 0 },
-  redScore: { type: Number, default: 0 },
-  blueTeamId: { type: String, required: true },
-  redTeamId: { type: String, required: true },
-  startTime: { type: Date, required: false },
-  endTime: { type: Date, required: false },
-  completedAt: { type: Date, required: false }
-});
 
 export const MatchSchema = new Schema({
-  name: { type: String, required: false },
-  type: { type: String, enum: ["tournament", "standalone"], required: false },
+  name: { type: String, required: true },
+  type: { 
+    type: String, 
+    enum: ["tournament", "standalone"], 
+    required: true 
+  },
 
   // Tournament context (only for tournament matches)
-  tournamentId: { type: String },
-  tournamentName: { type: String },
-  tournamentLogo: { type: ImageStorageSchema },
-  bracketNodeId: { type: String },
-  roundName: { type: String },
-  matchNumber: { type: Number },
+  tournamentId: { type: String, required: false },
+  bracketNodeId: { type: String, required: false },
+  roundName: { type: String, required: false },
+  matchNumber: { type: Number, required: false },
 
   // Teams
   blueTeamId: { type: String, required: true },
   redTeamId: { type: String, required: true },
 
   // Match configuration
-  format: { type: String, enum: ["BO1", "BO3", "BO5"], required: false },
-  isFearlessDraft: { type: Boolean, default: false },
-  patchName: { type: String, required: false },
+  format: { 
+    type: String, 
+    enum: ["BO1", "BO3", "BO5"], 
+    required: true 
+  },
+  isFearlessDraft: { type: Boolean, required: true },
+  patchName: { type: String, required: true },
 
   // Scheduling
-  scheduledTime: { type: Date },
-  startTime: { type: Date },
-  endTime: { type: Date },
+  scheduledTime: { type: Date, required: false },
+  startTime: { type: Date, required: false },
+  endTime: { type: Date, required: false },
 
   // Status and results
-  status: {
-    type: String,
-    enum: ["scheduled", "in-progress", "completed", "cancelled"],
+  status: { 
+    type: String, 
+    enum: ["scheduled", "in-progress", "completed", "cancelled"], 
+    required: true,
     default: "scheduled"
   },
-  winner: { type: String, enum: ["blue", "red"] },
-  score: {
-    blue: { type: Number, default: 0 },
-    red: { type: Number, default: 0 }
+  winner: { 
+    type: String, 
+    enum: ["blue", "red"], 
+    required: false 
   },
 
   // Game results (for BO3/BO5)
-  games: { type: [GameResultSchema], default: [] },
+  games: [{
+    _id: { type: String, required: true },
+    gameNumber: { type: Number, required: true },
+    winner: { 
+      type: String, 
+      enum: ["blue", "red"], 
+      required: true 
+    },
+    duration: { type: Number, required: false },
+    blueScore: { type: Number, required: true },
+    redScore: { type: Number, required: true },
+    blueTeam: { type: String, required: true },
+    redTeam: { type: String, required: true },
+    startTime: { type: Date, required: false },
+    endTime: { type: Date, required: false },
+    completedAt: { type: Date, required: false }
+  }],
 
   // Commentators assigned to this match
-  commentators: { type: [MatchCommentatorSchema], default: [] },
+  commentators: [{
+    _id: { type: String, required: true },
+    name: { type: String, required: true },
+    role: { 
+      type: String, 
+      enum: ["play-by-play", "color", "analyst"], 
+      required: true 
+    },
+    email: { type: String, required: false },
+    phone: { type: String, required: false },
+    assignedAt: { type: Date, required: true }
+  }],
 
   // Predictions
-  predictions: { type: [MatchPredictionSchema], default: [] },
+  predictions: [{
+    userId: { type: String, required: true },
+    username: { type: String, required: true },
+    prediction: { 
+      type: String, 
+      enum: ["blue", "red"], 
+      required: true 
+    },
+    confidence: { type: Number, required: false },
+    submittedAt: { type: Date, required: true }
+  }],
 
   // Metadata
-  createdBy: { type: String, required: false },
-  createdAt: { type: Date, required: false, default: Date.now },
-  updatedAt: { type: Date, required: false, default: Date.now }
+  createdBy: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
+}, {
+  timestamps: true
 });
-
-// Indexes for better query performance
-MatchSchema.index({ tournamentId: 1, status: 1 });
-MatchSchema.index({ type: 1, status: 1 });
-MatchSchema.index({ scheduledTime: 1 });
-MatchSchema.index({ createdBy: 1 });
-MatchSchema.index({ "commentators._id": 1 });

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@lib/auth";
 import { getTournamentChampionStats, getChampionStatsForOBS } from "@lib/database/champion-stats";
-import { getTournamentById } from "@lib/database/tournament";
+import { getTournamentById } from "@/libTournament/database/tournament";
 import type { JWTPayload } from "@lib/types/auth";
 
 // GET /api/v1/tournaments/[tournamentId]/stats - Get tournament champion statistics

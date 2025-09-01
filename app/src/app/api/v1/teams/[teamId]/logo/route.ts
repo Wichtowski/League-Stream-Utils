@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getTeamLogoByTeamId } from "@lib/database/team";
+import { getTeamLogoByTeamId } from "@libTeam/database";
 
 interface TeamLogoResponse {
   params: Promise<{ teamId: string }>;

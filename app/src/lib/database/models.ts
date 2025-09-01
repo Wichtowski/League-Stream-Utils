@@ -3,18 +3,15 @@ import {
   GameSessionSchema,
   UserSchema,
   CameraTeamSchema,
-  TeamSchema,
-  TournamentSchema,
   BracketSchema,
   CameraSettingsSchema,
   LoginAttemptSchema,
   SecurityEventSchema,
-  MatchSchema,
   PlayerStatsSchema
 } from "./schemas";
 
 // Lazy initialization function to ensure models are only created after connection
-const getModel = <T>(name: string, schema: Schema): Model<T> => {
+export const getModel = <T>(name: string, schema: Schema): Model<T> => {
   try {
     // Check if we're in a browser environment and models might not be available
     if (typeof window !== "undefined" && !models) {
@@ -37,11 +34,8 @@ export const UserModel = getModel("User", UserSchema);
 
 export const CameraTeamModel = getModel("CameraTeam", CameraTeamSchema);
 
-export type TeamDoc = InferSchemaType<typeof TeamSchema>;
-export const TeamModel = getModel<TeamDoc>("Team", TeamSchema);
 
-export type TournamentDoc = InferSchemaType<typeof TournamentSchema>;
-export const TournamentModel = getModel<TournamentDoc>("Tournament", TournamentSchema);
+
 
 export const BracketModel = getModel("Bracket", BracketSchema);
 
@@ -59,8 +53,6 @@ export const ChampionModel = getModel(
 export const LoginAttemptModel = getModel("LoginAttempt", LoginAttemptSchema);
 
 export const SecurityEventModel = getModel("SecurityEvent", SecurityEventSchema);
-
-export const MatchModel = getModel("Match", MatchSchema);
 
 export type PlayerStatsDoc = InferSchemaType<typeof PlayerStatsSchema>;
 export const PlayerStatsModel = getModel<PlayerStatsDoc>("PlayerStats", PlayerStatsSchema);

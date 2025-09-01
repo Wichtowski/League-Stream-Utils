@@ -157,6 +157,7 @@ export interface ModuleVisibilityParams {
   isAuthenticated: boolean;
   isAdmin: boolean;
   hasLastSelectedTournament?: boolean;
+  hasLastSelectedMatch?: boolean;
 }
 
 export function getVisibleModules({
@@ -164,7 +165,8 @@ export function getVisibleModules({
   useLocalData,
   isAuthenticated,
   isAdmin,
-  hasLastSelectedTournament = false
+  hasLastSelectedTournament = false,
+  hasLastSelectedMatch = false
 }: ModuleVisibilityParams): ModuleCard[] {
   const isElectronLocal = isElectron && useLocalData;
   const showLeagueClient = isElectron && (isElectronLocal || isAuthenticated);
@@ -184,7 +186,7 @@ export function getVisibleModules({
       return showFullNav && isAdmin;
     }
     if (module.id === "sponsors" || module.id === "matches" || module.id === "comentators") {
-      return showFullNav && hasLastSelectedTournament;
+      return showFullNav && (hasLastSelectedTournament || hasLastSelectedMatch);
     }
     // All other modules require full nav
     return showFullNav;

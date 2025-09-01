@@ -8,6 +8,9 @@ import { useUser } from "@lib/contexts";
 import { PageWrapper } from "@lib/layout";
 import { CurrentMatchStatus } from "@libTournament/components";
 import { LoadingSpinner, Button } from "@lib/components/common";
+import { useCurrentMatch } from "@libTournament/contexts/CurrentMatchContext";
+import { matchStorage } from "@lib/services/match/match-storage";
+import { useAuthenticatedFetch } from "@lib/hooks/useAuthenticatedFetch";
 
 interface TournamentMatchesPageProps {
   params: Promise<{
@@ -18,6 +21,8 @@ interface TournamentMatchesPageProps {
 export default function TournamentMatchesPage({ params }: TournamentMatchesPageProps): React.ReactElement {
   const user = useUser();
   const router = useRouter();
+  const { setCurrentMatch } = useCurrentMatch();
+  const { authenticatedFetch } = useAuthenticatedFetch();
 
   const [matches, setMatches] = useState<Match[]>([]);
   const [tournament, setTournament] = useState<Tournament | null>(null);
@@ -41,7 +46,7 @@ export default function TournamentMatchesPage({ params }: TournamentMatchesPageP
         setLoading(true);
 
         // Fetch tournament data
-        const tournamentResponse = await fetch(`/api/v1/tournaments/${tournamentId}`);
+        const tournamentResponse = await authenticatedFetch(`/api/v1/tournaments/${tournamentId}`);
         if (!tournamentResponse.ok) {
           throw new Error("Failed to fetch tournament");
         }
@@ -49,7 +54,7 @@ export default function TournamentMatchesPage({ params }: TournamentMatchesPageP
         setTournament(tournamentData.tournament);
 
         // Fetch matches
-        const matchesResponse = await fetch(`/api/v1/tournaments/${tournamentId}/matches`);
+        const matchesResponse = await authenticatedFetch(`/api/v1/tournaments/${tournamentId}/matches`);
         if (!matchesResponse.ok) {
           throw new Error("Failed to fetch matches");
         }
@@ -63,7 +68,7 @@ export default function TournamentMatchesPage({ params }: TournamentMatchesPageP
     };
 
     fetchData();
-  }, [tournamentId]);
+  }, [tournamentId, authenticatedFetch]);
 
   if (!user) {
     return <PageWrapper requireAuth={true}>{null}</PageWrapper>;
@@ -123,6 +128,19 @@ export default function TournamentMatchesPage({ params }: TournamentMatchesPageP
 
   const canCreateMatches = user._id === tournament.userId || user.isAdmin;
 
+  const handleSetCurrentMatch = async (matchId: string): Promise<void> => {
+    try {
+      const match = matches.find(m => m._id === matchId);
+      if (!match) return;
+
+      await matchStorage.setLastSelectedMatch(match._id, match.name);
+      await setCurrentMatch(match);
+      router.push("/modules");
+    } catch (error) {
+      console.error("Failed to save last selected match:", error);
+    }
+  };
+
   return (
     <PageWrapper
       title="Matches"
@@ -169,9 +187,6 @@ export default function TournamentMatchesPage({ params }: TournamentMatchesPageP
                     <div key={match._id} className="flex items-center justify-between p-3 bg-gray-800 rounded-md">
                       <div className="flex-1">
                         <div className="text-white font-medium">{match.name}</div>
-                        <div className="text-sm text-gray-400">
-                          {match.blueTeamId || "Unknown Team"} vs {match.redTeamId || "Unknown Team"}
-                        </div>
                         <div className="text-xs text-gray-500 mt-1">
                           {match.format} • {match.status}
                         </div>
@@ -196,6 +211,13 @@ export default function TournamentMatchesPage({ params }: TournamentMatchesPageP
                           variant="secondary"
                         >
                           View
+                        </Button>
+                        <Button
+                          onClick={() => handleSetCurrentMatch(match._id)}
+                          size="sm"
+                          variant="secondary"
+                        >
+                          Set as Current
                         </Button>
                       </div>
                     </div>

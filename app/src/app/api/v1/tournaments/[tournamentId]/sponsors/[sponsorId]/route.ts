@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@lib/auth";
-import { getTournament, updateTournamentFields } from "@lib/database/tournament";
+import { getTournament, updateTournamentFields } from "@/libTournament/database/tournament";
 import type { Sponsorship } from "@lib/types";
 
 // Utility function to extract IDs from URL

@@ -100,6 +100,13 @@ class SummonerSpellCacheService extends BaseCacheService<SummonerSpell> {
     // Store all images in a flat structure: {version}/summoner-spells/{imageName}
     const imagePath = `${version}/summoner-spells/${spell.image.full}`;
 
+    // Check if image already exists before downloading
+    const cachedFullPath = this.getCachedPathForKey(imagePath);
+    const alreadyExists = await this.checkFileExists(cachedFullPath);
+    if (alreadyExists) {
+      return imagePath;
+    }
+
     const success = await this.downloadImage(imageUrl, imagePath);
     if (!success) {
       throw new Error(`Failed to download image for ${spell.key}`);
