@@ -2,8 +2,8 @@
 
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode, useMemo } from "react";
 import { useAuthenticatedFetch } from "@lib/hooks/useAuthenticatedFetch";
-import { useAuth } from "../../lib/contexts/AuthContext";
-import { useElectron } from "../../libElectron/contexts/ElectronContext";
+import { useAuth } from "@lib/contexts/AuthContext";
+import { useElectron } from "@libElectron/contexts/ElectronContext";
 import { storage } from "@lib/services/common/UniversalStorage";
 import type { Tournament, CreateTournamentRequest } from "@lib/types";
 

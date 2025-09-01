@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from "react";
 import type { User } from "@lib/types";
-import { useElectron } from "../../libElectron/contexts/ElectronContext";
+import { useElectron } from "@libElectron/contexts/ElectronContext";
 
 interface AuthContextType {
   user: User | null;

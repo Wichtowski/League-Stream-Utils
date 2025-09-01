@@ -1,8 +1,8 @@
 import mongoose from "mongoose";
-import { ChampionSchema, CoachSchema } from "./common";
+import { ChampionSchema, CoachSchema } from "@lib/database/schemas/common";
 
 // Team Schema for pickban
-const TeamSchema = new mongoose.Schema({
+const TeamPickbanSchema = new mongoose.Schema({
   name: { type: String, required: false },
   side: { type: String, enum: ["blue", "red"], required: false },
   bans: [ChampionSchema],
@@ -49,8 +49,8 @@ export const GameSessionSchema = new mongoose.Schema(
       default: "web"
     },
     teams: {
-      blue: { type: TeamSchema, required: false },
-      red: { type: TeamSchema, required: false }
+      blue: { type: TeamPickbanSchema, required: false },
+      red: { type: TeamPickbanSchema, required: false }
     },
     phase: {
       type: String,

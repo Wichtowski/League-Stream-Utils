@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useCallback, ReactNode, useMemo } from "react";
 import { useAuthenticatedFetch } from "@lib/hooks/useAuthenticatedFetch";
-import { useElectron } from "../../libElectron/contexts/ElectronContext";
+import { useElectron } from "@libElectron/contexts/ElectronContext";
 import type { Bracket } from "@lib/types";
 
 interface TournamentBracketContextType {

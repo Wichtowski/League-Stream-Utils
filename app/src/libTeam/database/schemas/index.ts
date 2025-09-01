@@ -1,5 +1,5 @@
 import { Schema } from "mongoose";
-import { ImageStorageSchema, PlayerSchema, StaffSchema } from "./common";
+import { ImageStorageSchema, PlayerSchema, StaffSchema } from "@lib/database/schemas/common";
 
 export const TeamSchema = new Schema({
   name: { type: String, required: true },

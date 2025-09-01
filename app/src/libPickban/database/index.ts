@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
-import { connectToDatabase } from "./connection";
-import { GameSessionModel } from "./models";
+import { connectToDatabase } from "@lib/database/connection";
+import { GameSessionModel } from "@lib/database/models";
 import type { GameSession as GameSessionType, Champion } from "@lib/types";
 
 // Helper function to transform mongoose document to GameSession
@@ -188,7 +188,7 @@ export async function getUsedChampionsInSeries(sessionId: string): Promise<Champ
     ];
 
     const uniqueChampions = allUsedChampions.filter(
-      (champion, index, self) => index === self.findIndex((c) => c.id === champion.id)
+      (champion, index, self) => index === self.findIndex((c) => c._id === champion._id)
     );
 
     return uniqueChampions;

@@ -1,6 +1,6 @@
 import { Schema } from "mongoose";
-import { ImageStorageSchema } from "./common";
-import { SponsorSchema } from "./sponsors";
+import { ImageStorageSchema } from "@lib/database/schemas/common";
+import { SponsorSchema } from "@lib/database/schemas/sponsors";
 
 export const TournamentSchema = new Schema({
   name: { type: String, required: true },

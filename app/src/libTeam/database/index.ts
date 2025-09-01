@@ -1,5 +1,5 @@
-import { connectToDatabase } from "./connection";
-import { TeamModel } from "./models";
+import { connectToDatabase } from "@lib/database";
+import { TeamModel } from "@/lib/database/models";
 import type { Team, CreateTeamRequest } from "@lib/types";
 import type { Document } from "mongoose";
 

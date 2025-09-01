@@ -38,8 +38,8 @@ export type {
   RiotAbility,
   RiotAbilities
 } from "./live-client";
+export type { MatchFormat } from "./match";
 export type {
-  MatchFormat,
   TournamentFormat,
   TournamentTemplate,
   TournamentStatus,
@@ -57,7 +57,7 @@ export type {
   Sponsorship
 } from "./tournament";
 export { createDefaultTeamRequest } from "./tournament";
-export type { CameraPlayer, CameraTeam } from "../../libCamera/types/camera";
+export type { CameraPlayer, CameraTeam } from "@libCamera/types/camera";
 export type {
   ModalVariant,
   ConfirmVariant,

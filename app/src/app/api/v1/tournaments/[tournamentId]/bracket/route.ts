@@ -3,7 +3,7 @@ import { withAuth } from "@lib/auth";
 import { getTournamentById } from "@lib/database/tournament";
 import { BracketGenerator } from "@lib/services/tournament";
 import { connectToDatabase } from "@lib/database/connection";
-import { BracketModel } from "@lib/database/models";
+import { BracketModel } from "@/lib/database/models";
 import type { JWTPayload } from "@lib/types/auth";
 import type { BracketStructure, UpdateMatchResultRequest } from "@lib/types/tournament";
 

@@ -13,7 +13,7 @@ export {
   cleanupOldSessions,
   getUsedChampionsInSeries,
   addUsedChampion
-} from "./game";
+} from "@libPickban/database";
 
 export { GameSessionModel, UserModel } from "./models";
 export { GameSessionSchema, UserSchema } from "./schemas";

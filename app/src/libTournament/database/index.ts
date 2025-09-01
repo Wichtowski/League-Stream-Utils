@@ -1,5 +1,5 @@
-import { connectToDatabase } from "./connection";
-import { TournamentModel } from "./models";
+import { connectToDatabase } from "@lib/database";
+import { TournamentModel } from "@/lib/database/models";
 import type { Tournament as TournamentType, CreateTournamentRequest } from "@lib/types";
 import { Document } from "mongoose";
 

@@ -1,4 +1,4 @@
-import { Champion, ChampionSpell } from "../../types/game";
+import { Champion, ChampionSpell } from "@lib/types/game";
 import { DDRAGON_CDN } from "@lib/services/common/constants";
 import { BaseCacheService } from "@lib/services/assets/base";
 import { DataDragonClient } from "@lib/services/external/DataDragon/client";

@@ -3,7 +3,7 @@ import {
   DataDragonSummonerSpell,
   DataDragonSummonerResponse,
   SummonerSpellCacheData
-} from "../../types/summoner-spell";
+} from "@lib/types/summoner-spell";
 import { DDRAGON_CDN } from "@lib/services/common/constants";
 import { BaseCacheService } from "@lib/services/assets/base";
 

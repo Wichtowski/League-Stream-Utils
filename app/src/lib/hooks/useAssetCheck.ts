@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { checkRequiredAssets, type AssetCheckResult } from "@lib/services/assets/checker";
-import { useElectron } from "../../libElectron/contexts/ElectronContext";
+import { useElectron } from "@libElectron/contexts/ElectronContext";
 
 interface UseAssetCheckOptions {
   redirectIfMissing?: boolean;
