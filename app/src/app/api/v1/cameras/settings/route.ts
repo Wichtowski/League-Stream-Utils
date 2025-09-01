@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@lib/auth";
 import { connectToDatabase } from "@lib/database/connection";
-import { CameraSettingsModel } from "@/lib/database/models";
-import { getUserTeams } from "@lib/database/team";
+import { CameraSettingsModel } from "@lib/database/models";
+import { getUserTeams } from "@libTeam/database";
 import { JWTPayload } from "@lib/types/auth";
 import type { Player, Team } from "@lib/types";
 

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { ALLOWED_IMAGE_HOSTS } from "@/lib/services/common";
+import { ALLOWED_IMAGE_HOSTS } from "@lib/services/common";
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {

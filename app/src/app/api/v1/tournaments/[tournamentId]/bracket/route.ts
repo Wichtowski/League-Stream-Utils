@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@lib/auth";
-import { getTournamentById } from "@lib/database/tournament";
+import { getTournamentById } from "@libTournament/database";
 import { BracketGenerator } from "@lib/services/tournament";
 import { connectToDatabase } from "@lib/database/connection";
-import { BracketModel } from "@/lib/database/models";
+import { BracketModel } from "@lib/database/models";
 import type { JWTPayload } from "@lib/types/auth";
 import type { BracketStructure, UpdateMatchResultRequest } from "@lib/types/tournament";
 
@@ -136,7 +136,7 @@ export const PUT = withAuth(async (req: NextRequest, user: JWTPayload) => {
       return NextResponse.json({ error: "Bracket not found" }, { status: 404 });
     }
 
-    const matchNode = bracket.nodes.find((n) => n.id === updateData.matchId);
+    const matchNode = bracket.nodes.find((n) => n._id === updateData.matchId);
     if (!matchNode) {
       return NextResponse.json({ error: "Match not found" }, { status: 404 });
     }
@@ -160,10 +160,10 @@ export const PUT = withAuth(async (req: NextRequest, user: JWTPayload) => {
     const updatedBracket = BracketGenerator.advanceTeam(bracket, updateData.matchId, updateData.winner, loser);
 
     // Update the match with scores and additional info
-    const updatedMatch = updatedBracket.nodes.find((n) => n.id === updateData.matchId);
+    const updatedMatch = updatedBracket.nodes.find((n) => n._id === updateData.matchId);
     if (updatedMatch) {
-      updatedMatch.score1 = updateData.score1;
-      updatedMatch.score2 = updateData.score2;
+      updatedMatch.score1 = updateData.score.blue;
+      updatedMatch.score2 = updateData.score.red;
       updatedMatch.completedAt = new Date();
     }
 
