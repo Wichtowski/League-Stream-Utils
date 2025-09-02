@@ -22,17 +22,15 @@ import { bindLivePlayersToMatch, createFallbackLivePlayer, getRoleOrder } from "
 import { getLatestVersion } from "@lib/services/common/unified-asset-cache";
 import { useImagePreload } from "@lib/hooks/useImagePreload";
 import { getTeamById } from "@libTeam/database";
-import { getTournamentById } from "@/libTournament/database/tournament";
-import { getMatchById } from "@/libTournament/database/match";
 import { Team } from "@lib/types/team";
 
 interface GameDataDisplayProps {
   gameData: LiveGameData;
-  matchId: string;
-  tournamentId: string;
+  match?: Match;
+  tournament?: Tournament;
 }
 
-export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({ gameData, matchId, tournamentId }) => {
+export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({ gameData, match, tournament }) => {
   const [championsLoaded, setChampionsLoaded] = useState(false);
   const [summonerSpellsLoaded, setSummonerSpellsLoaded] = useState(false);
   const [itemsLoaded, setItemsLoaded] = useState(false);
@@ -46,32 +44,12 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({ gameData, matc
   const [orderLogo, setOrderLogo] = useState<string>("");
   const [chaosLogo, setChaosLogo] = useState<string>("");
   const [uiReady, setUiReady] = useState(false);
-  const [tournament, setTournament] = useState<Tournament | null>(null);
-  const [match, setMatch] = useState<Match | null>(null);
   const [chaosTeam, setChaosTeam] = useState<Team | null>(null);
   const [orderTeam, setOrderTeam] = useState<Team | null>(null);
   const initialPreloadDoneRef = useRef<boolean>(false);
   const seenChampionNamesRef = useRef<Set<string>>(new Set());
   const seenSpellNamesRef = useRef<Set<string>>(new Set());
   const [initialPreloadUrls, setInitialPreloadUrls] = useState<string[]>([]);
-
-  // Load tournament and match data
-  useEffect(() => {
-    const loadTournamentAndMatch = async () => {
-      try {
-        const [tournamentData, matchData] = await Promise.all([getTournamentById(tournamentId), getMatchById(matchId)]);
-
-        setTournament(tournamentData);
-        setMatch(matchData);
-      } catch (error) {
-        console.error("Failed to load tournament or match data:", error);
-      }
-    };
-
-    if (tournamentId && matchId) {
-      loadTournamentAndMatch();
-    }
-  }, [tournamentId, matchId]);
 
   // Load teams when match data is available
   useEffect(() => {

@@ -6,10 +6,12 @@ import { useNavigation } from "@lib/contexts/NavigationContext";
 import { useDownload } from "@lib/contexts/DownloadContext";
 import { ChampSelectDisplay } from "@libLeagueClient/components/champselect/ChampSelectDisplay";
 import { useLCU, useChampSelectAssets } from "@lib/services";
+import { useRouter } from "next/navigation";
 
 const ChampSelectOverlayPage: React.FC = () => {
   const { setActiveModule } = useNavigation();
   const { downloadState } = useDownload();
+  const router = useRouter();
 
   // Use custom hooks for LCU and assets
   const { isConnected, champSelectSession } = useLCU();
@@ -19,12 +21,29 @@ const ChampSelectOverlayPage: React.FC = () => {
   const [match, setMatch] = useState<Match | null>(null);
   const [tournament, setTournament] = useState<Tournament | null>(null);
 
-  // Load match and tournament from localStorage
+  // Load match and tournament from localStorage and redirect to new route
   useEffect(() => {
     try {
       const lastSelectedMatch = localStorage.getItem("lastSelectedMatch");
       const lastSelectedTournament = localStorage.getItem("lastSelectedTournament");
 
+      if (lastSelectedMatch && lastSelectedTournament && 
+          lastSelectedMatch.trim() !== "" && lastSelectedTournament.trim() !== "") {
+        try {
+          const parsedMatch = JSON.parse(lastSelectedMatch);
+          const parsedTournament = JSON.parse(lastSelectedTournament);
+          
+          // Redirect to the new URL parameter-based route
+          router.push(`/modules/leagueclient/${parsedTournament.tournamentId || parsedTournament.id}/${parsedMatch.matchId || parsedMatch.id}/champselect`);
+          return;
+        } catch (parseError) {
+          console.error("Failed to parse match/tournament from localStorage:", parseError);
+          localStorage.removeItem("lastSelectedMatch");
+          localStorage.removeItem("lastSelectedTournament");
+        }
+      }
+
+      // Fallback to old behavior if no stored data
       if (lastSelectedMatch && lastSelectedMatch.trim() !== "") {
         try {
           const parsedMatch = JSON.parse(lastSelectedMatch);
@@ -32,7 +51,7 @@ const ChampSelectOverlayPage: React.FC = () => {
           console.log("Loaded match from localStorage:", parsedMatch);
         } catch (parseError) {
           console.error("Failed to parse match from localStorage:", parseError);
-          localStorage.removeItem("lastSelectedMatch"); // Clean up invalid data
+          localStorage.removeItem("lastSelectedMatch");
         }
       }
 
@@ -43,13 +62,13 @@ const ChampSelectOverlayPage: React.FC = () => {
           console.log("Loaded tournament from localStorage:", parsedTournament);
         } catch (parseError) {
           console.error("Failed to parse tournament from localStorage:", parseError);
-          localStorage.removeItem("lastSelectedTournament"); // Clean up invalid data
+          localStorage.removeItem("lastSelectedTournament");
         }
       }
     } catch (error) {
       console.error("Failed to load match/tournament from localStorage:", error);
     }
-  }, []);
+  }, [router]);
 
   // Enable polling when connected and not downloading
   useEffect(() => {

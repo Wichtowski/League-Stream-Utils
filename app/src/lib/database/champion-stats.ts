@@ -1,4 +1,4 @@
-import { Schema, models, model } from "mongoose";
+import { Schema, model, models } from "mongoose";
 import { connectToDatabase } from "./connection";
 import type { GameResult, TournamentChampionStats, PlayerRole, ChampionStats } from "@lib/types";
 import { getChampionById } from "@lib/champions";
@@ -85,10 +85,9 @@ const GameResultSchema = new Schema({
   }
 });
 
-const TournamentChampionStatsModel =
-  models.TournamentChampionStats || model("TournamentChampionStats", TournamentChampionStatsSchema);
+const TournamentChampionStatsModel = (models && models.TournamentChampionStats) || model("TournamentChampionStats", TournamentChampionStatsSchema);
 
-const GameResultModel = models.GameResult || model("GameResult", GameResultSchema);
+const GameResultModel = (models && models.GameResult) || model("GameResult", GameResultSchema);
 
 export async function recordGameResult(gameResult: GameResult): Promise<void> {
   await connectToDatabase();
@@ -131,8 +130,10 @@ export async function updateChampionStats(tournamentId: string, gameResult: Game
     const allPicks = [...gameResult.blueTeam.picks, ...gameResult.redTeam.picks];
     const allBans = [...gameResult.blueTeam.bans, ...gameResult.redTeam.bans];
 
+    const tournamentStatsObj = tournamentStats.toObject() as TournamentChampionStats;
+    
     for (const pick of allPicks) {
-      await updateChampionStat(tournamentStats, pick.championId, "pick", {
+      await updateChampionStat(tournamentStatsObj, pick.championId, "pick", {
         side: allPicks.indexOf(pick) < 5 ? "blue" : "red",
         won: allPicks.indexOf(pick) < 5 ? gameResult.blueTeam.won : gameResult.redTeam.won,
         role: pick.role
@@ -142,7 +143,7 @@ export async function updateChampionStats(tournamentId: string, gameResult: Game
     for (let i = 0; i < allBans.length; i++) {
       const championId = allBans[i];
       const side = i < gameResult.blueTeam.bans.length ? "blue" : "red";
-      await updateChampionStat(tournamentStats, championId, "ban", { side });
+      await updateChampionStat(tournamentStatsObj, championId, "ban", { side });
     }
 
     for (const champStat of tournamentStats.championStats) {
@@ -229,39 +230,9 @@ export async function getTournamentChampionStats(tournamentId: string): Promise<
     });
     if (!statsDoc) return null;
 
-    const stats = statsDoc.toObject();
+    const stats = statsDoc.toObject() as TournamentChampionStats;
 
-    // Generate meta insights
-    const championStats = stats.championStats || [];
-
-    const topPicks = [...championStats].sort((a, b) => b.totalPicks - a.totalPicks).slice(0, 10);
-
-    const topBans = [...championStats].sort((a, b) => b.totalBans - a.totalBans).slice(0, 10);
-
-    const topPresence = [...championStats].sort((a, b) => b.presenceRate - a.presenceRate).slice(0, 10);
-
-    const blueSidePriority = [...championStats]
-      .filter((stat) => stat.totalPicks > 0)
-      .sort((a, b) => b.blueSidePicks / Math.max(b.totalPicks, 1) - a.blueSidePicks / Math.max(a.totalPicks, 1))
-      .slice(0, 10);
-
-    const redSidePriority = [...championStats]
-      .filter((stat) => stat.totalPicks > 0)
-      .sort((a, b) => b.redSidePicks / Math.max(b.totalPicks, 1) - a.redSidePicks / Math.max(a.totalPicks, 1))
-      .slice(0, 10);
-
-    return {
-      tournamentId: stats.tournamentId,
-      totalGames: stats.totalGames,
-      totalMatches: stats.totalMatches,
-      lastUpdated: stats.lastUpdated,
-      championStats,
-      topPicks,
-      topBans,
-      topPresence,
-      blueSidePriority,
-      redSidePriority
-    };
+    return stats;
   } catch (error) {
     console.error("Error getting tournament champion stats:", error);
     return null;
@@ -294,13 +265,19 @@ export async function getChampionStatsForOBS(tournamentId: string): Promise<{
   const stats = await getTournamentChampionStats(tournamentId);
   if (!stats) return null;
 
+  const championStats = stats.championStats || [];
+  
+  const topPicks = [...championStats].sort((a, b) => b.totalPicks - a.totalPicks).slice(0, 5);
+  const topBans = [...championStats].sort((a, b) => b.totalBans - a.totalBans).slice(0, 5);
+  const topPresence = [...championStats].sort((a, b) => b.presenceRate - a.presenceRate).slice(0, 5);
+
   return {
     tournament: {
       id: tournamentId,
       totalGames: stats.totalGames,
       lastUpdated: stats.lastUpdated
     },
-    topPicks: stats.topPicks.slice(0, 5).map((stat) => ({
+    topPicks: topPicks.map((stat) => ({
       champion: {
         id: stat.championId,
         name: stat.championName,
@@ -310,7 +287,7 @@ export async function getChampionStatsForOBS(tournamentId: string): Promise<{
       pickRate: Math.round(stat.pickRate * 10) / 10,
       winRate: stat.totalPicks > 0 ? Math.round((stat.wins / (stat.wins + stat.losses)) * 1000) / 10 : 0
     })),
-    topBans: stats.topBans.slice(0, 5).map((stat) => ({
+    topBans: topBans.map((stat) => ({
       champion: {
         id: stat.championId,
         name: stat.championName,
@@ -319,7 +296,7 @@ export async function getChampionStatsForOBS(tournamentId: string): Promise<{
       bans: stat.totalBans,
       banRate: Math.round(stat.banRate * 10) / 10
     })),
-    topPresence: stats.topPresence.slice(0, 5).map((stat) => ({
+    topPresence: topPresence.map((stat) => ({
       champion: {
         id: stat.championId,
         name: stat.championName,

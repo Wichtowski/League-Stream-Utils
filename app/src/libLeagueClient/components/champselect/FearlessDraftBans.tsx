@@ -2,9 +2,10 @@ import React, { useEffect, useState, useMemo } from "react";
 import Image from "next/image";
 import { getChampionSquareImage } from "../common";
 import { PlayerRole } from "@lib/types/common";
-import { getLatestVersion } from "@lib/services/common/unified-asset-cache";
+
 import { getAllRoleIconAssets } from "../common";
 import { useImagePreload } from "@lib/hooks/useImagePreload";
+import { getLatestVersion } from "@/lib/services/common/unified-asset-cache";
 
 interface FearlessBan {
   championId: number;
