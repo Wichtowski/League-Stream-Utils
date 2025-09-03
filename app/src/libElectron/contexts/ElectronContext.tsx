@@ -13,48 +13,6 @@ interface ElectronContextType {
 
 const ElectronContext = createContext<ElectronContextType | undefined>(undefined);
 
-// Cache for Electron detection to prevent repeated checks
-const ELECTRON_CACHE_KEY = "electron-detection-cache";
-const ELECTRON_CACHE_DURATION = 10 * 60 * 1000; // 10 minutes
-
-interface ElectronCache {
-  isElectron: boolean;
-  timestamp: number;
-}
-
-const getElectronCache = (): ElectronCache | null => {
-  if (typeof window === "undefined") return null;
-  try {
-    const cached = localStorage.getItem(ELECTRON_CACHE_KEY);
-    if (!cached) return null;
-
-    const parsed: ElectronCache = JSON.parse(cached);
-    const now = Date.now();
-
-    if (now - parsed.timestamp > ELECTRON_CACHE_DURATION) {
-      localStorage.removeItem(ELECTRON_CACHE_KEY);
-      return null;
-    }
-
-    return parsed;
-  } catch {
-    return null;
-  }
-};
-
-const setElectronCache = (isElectron: boolean): void => {
-  if (typeof window === "undefined") return;
-  try {
-    const cache: ElectronCache = {
-      isElectron,
-      timestamp: Date.now()
-    };
-    localStorage.setItem(ELECTRON_CACHE_KEY, JSON.stringify(cache));
-  } catch {
-    // Ignore cache errors
-  }
-};
-
 export function ElectronProvider({ children }: { children: ReactNode }) {
   const [isElectron, setIsElectron] = useState(false);
   const [isElectronLoading, setIsElectronLoading] = useState(true);
@@ -63,8 +21,7 @@ export function ElectronProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Use cache only when it says we're in Electron; otherwise verify live
-    const cached = getElectronCache();
-    if (cached && cached.isElectron) {
+    if (typeof window !== "undefined" && window.electronAPI?.isElectron) {
       setIsElectron(true);
       setElectronAPI(window.electronAPI);
 
@@ -101,7 +58,6 @@ export function ElectronProvider({ children }: { children: ReactNode }) {
         console.log("Electron detected! Setting up Electron context...");
         setIsElectron(true);
         setElectronAPI(window.electronAPI);
-        setElectronCache(true);
 
         // Resume background processes after startup
         assetDownloaderManager.resumeAllProcesses().catch(() => {
@@ -129,7 +85,6 @@ export function ElectronProvider({ children }: { children: ReactNode }) {
         }
       } else {
         console.log("Not running in Electron environment");
-        setElectronCache(false);
       }
       setIsElectronLoading(false);
     };

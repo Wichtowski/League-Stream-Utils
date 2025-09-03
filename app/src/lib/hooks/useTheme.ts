@@ -7,7 +7,7 @@ export const useTheme = () => {
     withOpacity,
 
     // Convenience methods for common patterns
-    getButtonColors: (variant: "primary" | "secondary" | "success") => {
+    getButtonColors: (variant: "primary" | "secondary" | "success" | "destructive") => {
       return colorCombinations.button[variant];
     },
 

@@ -1,13 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-
-const DEFAULT_USER_PREFERENCES = {
-  favoriteChampions: [],
-  defaultRole: "",
-  teamDisplayMode: "cards",
-  sessionSortBy: "date",
-  showTutorials: true,
-  compactMode: false
-};
+import { DEFAULT_USER_PREFERENCES } from "@lib/contexts/SettingsContext";
 
 export async function GET(): Promise<NextResponse> {
   try {

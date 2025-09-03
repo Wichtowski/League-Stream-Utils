@@ -31,15 +31,17 @@ interface AppSettings {
     syncFrequency: number;
     enableChampSelectSync: boolean;
   };
+  lastSelectedTournamentId: string | null;
+  lastSelectedMatchId: string | null;
 }
 
 interface UserPreferences {
-  favoriteChampions: string[];
-  defaultRole: string;
   teamDisplayMode: "list" | "grid" | "cards";
   sessionSortBy: "date" | "name" | "status";
   showTutorials: boolean;
   compactMode: boolean;
+  lastSelectedTournamentId: string | null;
+  lastSelectedMatchId: string | null;
 }
 
 interface SystemInfo {
@@ -66,8 +68,8 @@ interface SettingsContextType {
 
   // Specific setting helpers
   toggleTheme: () => Promise<void>;
-  addFavoriteChampion: (championId: string) => Promise<void>;
-  removeFavoriteChampion: (championId: string) => Promise<void>;
+  updateLastSelectedTournamentId: (tournamentId: string) => Promise<void>;
+  updateLastSelectedMatchId: (matchId: string) => Promise<void>;
   updateNotificationSettings: (notifications: Partial<AppSettings["notifications"]>) => Promise<void>;
 
   // System management
@@ -90,7 +92,7 @@ const SettingsContext = createContext<SettingsContextType | undefined>(undefined
 const APP_SETTINGS_CACHE_KEY = "app-settings";
 const USER_PREFERENCES_CACHE_KEY = "user-preferences";
 const SYSTEM_INFO_CACHE_KEY = "system-info";
-const CACHE_TTL = 10 * 60 * 1000; // 10 minutes (settings don't change frequently)
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes (settings don't change frequently)
 
 const DEFAULT_APP_SETTINGS: AppSettings = {
   theme: "auto",
@@ -117,16 +119,18 @@ const DEFAULT_APP_SETTINGS: AppSettings = {
     autoConnect: true,
     syncFrequency: 1000,
     enableChampSelectSync: true
-  }
+  },
+  lastSelectedTournamentId: null,
+  lastSelectedMatchId: null
 };
 
-const DEFAULT_USER_PREFERENCES: UserPreferences = {
-  favoriteChampions: [],
-  defaultRole: "",
+export const DEFAULT_USER_PREFERENCES: UserPreferences = {
   teamDisplayMode: "cards",
   sessionSortBy: "date",
   showTutorials: true,
-  compactMode: false
+  compactMode: false,
+  lastSelectedTournamentId: null,
+  lastSelectedMatchId: null
 };
 
 export function SettingsProvider({ children }: { children: ReactNode }) {
@@ -173,6 +177,8 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
 
       try {
         // In cloud mode, fetch from API
+
+
         const [appResponse, userResponse] = await Promise.all([
           authenticatedFetch("/api/v1/settings/app"),
           authenticatedFetch("/api/v1/settings/user")
@@ -207,6 +213,28 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     },
     [authenticatedFetch]
   );
+
+  // Lightweight polling to pick up updates from Electron changes
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout | null = null;
+    if (user) {
+      intervalId = setInterval(async () => {
+        // Check if cache is expired before making API calls
+        const [appCacheExpired, userCacheExpired] = await Promise.all([
+          storage.isExpired(APP_SETTINGS_CACHE_KEY, CACHE_TTL),
+          storage.isExpired(USER_PREFERENCES_CACHE_KEY, CACHE_TTL)
+        ]);
+        
+        // Only fetch if cache is expired
+        if (appCacheExpired || userCacheExpired) {
+          fetchSettingsFromAPI(false);
+        }
+      }, 5 * 60 * 1000); // 5 minutes
+    }
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [user, fetchSettingsFromAPI]);
 
   const loadCachedData = useCallback(async (): Promise<void> => {
     try {
@@ -380,23 +408,20 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     await updateAppSettings({ theme: nextTheme });
   }, [appSettings.theme, updateAppSettings]);
 
-  const addFavoriteChampion = useCallback(
-    async (championId: string): Promise<void> => {
-      if (!userPreferences.favoriteChampions.includes(championId)) {
-        const updatedFavorites = [...userPreferences.favoriteChampions, championId];
-        await updateUserPreferences({ favoriteChampions: updatedFavorites });
-      }
+  const updateLastSelectedTournamentId = useCallback(
+    async (tournamentId: string): Promise<void> => {
+      await updateUserPreferences({ lastSelectedTournamentId: tournamentId });
     },
-    [userPreferences.favoriteChampions, updateUserPreferences]
+    [updateUserPreferences]
   );
 
-  const removeFavoriteChampion = useCallback(
-    async (championId: string): Promise<void> => {
-      const updatedFavorites = userPreferences.favoriteChampions.filter((id) => id !== championId);
-      await updateUserPreferences({ favoriteChampions: updatedFavorites });
+  const updateLastSelectedMatchId = useCallback(
+    async (matchId: string): Promise<void> => {
+      await updateUserPreferences({ lastSelectedMatchId: matchId });
     },
-    [userPreferences.favoriteChampions, updateUserPreferences]
+    [updateUserPreferences]
   );
+  
 
   const updateNotificationSettings = useCallback(
     async (notifications: Partial<AppSettings["notifications"]>): Promise<void> => {
@@ -484,8 +509,8 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     updateUserPreferences,
     resetToDefaults,
     toggleTheme,
-    addFavoriteChampion,
-    removeFavoriteChampion,
+    updateLastSelectedTournamentId,
+    updateLastSelectedMatchId,
     updateNotificationSettings,
     getSystemInfo,
     exportSettings,

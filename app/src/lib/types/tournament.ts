@@ -55,7 +55,8 @@ export interface Tournament {
   registrationOpen: boolean;
   prizePool?: number;
   fearlessDraft: boolean;
-  gameVersion?: string;
+  apiVersion?: string;
+  patchVersion?: string;
   // Visual
   logo: ImageStorage;
 
@@ -111,7 +112,8 @@ export interface CreateTournamentRequest {
   defaultMatchTime: string;
   streamUrl?: string;
   broadcastLanguage?: string;
-  gameVersion?: string;
+  apiVersion?: string;
+  patchVersion?: string;
   sponsors?: Sponsorship[];
 }
 

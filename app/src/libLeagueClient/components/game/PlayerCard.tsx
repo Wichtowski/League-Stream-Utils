@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { getChampionCenteredSplashImage } from "@libLeagueClient/components/common";
+import { getChampionSquareImage } from "@libLeagueClient/components/common";
 import { getSummonerSpellImageByName } from "@libLeagueClient/components/common";
 import { LivePlayer } from "@libLeagueClient/types/LivePlayer";
 import { useMemo } from "react";
@@ -17,7 +17,7 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({ player, teamColor }) => 
 
   // Dynamically load champion image based on current champion
   const championImage = useMemo(() => {
-    return getChampionCenteredSplashImage(player.championName);
+    return getChampionSquareImage(player.championName);
   }, [player.championName]);
 
   // Dynamically load summoner spell images

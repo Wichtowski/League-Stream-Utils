@@ -51,7 +51,7 @@ export const MatchSchema = new Schema({
     gameNumber: { type: Number, required: true },
     winner: { 
       type: String, 
-      enum: ["blue", "red"], 
+      enum: ["blue", "red", "ongoing"], 
       required: true 
     },
     duration: { type: Number, required: false },

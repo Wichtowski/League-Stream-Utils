@@ -47,7 +47,8 @@ export const createTournament = async (
     defaultMatchTime: tournamentData.defaultMatchTime,
     streamUrl: tournamentData.streamUrl,
     broadcastLanguage: tournamentData.broadcastLanguage,
-    gameVersion: tournamentData.gameVersion,
+    apiVersion: tournamentData.apiVersion,
+    patchVersion: tournamentData.patchVersion,
     sponsors: tournamentData.sponsors,
     userId
   });

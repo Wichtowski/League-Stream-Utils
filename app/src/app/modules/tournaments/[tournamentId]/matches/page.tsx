@@ -133,9 +133,8 @@ export default function TournamentMatchesPage({ params }: TournamentMatchesPageP
       const match = matches.find(m => m._id === matchId);
       if (!match) return;
 
-      await matchStorage.setLastSelectedMatch(match._id, match.name);
+      await matchStorage.setLastSelectedMatch(match._id);
       await setCurrentMatch(match);
-      router.push("/modules");
     } catch (error) {
       console.error("Failed to save last selected match:", error);
     }

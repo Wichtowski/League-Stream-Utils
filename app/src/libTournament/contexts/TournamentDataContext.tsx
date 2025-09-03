@@ -342,7 +342,8 @@ export function TournamentDataProvider({ children }: { children: ReactNode }) {
             matchDays: tournamentData.matchDays,
             defaultMatchTime: tournamentData.defaultMatchTime,
             broadcastLanguage: tournamentData.broadcastLanguage,
-            gameVersion: tournamentData.gameVersion,
+            apiVersion: tournamentData.apiVersion,
+            patchVersion: tournamentData.patchVersion,
             userId: user?._id || "electron-admin",
             createdAt: new Date(),
             updatedAt: new Date()

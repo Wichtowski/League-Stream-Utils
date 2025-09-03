@@ -33,7 +33,8 @@ export const TournamentCreationForm = ({ onTournamentCreated, onCancel }: Tourna
     timezone: "UTC",
     matchDays: [""],
     defaultMatchTime: "19:00",
-    gameVersion: "",
+    apiVersion: "15.17.1",
+    patchVersion: "25.17",
     logo: {
       type: "url",
       url: "",
@@ -94,7 +95,8 @@ export const TournamentCreationForm = ({ onTournamentCreated, onCancel }: Tourna
           timezone: "UTC",
           matchDays: [],
           defaultMatchTime: "19:00",
-          gameVersion: "",
+          apiVersion: "15.17.1",
+          patchVersion: "25.17",
           logo: {
             type: "url",
             url: "",
@@ -124,15 +126,29 @@ export const TournamentCreationForm = ({ onTournamentCreated, onCancel }: Tourna
       <form onSubmit={handleCreateTournament} className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium mb-2">Game Version</label>
+            <label className="block text-sm font-medium mb-2">API Version</label>
             <input
               type="text"
-              value={formData.gameVersion || ""}
-              onChange={(e) => setFormData({ ...formData, gameVersion: e.target.value })}
+              value={formData.apiVersion || ""}
+              onChange={(e) => setFormData({ ...formData, apiVersion: e.target.value })}
               className="w-full bg-gray-700 rounded px-3 py-2"
-              placeholder="e.g., 14.12"
+              placeholder="e.g., 15.17.1"
+              required
+            />
+            <p className="text-sm text-gray-400 mt-1">API version for the game</p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">Patch Version</label>
+            <input
+              type="text"
+              value={formData.patchVersion || ""}
+              onChange={(e) => setFormData({ ...formData, patchVersion: e.target.value })}
+              className="w-full bg-gray-700 rounded px-3 py-2"
+              placeholder="e.g., 25.17"
+              required
             />
           </div>
+          <p className="text-sm text-gray-400 mt-1">Patch version for the game</p>
           <div>
             <label className="block text-sm font-medium mb-2">Tournament Name</label>
             <input

@@ -1,10 +1,13 @@
 import React from "react";
 import { useTheme } from "@lib/hooks/useTheme";
+import Link from "next/link";
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "success";
+  variant?: "primary" | "secondary" | "success" | "destructive";
   size?: "sm" | "md" | "lg";
   children: React.ReactNode;
+  href?: string;
+  target?: string;
 }
 
 export const Button = ({
@@ -12,6 +15,8 @@ export const Button = ({
   size = "md",
   children,
   className = "",
+  href = "",
+  target = "_self",
   ...props
 }: ButtonProps): React.ReactElement => {
   const theme = useTheme();
@@ -26,21 +31,42 @@ export const Button = ({
   const baseClasses = "rounded-lg font-medium transition-all duration-200 hover:scale-105 active:scale-95";
 
   return (
+    href && href !== "" ? (
+    <Link href={href} target={target}>
+      <button
+        className={`${baseClasses} ${sizeClasses[size]} ${className}`}
+        style={{
+          backgroundColor: buttonColors.bg,
+          color: buttonColors.text
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.backgroundColor = buttonColors.hover;
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = buttonColors.bg;
+        }}
+        {...props}
+      >
+        {children}
+      </button>
+    </Link>
+  ) : (
     <button
-      className={`${baseClasses} ${sizeClasses[size]} ${className}`}
-      style={{
-        backgroundColor: buttonColors.bg,
-        color: buttonColors.text
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.backgroundColor = buttonColors.hover;
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.backgroundColor = buttonColors.bg;
-      }}
-      {...props}
+    className={`${baseClasses} ${sizeClasses[size]} ${className}`}
+    style={{
+      backgroundColor: buttonColors.bg,
+      color: buttonColors.text
+    }}
+    onMouseEnter={(e) => {
+      e.currentTarget.style.backgroundColor = buttonColors.hover;
+    }}
+    onMouseLeave={(e) => {
+      e.currentTarget.style.backgroundColor = buttonColors.bg;
+    }}
+    {...props}
     >
       {children}
     </button>
+  )
   );
 };

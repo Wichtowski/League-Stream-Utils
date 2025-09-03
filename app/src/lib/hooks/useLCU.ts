@@ -57,7 +57,7 @@ export const useLCU = (): UseLCUReturn => {
     });
 
     connectionService.onError((error) => {
-      console.error("Connection error:", error);
+      console.warn("Connection error:", error);
     });
   }, []);
 

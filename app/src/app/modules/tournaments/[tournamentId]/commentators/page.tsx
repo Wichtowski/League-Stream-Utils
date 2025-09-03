@@ -38,7 +38,7 @@ export default function CommentatorsPage(): React.ReactElement {
     const loadLastSelectedTournament = async () => {
       try {
         const lastSelected = await tournamentStorage.getLastSelectedTournament();
-        if (lastSelected && (await tournamentStorage.isLastSelectedTournamentValid())) {
+        if (lastSelected) {
           setLastSelectedTournament(lastSelected);
         } else {
           await showAlert({
@@ -61,7 +61,7 @@ export default function CommentatorsPage(): React.ReactElement {
 
   useEffect(() => {
     if (!tournamentsLoading && lastSelectedTournament) {
-      const foundTournament = tournaments.find((t) => t.id === lastSelectedTournament.tournamentId);
+      const foundTournament = tournaments.find((t) => t._id === lastSelectedTournament.tournamentId);
       if (foundTournament) {
         setTournament(foundTournament);
       } else if (tournaments.length > 0) {

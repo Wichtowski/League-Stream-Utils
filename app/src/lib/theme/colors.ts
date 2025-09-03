@@ -117,6 +117,11 @@ export const colorCombinations = {
       bg: colors.status.success,
       hover: "#059669",
       text: colors.gray[50]
+    },
+    destructive: {
+      bg: colors.status.error,
+      hover: "#b91c1c",
+      text: colors.gray[50]
     }
   }
 } as const;

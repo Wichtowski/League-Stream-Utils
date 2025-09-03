@@ -17,9 +17,9 @@ async function testItemsBlueprint() {
     console.log("✅ Items blueprint downloaded successfully!");
 
     // Test downloading for specific version
-    console.log("\n3. Downloading items blueprint for version 15.16.1...");
-    await itemsBlueprintDownloader.downloadBlueprint("15.16.1");
-    console.log("✅ Items blueprint for 15.16.1 downloaded successfully!");
+    console.log("\n3. Downloading items blueprint for version 15.17.1...");
+    await itemsBlueprintDownloader.downloadBlueprint("15.17.1");
+    console.log("✅ Items blueprint for 15.17.1 downloaded successfully!");
 
     // Check progress again after download
     console.log("\n4. Checking download progress after download...");

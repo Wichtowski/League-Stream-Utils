@@ -11,14 +11,11 @@ import type {
   MatchCommentator
 } from "@lib/types/match";
 
-// Helper function to transform mongoose document to Match
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const transformToMatch = (doc: any): Match => {
-  const { _id, __v, ...match } = doc;
-  return {
-    ...match,
-    _id: _id?.toString() || ""
-  } as Match;
+  const plain = typeof doc?.toObject === "function" ? doc.toObject() : doc;
+  const { _id, __v, ...match } = plain ?? {};
+  return { ...(match as object), _id: _id?.toString() || "" } as Match;
 };
 
 export async function createMatch(userId: string, matchData: CreateMatchRequest): Promise<Match> {
@@ -71,7 +68,8 @@ export async function createMatch(userId: string, matchData: CreateMatchRequest)
 
 export async function getMatchById(matchId: string): Promise<Match | null> {
   await connectToDatabase();
-  const match = await MatchModel.findOne({ _id: matchId });
+  const match = await MatchModel.findOne({ _id: matchId }).lean();
+  console.log(match);
   if (!match) return null;
 
   return transformToMatch(match);
@@ -112,25 +110,35 @@ export async function getMatchesByCommentator(commentatorId: string): Promise<Ma
 export async function updateMatch(matchId: string, userId: string, updates: UpdateMatchRequest): Promise<Match | null> {
   await connectToDatabase();
 
-  const match = await MatchModel.findOne({ id: matchId }).lean();
+  const match = await MatchModel.findOne({ _id: matchId });
   if (!match) {
     return null;
   }
 
   // Check permissions (only creator or admin can update)
-  if (transformToMatch(match).createdBy !== userId) {
+  const matchCreator = transformToMatch(match).createdBy;
+  if (matchCreator !== userId) {
     throw new Error("Forbidden: Only match creator can update match");
   }
 
-  const updatedMatch = await MatchModel.findOneAndUpdate(
-    { id: matchId },
-    {
-      ...updates,
-      scheduledTime: updates.scheduledTime ? new Date(updates.scheduledTime) : undefined,
-      updatedAt: new Date()
-    },
-    { new: true }
-  ).lean();
+  const updateOps: Record<string, unknown> = {
+    updatedAt: new Date()
+  };
+  if (updates.status !== undefined) updateOps.status = updates.status;
+  if (updates.name !== undefined) updateOps.name = updates.name;
+  if (updates.scheduledTime !== undefined) updateOps.scheduledTime = new Date(updates.scheduledTime);
+  if ((updates as unknown as { format?: Match["format"] }).format !== undefined)
+    updateOps.format = (updates as unknown as { format: Match["format"] }).format;
+  if ((updates as unknown as { blueTeamId?: string }).blueTeamId !== undefined)
+    updateOps.blueTeamId = (updates as unknown as { blueTeamId: string }).blueTeamId;
+  if ((updates as unknown as { redTeamId?: string }).redTeamId !== undefined)
+    updateOps.redTeamId = (updates as unknown as { redTeamId: string }).redTeamId;
+  if ((updates as unknown as { games?: Match["games"] }).games !== undefined)
+    updateOps.games = (updates as unknown as { games: Match["games"] }).games;
+  if ((updates as unknown as { score?: { blue: number; red: number } }).score !== undefined)
+    updateOps.score = (updates as unknown as { score: { blue: number; red: number } }).score;
+
+  const updatedMatch = await MatchModel.findOneAndUpdate({ _id: matchId }, updateOps, { new: true });
 
   return updatedMatch ? transformToMatch(updatedMatch) : null;
 }
@@ -142,7 +150,7 @@ export async function assignCommentator(
 ): Promise<Match | null> {
   await connectToDatabase();
 
-  const match = await MatchModel.findOne({ id: matchId }).lean();
+  const match = await MatchModel.findOne({ _id: matchId });
   if (!match) {
     return null;
   }
@@ -161,14 +169,14 @@ export async function assignCommentator(
   };
 
   const updatedMatch = await MatchModel.findOneAndUpdate(
-    { id: matchId },
+    { _id: matchId },
     {
       $push: { commentators: newCommentator },
       $pull: { commentators: { id: request.commentatorId } },
       updatedAt: new Date()
     },
     { new: true }
-  ).lean();
+  );
 
   return updatedMatch ? transformToMatch(updatedMatch) : null;
 }
@@ -180,7 +188,7 @@ export async function submitPrediction(
 ): Promise<Match | null> {
   await connectToDatabase();
 
-  const match = await MatchModel.findOne({ id: matchId }).lean();
+  const match = await MatchModel.findOne({ _id: matchId });
   if (!match) {
     return null;
   }
@@ -193,7 +201,7 @@ export async function submitPrediction(
   }
 
   const updatedMatch = await MatchModel.findOneAndUpdate(
-    { id: matchId },
+    { _id: matchId },
     {
       $push: {
         predictions: {
@@ -207,7 +215,7 @@ export async function submitPrediction(
       updatedAt: new Date()
     },
     { new: true }
-  ).lean();
+  );
 
   return updatedMatch ? transformToMatch(updatedMatch) : null;
 }
@@ -215,7 +223,7 @@ export async function submitPrediction(
 export async function deleteMatch(matchId: string, userId: string): Promise<boolean> {
   await connectToDatabase();
 
-  const match = await MatchModel.findOne({ id: matchId }).lean();
+  const match = await MatchModel.findOne({ _id: matchId });
   if (!match) {
     return false;
   }
@@ -225,6 +233,6 @@ export async function deleteMatch(matchId: string, userId: string): Promise<bool
     throw new Error("Forbidden: Only match creator can delete match");
   }
 
-  await MatchModel.deleteOne({ id: matchId });
+  await MatchModel.deleteOne({ _id: matchId });
   return true;
 }

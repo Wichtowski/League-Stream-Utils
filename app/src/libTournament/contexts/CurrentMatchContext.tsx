@@ -98,6 +98,22 @@ export function CurrentMatchProvider({ children }: { children: ReactNode }) {
               await storage.set(CURRENT_TOURNAMENT_KEY, match.tournamentId);
             }
           }
+
+          // Also persist via API so web app sees it
+          try {
+            await authenticatedFetch("/api/v1/settings/app", {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                settings: {
+                  lastSelectedTournamentId: match.tournamentId || null,
+                  lastSelectedMatchId: match._id || null
+                }
+              })
+            });
+          } catch (_e) {
+            // ignore network errors here; local fallback remains
+          }
         } else {
           setCurrentMatchState(null);
           setCurrentTournamentIdState(null);
@@ -110,6 +126,20 @@ export function CurrentMatchProvider({ children }: { children: ReactNode }) {
             await storage.remove(CURRENT_MATCH_KEY);
             await storage.remove(CURRENT_TOURNAMENT_KEY);
           }
+
+          // Clear server-side value as well
+          try {
+            await authenticatedFetch("/api/v1/settings/app", {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                settings: {
+                  lastSelectedTournamentId: null,
+                  lastSelectedMatchId: null
+                }
+              })
+            });
+          } catch (_e) {}
         }
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : "Failed to set current match";
@@ -119,7 +149,7 @@ export function CurrentMatchProvider({ children }: { children: ReactNode }) {
         setLoading(false);
       }
     },
-    [isLocalDataMode, electronStorage]
+    [isLocalDataMode, electronStorage, authenticatedFetch]
   );
 
   const clearCurrentMatch = useCallback(async (): Promise<void> => {

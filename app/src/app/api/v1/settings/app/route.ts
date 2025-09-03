@@ -25,14 +25,18 @@ const DEFAULT_APP_SETTINGS = {
     autoConnect: true,
     syncFrequency: 1000,
     enableChampSelectSync: true
-  }
+  },
+  lastSelectedTournamentId: null as string | null,
+  lastSelectedMatchId: null as string | null
 };
+
+let APP_SETTINGS_STATE = { ...DEFAULT_APP_SETTINGS };
 
 export async function GET(): Promise<NextResponse> {
   try {
     return NextResponse.json({
       success: true,
-      settings: DEFAULT_APP_SETTINGS
+      settings: APP_SETTINGS_STATE
     });
   } catch (error) {
     console.error("Settings API error:", error);
@@ -44,11 +48,10 @@ export async function PATCH(request: NextRequest): Promise<NextResponse> {
   try {
     const { settings } = await request.json();
 
-    // In a real app, you'd save these to database
-    // For now, just return success
+    APP_SETTINGS_STATE = { ...APP_SETTINGS_STATE, ...settings };
     return NextResponse.json({
       success: true,
-      settings: { ...DEFAULT_APP_SETTINGS, ...settings }
+      settings: APP_SETTINGS_STATE
     });
   } catch (error) {
     console.error("Settings update error:", error);
@@ -60,10 +63,10 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
   try {
     const { settings } = await request.json();
 
-    // Reset to provided settings
+    APP_SETTINGS_STATE = settings ? { ...DEFAULT_APP_SETTINGS, ...settings } : { ...DEFAULT_APP_SETTINGS };
     return NextResponse.json({
       success: true,
-      settings: settings || DEFAULT_APP_SETTINGS
+      settings: APP_SETTINGS_STATE
     });
   } catch (error) {
     console.error("Settings reset error:", error);

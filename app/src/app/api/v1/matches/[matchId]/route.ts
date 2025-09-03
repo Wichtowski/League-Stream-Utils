@@ -61,3 +61,4 @@ export const DELETE = withAuth(async (req: NextRequest, user) => {
     return NextResponse.json({ error: "Failed to delete match" }, { status: 500 });
   }
 });
+

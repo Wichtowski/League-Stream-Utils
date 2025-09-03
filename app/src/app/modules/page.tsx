@@ -34,12 +34,12 @@ export default function ModulesPage() {
     const checkLastSelectedTournament = async () => {
       try {
         const lastSelectedTournament = await tournamentStorage.getLastSelectedTournament();
-        const isValid = await tournamentStorage.isLastSelectedTournamentValid();
+        const isValid = lastSelectedTournament !== null;
         setHasLastSelectedTournament(isValid);
         setLastSelectedTournament(lastSelectedTournament);
 
         const lastSelectedMatch = await matchStorage.getLastSelectedMatch();
-        const isValidMatch = await matchStorage.isLastSelectedMatchValid();
+        const isValidMatch = lastSelectedMatch !== null;
         setHasLastSelectedMatch(isValidMatch);
         setLastSelectedMatch(lastSelectedMatch);
       } catch (error) {

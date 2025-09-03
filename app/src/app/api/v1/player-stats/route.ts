@@ -4,13 +4,11 @@ import {
   createPlayerStats,
   getPlayerStats,
   bulkCreatePlayerStats,
-  getPlayerCareerStats,
-  getPlayerChampionMastery
 } from "@lib/database/playerStats";
 import type { JWTPayload } from "@lib/types/auth";
 
 // GET /api/v1/player-stats - Get player statistics with filters
-export const GET = withAuth(async (req: NextRequest, user: JWTPayload) => {
+export const GET = withAuth(async (req: NextRequest, _user: JWTPayload) => {
   try {
     const { searchParams } = new URL(req.url);
 

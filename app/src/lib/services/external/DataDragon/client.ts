@@ -62,11 +62,11 @@ export class DataDragonClient {
       this.versionCache = versions[0];
       this.versionsCache = versions;
 
-      return this.versionCache || "15.16.1";
+      return this.versionCache || "15.17.1";
     } catch (error) {
       console.error("Failed to fetch Data Dragon version:", error);
       // Use a more recent fallback version
-      return "15.16.1"; // Fallback version
+      return "15.17.1"; // Fallback version
     }
   }
 
@@ -88,10 +88,10 @@ export class DataDragonClient {
       this.versionsCache = versions;
       this.versionCache = versions[0];
 
-      return this.versionsCache || ["15.16.1"];
+      return this.versionsCache || ["15.17.1"];
     } catch (error) {
       console.error("Failed to fetch Data Dragon versions:", error);
-      return ["15.16.1"]; // Fallback versions
+      return ["15.17.1"]; // Fallback versions
     }
   }
 

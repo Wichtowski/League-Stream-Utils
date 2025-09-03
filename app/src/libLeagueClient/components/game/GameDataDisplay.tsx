@@ -37,9 +37,11 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({ gameData, matc
   const [gameVersion, setGameVersion] = useState<string>("");
   const [goldIcon, setGoldIcon] = useState<string>("");
   const [towerIcon, setTowerIcon] = useState<string>("");
-  const [_baronIcon, setBaronIcon] = useState<string>("");
-  const [_grubsIcon, setGrubsIcon] = useState<string>("");
-  const [_dragonIcons, setDragonIcons] = useState<string[]>([]);
+  const [baronIcon, setBaronIcon] = useState<string>("");
+  const [grubsIcon, setGrubsIcon] = useState<string>("");
+  const [heraldIcon, setHeraldIcon] = useState<string>("");
+  const [atakhanIcons, setAtakhanIcons] = useState<string[]>([]);
+  const [dragonIcons, setDragonIcons] = useState<string[]>([]);
   const [tournamentLogo, setTournamentLogo] = useState<string>("");
   const [orderLogo, setOrderLogo] = useState<string>("");
   const [chaosLogo, setChaosLogo] = useState<string>("");
@@ -93,18 +95,21 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({ gameData, matc
       if (!tournament) return;
 
       try {
-        const resolvedVersion = tournament.gameVersion ?? (await getLatestVersion());
+        const resolvedVersion = await getLatestVersion() ?? tournament.apiVersion;
         setGameVersion(resolvedVersion);
+        console.log("Resolved version:", resolvedVersion);
 
         setTournamentLogo(
           tournament.logo?.data || tournament.logo?.url || getDefaultAsset(resolvedVersion, "tournament.png")
         );
+        setOrderLogo(orderTeam?.logo?.data || orderTeam?.logo?.url || getDefaultAsset(resolvedVersion, "order.png"));
+        setChaosLogo(chaosTeam?.logo?.data || chaosTeam?.logo?.url || getDefaultAsset(resolvedVersion, "chaos.png"));
 
         setGoldIcon(getScoreboardAsset(resolvedVersion, "gold.png"));
         setTowerIcon(getScoreboardAsset(resolvedVersion, "tower.png"));
         setBaronIcon(getBaronPitAsset(resolvedVersion, "baron.png"));
-        setBaronIcon(getBaronPitAsset(resolvedVersion, "grubs.png"));
-        setBaronIcon(getBaronPitAsset(resolvedVersion, "herald.png"));
+        setGrubsIcon(getBaronPitAsset(resolvedVersion, "grubs.png"));
+        setHeraldIcon(getBaronPitAsset(resolvedVersion, "herald.png"));
         setGrubsIcon(getAtakhanAsset(resolvedVersion, "atakhan_ruinous.png"));
         setGrubsIcon(getAtakhanAsset(resolvedVersion, "atakhan_voracious.png"));
         setDragonIcons([
@@ -122,15 +127,7 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({ gameData, matc
     };
 
     setupGameAssets();
-  }, [tournament]);
-
-  // Set team logos when teams are loaded
-  useEffect(() => {
-    if (!orderTeam || !chaosTeam || !gameVersion) return;
-
-    setOrderLogo(orderTeam.logo?.data || orderTeam.logo?.url || getDefaultAsset(gameVersion, "order.png"));
-    setChaosLogo(chaosTeam.logo?.data || chaosTeam.logo?.url || getDefaultAsset(gameVersion, "chaos.png"));
-  }, [orderTeam, chaosTeam, gameVersion]);
+  }, [tournament, orderTeam, chaosTeam]);
 
   const formatGameTime = (seconds: number): string => {
     const minutes = Math.floor(seconds / 60);
@@ -309,8 +306,8 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({ gameData, matc
           />
 
           {/* Center - Game Info */}
-          <div className="text-center">
-            <Image src={tournamentLogo} alt={`${tournament?.name} logo`} width={128} height={128} />
+          <div className="text-center h-full flex flex-col items-center justify-center">
+            <Image src={tournamentLogo} alt={`${tournament?.name} logo`} width={128} height={128} className="mb-2" />
             <div className="text-3xl font-bold text-white mb-1 font-mono">
               {formatGameTime(gameData.gameData.gameTime)}
             </div>

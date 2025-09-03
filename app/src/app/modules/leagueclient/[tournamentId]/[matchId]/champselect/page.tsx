@@ -51,19 +51,16 @@ const ChampSelectOverlayPage: React.FC<ChampSelectPageProps> = ({ params }) => {
         const tournamentResponse = await fetch(`/api/public/tournaments/${tournamentId}`);
         if (tournamentResponse.ok) {
           const tournamentData = await tournamentResponse.json();
-          console.log("Tournament response:", tournamentData);
           const tournament = tournamentData.tournament || tournamentData;
           setTournament(tournament as Tournament);
-          console.log("Loaded tournament from API:", tournament);
         } else {
-          console.error("Failed to fetch tournament data:", tournamentResponse.status, tournamentResponse.statusText);
+          console.warn("Failed to fetch tournament data:", tournamentResponse.status, tournamentResponse.statusText);
         }
 
         // Fetch match data
         const matchResponse = await fetch(`/api/public/matches/${matchId}`);
         if (matchResponse.ok) {
           const matchData = await matchResponse.json();
-          console.log("Match response:", matchData);
           
           // Handle MongoDB document format - extract data from _doc if present
           let match = matchData.match;
@@ -71,13 +68,10 @@ const ChampSelectOverlayPage: React.FC<ChampSelectPageProps> = ({ params }) => {
             match = match._doc;
           }
           
-          console.log("Match data received:", match);
-          console.log("Blue team ID:", match.blueTeamId);
-          console.log("Red team ID:", match.redTeamId);
           
           // Check if team IDs exist before fetching
           if (!match.blueTeamId || !match.redTeamId) {
-            console.error("Missing team IDs in match data:", { blueTeamId: match.blueTeamId, redTeamId: match.redTeamId });
+            console.warn("Missing team IDs in match data:", { blueTeamId: match.blueTeamId, redTeamId: match.redTeamId });
             // Set match without team data as fallback
             const matchWithEmptyTeams = {
               ...match,
@@ -85,7 +79,6 @@ const ChampSelectOverlayPage: React.FC<ChampSelectPageProps> = ({ params }) => {
               redTeam: { players: [] }
             };
             setMatch(matchWithEmptyTeams as Match);
-            console.log("Set match with empty teams as fallback");
             return;
           }
           
@@ -102,7 +95,7 @@ const ChampSelectOverlayPage: React.FC<ChampSelectPageProps> = ({ params }) => {
             const blueTeamResult = await blueTeamResponse.json();
             blueTeamData = blueTeamResult.team;
           } else {
-            console.error("Failed to fetch blue team data:", blueTeamResponse.status);
+            console.warn("Failed to fetch blue team data:", blueTeamResponse.status);
           }
 
           if (redTeamResponse.ok) {
@@ -124,12 +117,11 @@ const ChampSelectOverlayPage: React.FC<ChampSelectPageProps> = ({ params }) => {
           };
 
           setMatch(matchWithTeams as Match);
-          console.log("Loaded match from API:", matchWithTeams);
         } else {
-          console.error("Failed to fetch match data:", matchResponse.status, matchResponse.statusText);
+          console.warn("Failed to fetch match data:", matchResponse.status, matchResponse.statusText);
         }
       } catch (error) {
-        console.error("Failed to load match/tournament from API:", error);
+        console.warn("Failed to load match/tournament from API:", error);
       }
     };
 
@@ -144,12 +136,6 @@ const ChampSelectOverlayPage: React.FC<ChampSelectPageProps> = ({ params }) => {
   }, [isConnected, downloadState.isDownloading]);
 
   if (!assets.roleIcons || !assets.banPlaceholder || !champSelectSession || !isConnected || !match || !tournament) {
-    console.log("assets", assets);
-    console.log("champSelectSession", champSelectSession);
-    console.log("isConnected", isConnected);
-    console.log("downloadState", downloadState);
-    console.log("match", match);
-    console.log("tournament", tournament);
     return <></>;
   }
 

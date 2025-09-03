@@ -55,10 +55,8 @@ export const CurrentMatchStatus = (): React.ReactElement => {
     );
   }
 
-  const handleGoToMatches = () => {
-    if (currentMatch.tournamentId) {
-      router.push(`/modules/tournaments/${currentMatch.tournamentId}/matches`);
-    }
+  const handleEditMatch = () => {
+    router.push(`/modules/tournaments/${currentMatch.tournamentId}/matches/${currentMatch._id}`);
   };
 
   return (
@@ -66,8 +64,8 @@ export const CurrentMatchStatus = (): React.ReactElement => {
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-lg font-semibold text-white">Current Match</h3>
         <div className="flex gap-2">
-          <Button onClick={handleGoToMatches} size="sm" variant="secondary">
-            Change Match
+          <Button onClick={handleEditMatch} size="sm" variant="secondary">
+            Edit Match
           </Button>
           <Button onClick={() => clearCurrentMatch()} size="sm" variant="secondary">
             Clear

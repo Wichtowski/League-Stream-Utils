@@ -15,7 +15,7 @@ export const TournamentPageCard = ({ tournament, loading = false }: TournamentPa
 
   const handleCardClick = async (): Promise<void> => {
     try {
-      await tournamentStorage.setLastSelectedTournament(tournament._id, tournament.name);
+      await tournamentStorage.setLastSelectedTournament(tournament._id);
     } catch (error) {
       console.error("Failed to save last selected tournament:", error);
     }
@@ -25,7 +25,7 @@ export const TournamentPageCard = ({ tournament, loading = false }: TournamentPa
     e.preventDefault();
     e.stopPropagation();
     try {
-      await tournamentStorage.setLastSelectedTournament(tournament._id, tournament.name);
+      await tournamentStorage.setLastSelectedTournament(tournament._id);
       router.push("/modules");
     } catch (error) {
       console.error("Failed to save last selected tournament:", error);

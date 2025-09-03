@@ -117,7 +117,7 @@ const MatchInfoComponent: React.FC<MatchInfoProps> = ({
     <div
       className={`h-full flex h-80 flex-col items-center justify-center transition-all duration-500 ${animated ? "opacity-100 translate-y-0" : "opacity-0 translate-y-full"}`}
     >
-      <div className="bg-black p-4 h-80 flex flex-col items-center">
+      <div className="bg-black p-4 pd-0 h-80 flex flex-col items-center">
         {/* Team Logos and Score Rectangles */}
         <div className="flex items-center gap-2 mb-3">
           <div className="flex flex-col items-center">

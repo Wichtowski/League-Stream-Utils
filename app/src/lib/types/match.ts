@@ -28,6 +28,7 @@ export interface Match {
   // Status and results
   status: MatchStatus;
   winner?: "blue" | "red";
+  score?: { blue: number; red: number };
 
   // Game results (for BO3/BO5)
   games: GameResult[];
@@ -64,7 +65,7 @@ export interface MatchPrediction {
 export interface GameResult {
   _id: string;
   gameNumber: number;
-  winner: "blue" | "red";
+  winner: "blue" | "red" | "ongoing";
   duration?: number;
   blueScore: number;
   redScore: number;
@@ -75,7 +76,7 @@ export interface GameResult {
   completedAt?: Date;
 }
 
-export type MatchStatus = "scheduled" | "in-progress" | "completed" | "cancelled";
+export type MatchStatus = "scheduled" | "in-progress" | "ongoing" | "completed" | "cancelled";
 
 export interface CreateMatchRequest {
   name: string;
@@ -95,6 +96,7 @@ export interface UpdateMatchRequest {
   name?: string;
   scheduledTime?: string;
   status?: MatchStatus;
+  format?: MatchFormat;
   winner?: "blue" | "red";
   score?: { blue: number; red: number };
   commentators?: string[];

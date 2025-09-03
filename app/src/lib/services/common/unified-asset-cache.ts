@@ -84,7 +84,7 @@ export const toLocalImageUrl = (pathOrUrl: string): string => {
   if (hostedIdx !== -1) {
     rel = rel.substring(hostedIdx + "hosted/assets/".length);
   }
-  // Handle bare version-prefixed paths like "15.16.1/summoner-spells/XYZ.png"
+  // Handle bare version-prefixed paths like "15.17.1/summoner-spells/XYZ.png"
   if (/^\d+\.\d+\.\d+\//.test(rel) && !rel.startsWith("assets/")) {
     rel = `assets/${rel}`;
   }

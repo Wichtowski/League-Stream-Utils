@@ -13,7 +13,6 @@ interface LCUConnectorOptions {
   autoReconnect?: boolean;
   maxReconnectAttempts?: number;
   pollInterval?: number;
-  useMockData?: boolean;
 }
 
 class LCUConnector {
@@ -26,7 +25,6 @@ class LCUConnector {
   private autoReconnect: boolean;
   private readonly maxReconnectAttempts: number;
   private readonly pollInterval: number;
-  private readonly useMockData: boolean;
 
   // Event handlers
   private onStatusChange?: (status: ConnectionStatus) => void;
@@ -37,7 +35,6 @@ class LCUConnector {
     this.autoReconnect = options.autoReconnect ?? true;
     this.maxReconnectAttempts = options.maxReconnectAttempts ?? 5;
     this.pollInterval = options.pollInterval ?? 1000;
-    this.useMockData = options.useMockData ?? false;
   }
 
   // Event handler setters
@@ -151,10 +148,6 @@ class LCUConnector {
   }
 
   private async pollChampSelect(): Promise<void> {
-    if (this.useMockData) {
-      return;
-    }
-
     try {
       const response = await fetch("/api/cs");
       const result = await response.json();
@@ -172,10 +165,6 @@ class LCUConnector {
   }
 
   private startPolling(): void {
-    if (this.useMockData) {
-      return;
-    }
-
     if (this.pollingInterval) {
       clearInterval(this.pollingInterval);
     }

@@ -59,7 +59,8 @@ export const TournamentSchema = new Schema({
 
   streamUrl: { type: String },
   broadcastLanguage: { type: String },
-  gameVersion: { type: String },
+  apiVersion: { type: String },
+  patchVersion: { type: String },
 
   // Sponsors
   sponsors: { type: [SponsorSchema], default: [] },

@@ -13,7 +13,6 @@ import {
   TournamentStatsProvider,
   PickbanProvider,
   SettingsProvider,
-  MockDataProvider,
   DownloadProvider,
   PredictionsProvider,
   CurrentMatchProvider
@@ -54,7 +53,6 @@ export default function RootLayout({
             { name: "Electron", provider: ElectronProvider },
             { name: "Auth", provider: AuthProvider },
             { name: "Predictions", provider: PredictionsProvider },
-            { name: "MockData", provider: MockDataProvider },
             { name: "Download", provider: DownloadProvider },
             { name: "Cameras", provider: CamerasProvider },
             { name: "Settings", provider: SettingsProvider },

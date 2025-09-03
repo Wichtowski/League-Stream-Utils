@@ -10,7 +10,6 @@ import { TournamentBracketProvider } from "@libTournament/contexts/TournamentBra
 import { TournamentStatsProvider } from "@libTournament/contexts/TournamentStatsContext";
 import { PickbanProvider } from "@libPickban/contexts/PickbanContext";
 import { SettingsProvider } from "./SettingsContext";
-import { MockDataProvider } from "./MockDataContext";
 import { DownloadProvider } from "./DownloadContext";
 import { PredictionsProvider } from "@libTournament/contexts/PredictionsContext";
 import { CurrentMatchProvider } from "@libTournament/contexts/CurrentMatchContext";
@@ -32,7 +31,6 @@ export {
   TournamentStatsProvider,
   PickbanProvider,
   SettingsProvider,
-  MockDataProvider,
   DownloadProvider,
   PredictionsProvider,
   CurrentMatchProvider,

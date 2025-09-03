@@ -26,7 +26,6 @@ class ConnectionService implements ConnectionManager {
       autoReconnect: true,
       maxReconnectAttempts: 5,
       pollInterval: 1000,
-      useMockData: false
     });
 
     this.setupEventHandlers();

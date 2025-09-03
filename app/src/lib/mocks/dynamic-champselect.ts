@@ -15,7 +15,6 @@ export const LosRatones: Team = {
   tag: "LR",
   region: "EUW",
   founded: new Date(),
-  verified: true,
   tier: "professional",
   logo: {
     type: "url",
@@ -33,7 +32,6 @@ export const LosRatones: Team = {
         inGameName: "Baus",
         tag: "EUW",
         role: "TOP",
-        verified: true,
         createdAt: new Date(),
         updatedAt: new Date(),
         profileImage: {
@@ -46,7 +44,6 @@ export const LosRatones: Team = {
         inGameName: "Velja",
         tag: "EUW",
         role: "JUNGLE",
-        verified: true,
         createdAt: new Date(),
         updatedAt: new Date(),
         profileImage: {
@@ -60,7 +57,6 @@ export const LosRatones: Team = {
         inGameName: "Nemesis",
         tag: "EUW",
         role: "MID",
-        verified: true,
         createdAt: new Date(),
         updatedAt: new Date(),
         profileImage: {
@@ -73,7 +69,6 @@ export const LosRatones: Team = {
         inGameName: "Crownie",
         tag: "EUW",
         role: "BOTTOM",
-        verified: true,
         createdAt: new Date(),
         updatedAt: new Date(),
         profileImage: {
@@ -86,7 +81,6 @@ export const LosRatones: Team = {
         inGameName: "Rekkles",
         tag: "EUW",
         role: "SUPPORT",
-        verified: true,
         createdAt: new Date(),
         updatedAt: new Date(),
         profileImage: {
@@ -107,7 +101,6 @@ export const FajnieMiecSklad: Team = {
   tag: "FMS",
   region: "EUW",
   founded: new Date(),
-  verified: true,
   tier: "professional",
   logo: {
     type: "upload",
@@ -127,7 +120,6 @@ export const FajnieMiecSklad: Team = {
         inGameName: "frajgo",
         tag: "EUW",
         role: "TOP",
-        verified: true,
         createdAt: new Date(),
         updatedAt: new Date(),
         profileImage: defaultPlayerImage
@@ -137,7 +129,6 @@ export const FajnieMiecSklad: Team = {
         inGameName: "Rybson",
         tag: "EUW",
         role: "JUNGLE",
-        verified: true,
         createdAt: new Date(),
         updatedAt: new Date(),
         profileImage: defaultPlayerImage
@@ -148,7 +139,6 @@ export const FajnieMiecSklad: Team = {
         inGameName: "Mrozku",
         tag: "EUW",
         role: "MID",
-        verified: true,
         createdAt: new Date(),
         updatedAt: new Date(),
         profileImage: defaultPlayerImage
@@ -158,7 +148,6 @@ export const FajnieMiecSklad: Team = {
         inGameName: "Zamulek",
         tag: "EUW",
         role: "BOTTOM",
-        verified: true,
         createdAt: new Date(),
         updatedAt: new Date(),
         profileImage: defaultPlayerImage
@@ -168,7 +157,6 @@ export const FajnieMiecSklad: Team = {
         inGameName: "minemaciek",
         tag: "EUW",
         role: "SUPPORT",
-        verified: true,
         createdAt: new Date(),
         updatedAt: new Date(),
         profileImage: defaultPlayerImage
