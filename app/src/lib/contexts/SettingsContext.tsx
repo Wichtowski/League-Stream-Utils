@@ -220,10 +220,14 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     if (user) {
       intervalId = setInterval(async () => {
         // Check if cache is expired before making API calls
-        const [appCacheExpired, userCacheExpired] = await Promise.all([
-          storage.isExpired(APP_SETTINGS_CACHE_KEY, CACHE_TTL),
-          storage.isExpired(USER_PREFERENCES_CACHE_KEY, CACHE_TTL)
+        const [appTimestamp, userTimestamp] = await Promise.all([
+          storage.getTimestamp(APP_SETTINGS_CACHE_KEY),
+          storage.getTimestamp(USER_PREFERENCES_CACHE_KEY)
         ]);
+        
+        const now = Date.now();
+        const appCacheExpired = !appTimestamp || (now - appTimestamp) > CACHE_TTL;
+        const userCacheExpired = !userTimestamp || (now - userTimestamp) > CACHE_TTL;
         
         // Only fetch if cache is expired
         if (appCacheExpired || userCacheExpired) {
