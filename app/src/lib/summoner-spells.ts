@@ -81,7 +81,6 @@ async function getSummonerSpellsFromComprehensiveCache(): Promise<SummonerSpell[
   try {
     // Check if we're in Electron environment
     if (typeof window === "undefined" || !window.electronAPI) {
-      console.log("Not in Electron environment, fetching from DataDragon API");
       return await fetchSummonerSpellsFromAPI().then((data) => data.spells);
     }
 

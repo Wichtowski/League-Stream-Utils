@@ -69,7 +69,6 @@ export async function createMatch(userId: string, matchData: CreateMatchRequest)
 export async function getMatchById(matchId: string): Promise<Match | null> {
   await connectToDatabase();
   const match = await MatchModel.findOne({ _id: matchId }).lean();
-  console.log(match);
   if (!match) return null;
 
   return transformToMatch(match);

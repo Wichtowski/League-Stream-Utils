@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { LiveGameData } from "@libLeagueClient/types";
 import { TeamScoreDisplay } from "@libLeagueClient/components/game/TeamScoreDisplay";
 import { PlayerCard } from "@libLeagueClient/components/game/PlayerCard";
-import type { Match } from "@lib/types/match";
+import type { GameResult, Match } from "@lib/types/match";
 import type { Tournament } from "@lib/types/tournament";
 import Image from "next/image";
 import { motion } from "framer-motion";
@@ -18,100 +18,80 @@ import {
 import { getItemImage, getItems } from "@lib/items";
 import { getChampions } from "@lib/champions";
 import { getSummonerSpells } from "@lib/summoner-spells";
-import { bindLivePlayersToMatch, createFallbackLivePlayer, getRoleOrder } from "@lib/services/game/live-binding";
+import { bindLivePlayersToMatch, createFallbackLivePlayer } from "@lib/services/game/live-binding";
 import { getLatestVersion } from "@lib/services/common/unified-asset-cache";
 import { useImagePreload } from "@lib/hooks/useImagePreload";
-import { getTeamById } from "@libTeam/database";
+
 import { Team } from "@lib/types/team";
 
 interface GameDataDisplayProps {
   gameData: LiveGameData;
   match?: Match;
   tournament?: Tournament;
+  blueTeamData?: Team;
+  redTeamData?: Team;
 }
 
-export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({ gameData, match, tournament }) => {
+export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({ gameData, match, tournament, blueTeamData, redTeamData }) => {
   const [championsLoaded, setChampionsLoaded] = useState(false);
   const [summonerSpellsLoaded, setSummonerSpellsLoaded] = useState(false);
   const [itemsLoaded, setItemsLoaded] = useState(false);
   const [gameVersion, setGameVersion] = useState<string>("");
   const [goldIcon, setGoldIcon] = useState<string>("");
   const [towerIcon, setTowerIcon] = useState<string>("");
-  const [baronIcon, setBaronIcon] = useState<string>("");
-  const [grubsIcon, setGrubsIcon] = useState<string>("");
-  const [heraldIcon, setHeraldIcon] = useState<string>("");
-  const [atakhanIcons, setAtakhanIcons] = useState<string[]>([]);
-  const [dragonIcons, setDragonIcons] = useState<string[]>([]);
+  const [_baronIcon, setBaronIcon] = useState<string>("");
+  const [_grubsIcon, setGrubsIcon] = useState<string>("");
+  const [_heraldIcon, setHeraldIcon] = useState<string>("");
+  const [_atakhanIcons, setAtakhanIcons] = useState<string[]>([]);
+  const [_dragonIcons, setDragonIcons] = useState<string[]>([]);
   const [tournamentLogo, setTournamentLogo] = useState<string>("");
   const [orderLogo, setOrderLogo] = useState<string>("");
   const [chaosLogo, setChaosLogo] = useState<string>("");
   const [uiReady, setUiReady] = useState(false);
   const [chaosTeam, setChaosTeam] = useState<Team | null>(null);
   const [orderTeam, setOrderTeam] = useState<Team | null>(null);
+  const [_currentGame, setCurrentGame] = useState<GameResult | null>(null);
   const initialPreloadDoneRef = useRef<boolean>(false);
   const seenChampionNamesRef = useRef<Set<string>>(new Set());
   const seenSpellNamesRef = useRef<Set<string>>(new Set());
   const [initialPreloadUrls, setInitialPreloadUrls] = useState<string[]>([]);
-
-  // Load teams when match data is available
-  useEffect(() => {
-    const loadTeams = async () => {
-      if (!match) return;
-
-      try {
-        const [blueTeam, redTeam] = await Promise.all([getTeamById(match.blueTeamId), getTeamById(match.redTeamId)]);
-
-        setOrderTeam(blueTeam);
-        setChaosTeam(redTeam);
-      } catch (error) {
-        console.error("Failed to load team data:", error);
-      }
-    };
-
-    loadTeams();
-  }, [match]);
-
-  useEffect(() => {
-    const loadAssets = async () => {
-      try {
-        await Promise.all([getChampions(), getSummonerSpells(), getItems()]);
-
-        setChampionsLoaded(true);
-        setSummonerSpellsLoaded(true);
-        setItemsLoaded(true);
-      } catch (error) {
-        console.error("Failed to load assets:", error);
-      }
-    };
-
-    if (!championsLoaded || !summonerSpellsLoaded || !itemsLoaded) {
-      loadAssets();
-    }
-  }, [championsLoaded, summonerSpellsLoaded, itemsLoaded]);
+  const setupDoneRef = useRef<boolean>(false);
 
   // Set game version and assets when tournament data is available
   useEffect(() => {
-    const setupGameAssets = async () => {
-      if (!tournament) return;
+    const setupGameAssets = async (): Promise<void> => {
+      if (!tournament || !match || setupDoneRef.current) return;
 
       try {
+        setupDoneRef.current = true;
+        
         const resolvedVersion = await getLatestVersion() ?? tournament.apiVersion;
         setGameVersion(resolvedVersion);
-        console.log("Resolved version:", resolvedVersion);
 
         setTournamentLogo(
           tournament.logo?.data || tournament.logo?.url || getDefaultAsset(resolvedVersion, "tournament.png")
         );
-        setOrderLogo(orderTeam?.logo?.data || orderTeam?.logo?.url || getDefaultAsset(resolvedVersion, "order.png"));
-        setChaosLogo(chaosTeam?.logo?.data || chaosTeam?.logo?.url || getDefaultAsset(resolvedVersion, "chaos.png"));
+        
+        await Promise.all([getChampions(), getSummonerSpells(), getItems()]);
 
+        const ongoingGame = match.games?.find(game => game.winner === "ongoing");
+        setCurrentGame(ongoingGame || null);
+        setOrderTeam(blueTeamData || null);
+        setChaosTeam(redTeamData || null);
+        setChampionsLoaded(true);
+        setSummonerSpellsLoaded(true);
+        setItemsLoaded(true);
+        setOrderLogo(blueTeamData?.logo?.data || blueTeamData?.logo?.url || getDefaultAsset(resolvedVersion, "order.png"));
+        setChaosLogo(redTeamData?.logo?.data || redTeamData?.logo?.url || getDefaultAsset(resolvedVersion, "chaos.png"));
         setGoldIcon(getScoreboardAsset(resolvedVersion, "gold.png"));
         setTowerIcon(getScoreboardAsset(resolvedVersion, "tower.png"));
         setBaronIcon(getBaronPitAsset(resolvedVersion, "baron.png"));
         setGrubsIcon(getBaronPitAsset(resolvedVersion, "grubs.png"));
         setHeraldIcon(getBaronPitAsset(resolvedVersion, "herald.png"));
-        setGrubsIcon(getAtakhanAsset(resolvedVersion, "atakhan_ruinous.png"));
-        setGrubsIcon(getAtakhanAsset(resolvedVersion, "atakhan_voracious.png"));
+        setAtakhanIcons([
+          getAtakhanAsset(resolvedVersion, "atakhan_ruinous.png"),
+          getAtakhanAsset(resolvedVersion, "atakhan_voracious.png")
+        ]);
         setDragonIcons([
           getDragonPitAsset(resolvedVersion, "chemtech.png"),
           getDragonPitAsset(resolvedVersion, "cloud.png"),
@@ -123,11 +103,12 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({ gameData, matc
         ]);
       } catch (error) {
         console.error("Failed to setup game assets:", error);
+        setupDoneRef.current = false; // Reset on error so it can retry
       }
     };
 
     setupGameAssets();
-  }, [tournament, orderTeam, chaosTeam]);
+  }, [tournament, match, blueTeamData, redTeamData]);
 
   const formatGameTime = (seconds: number): string => {
     const minutes = Math.floor(seconds / 60);
@@ -239,32 +220,26 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({ gameData, matc
     return <></>;
   }
 
-  const blueTeam = gameData.allPlayers.filter((player) => player.team === "ORDER");
-  const redTeam = gameData.allPlayers.filter((player) => player.team === "CHAOS");
+  const blueTeamPlayers = gameData.allPlayers.filter((player) => player.team === "ORDER");
+  const redTeamPlayers = gameData.allPlayers.filter((player) => player.team === "CHAOS");
 
   const orderGoldDiff =
-    blueTeam.reduce((sum, player) => sum + (player.gold || 0), 0) -
-    redTeam.reduce((sum, player) => sum + (player.gold || 0), 0);
+    blueTeamPlayers.reduce((sum, player) => sum + (player.gold || 0), 0) -
+    redTeamPlayers.reduce((sum, player) => sum + (player.gold || 0), 0);
   const chaosGoldDiff =
-    redTeam.reduce((sum, player) => sum + (player.gold || 0), 0) -
-    blueTeam.reduce((sum, player) => sum + (player.gold || 0), 0);
+    redTeamPlayers.reduce((sum, player) => sum + (player.gold || 0), 0) -
+    blueTeamPlayers.reduce((sum, player) => sum + (player.gold || 0), 0);
 
   const bound = bindLivePlayersToMatch(gameData.allPlayers, match);
-  const orderedBlue = getRoleOrder()
-    .map((role) => bound.blue.find((b) => b.resolvedRole === role))
-    .concat(bound.blue.filter((b) => b.livePlayer && !getRoleOrder().includes(b.resolvedRole)))
-    .filter(Boolean) as typeof bound.blue;
-  const orderedRed = getRoleOrder()
-    .map((role) => bound.red.find((b) => b.resolvedRole === role))
-    .concat(bound.red.filter((b) => b.livePlayer && !getRoleOrder().includes(b.resolvedRole)))
-    .filter(Boolean) as typeof bound.red;
+  const orderedBlue = bound.blue.filter(Boolean);
+  const orderedRed = bound.red.filter(Boolean);
 
   // Calculate team stats
   const blueTeamStats = {
-    kills: blueTeam.reduce((sum, player) => sum + (player.scores?.kills || 0), 0),
-    deaths: blueTeam.reduce((sum, player) => sum + (player.scores?.deaths || 0), 0),
-    assists: blueTeam.reduce((sum, player) => sum + (player.scores?.assists || 0), 0),
-    gold: blueTeam.reduce((sum, player) => sum + (player.gold || 0), 0),
+    kills: blueTeamPlayers.reduce((sum, player) => sum + (player.scores?.kills || 0), 0),
+    deaths: blueTeamPlayers.reduce((sum, player) => sum + (player.scores?.deaths || 0), 0),
+    assists: blueTeamPlayers.reduce((sum, player) => sum + (player.scores?.assists || 0), 0),
+    gold: blueTeamPlayers.reduce((sum, player) => sum + (player.gold || 0), 0),
     towers: 0, // You'll need to get this from game data
     dragons: 0,
     barons: 0,
@@ -272,10 +247,10 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({ gameData, matc
   };
 
   const redTeamStats = {
-    kills: redTeam.reduce((sum, player) => sum + (player.scores?.kills || 0), 0),
-    deaths: redTeam.reduce((sum, player) => sum + (player.scores?.deaths || 0), 0),
-    assists: redTeam.reduce((sum, player) => sum + (player.scores?.assists || 0), 0),
-    gold: redTeam.reduce((sum, player) => sum + (player.gold || 0), 0),
+    kills: redTeamPlayers.reduce((sum, player) => sum + (player.scores?.kills || 0), 0),
+    deaths: redTeamPlayers.reduce((sum, player) => sum + (player.scores?.deaths || 0), 0),
+    assists: redTeamPlayers.reduce((sum, player) => sum + (player.scores?.assists || 0), 0),
+    gold: redTeamPlayers.reduce((sum, player) => sum + (player.gold || 0), 0),
     towers: 0,
     dragons: 0,
     barons: 0,
@@ -283,19 +258,19 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({ gameData, matc
   };
 
   return (
-    <div className="fixed inset-0 bg-black/80 text-white font-sans">
+    <div className="fixed inset-0 text-white font-sans">
       {/* Top Bar - Team Scores & Game Info */}
       <motion.div
         initial={{ y: -80, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ type: "spring", stiffness: 140, damping: 18 }}
-        className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-r from-blue-900/90 via-gray-900/90 to-red-900/90 border-b-2 border-gray-600"
+        className="absolute top-0 left-0 right-0 h-20 bg-gray-600"
       >
         <div className="flex justify-between items-center h-full px-8">
           {/* Blue Team (Left) */}
           <TeamScoreDisplay
             logo={orderLogo}
-            tag={orderTeam?.tag || "BLUE"}
+            tag={orderTeam?.tag || "ORDER"}
             kills={blueTeamStats.kills}
             towers={blueTeamStats.towers}
             towerIcon={towerIcon}
@@ -311,12 +286,22 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({ gameData, matc
             <div className="text-3xl font-bold text-white mb-1 font-mono">
               {formatGameTime(gameData.gameData.gameTime)}
             </div>
+            {/* {currentGame && (
+              <div className="text-lg text-gray-300 font-semibold">
+                Game {currentGame.gameNumber} of {match?.format === "BO1" ? 1 : match?.format === "BO3" ? 3 : 5}
+              </div>
+            )}
+            {match?.score && (
+              <div className="text-sm text-gray-400">
+                Series: {match.score.blue} - {match.score.red}
+              </div>
+            )} */}
           </div>
 
           {/* Red Team (Right) */}
           <TeamScoreDisplay
             logo={chaosLogo}
-            tag={chaosTeam?.tag || "RED"}
+            tag={chaosTeam?.tag || "CHAOS"}
             kills={redTeamStats.kills}
             towers={redTeamStats.towers}
             towerIcon={towerIcon}
@@ -335,7 +320,7 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({ gameData, matc
         className="absolute left-0 top-20 w-64 h-full"
       >
         <div className="p-4">
-          <h3 className="text-lg font-bold mb-4 text-center">{orderTeam?.tag || "BLUE"}</h3>
+          <h3 className="text-lg font-bold mb-4 text-center">{orderTeam?.name || "ORDER"}</h3>
           <div className="space-y-3">
             {orderedBlue.map((bp, index) => {
               const fallback = bp.rosterPlayer ? createFallbackLivePlayer(bp.rosterPlayer, "ORDER") : null;
@@ -364,7 +349,7 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({ gameData, matc
         className="absolute right-0 top-20 w-64 h-full"
       >
         <div className="p-4">
-          <h3 className="text-lg font-bold mb-4 text-center">{chaosTeam?.tag || "RED"}</h3>
+          <h3 className="text-lg font-bold mb-4 text-center">{chaosTeam?.name || "CHAOS"}</h3>
           <div className="space-y-3">
             {orderedRed.map((bp, index) => {
               const fallback = bp.rosterPlayer ? createFallbackLivePlayer(bp.rosterPlayer, "CHAOS") : null;
@@ -400,7 +385,7 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({ gameData, matc
               </tr>
             </thead>
             <tbody>
-              {[...blueTeam, ...redTeam].map((player, index) => (
+              {[...blueTeamPlayers, ...redTeamPlayers].map((player, index) => (
                 <tr key={index} className="border-b border-gray-700/50 hover:bg-gray-800/50">
                   <td className="px-2 py-1">
                     <div className="flex items-center space-x-2">

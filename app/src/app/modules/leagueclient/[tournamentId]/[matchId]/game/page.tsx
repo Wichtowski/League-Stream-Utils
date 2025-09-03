@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigation } from "@lib/contexts/NavigationContext";
 import { GameDataDisplay } from "@libLeagueClient/components/game/GameDataDisplay";
 import { useGameData } from "@lib/hooks/useGameData";
-import { Tournament, Match } from "@lib/types";
+import { Tournament, Match, Team } from "@lib/types";
 
 interface GamePageProps {
   params: Promise<{
@@ -19,8 +19,11 @@ const LiveGamePage: React.FC<GamePageProps> = ({ params }) => {
   const [loading, setLoading] = useState(true);
   const [currentMatch, setCurrentMatch] = useState<Match | null>(null);
   const [currentTournament, setCurrentTournament] = useState<Tournament | null>(null);
+  const [blueTeamData, setBlueTeamData] = useState<Team | undefined>(undefined);
+  const [redTeamData, setRedTeamData] = useState<Team | undefined>(undefined);
   const [tournamentId, setTournamentId] = useState<string>("");
   const [matchId, setMatchId] = useState<string>("");
+  const processedMatchRef = useRef<string | null>(null);
 
   useEffect(() => {
     setActiveModule(null);
@@ -47,7 +50,6 @@ const LiveGamePage: React.FC<GamePageProps> = ({ params }) => {
           console.log("Tournament response:", tournamentData);
           const tournament = tournamentData.tournament || tournamentData;
           setCurrentTournament(tournament as Tournament);
-          console.log("Loaded tournament from API:", tournament);
         } else {
           console.error("Failed to fetch tournament data:", tournamentResponse.status, tournamentResponse.statusText);
         }
@@ -56,7 +58,6 @@ const LiveGamePage: React.FC<GamePageProps> = ({ params }) => {
         const matchResponse = await fetch(`/api/public/matches/${matchId}`);
         if (matchResponse.ok) {
           const matchData = await matchResponse.json();
-          console.log("Match response:", matchData);
           
           // Handle MongoDB document format - extract data from _doc if present
           let match = matchData.match;
@@ -65,8 +66,6 @@ const LiveGamePage: React.FC<GamePageProps> = ({ params }) => {
           }
           
           console.log("Match data received:", match);
-          console.log("Blue team ID:", match.blueTeamId);
-          console.log("Red team ID:", match.redTeamId);
           
           // Check if team IDs exist before fetching
           if (!match.blueTeamId || !match.redTeamId) {
@@ -87,35 +86,21 @@ const LiveGamePage: React.FC<GamePageProps> = ({ params }) => {
             fetch(`/api/public/teams/${match.redTeamId}`)
           ]);
 
-          let blueTeamData = null;
-          let redTeamData = null;
-
           if (blueTeamResponse.ok) {
             const blueTeamResult = await blueTeamResponse.json();
-            blueTeamData = blueTeamResult.team;
+            setBlueTeamData(blueTeamResult.team);
           } else {
             console.error("Failed to fetch blue team data:", blueTeamResponse.status);
           }
 
           if (redTeamResponse.ok) {
             const redTeamResult = await redTeamResponse.json();
-            redTeamData = redTeamResult.team;
+            setRedTeamData(redTeamResult.team);
           } else {
             console.error("Failed to fetch red team data:", redTeamResponse.status);
           }
 
-          // Create a match object with the expected structure for bindLivePlayersToMatch
-          const matchWithTeams = {
-            ...match,
-            blueTeam: {
-              players: blueTeamData?.players?.main || []
-            },
-            redTeam: {
-              players: redTeamData?.players?.main || []
-            }
-          };
-
-          setCurrentMatch(matchWithTeams as Match);
+          setCurrentMatch(match);
         } else {
           console.error("Failed to fetch match data:", matchResponse.status, matchResponse.statusText);
         }
@@ -128,6 +113,23 @@ const LiveGamePage: React.FC<GamePageProps> = ({ params }) => {
   }, [tournamentId, matchId]);
 
   useEffect(() => {
+    if (currentMatch && blueTeamData && redTeamData && processedMatchRef.current !== currentMatch._id) {
+      // Create a match object with the expected structure for bindLivePlayersToMatch
+      const matchWithTeams = {
+        ...currentMatch,
+        blueTeam: {
+          players: blueTeamData?.players?.main || []
+        },
+        redTeam: {
+          players: redTeamData?.players?.main || []
+        }
+      };
+      setCurrentMatch(matchWithTeams as Match);
+      processedMatchRef.current = currentMatch._id;
+    }
+  }, [currentMatch, blueTeamData, redTeamData]);
+
+  useEffect(() => {
     if (currentMatch && currentTournament) {
       setLoading(useGameDataLoading);
     }
@@ -137,7 +139,7 @@ const LiveGamePage: React.FC<GamePageProps> = ({ params }) => {
     return <></>;
   }
 
-  return <GameDataDisplay gameData={gameData} match={currentMatch} tournament={currentTournament} />;
+  return <GameDataDisplay gameData={gameData} match={currentMatch} tournament={currentTournament} blueTeamData={blueTeamData} redTeamData={redTeamData} />;
 };
 
 export default LiveGamePage;

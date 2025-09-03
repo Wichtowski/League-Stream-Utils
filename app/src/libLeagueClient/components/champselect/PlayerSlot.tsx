@@ -180,9 +180,6 @@ export const PlayerSlotComponent: React.FC<PlayerSlotProps> = ({
     return 0;
   };
 
-  setTimeout(() => {
-    console.log("recentlyPicked", recentlyPicked);
-  }, 3000);
   return (
     <div
       key={player.cellId}
@@ -236,7 +233,7 @@ export const PlayerSlotComponent: React.FC<PlayerSlotProps> = ({
         <div className="relative z-20 p-3 pl-0 flex flex-col items-center text-center justify-end max-w-full">
           <div className="flex items-end mb-3 w-full">
             <div
-              className="text-3xl font-semibold text-white max-w-full rotate-270 origin-bottom-left transform-gpu"
+              className="text-2xl font-semibold text-white max-w-full rotate-270 origin-bottom-left transform-gpu"
               style={{ position: "absolute", bottom: "10px", left: "40px" }}
             >
               {isPlaceholder ? "Empty Slot" : player.summonerName || player.playerInfo?.name || `Player ${index + 1}`}

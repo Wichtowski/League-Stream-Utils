@@ -156,7 +156,7 @@ function transformRiotToLiveGameData(riot: import("@lib/types/live-client").Riot
         price: 0
       })),
       level: p.level ?? 1,
-      gold: 0,
+      gold: 0, // Will be updated below for active player
       health: 0,
       maxHealth: 1,
       summonerSpells: {
@@ -182,7 +182,28 @@ function transformRiotToLiveGameData(riot: import("@lib/types/live-client").Riot
   if (active && riot.activePlayer?.championStats) {
     active.health = riot.activePlayer.championStats.currentHealth ?? 0;
     active.maxHealth = riot.activePlayer.championStats.maxHealth ?? 0;
+    // Set gold for active player
+    active.gold = riot.activePlayer.currentGold ?? 0;
   }
+
+  // Estimate gold for other players based on items and level
+  allPlayers.forEach(player => {
+    if (player.gold === 0 && player.summonerName !== activeName) {
+      // Simple estimation: base gold + level bonus + item value estimation
+      const baseGold = 500; // Starting gold
+      const levelGold = player.level * 100; // Rough gold per level
+      const itemGold = player.items.reduce((sum, item) => {
+        // Rough item value estimation based on common item prices
+        if (item.itemID === 0) return sum; // No item
+        if (item.itemID < 2000) return sum + 300; // Basic items
+        if (item.itemID < 3000) return sum + 800; // Intermediate items
+        if (item.itemID < 4000) return sum + 1500; // Advanced items
+        return sum + 2500; // Legendary items
+      }, 0);
+      
+      player.gold = baseGold + levelGold + itemGold;
+    }
+  });
 
   return {
     gameData: {

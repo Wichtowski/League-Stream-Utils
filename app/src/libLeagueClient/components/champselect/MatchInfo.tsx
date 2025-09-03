@@ -21,7 +21,7 @@ type MatchInfoProps = {
     blueTeamId: string;
     redTeamId: string;
   };
-  gameVersion?: string;
+  patchVersion?: string;
   onRegisterImages?: (urls: string[]) => void;
   animated?: boolean;
 };
@@ -33,7 +33,7 @@ const MatchInfoComponent: React.FC<MatchInfoProps> = ({
   matchFormat,
   games,
   currentGameSides,
-  gameVersion = "25.13",
+  patchVersion = "25.13",
   onRegisterImages,
   animated = false
 }) => {
@@ -117,7 +117,7 @@ const MatchInfoComponent: React.FC<MatchInfoProps> = ({
     <div
       className={`h-full flex h-80 flex-col items-center justify-center transition-all duration-500 ${animated ? "opacity-100 translate-y-0" : "opacity-0 translate-y-full"}`}
     >
-      <div className="bg-black p-4 pd-0 h-80 flex flex-col items-center">
+      <div className="p-4 pd-0 h-80 flex flex-col items-center">
         {/* Team Logos and Score Rectangles */}
         <div className="flex items-center gap-2 mb-3">
           <div className="flex flex-col items-center">
@@ -188,7 +188,7 @@ const MatchInfoComponent: React.FC<MatchInfoProps> = ({
         </div>
 
         {/* Tournament Logo */}
-        <div className="w-64 h-64 rounded-lg overflow-hidden mb-3">
+        <div className="w-64 h-64 rounded-lg mb-3 h-[128px] w-[128px] flex items-center justify-center">
           {tournamentLogo && tournamentLogo.trim() ? (
             <SafeImage
               src={tournamentLogo}
@@ -196,7 +196,7 @@ const MatchInfoComponent: React.FC<MatchInfoProps> = ({
               priority
               width={100}
               height={100}
-              className="w-full h-full object-cover"
+              className=""
             />
           ) : (
             <div className="w-full h-full bg-gray-600 flex items-center justify-center">
@@ -205,7 +205,7 @@ const MatchInfoComponent: React.FC<MatchInfoProps> = ({
           )}
         </div>
 
-        <div className="text-gray-300 text-sm">PATCH {gameVersion}</div>
+        <div className="text-gray-300 text-sm">PATCH {patchVersion}</div>
       </div>
     </div>
   );

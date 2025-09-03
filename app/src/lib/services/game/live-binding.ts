@@ -34,53 +34,42 @@ const roleToLivePosition = (role: PlayerRole): string => {
 
 const bindTeam = (roster: Player[], liveTeam: LivePlayer[], team: "ORDER" | "CHAOS"): BoundPlayer[] => {
   const used = new Set<number>();
+  const boundPlayers: BoundPlayer[] = [];
 
-  const slots: BoundPlayer[] = ROLE_ORDER.map((role) => ({
-    rosterPlayer: roster.find((p) => p.role === role),
-    livePlayer: undefined,
-    team,
-    resolvedRole: role
-  }));
-
-  // 1) Try to match by exact name first. If name matches but live position differs,
-  //    prioritize roster role (from the match) over live position.
-  slots.forEach((slot) => {
-    if (!slot.rosterPlayer) return;
+  // 1) Try to match by exact name first
+  roster.forEach((rosterPlayer) => {
     const idx = liveTeam.findIndex(
-      (lp, i) => !used.has(i) && normalize(lp.summonerName) === normalize(slot.rosterPlayer!.inGameName)
+      (lp, i) => !used.has(i) && normalize(lp.summonerName) === normalize(rosterPlayer.inGameName)
     );
     if (idx >= 0) {
-      slot.livePlayer = liveTeam[idx];
-      used.add(idx);
-      // Do not overwrite slot.resolvedRole here; keep the roster-defined role
-      // so that the player is bound to the expected match position even if
-      // the live feed reports a different lane/role.
-    }
-  });
-
-  // 2) For remaining empty slots, match by live position/role
-  slots.forEach((slot) => {
-    if (slot.livePlayer) return;
-    const idx = liveTeam.findIndex((lp, i) => !used.has(i) && livePositionToRole(lp.position) === slot.resolvedRole);
-    if (idx >= 0) {
-      slot.livePlayer = liveTeam[idx];
+      const livePlayer = liveTeam[idx];
+      const liveRole = livePositionToRole(livePlayer.position) || rosterPlayer.role;
+      boundPlayers.push({
+        rosterPlayer,
+        livePlayer,
+        team,
+        resolvedRole: liveRole
+      });
       used.add(idx);
     }
   });
 
-  // 3) Any live players still unused – place them into the first empty slots (prioritize live data)
+  // 2) For remaining live players, create bound players without roster match
   liveTeam.forEach((lp, i) => {
     if (used.has(i)) return;
-    const empty = slots.find((s) => !s.livePlayer);
-    if (empty) {
-      empty.livePlayer = lp;
-      const liveRole = livePositionToRole(lp.position);
-      if (liveRole) empty.resolvedRole = liveRole;
+    const liveRole = livePositionToRole(lp.position);
+    if (liveRole) {
+      boundPlayers.push({
+        rosterPlayer: undefined,
+        livePlayer: lp,
+        team,
+        resolvedRole: liveRole
+      });
       used.add(i);
     }
   });
 
-  return slots;
+  return boundPlayers;
 };
 
 export const bindLivePlayersToMatch = (

@@ -139,7 +139,92 @@ const ChampSelectOverlayPage: React.FC<ChampSelectPageProps> = ({ params }) => {
     return <></>;
   }
 
-  const data = champSelectSession as EnhancedChampSelectSession;
+  // Create enhanced champion select data with player information from teams
+  const enhancedData: EnhancedChampSelectSession = {
+    ...champSelectSession,
+    myTeam: (champSelectSession.myTeam || []).map((player, index) => {
+      // Try to find player by summoner name first, then by index
+      let teamPlayer = null;
+      const blueTeamPlayers = (match as any).blueTeam?.players || [];
+      
+      if (player.summonerName && player.summonerName !== `Player ${index + 1}`) {
+        // Try exact match first
+        teamPlayer = blueTeamPlayers.find(
+          (p: any) => p.inGameName === player.summonerName
+        );
+        
+        // If no exact match, try partial match (in case names are truncated)
+        if (!teamPlayer) {
+          teamPlayer = blueTeamPlayers.find(
+            (p: any) => p.inGameName && p.inGameName.includes(player.summonerName)
+          );
+        }
+      }
+      
+      // Fallback to index-based matching if no name match found
+      if (!teamPlayer && blueTeamPlayers[index]) {
+        teamPlayer = blueTeamPlayers[index];
+      }
+      
+      return {
+        ...player,
+        summonerName: teamPlayer?.inGameName || player.summonerName || `Player ${index + 1}`,
+        playerInfo: teamPlayer ? {
+          name: teamPlayer.inGameName,
+          _id: teamPlayer._id,
+          inGameName: teamPlayer.inGameName,
+          tag: teamPlayer.tag,
+          role: teamPlayer.role,
+          profileImage: teamPlayer.profileImage,
+          rank: teamPlayer.rank,
+          puuid: teamPlayer.puuid
+        } : undefined,
+        role: teamPlayer?.role
+      };
+    }),
+    theirTeam: (champSelectSession.theirTeam || []).map((player, index) => {
+      // Try to find player by summoner name first, then by index
+      let teamPlayer = null;
+      const redTeamPlayers = (match as any).redTeam?.players || [];
+      
+      if (player.summonerName && player.summonerName !== `Player ${index + 1}`) {
+        // Try exact match first
+        teamPlayer = redTeamPlayers.find(
+          (p: any) => p.inGameName === player.summonerName
+        );
+        
+        // If no exact match, try partial match (in case names are truncated)
+        if (!teamPlayer) {
+          teamPlayer = redTeamPlayers.find(
+            (p: any) => p.inGameName && p.inGameName.includes(player.summonerName)
+          );
+        }
+      }
+      
+      // Fallback to index-based matching if no name match found
+      if (!teamPlayer && redTeamPlayers[index]) {
+        teamPlayer = redTeamPlayers[index];
+      }
+      
+      return {
+        ...player,
+        summonerName: teamPlayer?.inGameName || player.summonerName || `Player ${index + 1}`,
+        playerInfo: teamPlayer ? {
+          name: teamPlayer.inGameName,
+          _id: teamPlayer._id,
+          inGameName: teamPlayer.inGameName,
+          tag: teamPlayer.tag,
+          role: teamPlayer.role,
+          profileImage: teamPlayer.profileImage,
+          rank: teamPlayer.rank,
+          puuid: teamPlayer.puuid
+        } : undefined,
+        role: teamPlayer?.role
+      };
+    })
+  };
+
+  const data = enhancedData;
 
   return (
     <ChampSelectDisplay
