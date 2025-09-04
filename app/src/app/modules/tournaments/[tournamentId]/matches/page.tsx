@@ -150,15 +150,15 @@ export default function TournamentMatchesPage({ params }: TournamentMatchesPageP
         { label: "Matches", href: `/modules/tournaments/${tournamentId}/matches`, isActive: true }
       ]}
     >
-      <div className="min-h-screen p-6 max-w-6xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="min-h-screen p-6 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
           {/* Current Match Status */}
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-2">
             <CurrentMatchStatus />
           </div>
 
           {/* Matches List */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-3">
             <div className="bg-gray-900 rounded-lg p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold text-white">Tournament Matches</h2>
@@ -191,25 +191,12 @@ export default function TournamentMatchesPage({ params }: TournamentMatchesPageP
                         </div>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <span
-                          className={`px-2 py-1 rounded text-xs font-medium ${
-                            match.status === "in-progress"
-                              ? "bg-yellow-600 text-yellow-100"
-                              : match.status === "completed"
-                                ? "bg-green-600 text-green-100"
-                                : match.status === "cancelled"
-                                  ? "bg-red-600 text-red-100"
-                                  : "bg-gray-600 text-gray-100"
-                          }`}
-                        >
-                          {match.status}
-                        </span>
                         <Button
                           onClick={() => router.push(`/modules/tournaments/${tournamentId}/matches/${match._id}`)}
                           size="sm"
                           variant="secondary"
                         >
-                          View
+                          Edit
                         </Button>
                         <Button
                           onClick={() => handleSetCurrentMatch(match._id)}

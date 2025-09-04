@@ -196,7 +196,8 @@ const ChampSelectOverlayPage: React.FC<ChampSelectPageProps> = ({ params }) => {
         // If no exact match, try partial match (in case names are truncated)
         if (!teamPlayer) {
           teamPlayer = redTeamPlayers.find(
-            (p: any) => p.inGameName && p.inGameName.includes(player.summonerName)
+
+            (p: Player) => p.inGameName && p.inGameName.includes(player.summonerName)
           );
         }
       }

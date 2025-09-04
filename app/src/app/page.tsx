@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { useEffect } from "react";
 import { PageWrapper } from "@lib/layout/PageWrapper";
@@ -7,6 +9,7 @@ export const dynamic = "force-dynamic";
 
 export default function HomePage() {
   const { setActiveModule } = useNavigation();
+  
   useEffect(() => {
     setActiveModule(null);
   }, [setActiveModule]);

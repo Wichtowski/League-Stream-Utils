@@ -120,7 +120,7 @@ export function PickbanProvider({ children }: { children: ReactNode }) {
   const checkLCUStatus = useCallback(async (): Promise<void> => {
     if (!user || !isElectron) return;
     try {
-      const response = await authenticatedFetch("/api/v1/pickban/leagueclient/lcu-test");
+      const response = await authenticatedFetch("/api/v1/leagueclient/lcu-test");
 
       if (response.ok) {
         const data = await response.json();

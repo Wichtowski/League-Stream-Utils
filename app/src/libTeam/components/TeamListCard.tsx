@@ -40,13 +40,13 @@ export const TeamListCard: React.FC<TeamListCardProps> = ({ team }) => {
       <div className="flex flex-col items-center text-center space-y-4">
         {/* Team Logo */}
         <div className="relative">
-          <div className="w-20 h-20 rounded-xl overflow-hidden bg-gray-700">
+          <div className="w-28 h-28 rounded-xl overflow-hidden bg-gray-700">
             {logoSrc ? (
               <SafeImage
                 src={logoSrc}
                 alt={`${team?.name} logo`}
-                width={80}
-                height={80}
+                width={128}
+                height={128}
                 className="w-full h-full object-cover"
               />
             ) : (

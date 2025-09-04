@@ -120,7 +120,7 @@ class LCUConnector {
 
   private async findLCUCredentials(): Promise<LCUCredentials | null> {
     try {
-      const response = await fetch("/api/v1/pickban/leagueclient/lcu-credentials");
+      const response = await fetch("/api/v1/leagueclient/lcu-credentials");
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -187,7 +187,7 @@ class LCUConnector {
     summoner?: unknown;
   }> {
     try {
-      const response = await fetch("/api/v1/pickban/leagueclient/lcu-test");
+      const response = await fetch("/api/v1/leagueclient/lcu-test");
       const result = await response.json();
 
       if (result.success) {
@@ -217,7 +217,7 @@ class LCUConnector {
     checks?: unknown;
   }> {
     try {
-      const response = await fetch("/api/v1/pickban/leagueclient/lcu-test");
+      const response = await fetch("/api/v1/leagueclient/lcu-test");
       const result = await response.json();
 
       if (result.success) {

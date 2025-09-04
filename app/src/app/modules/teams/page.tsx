@@ -25,31 +25,12 @@ export default function TeamsPage(): ReactElement {
       setLoading(true);
       setError(null);
 
-      console.log("Fetching teams..."); // Debug log
       const response = await fetch("/api/v1/teams", {
         credentials: "include"
       });
 
-      console.log("Response status:", response.status); // Debug log
-
       if (response.ok) {
         const data = await response.json();
-        console.log("Teams API response:", data); // Debug log
-        console.log("Teams array:", data.teams); // Debug log
-        console.log("Teams length:", data.teams?.length); // Debug log
-
-        // Debug each team
-        if (data.teams && data.teams.length > 0) {
-          data.teams.forEach((team: Team, index: number) => {
-            console.log(`Team ${index}:`, {
-              _id: team._id,
-              name: team.name,
-              tag: team.tag,
-              isStandalone: team.isStandalone,
-              hasLogo: !!team.logo
-            });
-          });
-        }
 
         setTeams(data.teams || []);
       } else if (response.status === 401) {

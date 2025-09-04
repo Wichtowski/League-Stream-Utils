@@ -87,15 +87,15 @@ export const CurrentMatchStatus = (): React.ReactElement => {
         <div className="flex items-center justify-between">
           <span className="text-gray-400">Teams:</span>
           <div className="text-right">
-            <div className="text-blue-400">{blueTeamName || `Blue Team (ID: ${currentMatch.blueTeamId})`}</div>
-            <div className="text-red-400">{redTeamName || `Red Team (ID: ${currentMatch.redTeamId})`}</div>
+            <div className="text-blue-400">{blueTeamName || ''}</div>
+            <div className="text-red-400">{redTeamName || ''}</div>
           </div>
         </div>
 
         {currentMatch.tournamentId && (
           <div className="flex items-center justify-between">
             <span className="text-gray-400">Tournament:</span>
-            <span className="text-white">{tournamentName || `Tournament ID: ${currentMatch.tournamentId}`}</span>
+            <span className="text-white">{tournamentName || ''}</span>
           </div>
         )}
 

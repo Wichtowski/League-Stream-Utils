@@ -305,7 +305,7 @@ export const mockStaticPlayersBlue: Player[] = [
     inGameName: "frajgo",
     tag: "FMS",
     role: "TOP",
-    verified: true,
+
     createdAt: new Date(),
     updatedAt: new Date()
   },
@@ -314,7 +314,7 @@ export const mockStaticPlayersBlue: Player[] = [
     inGameName: "Rybson",
     tag: "FMS",
     role: "JUNGLE",
-    verified: true,
+
     createdAt: new Date(),
     updatedAt: new Date()
   },
@@ -323,7 +323,6 @@ export const mockStaticPlayersBlue: Player[] = [
     inGameName: "Mrozku",
     tag: "FMS",
     role: "MID",
-    verified: true,
     createdAt: new Date(),
     updatedAt: new Date()
   },
@@ -332,7 +331,6 @@ export const mockStaticPlayersBlue: Player[] = [
     inGameName: "zamulek",
     tag: "FMS",
     role: "BOTTOM",
-    verified: true,
     createdAt: new Date(),
     updatedAt: new Date()
   },
@@ -341,7 +339,7 @@ export const mockStaticPlayersBlue: Player[] = [
     inGameName: "minemaciek",
     tag: "FMS",
     role: "SUPPORT",
-    verified: true,
+
     createdAt: new Date(),
     updatedAt: new Date()
   }
@@ -353,7 +351,7 @@ export const mockStaticPlayersRed: Player[] = [
     inGameName: "Bausffs",
     tag: "LR",
     role: "TOP",
-    verified: true,
+
     createdAt: new Date(),
     updatedAt: new Date()
   },
@@ -362,7 +360,7 @@ export const mockStaticPlayersRed: Player[] = [
     inGameName: "Velja",
     tag: "LR",
     role: "JUNGLE",
-    verified: true,
+
     createdAt: new Date(),
     updatedAt: new Date()
   },
@@ -371,7 +369,7 @@ export const mockStaticPlayersRed: Player[] = [
     inGameName: "Nemesis",
     tag: "LR",
     role: "MID",
-    verified: true,
+
     createdAt: new Date(),
     updatedAt: new Date()
   },
@@ -380,7 +378,7 @@ export const mockStaticPlayersRed: Player[] = [
     inGameName: "Crownie",
     tag: "LR",
     role: "BOTTOM",
-    verified: true,
+
     createdAt: new Date(),
     updatedAt: new Date()
   },
@@ -389,7 +387,7 @@ export const mockStaticPlayersRed: Player[] = [
     inGameName: "Rekkles",
     tag: "LR",
     role: "SUPPORT",
-    verified: true,
+
     createdAt: new Date(),
     updatedAt: new Date()
   }

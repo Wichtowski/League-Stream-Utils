@@ -50,7 +50,7 @@ export default function CreateMatchPage({ params }: CreateMatchPageProps): React
         setTournament(tournamentData.tournament);
 
         // Check if user is tournament organizer
-        if (tournamentData.tournament.userId !== user?.id && !user?.isAdmin) {
+        if (tournamentData.tournament.userId !== user?._id && !user?.isAdmin) {
           setError("You don't have permission to create matches for this tournament");
           return;
         }
@@ -74,7 +74,7 @@ export default function CreateMatchPage({ params }: CreateMatchPageProps): React
     };
 
     fetchData();
-  }, [tournamentId, user?.id, user?.isAdmin]);
+  }, [tournamentId, user?._id, user?.isAdmin]);
 
   const handleMatchCreated = (_match: Match) => {
     // Optionally redirect to the match page or refresh the page
@@ -87,7 +87,13 @@ export default function CreateMatchPage({ params }: CreateMatchPageProps): React
 
   if (loading) {
     return (
-      <PageWrapper>
+      <PageWrapper
+        breadcrumbs={[
+          { label: "Tournaments", href: "/modules/tournaments" },
+          { label: "Matches", href: `/modules/tournaments/${tournamentId}/matches` },
+          { label: "Create", href: `/modules/tournaments/${tournamentId}/matches/create`, isActive: true }
+        ]}
+      >
         <div className="min-h-screen p-6 max-w-6xl mx-auto">
           <div className="text-center py-12">
             <LoadingSpinner />
@@ -120,7 +126,8 @@ export default function CreateMatchPage({ params }: CreateMatchPageProps): React
       <PageWrapper
         breadcrumbs={[
           { label: "Tournaments", href: "/modules/tournaments" },
-          { label: "Matches", href: `/modules/tournaments/${tournamentId}/matches`, isActive: true }
+          { label: "Matches", href: `/modules/tournaments/${tournamentId}/matches` },
+          { label: "Create", href: `/modules/tournaments/${tournamentId}/matches/create`, isActive: true }
         ]}
       >
         <div className="min-h-screen p-6 max-w-6xl mx-auto">
@@ -136,7 +143,8 @@ export default function CreateMatchPage({ params }: CreateMatchPageProps): React
     <PageWrapper
       breadcrumbs={[
         { label: "Tournaments", href: "/modules/tournaments" },
-        { label: "Matches", href: `/modules/tournaments/${tournamentId}/matches`, isActive: true }
+        { label: "Matches", href: `/modules/tournaments/${tournamentId}/matches` },
+        { label: "Create", href: `/modules/tournaments/${tournamentId}/matches/create`, isActive: true }
       ]}
     >
       <div className="min-h-screen p-6 max-w-6xl mx-auto">

@@ -47,7 +47,7 @@ export class MatchGenerator {
           redTeamId: team2,
           format: tournament.matchFormat,
           isFearlessDraft: tournament.fearlessDraft,
-          patchName: tournament.gameVersion || "Latest",
+          patchName: tournament.patchVersion || tournament.apiVersion || "Latest",
           scheduledTime: this.calculateMatchTime(tournament, i).toISOString(),
           createdBy: tournament.userId
         });
@@ -77,7 +77,7 @@ export class MatchGenerator {
             redTeamId: teams[i + 1],
             format: tournament.phaseMatchFormats?.swiss || tournament.matchFormat,
             isFearlessDraft: tournament.fearlessDraft,
-            patchName: tournament.gameVersion || "Latest",
+            patchName: tournament.patchVersion || tournament.apiVersion || "Latest",
             scheduledTime: this.calculateMatchTime(tournament, matches.length).toISOString(),
             createdBy: tournament.userId
           });
@@ -105,7 +105,7 @@ export class MatchGenerator {
           redTeamId: teams[j],
           format: tournament.phaseMatchFormats?.roundRobin || tournament.matchFormat,
           isFearlessDraft: tournament.fearlessDraft,
-          patchName: tournament.gameVersion || "Latest",
+          patchName: tournament.patchVersion || tournament.apiVersion || "Latest",
           scheduledTime: this.calculateMatchTime(tournament, matches.length).toISOString(),
           createdBy: tournament.userId
         });
@@ -146,7 +146,7 @@ export class MatchGenerator {
             redTeamId: group[j],
             format: tournament.phaseMatchFormats?.groups || tournament.matchFormat,
             isFearlessDraft: tournament.fearlessDraft,
-            patchName: tournament.gameVersion || "Latest",
+            patchName: tournament.patchVersion || tournament.apiVersion || "Latest",
             scheduledTime: this.calculateMatchTime(tournament, matches.length).toISOString(),
             createdBy: tournament.userId
           });
