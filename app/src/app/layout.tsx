@@ -47,7 +47,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col bg-black`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}>
         <ContextWrapper
           contexts={[
             { name: "Electron", provider: ElectronProvider },
@@ -66,11 +66,13 @@ export default function RootLayout({
             { name: "Modal", provider: ModalProvider }
           ]}
         >
-          <NavigationGuard>
-            <main className="flex-1">{children}</main>
-            <Footer />
-            <ChampionCacheInitializer />
-          </NavigationGuard>
+          <div className="bg-black">
+            <NavigationGuard>
+              <main className="flex-1">{children}</main>
+              <Footer />
+              <ChampionCacheInitializer />
+            </NavigationGuard>
+          </div>
         </ContextWrapper>
       </body>
     </html>

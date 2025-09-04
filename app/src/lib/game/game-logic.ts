@@ -91,7 +91,7 @@ export async function createGameSession(config?: Partial<GameConfig>): Promise<G
     type: "web",
     teams: {
       blue: {
-        id: uuidv4(),
+        _id: uuidv4(),
         name: defaultConfig.blueTeamName || "Blue Team",
         side: "blue",
         bans: [],
@@ -102,7 +102,7 @@ export async function createGameSession(config?: Partial<GameConfig>): Promise<G
         logo: defaultConfig.blueTeamId as string
       },
       red: {
-        id: uuidv4(),
+        _id: uuidv4(),
         name: defaultConfig.redTeamName || "Red Team",
         side: "red",
         bans: [],
@@ -234,15 +234,15 @@ export async function isChampionAvailable(session: GameSession, championId: numb
   const allPicks = [...session.teams.blue.picks, ...session.teams.red.picks];
 
   const unavailableInCurrentGame =
-    allBans.some((c) => c.id === championId) || allPicks.some((c) => c.id === championId);
+    allBans.some((c) => c._id === championId) || allPicks.some((c) => c._id === championId);
 
   if (unavailableInCurrentGame) {
     return false;
   }
 
   if (session.config.isFearlessDraft) {
-    const usedChampions = await getUsedChampionsInSeries(session.id);
-    const isUsedInSeries = usedChampions.some((c) => c.id === championId);
+    const usedChampions = await getUsedChampionsInSeries(session._id);
+    const isUsedInSeries = usedChampions.some((c) => c._id === championId);
     return !isUsedInSeries;
   }
 
@@ -279,7 +279,7 @@ export async function startGame(session: GameSession): Promise<void> {
 }
 
 export function startTimer(session: GameSession): void {
-  const existingTimer = timers.get(session.id);
+  const existingTimer = timers.get(session._id);
   if (existingTimer) {
     clearTimeout(existingTimer);
   }
@@ -304,7 +304,7 @@ export function startTimer(session: GameSession): void {
   const timer = setInterval(async () => {
     if (session.timer.remaining <= 0) {
       clearInterval(timer);
-      timers.delete(session.id);
+      timers.delete(session._id);
       await handleTimerExpired(session);
     } else {
       session.timer.remaining -= 1000;
@@ -313,14 +313,14 @@ export function startTimer(session: GameSession): void {
     }
   }, 1000);
 
-  timers.set(session.id, timer);
+  timers.set(session._id, timer);
 }
 
 export function stopTimer(session: GameSession): void {
-  const timer = timers.get(session.id);
+  const timer = timers.get(session._id);
   if (timer) {
     clearTimeout(timer);
-    timers.delete(session.id);
+    timers.delete(session._id);
   }
 
   session.timer.isActive = false;
@@ -342,7 +342,7 @@ export async function handleTimerExpired(session: GameSession): Promise<void> {
     if (session.timer.remaining <= -10000) {
       // Allow 10 seconds of negative time
       clearInterval(timer);
-      timers.delete(session.id);
+      timers.delete(session._id);
       // Still don't auto-advance, just stop the timer
       session.timer.isActive = false;
       await saveGameSession(session);
@@ -353,7 +353,7 @@ export async function handleTimerExpired(session: GameSession): Promise<void> {
     }
   }, 1000);
 
-  timers.set(session.id, timer);
+  timers.set(session._id, timer);
 }
 
 export async function banChampion(
@@ -420,7 +420,7 @@ export async function pickChampion(
   session.lastActivity = new Date();
 
   if (session.config.isFearlessDraft) {
-    await addUsedChampion(session.id, teamSide, champion);
+    await addUsedChampion(session._id, teamSide, champion);
   }
 
   stopTimer(session);
@@ -455,7 +455,7 @@ export function getGameState(session: GameSession): GameState {
   const currentTurn = getCurrentTurn(session);
 
   return {
-    sessionId: session.id,
+    sessionId: session._id,
     teams: {
       blue: {
         ...session.teams.blue,
@@ -518,26 +518,26 @@ export async function completeGame(
       patch: session.config.patchName,
       completedAt: new Date(),
       blueTeam: {
-        teamId: session.teams.blue.id,
+        teamId: session.teams.blue._id,
         teamName: session.teams.blue.name,
         won: winner === "blue",
         picks: session.teams.blue.picks.map((champion, index) => ({
-          championId: champion.id,
+          championId: champion._id,
           role: ["TOP", "JUNGLE", "MID", "BOTTOM", "SUPPORT"][index] as PlayerRole,
           player: undefined
         })),
-        bans: session.teams.blue.bans.map((champion) => champion.id)
+        bans: session.teams.blue.bans.map((champion) => champion._id)
       },
       redTeam: {
-        teamId: session.teams.red.id,
+        teamId: session.teams.red._id,
         teamName: session.teams.red.name,
         won: winner === "red",
         picks: session.teams.red.picks.map((champion, index) => ({
-          championId: champion.id,
+          championId: champion._id,
           role: ["TOP", "JUNGLE", "MID", "BOTTOM", "SUPPORT"][index] as PlayerRole,
           player: undefined
         })),
-        bans: session.teams.red.bans.map((champion) => champion.id)
+        bans: session.teams.red.bans.map((champion) => champion._id)
       }
     };
 
@@ -602,8 +602,8 @@ export async function getAvailableChampions(session: GameSession): Promise<Champ
     return allChampions;
   }
 
-  const usedChampions = await getUsedChampionsInSeries(session.id);
-  return allChampions.filter((champion: Champion) => !usedChampions.some((used: Champion) => used.id === champion.id));
+  const usedChampions = await getUsedChampionsInSeries(session._id);
+  return allChampions.filter((champion: Champion) => !usedChampions.some((used: Champion) => used._id === champion._id));
 }
 
 export function generateTeamUrl(sessionId: string, teamSide: "blue" | "red", baseUrl: string): string {
@@ -636,8 +636,8 @@ export async function createGameSessionFromTeams(
     redTeamName: redTeam.name,
     blueTeamPrefix: blueTeam.tag,
     redTeamPrefix: redTeam.tag,
-    blueTeamId: blueTeam.id,
-    redTeamId: redTeam.id
+    blueTeamId: blueTeam._id,
+    redTeamId: redTeam._id
   });
 
   return session;

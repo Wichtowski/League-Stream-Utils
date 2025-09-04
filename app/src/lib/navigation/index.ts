@@ -85,7 +85,7 @@ export const MODULES: ModuleCard[] = [
   },
   {
     id: "leagueclient-champselect-demo",
-    name: "Champ Select",
+    name: "Champ Select Demo",
     description: "Connect to the League of Legends client to get live champ select data",
     icon: "📱",
     path: "/modules/leagueclient/champselect/demo",

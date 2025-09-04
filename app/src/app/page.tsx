@@ -1,10 +1,18 @@
 import Link from "next/link";
+import { useEffect } from "react";
+import { PageWrapper } from "@lib/layout/PageWrapper";
+import { useNavigation } from "@lib/contexts/NavigationContext";
 
 export const dynamic = "force-dynamic";
 
 export default function HomePage() {
+  const { setActiveModule } = useNavigation();
+  useEffect(() => {
+    setActiveModule(null);
+  }, [setActiveModule]);
+ 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900">
+    <PageWrapper>
       {/* Navigation */}
       <nav className="bg-black/20 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -167,6 +175,6 @@ export default function HomePage() {
           </div>
         </div>
       </footer>
-    </div>
+    </PageWrapper>
   );
 }

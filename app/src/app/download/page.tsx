@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { downloadAllAssets, BootstrapProgress } from "@lib/services/assets/bootstrapper";
 import { useElectron } from "@libElectron/contexts/ElectronContext";
 import { useDownload } from "@lib/contexts/DownloadContext";
+import { useNavigation } from "@lib/contexts/NavigationContext";
 
 interface CategoryProgress {
   category: string;
@@ -26,6 +27,7 @@ const categories = ["champion", "item", "game-ui", "spell", "rune"];
 
 export default function DownloadAssetsPage() {
   const router = useRouter();
+  const { setActiveModule } = useNavigation();
   const [categoryProgress, setCategoryProgress] = useState<Map<string, CategoryProgress>>(new Map());
   const [overallProgress, setOverallProgress] = useState<OverallProgress>({
     current: 0,
@@ -35,6 +37,10 @@ export default function DownloadAssetsPage() {
   const startedRef = useRef(false);
   const { isElectron, isElectronLoading } = useElectron();
   const { resetDownloadState } = useDownload();
+
+  useEffect(() => {
+    setActiveModule(null);
+  }, [setActiveModule]);
 
   useEffect(() => {
     const initialProgress = new Map();

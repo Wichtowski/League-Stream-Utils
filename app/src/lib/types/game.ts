@@ -53,6 +53,7 @@ export interface GameConfig {
 }
 
 export interface GameSession {
+  _id: string;
   type?: "static" | "lcu" | "tournament" | "web";
   teams: {
     blue: SessionTeam;

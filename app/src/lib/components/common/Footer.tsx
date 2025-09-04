@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { getVisibleModules } from "@lib/navigation";
 import { useNavigation } from "@lib/contexts/NavigationContext";
-import { usePathname } from "next/navigation";
 import { useElectron } from "@libElectron/contexts/ElectronContext";
 import { useAuth } from "@lib/contexts/AuthContext";
 
@@ -11,11 +10,10 @@ export function Footer() {
   const { activeModule } = useNavigation();
   const { isElectron, useLocalData } = useElectron();
   const { user } = useAuth();
-  const pathname = usePathname();
   const isAuthenticated = !!user;
 
   // Don't show footer on main/auth pages or when no module active
-  if (activeModule === null || pathname === "/" || pathname === "/download" || pathname.includes("/leagueclient")) {
+  if (activeModule === null) {
     return null;
   }
 

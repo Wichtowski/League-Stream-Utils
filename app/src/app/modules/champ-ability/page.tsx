@@ -8,7 +8,6 @@ import { DDRAGON_CDN } from "@lib/services/common/constants";
 import { getChampions, getChampionCacheStats } from "@lib/champions";
 import { DownloadProgress } from "@lib/services/assets/downloader";
 import { assetCache } from "@lib/services/assets/assetCache";
-import { championCacheService } from "@lib/services/assets/champion";
 import { DownloadProgressModal } from "@lib/components/common/modal";
 import { PageWrapper } from "@lib/layout/PageWrapper";
 
@@ -71,10 +70,10 @@ export default function ChampAbilityPage() {
   const [dragOverBlue, setDragOverBlue] = useState(false);
   const [showOnlyR, setShowOnlyR] = useState(false);
   const [language, setLanguage] = useState("pl_PL");
-  const [cacheStats, setCacheStats] = useState<CacheStats | null>(null);
+  const [_cacheStats, _setCacheStats] = useState<CacheStats | null>(null);
 
   // Download progress state
-  const [downloadProgress, setDownloadProgress] = useState<DownloadProgress>({
+  const [downloadProgress, _setDownloadProgress] = useState<DownloadProgress>({
     stage: "checking",
     current: 0,
     total: 0,
@@ -104,7 +103,7 @@ export default function ChampAbilityPage() {
 
     try {
       const stats = await getChampionCacheStats();
-      setCacheStats(stats);
+      _setCacheStats(stats);
     } catch (error) {
       console.warn("Failed to load cache stats:", error);
     }
@@ -117,48 +116,6 @@ export default function ChampAbilityPage() {
     loadCacheStats();
   }, [setActiveModule, isElectron, setIsElectron, loadChampions, loadCacheStats]);
 
-  const handleRefreshCache = useCallback(async () => {
-    if (!isElectron) return;
-
-    try {
-      setIsDownloading(true);
-      setShowProgressModal(true);
-
-      // Set up progress tracking - only show champion-specific progress
-      championCacheService.onProgress((progress) => {
-        // Filter to only show main champion download progress, not internal sub-operations
-        if (progress.assetType === "champion" || !progress.assetType) {
-          setDownloadProgress({
-            stage: progress.stage === "complete" ? "complete" : "downloading",
-            current: progress.current,
-            total: progress.total,
-            currentAsset: progress.currentAsset,
-            assetType: progress.assetType,
-            percentage: progress.percentage,
-            message: `Downloading ${progress.current}/${progress.total} champions`,
-            errors: [],
-            activeConnections: 1,
-            queueLength: 0
-          });
-        }
-      });
-
-      // Start the download
-      await championCacheService.getAllChampions();
-
-      // Refresh the champions list and cache stats
-      await loadCacheStats();
-      await loadChampions();
-    } catch (error) {
-      console.error("Failed to refresh cache:", error);
-    } finally {
-      setIsDownloading(false);
-      // Keep modal open for a moment to show completion
-      setTimeout(() => {
-        setShowProgressModal(false);
-      }, 2000);
-    }
-  }, [isElectron, setIsDownloading, setShowProgressModal, loadCacheStats, loadChampions]);
 
   const handleCancelDownload = useCallback(() => {
     setShowProgressModal(false);
@@ -252,51 +209,7 @@ export default function ChampAbilityPage() {
           </select>
         </div>
 
-        {/* Cache Management Section */}
-        {isElectron && (
-          <div className="flex justify-center mb-6 w-full">
-            <div className="bg-gray-800 rounded-lg p-4 max-w-2xl w-full">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-lg font-semibold text-blue-300">Champion Cache Management</h3>
-                <div className="flex gap-2">
-                  <button
-                    onClick={handleRefreshCache}
-                    disabled={isDownloading}
-                    className="px-4 py-2 rounded bg-blue-600 text-white font-semibold hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed transition"
-                  >
-                    {isDownloading ? "Downloading..." : "Refresh Cache"}
-                  </button>
-                </div>
-              </div>
-
-              {cacheStats && (
-                <div className="grid grid-cols-3 gap-4 text-sm">
-                  <div className="bg-gray-700 rounded p-3">
-                    <div className="text-gray-400">Total Champions</div>
-                    <div className="text-white font-semibold">{cacheStats.totalChampions}</div>
-                  </div>
-                  <div className="bg-gray-700 rounded p-3">
-                    <div className="text-gray-400">Cache Size</div>
-                    <div className="text-white font-semibold">{cacheStats.cacheSize}</div>
-                  </div>
-                  <div className="bg-gray-700 rounded p-3">
-                    <div className="text-gray-400">Version</div>
-                    <div className="text-white font-semibold">{cacheStats.version}</div>
-                  </div>
-                </div>
-              )}
-
-              <div className="mt-3 text-xs text-gray-400">
-                Champions are cached locally with images and ability data for faster loading.
-                <br />
-                <strong>Download All:</strong> Downloads all champions for the current version.
-                <br />
-                <strong>Refresh Cache:</strong> Clears cache and re-downloads all champions.
-              </div>
-            </div>
-          </div>
-        )}
-
+       
         <div className="flex justify-center mb-4 w-full mb-4 mt-2 mx-2">
           <button
             className="px-4 py-2 rounded bg-gray-700 text-white font-semibold hover:bg-gray-600 transition mr-2"

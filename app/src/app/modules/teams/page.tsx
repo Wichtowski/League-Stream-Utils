@@ -89,7 +89,7 @@ export default function TeamsPage(): ReactElement {
         title="My Teams"
         breadcrumbs={[{ label: "Teams", href: "/modules/teams", isActive: true }]}
         loading={true}
-        loadingChildren={<GridLoader config="teams" rows={3} />}
+        loadingChildren={<GridLoader config="teams" rows={2} />}
       >
         <></>
       </PageWrapper>
@@ -183,7 +183,6 @@ export default function TeamsPage(): ReactElement {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {teams
               .filter((team) => {
-                console.log("Filtering team:", team.name, "isStandalone:", team.isStandalone);
                 return team && team.name && team.tag && team.isStandalone;
               })
               .map((team) => (
