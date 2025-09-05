@@ -10,6 +10,8 @@ type NavigationModule =
   | "cameras"
   | "modules"
   | "tournaments"
+  | "adminTournaments"
+  | "admin"
   | "teams"
   | "settings"
   | "leagueclient"

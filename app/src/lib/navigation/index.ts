@@ -43,11 +43,23 @@ export const MODULES: ModuleCard[] = [
     name: "Admin Tournament Manager",
     description: "Register any team to any tournament with admin privileges and bypass restrictions",
     icon: "🔧",
-    path: "/modules/tournaments",
+    path: "/modules/tournaments/admin",
     color: "from-purple-500 to-pink-500",
     spotlightColor: "rgba(168, 85, 247, 0.15)",
     status: "new",
     category: "tournament",
+    adminOnly: true
+  },
+  {
+    id: "adminPermissions",
+    name: "Global Permissions",
+    description: "Manage user roles and permissions across the entire system",
+    icon: "🛡️",
+    path: "/modules/admin/permissions",
+    color: "from-red-500 to-pink-500",
+    spotlightColor: "rgba(239, 68, 68, 0.15)",
+    status: "available",
+    category: "admin",
     adminOnly: true
   },
   {
@@ -182,7 +194,7 @@ export function getVisibleModules({
     if (module.id === "champ-ability") {
       return true;
     }
-    if (module.id === "adminTournaments") {
+    if (module.id === "adminTournaments" || module.id === "adminPermissions") {
       return showFullNav && isAdmin;
     }
     if (module.id === "sponsors" || module.id === "matches" || module.id === "comentators") {

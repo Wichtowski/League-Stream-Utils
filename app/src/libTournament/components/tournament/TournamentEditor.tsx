@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import type { Tournament, TournamentStatus } from "@lib/types";
 import { MyTeamRegistration } from "../tournament/MyTeamRegistration";
 import { StandaloneTeamManager } from "../standalone/StandaloneTeamManager";
+import { PermissionGuard } from "@lib/components/permissions/PermissionGuard";
+import { Permission } from "@lib/types/permissions";
 
 interface TournamentEditorProps {
   tournament: Tournament;
@@ -134,6 +136,18 @@ export const TournamentEditor = ({
           >
             Standalone Teams
           </button>
+
+          <PermissionGuard
+            permission={Permission.TOURNAMENT_ADMIN}
+            resourceId={tournament._id}
+          >
+            <button
+              onClick={() => router.push(`/modules/tournaments/${tournament._id}/permissions`)}
+              className={`${buttonStyle} bg-purple-600 hover:bg-purple-700`}
+            >
+              Manage Permissions
+            </button>
+          </PermissionGuard>
 
           {tournament.status === "draft" && (
             <button

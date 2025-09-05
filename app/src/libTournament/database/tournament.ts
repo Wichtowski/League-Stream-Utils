@@ -54,14 +54,56 @@ export const createTournament = async (
   });
 
   await newTournament.save();
+  
+  // Automatically grant tournament owner permissions to the creator
+  try {
+    const { PermissionService } = await import("@lib/services/permissions");
+    const { Role } = await import("@lib/types/permissions");
+    
+    await PermissionService.grantTournamentRole(
+      newTournament._id.toString(),
+      userId,
+      Role.TOURNAMENT_OWNER,
+      userId // Creator grants themselves the permission
+    );
+  } catch (error) {
+    console.error("Failed to grant tournament owner permissions:", error);
+    // Don't fail tournament creation if permission granting fails
+  }
+  
   return convertMongoDoc(newTournament);
 };
 
-// Get tournaments for a specific user
+// Get tournaments for a specific user (including tournaments they have permissions for)
 export const getUserTournaments = async (userId: string): Promise<TournamentType[]> => {
   await connectToDatabase();
-  const tournaments = await TournamentModel.find({ userId }).sort({ createdAt: -1 });
-  return tournaments.map(convertMongoDoc);
+  
+  try {
+    // Get tournaments where user is the owner
+    const ownedTournaments = await TournamentModel.find({ userId }).sort({ createdAt: -1 });
+    
+    // Get tournaments where user has permissions
+    const { PermissionService } = await import("@lib/services/permissions");
+    const userPermissions = await PermissionService.getUserTournamentPermissions(userId);
+    
+    const tournamentIds = userPermissions.map(p => p.tournamentId);
+    const permissionTournaments = tournamentIds.length > 0 
+      ? await TournamentModel.find({ _id: { $in: tournamentIds } }).sort({ createdAt: -1 })
+      : [];
+    
+    // Combine and deduplicate tournaments
+    const allTournaments = [...ownedTournaments, ...permissionTournaments];
+    const uniqueTournaments = allTournaments.filter((tournament, index, self) => 
+      index === self.findIndex(t => t._id.toString() === tournament._id.toString())
+    );
+    
+    return uniqueTournaments.map(convertMongoDoc);
+  } catch (error) {
+    console.error("Error getting user tournaments:", error);
+    // Fallback to original behavior
+    const tournaments = await TournamentModel.find({ userId }).sort({ createdAt: -1 });
+    return tournaments.map(convertMongoDoc);
+  }
 };
 
 // Get all tournaments (admin function)

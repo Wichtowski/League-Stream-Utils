@@ -3,6 +3,8 @@ export interface AuthCredentials {
   password: string;
 }
 
+import { Role } from "./permissions";
+
 export interface User {
   _id: string;
   username: string;
@@ -11,6 +13,7 @@ export interface User {
   email: string;
   isAdmin: boolean;
   sessionsCreatedToday: number;
+  globalRoles: Role[]; // Global roles stored in user document
   lastSessionDate: Date;
   createdAt: Date;
   isLocked?: boolean;

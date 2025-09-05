@@ -9,6 +9,12 @@ import {
   SecurityEventSchema,
   PlayerStatsSchema
 } from "./schemas";
+import {
+  TournamentPermissionSchema,
+  UserPermissionSchema,
+  PermissionAuditSchema,
+  PermissionRequestSchema
+} from "./schemas/permissions";
 
 // Lazy initialization function to ensure models are only created after connection
 export const getModel = <T>(name: string, schema: Schema): Model<T> => {
@@ -56,3 +62,16 @@ export const SecurityEventModel = getModel("SecurityEvent", SecurityEventSchema)
 
 export type PlayerStatsDoc = InferSchemaType<typeof PlayerStatsSchema>;
 export const PlayerStatsModel = getModel<PlayerStatsDoc>("PlayerStats", PlayerStatsSchema);
+
+// Permission models
+export type TournamentPermissionDoc = InferSchemaType<typeof TournamentPermissionSchema>;
+export const TournamentPermissionModel = getModel<TournamentPermissionDoc>("TournamentPermission", TournamentPermissionSchema);
+
+export type UserPermissionDoc = InferSchemaType<typeof UserPermissionSchema>;
+export const UserPermissionModel = getModel<UserPermissionDoc>("UserPermission", UserPermissionSchema);
+
+export type PermissionAuditDoc = InferSchemaType<typeof PermissionAuditSchema>;
+export const PermissionAuditModel = getModel<PermissionAuditDoc>("PermissionAudit", PermissionAuditSchema);
+
+export type PermissionRequestDoc = InferSchemaType<typeof PermissionRequestSchema>;
+export const PermissionRequestModel = getModel<PermissionRequestDoc>("PermissionRequest", PermissionRequestSchema);
