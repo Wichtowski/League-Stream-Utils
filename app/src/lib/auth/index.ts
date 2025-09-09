@@ -101,7 +101,6 @@ export function withAuth(handler: (request: NextRequest, user: DecodedToken) => 
 
     // Check for authentication via either header or cookie
     if (!authHeader && !accessTokenCookie) {
-      console.log("[AUTH] No authentication found - no header or cookie");
       return setSecurityHeaders(NextResponse.json({ error: "Authentication required" }, { status: 401 }));
     }
 
@@ -167,8 +166,6 @@ export function withAuth(handler: (request: NextRequest, user: DecodedToken) => 
         return setSecurityHeaders(NextResponse.json({ error: "Invalid authentication format" }, { status: 401 }));
       }
     } catch (error) {
-      console.error("Authentication error:", error);
-
       await logSecurityEvent({
         timestamp: new Date(),
         event: "auth_error",
@@ -218,7 +215,6 @@ export function createSession(
   };
 
   activeSessions.set(sessionId, session);
-  console.log("[AUTH] Created new session:", sessionId, "Total sessions:", activeSessions.size);
   return sessionId;
 }
 

@@ -1,6 +1,7 @@
 import React from "react";
 import { Breadcrumbs, BreadcrumbItem, SettingsCog } from "@lib/components/common";
 import { useElectron } from "@libElectron/contexts/ElectronContext";
+import { Footer } from "@lib/components/common/Footer";
 
 interface PageLayoutProps {
   children: React.ReactNode;
@@ -72,6 +73,7 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
         {/* Content */}
         <div className={contentClassName}>{children}</div>
       </div>
+      <Footer />
     </div>
   );
 };

@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { Footer } from "@lib/components/common/Footer";
 import {
   NavigationProvider,
   ModalProvider,
@@ -69,7 +68,6 @@ export default function RootLayout({
           <div className="bg-black">
             <NavigationGuard>
               <main className="flex-1">{children}</main>
-              <Footer />
               <ChampionCacheInitializer />
             </NavigationGuard>
           </div>
