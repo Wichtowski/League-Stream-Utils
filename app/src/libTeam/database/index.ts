@@ -1,4 +1,3 @@
-import { connectToDatabase } from "@lib/database";
 import { TeamModel } from "@libTeam/database/models";
 import type { Team, CreateTeamRequest } from "@lib/types";
 import type { Document } from "mongoose";
@@ -28,8 +27,6 @@ const convertMongoDoc = (doc: Document): Team => {
 };
 
 export const createTeam = async (userId: string, teamData: CreateTeamRequest): Promise<Team> => {
-  await connectToDatabase();
-
   const newTeam = new TeamModel({
     name: teamData.name,
     tag: teamData.tag,
@@ -53,14 +50,9 @@ export const createTeam = async (userId: string, teamData: CreateTeamRequest): P
 
 export const getUserTeams = async (teamOwnerId: string): Promise<Team[]> => {
   try {
-    await connectToDatabase();
-    console.log("Fetching teams for user:", teamOwnerId);
-
     const teams = await TeamModel.find({ teamOwnerId }).sort({ createdAt: -1 });
-    console.log("Raw teams from database:", teams.length);
 
     const convertedTeams = teams.map(convertMongoDoc);
-    console.log("Converted teams:", convertedTeams.length);
 
     return convertedTeams;
   } catch (error) {
@@ -70,20 +62,14 @@ export const getUserTeams = async (teamOwnerId: string): Promise<Team[]> => {
 };
 
 export const getAllTeams = async (): Promise<Team[]> => {
-  await connectToDatabase();
-  console.log("getAllTeams: Connected to database");
-
   const teams = await TeamModel.find({}).sort({ createdAt: -1 });
-  console.log("getAllTeams: Raw teams from DB:", teams.length);
 
   const convertedTeams = teams.map(convertMongoDoc);
-  console.log("getAllTeams: Converted teams:", convertedTeams.length);
 
   return convertedTeams;
 };
 
 export const getTeamById = async (teamId: string): Promise<Team | null> => {
-  await connectToDatabase();
   const team = await TeamModel.findById(teamId);
   if (!team) return null;
   return convertMongoDoc(team);
@@ -93,7 +79,6 @@ export const getTeamLogoByTeamId = async (
   teamId: string
 ): Promise<{ type: "url"; url: string } | { type: "upload"; data: string } | null> => {
   try {
-    await connectToDatabase();
 
     const team = await TeamModel.findOne({ _id: teamId }).select({ logo: 1 }).lean().exec();
 
@@ -123,8 +108,6 @@ export const updateTeam = async (
   userId: string,
   updates: Partial<CreateTeamRequest>
 ): Promise<Team | null> => {
-  await connectToDatabase();
-
   const team = await TeamModel.findById(teamId);
   if (!team || team.teamOwnerId !== userId) {
     return null;
@@ -152,7 +135,6 @@ export const updateTeam = async (
 };
 
 export const deleteTeam = async (teamId: string, userId: string): Promise<boolean> => {
-  await connectToDatabase();
   const team = await TeamModel.findById(teamId);
   if (!team || team.teamOwnerId !== userId) {
     return false;
@@ -162,7 +144,6 @@ export const deleteTeam = async (teamId: string, userId: string): Promise<boolea
 };
 
 export const getTeamsByIds = async (teamIds: string[]): Promise<Team[]> => {
-  await connectToDatabase();
   const teams = await TeamModel.find({ _id: { $in: teamIds } });
   return teams.map(convertMongoDoc);
 };
@@ -172,8 +153,6 @@ export const checkTeamAvailability = async (
   tag: string,
   excludeTeamId?: string
 ): Promise<{ nameAvailable: boolean; tagAvailable: boolean }> => {
-  await connectToDatabase();
-
   const query = excludeTeamId ? { _id: { $ne: excludeTeamId } } : {};
 
   const nameExists = await TeamModel.findOne({ ...query, name });
@@ -185,7 +164,6 @@ export const checkTeamAvailability = async (
 };
 
 export const searchTeams = async (query: string, limit: number = 20): Promise<Team[]> => {
-  await connectToDatabase();
   const searchRegex = new RegExp(query, "i");
   const teams = await TeamModel.find({
     $or: [{ name: searchRegex }, { tag: searchRegex }]

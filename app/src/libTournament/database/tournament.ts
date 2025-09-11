@@ -108,14 +108,10 @@ export const getUserTournaments = async (userId: string): Promise<TournamentType
 
 // Get all tournaments (admin function)
 export const getAllTournaments = async (): Promise<TournamentType[]> => {
-  await connectToDatabase();
-  console.log("getAllTournaments: Connected to database");
 
   const tournaments = await TournamentModel.find({}).sort({ createdAt: -1 });
-  console.log("getAllTournaments: Raw tournaments from DB:", tournaments.length);
 
   const convertedTournaments = tournaments.map(convertMongoDoc);
-  console.log("getAllTournaments: Converted tournaments:", convertedTournaments.length);
 
   return convertedTournaments;
 };

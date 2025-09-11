@@ -35,7 +35,7 @@ export const TournamentPageCard = ({ tournament, loading = false }: TournamentPa
   return (
     <Link
       href={`/modules/tournaments/${tournament._id}`}
-      className={`bg-gray-800 hover:bg-blue-700 text-white rounded-xl p-6 border border-gray-700 hover:border-blue-500 transition-all duration-200 shadow-lg text-left block ${loading ? "blur-sm" : ""}`}
+      className={`bg-gray-800 hover:bg-gray-700 text-white rounded-xl p-6 border border-gray-700 hover:border-gray-500 transition-all duration-300 shadow-lg text-left block ${loading ? "blur-sm" : ""}`}
       onClick={handleCardClick}
     >
       <div className="flex justify-between items-start mb-4">

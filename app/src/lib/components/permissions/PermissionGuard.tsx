@@ -33,25 +33,27 @@ export const PermissionGuard = ({
       setLoading(true);
 
       if (permissions && permissions.length > 0) {
-        // Check multiple permissions
-        const { PermissionService } = await import("@lib/services/permissions");
-        
-        // This is a simplified check - in a real implementation, you'd want to
-        // get the current user and check permissions properly
-        const results = await Promise.all(
-          permissions.map(p => 
-            PermissionService.checkPermission({
-              userId: "current-user", // This should come from auth context
-              permission: p,
-              resourceId
+        // Check multiple permissions via API-backed hook
+        try {
+          const results = await Promise.all(
+            permissions.map(async (p) => {
+              const res = await fetch("/api/v1/permissions/check", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ permission: p, resourceId })
+              });
+              if (!res.ok) return { allowed: false } as { allowed: boolean };
+              return (await res.json()) as { allowed: boolean };
             })
-          )
-        );
+          );
 
-        if (requireAll) {
-          setHasAccess(results.every(result => result.allowed));
-        } else {
-          setHasAccess(results.some(result => result.allowed));
+          if (requireAll) {
+            setHasAccess(results.every((result) => result.allowed));
+          } else {
+            setHasAccess(results.some((result) => result.allowed));
+          }
+        } catch (_err) {
+          setHasAccess(false);
         }
       } else {
         // Use single permission check
