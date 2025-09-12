@@ -39,11 +39,12 @@ export default function HomePage() {
       <section className="relative py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-5xl md:text-7xl font-bold text-white mb-6">
-            Tournament
+            <span>League of Legends</span>
             <br />
+            <span>Tournament </span>
             <span className="text-blue-400">Management</span>
             <br />
-            Made Simple
+            <span>Made Simple</span>
           </h1>
           <p className="text-xl text-gray-300 mb-8 max-w-3xl mx-auto">
             Complete esports tournament platform with pick/ban system, team management, streaming integration, and
@@ -167,7 +168,7 @@ export default function HomePage() {
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center space-x-3 mb-4 md:mb-0">
               <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold">V</span>
+                <span className="text-white font-bold">LSU</span>
               </div>
               <span className="text-white font-semibold">League Stream Utils</span>
             </div>

@@ -6,6 +6,7 @@ import { downloadAllAssets, BootstrapProgress } from "@lib/services/assets/boots
 import { useElectron } from "@libElectron/contexts/ElectronContext";
 import { useDownload } from "@lib/contexts/DownloadContext";
 import { useNavigation } from "@lib/contexts/NavigationContext";
+import { AuthGuard } from "@lib/auth/components/AuthGuard";
 
 interface CategoryProgress {
   category: string;
@@ -231,7 +232,8 @@ export default function DownloadAssetsPage() {
   });
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center text-white space-y-8 p-6">
+    <AuthGuard>
+      <div className="min-h-screen flex flex-col items-center justify-center text-white space-y-8 p-6">
       <h1 className="text-3xl font-bold">Downloading Game Assets</h1>
       {/* Overall Progress */}
       <div className="w-full max-w-2xl space-y-4">
@@ -308,6 +310,7 @@ export default function DownloadAssetsPage() {
           Go to Modules
         </button>
       )}
-    </div>
+      </div>
+    </AuthGuard>
   );
 }

@@ -25,10 +25,7 @@ export function ElectronProvider({ children }: { children: ReactNode }) {
       setIsElectron(true);
       setElectronAPI(window.electronAPI);
 
-      // Resume background processes after startup
-      assetDownloaderManager.resumeAllProcesses().catch(() => {
-        console.warn("Failed to resume background processes");
-      });
+      // Do not resume background processes until user is authenticated
 
       // Disable mode switching state after startup
       if (window.electronAPI?.setModeSwitching) {
@@ -59,10 +56,7 @@ export function ElectronProvider({ children }: { children: ReactNode }) {
         setIsElectron(true);
         setElectronAPI(window.electronAPI);
 
-        // Resume background processes after startup
-        assetDownloaderManager.resumeAllProcesses().catch(() => {
-          console.warn("Failed to resume background processes");
-        });
+        // Do not resume background processes until user is authenticated
 
         // Disable mode switching state after startup
         if (window.electronAPI?.setModeSwitching) {

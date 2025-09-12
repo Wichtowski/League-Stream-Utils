@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@lib/auth";
-import { connectToDatabase } from "@lib/database/connection";
 import { CameraSettingsModel } from "@lib/database/models";
 import { getUserTeams } from "@libTeam/database";
 import { JWTPayload } from "@lib/types/auth";
@@ -14,8 +13,6 @@ interface CameraTeam {
 
 export const GET = withAuth(async (req: NextRequest, user: JWTPayload) => {
   try {
-    await connectToDatabase();
-
     let settings: { userId: string; teams?: CameraTeam[]; createdAt?: Date; updatedAt?: Date } | null;
 
     const url = new URL(req.url);
@@ -81,8 +78,6 @@ export const GET = withAuth(async (req: NextRequest, user: JWTPayload) => {
 
 export const POST = withAuth(async (req: NextRequest, user: JWTPayload) => {
   try {
-    await connectToDatabase();
-
     const { teams } = await req.json();
 
     // For regular users, verify they own all teams they're setting up cameras for

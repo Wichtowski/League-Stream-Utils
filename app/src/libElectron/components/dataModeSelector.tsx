@@ -84,6 +84,7 @@ export const ElectronDataModeSelector = () => {
                 <span className="text-green-400">✓ No registration needed</span>
                 <span className="text-green-400">✓ Works offline</span>
                 <span className="text-green-400">✓ Fast performance</span>
+                <span className="text-yellow-400">⚠ Requires registration</span>
               </div>
             </div>
           </div>
@@ -91,13 +92,13 @@ export const ElectronDataModeSelector = () => {
 
         <div
           className={`
-                        p-4 rounded-lg border-2 cursor-pointer transition-all duration-200
-                        ${
-                          !useLocalData
-                            ? "border-blue-500 bg-blue-500/10"
-                            : "border-gray-600 bg-gray-700/30 hover:border-gray-500"
-                        }
-                    `}
+            p-4 rounded-lg border-2 cursor-pointer transition-all duration-200
+            ${
+              !useLocalData
+                ? "border-blue-500 bg-blue-500/10"
+                : "border-gray-600 bg-gray-700/30 hover:border-gray-500"
+            }
+          `}
           onClick={() => handleModeChange(false)}
         >
           <div className="flex items-start space-x-3">

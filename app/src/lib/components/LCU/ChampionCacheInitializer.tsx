@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { startupService } from "@lib/services/system";
+import { useAuth } from "@lib/contexts/AuthContext";
 
 interface StartupProgress {
   stage: "checking" | "downloading" | "complete" | "error";
@@ -14,17 +15,18 @@ export const ChampionCacheInitializer = () => {
   const [showInitializer, setShowInitializer] = useState(false);
   const [progress, setProgress] = useState<StartupProgress | null>(null);
   const [isElectron, setIsElectron] = useState(false);
+  const { user, isLoading } = useAuth();
 
   useEffect(() => {
     // Check if we're in Electron environment
     const electron = typeof window !== "undefined" && !!window.electronAPI?.isElectron;
     setIsElectron(electron);
 
-    if (electron) {
-      // Check if cache initialization is needed
+    // Only allow cache initialization when authenticated
+    if (electron && user && !isLoading) {
       checkAndInitializeCache();
     }
-  }, []);
+  }, [user, isLoading]);
 
   const checkAndInitializeCache = async () => {
     try {
@@ -66,7 +68,7 @@ export const ChampionCacheInitializer = () => {
     checkAndInitializeCache();
   };
 
-  if (!isElectron || !showInitializer) {
+  if (!isElectron || !user || isLoading || !showInitializer) {
     return null;
   }
 

@@ -51,7 +51,7 @@ async function createWindow(mainWindow, localhostUrl, createInterceptor) {
   mainWindow.value.setAutoHideMenuBar(true);
 
   // Load the Next.js app
-  const appUrl = localhostUrl + "/download";
+  const appUrl = localhostUrl + "/login";
   console.log(`Loading Electron app from: ${appUrl}`);
 
   // ⬇ Next.js handler ⬇
@@ -87,8 +87,24 @@ async function createWindow(mainWindow, localhostUrl, createInterceptor) {
     stopIntercept?.();
   });
 
-  // Handle external links
+  // Handle new windows/popups
   mainWindow.value.webContents.setWindowOpenHandler(({ url }) => {
+    const isOAuth = url.includes("/api/v1/auth/google/start") || url.includes("accounts.google.com");
+
+    if (isOAuth) {
+      return {
+        action: "allow",
+        overrideBrowserWindowOptions: {
+          width: 420,
+          height: 560,
+          parent: mainWindow.value,
+          modal: true,
+          autoHideMenuBar: true,
+          titleBarStyle: "default"
+        }
+      };
+    }
+
     shell.openExternal(url);
     return { action: "deny" };
   });

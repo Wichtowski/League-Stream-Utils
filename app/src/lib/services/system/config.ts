@@ -53,7 +53,12 @@ validateConfig();
 export const config = {
   auth: {
     username: process.env.ADMIN_USERNAME || "",
-    password: process.env.ADMIN_PASSWORD || ""
+    password: process.env.ADMIN_PASSWORD || "",
+    google: {
+      clientId: process.env.GOOGLE_CLIENT_ID || "",
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+      callbackUrl: process.env.GOOGLE_CALLBACK_URL || ""
+    }
   },
   jwt: {
     secret: process.env.JWT_SECRET || "",

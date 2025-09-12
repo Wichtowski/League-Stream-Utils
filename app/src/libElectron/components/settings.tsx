@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import {
-  Cog6ToothIcon,
   CloudIcon,
   DocumentDuplicateIcon,
   ShieldCheckIcon,
@@ -20,7 +19,6 @@ import { ElectronDataModeSelector } from "./dataModeSelector";
 import { OBSControl } from "./obsControl";
 import { LocalDatabaseManager } from "./LocalDatabaseManager";
 import { Button } from "@lib/components/common";
-import { PageWrapper } from "@lib/layout";
 import { useElectron } from "@libElectron/contexts/ElectronContext";
 
 interface RiotAPISettings {
@@ -72,7 +70,7 @@ export const ElectronSettings = () => {
   const [championsVersion, setChampionsVersion] = useState("");
   const [integrityCheckResult, setIntegrityCheckResult] = useState<IntegrityCheckResult | null>(null);
   const [isCheckingIntegrity, setIsCheckingIntegrity] = useState(false);
-  const { useLocalData } = useElectron();
+  const { useLocalData: _useLocalData } = useElectron();
 
   const loadCacheStats = useCallback(async () => {
     try {
@@ -410,313 +408,297 @@ export const ElectronSettings = () => {
   );
 
   return (
-    <PageWrapper
-      title="Tournament Management Settings"
-      subtitle="Configure Riot API integration, tournament templates for professional esports production."
-      actions={
-        <span
-          className={`${useLocalData ? "bg-green-600" : "bg-blue-600"} text-white text-xs font-medium px-2.5 py-0.5 rounded`}
-        >
-          {useLocalData ? "Local" : "Online"} Mode
-        </span>
-      }
-      className="max-w-6xl mx-auto"
-      breadcrumbs={[
-        { label: "Settings", href: "/settings", isActive: true, icon: <Cog6ToothIcon className="w-6 h-6" /> }
-      ]}
-    >
-      <div className="max-w-6xl mx-auto">
-        {/* Tab Navigation */}
-        <div className="border-b border-gray-200 mb-6">
-          <nav className="-mb-px flex space-x-8">
-            {tabs.map((tab) => (
+    <div className="max-w-6xl mx-auto">
+      {/* Tab Navigation */}
+      <div className="border-b border-gray-200 mb-6">
+        <nav className="-mb-px flex space-x-8">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
+                activeTab === tab.id
+                  ? "border-blue-500 text-blue-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              }`}
+            >
+              <tab.icon className="w-4 h-4" />
+              {tab.name}
+            </button>
+          ))}
+        </nav>
+      </div>
+
+      {/* Data Storage Mode */}
+      {activeTab === "data-mode" && (
+        <div className="space-y-6">
+          <ElectronDataModeSelector />
+        </div>
+      )}
+
+      {/* Riot API Settings */}
+      {activeTab === "riot-api" && (
+        <div className="space-y-6">
+          <div className="bg-gray-800 shadow rounded-lg p-6">
+            <h3 className="text-lg font-medium text-gray-100 mb-4">Riot API Configuration</h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">API Key</label>
+                <input
+                  type="password"
+                  value={riotSettings.apiKey}
+                  onChange={(e) =>
+                    setRiotSettings((prev) => ({
+                      ...prev,
+                      apiKey: e.target.value
+                    }))
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="RGAPI-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Get your API key from{" "}
+                  <Link
+                    href="https://developer.riotgames.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:underline"
+                  >
+                    Riot Developer Portal
+                  </Link>
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Default Region</label>
+                <select
+                  value={riotSettings.defaultRegion}
+                  onChange={(e) =>
+                    setRiotSettings((prev) => ({
+                      ...prev,
+                      defaultRegion: e.target.value
+                    }))
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="euw1">Europe West</option>
+                  <option value="na1">North America</option>
+                  <option value="eun1">Europe Nordic & East</option>
+                  <option value="kr">Korea</option>
+                  <option value="jp1">Japan</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="mt-6 space-y-4">
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={riotSettings.cacheEnabled}
+                  onChange={(e) =>
+                    setRiotSettings((prev) => ({
+                      ...prev,
+                      cacheEnabled: e.target.checked
+                    }))
+                  }
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <label className="ml-2 block text-sm text-gray-100">
+                  Enable caching (recommended for better performance)
+                </label>
+              </div>
+
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={riotSettings.rateLimitEnabled}
+                  onChange={(e) =>
+                    setRiotSettings((prev) => ({
+                      ...prev,
+                      rateLimitEnabled: e.target.checked
+                    }))
+                  }
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <label className="ml-2 block text-sm text-gray-100">Enable automatic rate limiting</label>
+              </div>
+            </div>
+
+            <div className="mt-6 flex gap-3">
               <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
-                  activeTab === tab.id
-                    ? "border-blue-500 text-blue-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                onClick={handleUpdateChampions}
+                disabled={loading}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium disabled:opacity-50"
+              >
+                {loading ? "Updating..." : "Update Champions Database"}
+              </button>
+
+              <button
+                onClick={handleClearCache}
+                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md text-sm font-medium"
+              >
+                Clear Cache
+              </button>
+            </div>
+
+            {championsVersion && (
+              <div className="mt-4 p-3 bg-green-50 rounded-md">
+                <p className="text-sm text-green-800">
+                  <strong>Current Game Version:</strong> {championsVersion}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Tournament Templates */}
+      {activeTab === "templates" && (
+        <div className="space-y-6">
+          <div className="bg-gray-800 shadow rounded-lg p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-medium text-gray-100">Tournament Templates</h3>
+              <button onClick={loadTemplates} className="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                Refresh
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {templates.map((template) => (
+                <div key={template.id} className="border border-gray-600 rounded-lg p-4 bg-gray-700">
+                  <h4 className="text-lg font-medium text-gray-100 mb-2">{template.name}</h4>
+                  <p className="text-sm text-gray-300 mb-3">{template.description}</p>
+
+                  <div className="space-y-2 text-xs text-gray-400">
+                    <div>Format: {template.format}</div>
+                    <div>Max Teams: {template.maxTeams}</div>
+                    <div>Fearless Draft: {template.fearlessDraft ? "Yes" : "No"}</div>
+                  </div>
+
+                  <div className="mt-4 flex gap-2">
+                    <button
+                      onClick={() => handleExportTemplate(template.id)}
+                      className="text-blue-600 hover:text-blue-800 text-xs font-medium"
+                    >
+                      Export
+                    </button>
+                    <button className="text-green-600 hover:text-green-800 text-xs font-medium">Use Template</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Cache Management */}
+      {activeTab === "cache" && renderCacheTab()}
+
+      {/* Data Integrity */}
+      {activeTab === "integrity" && (
+        <div className="space-y-6">
+          <div className="bg-gray-800 shadow rounded-lg p-6">
+            <h3 className="text-lg font-medium text-gray-100 mb-4">Data Integrity Check</h3>
+            <p className="text-sm text-gray-300 mb-6">
+              Verify the integrity of your cached assets and detect any missing or corrupted files.
+            </p>
+
+            <div className="mb-6">
+              <Button
+                onClick={handleCheckDataIntegrity}
+                disabled={isCheckingIntegrity || !isElectron}
+                className="w-full md:w-auto"
+              >
+                {isCheckingIntegrity ? "Checking Integrity..." : "Check Data Integrity"}
+              </Button>
+            </div>
+
+            {integrityCheckResult && (
+              <div
+                className={`p-4 rounded-lg border ${
+                  integrityCheckResult.isValid ? "bg-green-900 border-green-600" : "bg-yellow-900 border-yellow-600"
                 }`}
               >
-                <tab.icon className="w-4 h-4" />
-                {tab.name}
-              </button>
-            ))}
-          </nav>
-        </div>
-
-        {/* Data Storage Mode */}
-        {activeTab === "data-mode" && (
-          <div className="space-y-6">
-            <ElectronDataModeSelector />
-          </div>
-        )}
-
-        {/* Riot API Settings */}
-        {activeTab === "riot-api" && (
-          <div className="space-y-6">
-            <div className="bg-gray-800 shadow rounded-lg p-6">
-              <h3 className="text-lg font-medium text-gray-100 mb-4">Riot API Configuration</h3>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">API Key</label>
-                  <input
-                    type="password"
-                    value={riotSettings.apiKey}
-                    onChange={(e) =>
-                      setRiotSettings((prev) => ({
-                        ...prev,
-                        apiKey: e.target.value
-                      }))
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="RGAPI-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                <div className="flex items-start">
+                  <CheckCircleIcon
+                    className={`w-5 h-5 mt-0.5 mr-3 ${
+                      integrityCheckResult.isValid ? "text-green-600" : "text-yellow-600"
+                    }`}
                   />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Get your API key from{" "}
-                    <Link
-                      href="https://developer.riotgames.com"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:underline"
+                  <div className="flex-1">
+                    <h4
+                      className={`font-medium ${integrityCheckResult.isValid ? "text-green-200" : "text-yellow-200"}`}
                     >
-                      Riot Developer Portal
-                    </Link>
-                  </p>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Default Region</label>
-                  <select
-                    value={riotSettings.defaultRegion}
-                    onChange={(e) =>
-                      setRiotSettings((prev) => ({
-                        ...prev,
-                        defaultRegion: e.target.value
-                      }))
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="euw1">Europe West</option>
-                    <option value="na1">North America</option>
-                    <option value="eun1">Europe Nordic & East</option>
-                    <option value="kr">Korea</option>
-                    <option value="jp1">Japan</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="mt-6 space-y-4">
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={riotSettings.cacheEnabled}
-                    onChange={(e) =>
-                      setRiotSettings((prev) => ({
-                        ...prev,
-                        cacheEnabled: e.target.checked
-                      }))
-                    }
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                  />
-                  <label className="ml-2 block text-sm text-gray-100">
-                    Enable caching (recommended for better performance)
-                  </label>
-                </div>
-
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={riotSettings.rateLimitEnabled}
-                    onChange={(e) =>
-                      setRiotSettings((prev) => ({
-                        ...prev,
-                        rateLimitEnabled: e.target.checked
-                      }))
-                    }
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                  />
-                  <label className="ml-2 block text-sm text-gray-100">Enable automatic rate limiting</label>
-                </div>
-              </div>
-
-              <div className="mt-6 flex gap-3">
-                <button
-                  onClick={handleUpdateChampions}
-                  disabled={loading}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium disabled:opacity-50"
-                >
-                  {loading ? "Updating..." : "Update Champions Database"}
-                </button>
-
-                <button
-                  onClick={handleClearCache}
-                  className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md text-sm font-medium"
-                >
-                  Clear Cache
-                </button>
-              </div>
-
-              {championsVersion && (
-                <div className="mt-4 p-3 bg-green-50 rounded-md">
-                  <p className="text-sm text-green-800">
-                    <strong>Current Game Version:</strong> {championsVersion}
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Tournament Templates */}
-        {activeTab === "templates" && (
-          <div className="space-y-6">
-            <div className="bg-gray-800 shadow rounded-lg p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-medium text-gray-100">Tournament Templates</h3>
-                <button onClick={loadTemplates} className="text-blue-600 hover:text-blue-800 text-sm font-medium">
-                  Refresh
-                </button>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {templates.map((template) => (
-                  <div key={template.id} className="border border-gray-600 rounded-lg p-4 bg-gray-700">
-                    <h4 className="text-lg font-medium text-gray-100 mb-2">{template.name}</h4>
-                    <p className="text-sm text-gray-300 mb-3">{template.description}</p>
-
-                    <div className="space-y-2 text-xs text-gray-400">
-                      <div>Format: {template.format}</div>
-                      <div>Max Teams: {template.maxTeams}</div>
-                      <div>Fearless Draft: {template.fearlessDraft ? "Yes" : "No"}</div>
-                    </div>
-
-                    <div className="mt-4 flex gap-2">
-                      <button
-                        onClick={() => handleExportTemplate(template.id)}
-                        className="text-blue-600 hover:text-blue-800 text-xs font-medium"
-                      >
-                        Export
-                      </button>
-                      <button className="text-green-600 hover:text-green-800 text-xs font-medium">Use Template</button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Cache Management */}
-        {activeTab === "cache" && renderCacheTab()}
-
-        {/* Data Integrity */}
-        {activeTab === "integrity" && (
-          <div className="space-y-6">
-            <div className="bg-gray-800 shadow rounded-lg p-6">
-              <h3 className="text-lg font-medium text-gray-100 mb-4">Data Integrity Check</h3>
-              <p className="text-sm text-gray-300 mb-6">
-                Verify the integrity of your cached assets and detect any missing or corrupted files.
-              </p>
-
-              <div className="mb-6">
-                <Button
-                  onClick={handleCheckDataIntegrity}
-                  disabled={isCheckingIntegrity || !isElectron}
-                  className="w-full md:w-auto"
-                >
-                  {isCheckingIntegrity ? "Checking Integrity..." : "Check Data Integrity"}
-                </Button>
-              </div>
-
-              {integrityCheckResult && (
-                <div
-                  className={`p-4 rounded-lg border ${
-                    integrityCheckResult.isValid ? "bg-green-900 border-green-600" : "bg-yellow-900 border-yellow-600"
-                  }`}
-                >
-                  <div className="flex items-start">
-                    <CheckCircleIcon
-                      className={`w-5 h-5 mt-0.5 mr-3 ${
-                        integrityCheckResult.isValid ? "text-green-600" : "text-yellow-600"
+                      {integrityCheckResult.isValid ? "Integrity Check Passed" : "Integrity Issues Found"}
+                    </h4>
+                    <p
+                      className={`text-sm mt-1 ${
+                        integrityCheckResult.isValid ? "text-green-300" : "text-yellow-300"
                       }`}
-                    />
-                    <div className="flex-1">
-                      <h4
-                        className={`font-medium ${integrityCheckResult.isValid ? "text-green-200" : "text-yellow-200"}`}
-                      >
-                        {integrityCheckResult.isValid ? "Integrity Check Passed" : "Integrity Issues Found"}
-                      </h4>
-                      <p
-                        className={`text-sm mt-1 ${
-                          integrityCheckResult.isValid ? "text-green-300" : "text-yellow-300"
-                        }`}
-                      >
-                        {integrityCheckResult.message}
-                      </p>
+                    >
+                      {integrityCheckResult.message}
+                    </p>
 
-                      <div className="mt-3 space-y-2">
-                        <div className="text-sm">
-                          <span className="font-medium">Total Files:</span> {integrityCheckResult.totalFiles}
-                        </div>
-                        <div className="text-sm">
-                          <span className="font-medium">Valid Files:</span> {integrityCheckResult.validFiles}
-                        </div>
-                        {integrityCheckResult.missingFiles.length > 0 && (
-                          <div className="text-sm">
-                            <span className="font-medium text-red-400">Missing Files:</span>{" "}
-                            {integrityCheckResult.missingFiles.length}
-                          </div>
-                        )}
-                        {integrityCheckResult.corruptedFiles.length > 0 && (
-                          <div className="text-sm">
-                            <span className="font-medium text-red-400">Corrupted Files:</span>{" "}
-                            {integrityCheckResult.corruptedFiles.length}
-                          </div>
-                        )}
+                    <div className="mt-3 space-y-2">
+                      <div className="text-sm">
+                        <span className="font-medium">Total Files:</span> {integrityCheckResult.totalFiles}
                       </div>
-
-                      {(integrityCheckResult.missingFiles.length > 0 ||
-                        integrityCheckResult.corruptedFiles.length > 0) && (
-                        <div className="mt-4">
-                          <Button
-                            onClick={handlePreloadChampionAssets}
-                            disabled={loading}
-                            variant="secondary"
-                            className="w-full md:w-auto"
-                          >
-                            Re-download Corrupted Assets
-                          </Button>
+                      <div className="text-sm">
+                        <span className="font-medium">Valid Files:</span> {integrityCheckResult.validFiles}
+                      </div>
+                      {integrityCheckResult.missingFiles.length > 0 && (
+                        <div className="text-sm">
+                          <span className="font-medium text-red-400">Missing Files:</span>{" "}
+                          {integrityCheckResult.missingFiles.length}
+                        </div>
+                      )}
+                      {integrityCheckResult.corruptedFiles.length > 0 && (
+                        <div className="text-sm">
+                          <span className="font-medium text-red-400">Corrupted Files:</span>{" "}
+                          {integrityCheckResult.corruptedFiles.length}
                         </div>
                       )}
                     </div>
+
+                    {(integrityCheckResult.missingFiles.length > 0 ||
+                      integrityCheckResult.corruptedFiles.length > 0) && (
+                      <div className="mt-4">
+                        <Button
+                          onClick={handlePreloadChampionAssets}
+                          disabled={loading}
+                          variant="secondary"
+                          className="w-full md:w-auto"
+                        >
+                          Re-download Corrupted Assets
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </div>
-              )}
+              </div>
+            )}
 
-              {!isElectron && (
-                <div className="mt-4 p-4 bg-gray-700 rounded-lg">
-                  <p className="text-sm text-gray-300">
-                    Data integrity check is only available in the desktop application.
-                  </p>
-                </div>
-              )}
-            </div>
+            {!isElectron && (
+              <div className="mt-4 p-4 bg-gray-700 rounded-lg">
+                <p className="text-sm text-gray-300">
+                  Data integrity check is only available in the desktop application.
+                </p>
+              </div>
+            )}
           </div>
-        )}
+        </div>
+      )}
 
-        {/* Database Manager */}
-        {activeTab === "database" && (
-          <div className="space-y-6">
-            <LocalDatabaseManager />
-          </div>
-        )}
+      {/* Database Manager */}
+      {activeTab === "database" && (
+        <div className="space-y-6">
+          <LocalDatabaseManager />
+        </div>
+      )}
 
-        {/* OBS Control */}
-        {activeTab === "obs-control" && <OBSControl />}
-      </div>
-    </PageWrapper>
+      {/* OBS Control */}
+      {activeTab === "obs-control" && <OBSControl />}
+    </div>
   );
 };

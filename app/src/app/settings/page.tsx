@@ -31,24 +31,23 @@ export default function SettingsPage() {
 
   // Show loading state while initializing or auth is loading
   if (!isInitialized || authLoading) {
-    return (
-      <PageWrapper requireAuth={false}>
-        <LoadingSpinner fullscreen text="Loading..." />
-      </PageWrapper>
-    );
+    return <LoadingSpinner fullscreen text="Loading..." />;
   }
 
   // Redirect non-admin users in browser mode
   if (!isElectron && !user?.isAdmin) {
-    return (
-      <PageWrapper requireAuth={false}>
-        <div className="flex justify-center items-center min-h-screen">Redirecting...</div>
-      </PageWrapper>
-    );
+    return <div className="flex justify-center items-center min-h-screen">Redirecting...</div>;
   }
 
   return (
-    <PageWrapper requireAuth={false}>
+    <PageWrapper
+      title="Tournament Management Settings"
+      subtitle="Configure Riot API integration, tournament templates for professional esports production."
+      className="max-w-6xl mx-auto"
+      breadcrumbs={[
+        { label: "Settings", href: "/settings", isActive: true }
+      ]}
+    >
       <ElectronSettings />
     </PageWrapper>
   );
