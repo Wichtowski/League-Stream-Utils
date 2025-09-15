@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import type { PlayerRole } from "@lib/types/common";
 import type { EnhancedChampSelectSession, Team } from "@lib/types";
 import type { Match } from "@lib/types/match";
 import type { Tournament } from "@lib/types/tournament";
@@ -60,6 +61,11 @@ const ChampSelectDisplayComponent: React.FC<ChampSelectDisplayProps> = ({
   const [cardsAnimated, setCardsAnimated] = useState(false);
   const [bansAnimated, setBansAnimated] = useState(false);
   const [showFearlessBans, setShowFearlessBans] = useState(false);
+  const [fearlessActive, setFearlessActive] = useState(false);
+  const [fearlessBansComputed, setFearlessBansComputed] = useState<{
+    blue: { championId: number; role: PlayerRole }[];
+    red: { championId: number; role: PlayerRole }[];
+  }>({ blue: [], red: [] });
   const [centerAnimated, setCenterAnimated] = useState(false);
 
   // Load tournament and match data when IDs are provided
@@ -118,6 +124,84 @@ const ChampSelectDisplayComponent: React.FC<ChampSelectDisplayProps> = ({
 
     loadTeams();
   }, [loadedMatch, teams]);
+
+  // Compute fearless state and bans based on match.games[].championsPlayed
+  useEffect(() => {
+    const m = match || loadedMatch;
+    if (!m || !m.games || m.games.length === 0) {
+      setFearlessActive(false);
+      setFearlessBansComputed({ blue: [], red: [] });
+      return;
+    }
+
+    const anyChampionsPlayed = m.games.some((g) => g && g.championsPlayed && Object.keys(g.championsPlayed || {}).length > 0);
+    setFearlessActive(anyChampionsPlayed);
+
+    if (!anyChampionsPlayed) {
+      setFearlessBansComputed({ blue: [], red: [] });
+      return;
+    }
+
+    const roleOrder: PlayerRole[] = ["TOP", "JUNGLE", "MID", "BOTTOM", "SUPPORT"];
+
+    // Build playerId -> role maps using provided teams or loaded ones
+    const findTeamById = (teamId?: string): Team | undefined => {
+      if (!teamId) return undefined;
+      if (teams && teams.length) {
+        return teams.find((t) => t._id === teamId);
+      }
+      if (_loadedTeams && _loadedTeams.length) {
+        return _loadedTeams.find((t) => t._id === teamId);
+      }
+      return undefined;
+    };
+
+    const blueTeamObj = findTeamById(m.blueTeamId);
+    const redTeamObj = findTeamById(m.redTeamId);
+
+    const toRole = (playerId: string, side: "blue" | "red"): PlayerRole | undefined => {
+      const team = side === "blue" ? blueTeamObj : redTeamObj;
+      const allPlayers: Array<{ _id: string; role?: PlayerRole }> = [
+        ...((team?.players?.main as Array<{ _id: string; role?: PlayerRole }>) || []),
+        ...((team?.players?.substitutes as Array<{ _id: string; role?: PlayerRole }>) || [])
+      ];
+      const player = allPlayers.find((p) => p._id === playerId);
+      return player?.role;
+    };
+
+    const blueUsed: { championId: number; role: PlayerRole }[] = [];
+    const redUsed: { championId: number; role: PlayerRole }[] = [];
+    const seenBlue = new Set<number>();
+    const seenRed = new Set<number>();
+
+    for (const g of m.games) {
+      if (!g.championsPlayed) continue;
+      const blueTeamId = m.blueTeamId;
+      const redTeamId = m.redTeamId;
+
+      const blueMap = g.championsPlayed[blueTeamId] || {};
+      for (const [playerId, champId] of Object.entries(blueMap)) {
+        const cid = Number(champId);
+        if (!seenBlue.has(cid)) {
+          seenBlue.add(cid);
+          const role = toRole(playerId, "blue") || roleOrder[blueUsed.length % 5];
+          blueUsed.push({ championId: cid, role });
+        }
+      }
+
+      const redMap = g.championsPlayed[redTeamId] || {};
+      for (const [playerId, champId] of Object.entries(redMap)) {
+        const cid = Number(champId);
+        if (!seenRed.has(cid)) {
+          seenRed.add(cid);
+          const role = toRole(playerId, "red") || roleOrder[redUsed.length % 5];
+          redUsed.push({ championId: cid, role });
+        }
+      }
+    }
+
+    setFearlessBansComputed({ blue: blueUsed, red: redUsed });
+  }, [match, loadedMatch, teams, _loadedTeams]);
 
   // Use provided data or loaded data
   const effectiveTournament = tournament || loadedTournament;
@@ -381,16 +465,16 @@ const ChampSelectDisplayComponent: React.FC<ChampSelectDisplayProps> = ({
                   bans={bans.myTeamBans}
                   banPlaceholder={banPlaceholder}
                   teamColor={getTeamColor(effectiveTournamentData?.blueTeam, blueColor)}
-                  isFearlessDraft={data.isFearlessDraft}
+                  isFearlessDraft={fearlessActive}
                   usedChampions={data.usedChampions}
                   hoverState={hoverState}
                   onRegisterImages={registerChildImages}
                   bansAnimated={bansAnimated}
                   teamSide="left"
                 />
-                {data.isFearlessDraft && data.fearlessBans && (
+                {fearlessActive && (
                   <FearlessDraftBans
-                    bans={data.fearlessBans}
+                    bans={fearlessBansComputed}
                     customTeamColors={{
                       blueTeam: getTeamColor(effectiveTournamentData?.blueTeam, blueColor),
                       redTeam: getTeamColor(effectiveTournamentData?.redTeam, redColor)
@@ -402,7 +486,7 @@ const ChampSelectDisplayComponent: React.FC<ChampSelectDisplayProps> = ({
                 <TeamBans
                   bans={bans.theirTeamBans}
                   teamColor={getTeamColor(effectiveTournamentData?.redTeam, redColor)}
-                  isFearlessDraft={data.isFearlessDraft}
+                  isFearlessDraft={fearlessActive}
                   usedChampions={data.usedChampions}
                   hoverState={hoverState}
                   banPlaceholder={banPlaceholder}
