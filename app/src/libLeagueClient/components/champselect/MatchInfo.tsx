@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { SafeImage } from "@lib/components/common/SafeImage";
 import type { GameResult } from "@lib/types/match";
+import { getTeamWins } from "@libLeagueClient/utils/teamWins";
 
 // Generic team type that works with both PickbanTournamentTeam and MatchTeam
 type TeamWithLogo = {
@@ -48,16 +49,9 @@ const MatchInfoComponent: React.FC<MatchInfoProps> = ({
 
   const maxWins = getMaxWins();
 
-  // Calculate team scores dynamically from games
-  const getTeamScore = (teamId: string): number => {
-    if (!games || !teamId) return 0;
 
-    return games.reduce((total, game) => {
-      if (game.winner === "blue" && game.blueTeam === teamId) return total + 1;
-      if (game.winner === "red" && game.redTeam === teamId) return total + 1;
-      return total;
-    }, 0);
-  };
+  // Calculate team wins using the same logic as match detail page
+  const teamWins = getTeamWins(games || []);
 
   // Determine which team is currently on which side for this game
   const getCurrentGameTeamInfo = () => {
@@ -66,8 +60,8 @@ const MatchInfoComponent: React.FC<MatchInfoProps> = ({
       return {
         leftTeam: blueTeam,
         rightTeam: redTeam,
-        leftScore: getTeamScore(blueTeam.id || ""),
-        rightScore: getTeamScore(redTeam.id || ""),
+        leftScore: teamWins.team1Wins,
+        rightScore: teamWins.team2Wins,
         leftSide: "blue",
         rightSide: "red"
       };
@@ -80,8 +74,8 @@ const MatchInfoComponent: React.FC<MatchInfoProps> = ({
       return {
         leftTeam: blueTeam,
         rightTeam: redTeam,
-        leftScore: getTeamScore(blueTeam.id || ""),
-        rightScore: getTeamScore(redTeam.id || ""),
+        leftScore: teamWins.team1Wins,
+        rightScore: teamWins.team2Wins,
         leftSide: "blue",
         rightSide: "red"
       };
@@ -90,8 +84,8 @@ const MatchInfoComponent: React.FC<MatchInfoProps> = ({
       return {
         leftTeam: redTeam,
         rightTeam: blueTeam,
-        leftScore: getTeamScore(redTeam.id || ""),
-        rightScore: getTeamScore(blueTeam.id || ""),
+        leftScore: teamWins.team2Wins,
+        rightScore: teamWins.team1Wins,
         leftSide: "red",
         rightSide: "blue"
       };
@@ -156,7 +150,7 @@ const MatchInfoComponent: React.FC<MatchInfoProps> = ({
           <div className="flex flex-col items-center">
             {/* Score Rectangles for Right Team */}
             {showScores && (
-              <div className="flex gap-1 mb-2">
+              <div className="flex gap-1 mb-4">
                 {Array.from({ length: maxWins }, (_, index) => (
                   <div
                     key={index}

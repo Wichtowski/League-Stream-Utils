@@ -2,6 +2,10 @@
 
 import React, { useEffect, useState } from "react";
 import type { EnhancedChampSelectSession, Match, Tournament } from "@lib/types";
+import type { Team } from "@lib/types/team";
+import type { GameResult } from "@lib/types/match";
+import type { PlayerRole } from "@lib/types/common";
+import type { PickbanPlayer } from "@lib/types/game";
 import { useNavigation } from "@lib/contexts/NavigationContext";
 import { useDownload } from "@lib/contexts/DownloadContext";
 import { ChampSelectDisplay } from "@libLeagueClient/components/champselect/ChampSelectDisplay";
@@ -113,7 +117,13 @@ const ChampSelectOverlayPage: React.FC<ChampSelectPageProps> = ({ params }) => {
             },
             redTeam: {
               players: redTeamData?.players?.main || []
-            }
+            },
+            // Include team names to resolve side for the current pending game
+            blueTeamName: blueTeamData?.name || "",
+            redTeamName: redTeamData?.name || "",
+            // Store full team data for logo resolution
+            blueTeamData: blueTeamData,
+            redTeamData: redTeamData
           };
 
           setMatch(matchWithTeams as Match);
@@ -139,25 +149,60 @@ const ChampSelectOverlayPage: React.FC<ChampSelectPageProps> = ({ params }) => {
     return <></>;
   }
 
-  // Create enhanced champion select data with player information from teams
+  type TeamPlayerLite = {
+    _id?: string;
+    inGameName?: string;
+    tag?: string;
+    role?: PlayerRole;
+    profileImage?: string;
+    rank?: string;
+    puuid?: string;
+    name?: string;
+  };
+
+  type MatchWithTeams = Match & {
+    blueTeam?: { players: TeamPlayerLite[] };
+    redTeam?: { players: TeamPlayerLite[] };
+    blueTeamName?: string;
+    redTeamName?: string;
+    games?: GameResult[];
+  };
+
+  // Determine current sides based on latest pending game in the series
+  const games: GameResult[] = (match as MatchWithTeams).games || [];
+  const pendingGame = [...games].reverse().find((g) => !g.winner || g.winner === "ongoing");
+  let currentBlueTeamPlayers: TeamPlayerLite[] = (match as MatchWithTeams).blueTeam?.players || [];
+  let currentRedTeamPlayers: TeamPlayerLite[] = (match as MatchWithTeams).redTeam?.players || [];
+  if (pendingGame) {
+    const blueName = pendingGame.blueTeam;
+    const redName = pendingGame.redTeam;
+    const blueTeamName = (match as MatchWithTeams).blueTeamName;
+    const redTeamName = (match as MatchWithTeams).redTeamName;
+    if (blueTeamName && redTeamName) {
+      if (blueName === redTeamName && redName === blueTeamName) {
+        currentBlueTeamPlayers = (match as MatchWithTeams).redTeam?.players || [];
+        currentRedTeamPlayers = (match as MatchWithTeams).blueTeam?.players || [];
+      } else if (blueName === blueTeamName && redName === redTeamName) {
+        // keep as default mapping
+      }
+    }
+  }
+
+  // Create enhanced champion select data with player information from teams and current sides
   const enhancedData: EnhancedChampSelectSession = {
     ...champSelectSession,
     myTeam: (champSelectSession.myTeam || []).map((player, index) => {
       // Try to find player by summoner name first, then by index
       let teamPlayer = null;
-      const blueTeamPlayers = (match as any).blueTeam?.players || [];
+      const blueTeamPlayers: TeamPlayerLite[] = currentBlueTeamPlayers;
       
       if (player.summonerName && player.summonerName !== `Player ${index + 1}`) {
         // Try exact match first
-        teamPlayer = blueTeamPlayers.find(
-          (p: any) => p.inGameName === player.summonerName
-        );
+        teamPlayer = blueTeamPlayers.find((p: TeamPlayerLite) => p.inGameName === player.summonerName);
         
         // If no exact match, try partial match (in case names are truncated)
         if (!teamPlayer) {
-          teamPlayer = blueTeamPlayers.find(
-            (p: any) => p.inGameName && p.inGameName.includes(player.summonerName)
-          );
+          teamPlayer = blueTeamPlayers.find((p: TeamPlayerLite) => p.inGameName && p.inGameName.includes(player.summonerName));
         }
       }
       
@@ -166,39 +211,35 @@ const ChampSelectOverlayPage: React.FC<ChampSelectPageProps> = ({ params }) => {
         teamPlayer = blueTeamPlayers[index];
       }
       
+      const hasPlayerInfo = !!(teamPlayer && teamPlayer.inGameName && teamPlayer.role);
+      const playerInfo: PickbanPlayer | undefined = hasPlayerInfo
+        ? {
+            name: (teamPlayer as TeamPlayerLite).inGameName as string,
+            role: (teamPlayer as TeamPlayerLite).role as PlayerRole,
+            profileImage: (teamPlayer as TeamPlayerLite).profileImage,
+            rank: (teamPlayer as TeamPlayerLite).rank,
+            puuid: (teamPlayer as TeamPlayerLite).puuid
+          }
+        : undefined;
       return {
         ...player,
         summonerName: teamPlayer?.inGameName || player.summonerName || `Player ${index + 1}`,
-        playerInfo: teamPlayer ? {
-          name: teamPlayer.inGameName,
-          _id: teamPlayer._id,
-          inGameName: teamPlayer.inGameName,
-          tag: teamPlayer.tag,
-          role: teamPlayer.role,
-          profileImage: teamPlayer.profileImage,
-          rank: teamPlayer.rank,
-          puuid: teamPlayer.puuid
-        } : undefined,
+        playerInfo,
         role: teamPlayer?.role
       };
     }),
     theirTeam: (champSelectSession.theirTeam || []).map((player, index) => {
       // Try to find player by summoner name first, then by index
       let teamPlayer = null;
-      const redTeamPlayers = (match as any).redTeam?.players || [];
+      const redTeamPlayers: TeamPlayerLite[] = currentRedTeamPlayers;
       
       if (player.summonerName && player.summonerName !== `Player ${index + 1}`) {
         // Try exact match first
-        teamPlayer = redTeamPlayers.find(
-          (p: any) => p.inGameName === player.summonerName
-        );
+        teamPlayer = redTeamPlayers.find((p: TeamPlayerLite) => p.inGameName === player.summonerName);
         
         // If no exact match, try partial match (in case names are truncated)
         if (!teamPlayer) {
-          teamPlayer = redTeamPlayers.find(
-
-            (p: Player) => p.inGameName && p.inGameName.includes(player.summonerName)
-          );
+          teamPlayer = redTeamPlayers.find((p: TeamPlayerLite) => p.inGameName && p.inGameName.includes(player.summonerName));
         }
       }
       
@@ -207,19 +248,20 @@ const ChampSelectOverlayPage: React.FC<ChampSelectPageProps> = ({ params }) => {
         teamPlayer = redTeamPlayers[index];
       }
       
+      const hasPlayerInfo = !!(teamPlayer && teamPlayer.inGameName && teamPlayer.role);
+      const playerInfo: PickbanPlayer | undefined = hasPlayerInfo
+        ? {
+            name: (teamPlayer as TeamPlayerLite).inGameName as string,
+            role: (teamPlayer as TeamPlayerLite).role as PlayerRole,
+            profileImage: (teamPlayer as TeamPlayerLite).profileImage,
+            rank: (teamPlayer as TeamPlayerLite).rank,
+            puuid: (teamPlayer as TeamPlayerLite).puuid
+          }
+        : undefined;
       return {
         ...player,
         summonerName: teamPlayer?.inGameName || player.summonerName || `Player ${index + 1}`,
-        playerInfo: teamPlayer ? {
-          name: teamPlayer.inGameName,
-          _id: teamPlayer._id,
-          inGameName: teamPlayer.inGameName,
-          tag: teamPlayer.tag,
-          role: teamPlayer.role,
-          profileImage: teamPlayer.profileImage,
-          rank: teamPlayer.rank,
-          puuid: teamPlayer.puuid
-        } : undefined,
+        playerInfo,
         role: teamPlayer?.role
       };
     })
@@ -231,6 +273,53 @@ const ChampSelectOverlayPage: React.FC<ChampSelectPageProps> = ({ params }) => {
     <ChampSelectDisplay
       data={data}
       match={match || ({} as Match)}
+      teams={(() => {
+        const m = match as unknown as {
+          blueTeam?: { players?: unknown[] } & Record<string, unknown>;
+          redTeam?: { players?: unknown[] } & Record<string, unknown>;
+          blueTeamId?: string;
+          redTeamId?: string;
+          blueTeamName?: string;
+          redTeamName?: string;
+          blueTeamData?: Record<string, unknown>;
+          redTeamData?: Record<string, unknown>;
+        };
+        const bluePlayers = (m?.blueTeam?.players || []).length;
+        const redPlayers = (m?.redTeam?.players || []).length;
+        // Only pass teams if we likely have full docs (players loaded implies we fetched teams)
+        if (bluePlayers >= 0 && redPlayers >= 0) {
+          // Helper function to extract logo URL from ImageStorageSchema
+          const getLogoUrl = (logo: unknown): string => {
+            if (!logo) return "";
+            if (typeof logo === "string") return logo;
+            if (typeof logo === "object" && logo !== null) {
+              const logoObj = logo as { type?: string; data?: string; url?: string };
+              if (logoObj.type === "upload" && logoObj.data) return logoObj.data;
+              if (logoObj.type === "url" && logoObj.url) return logoObj.url;
+              return logoObj.data || logoObj.url || "";
+            }
+            return "";
+          };
+
+          return [
+            {
+              ...(m?.blueTeamData || {}),
+              ...(m?.blueTeam || {}),
+              _id: m?.blueTeamId,
+              name: m?.blueTeamName || "",
+              logo: getLogoUrl((m?.blueTeamData as Record<string, unknown>)?.logo),
+            },
+            {
+              ...(m?.redTeamData || {}),
+              ...(m?.redTeam || {}),
+              _id: m?.redTeamId,
+              name: m?.redTeamName || "",
+              logo: getLogoUrl((m?.redTeamData as Record<string, unknown>)?.logo),
+            }
+          ] as unknown as Team[];
+        }
+        return undefined;
+      })()}
       tournament={tournament || ({} as Tournament)}
       roleIcons={assets.roleIcons}
       banPlaceholder={assets.banPlaceholder}

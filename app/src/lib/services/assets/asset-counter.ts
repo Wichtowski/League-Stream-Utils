@@ -1,4 +1,5 @@
 import { DataDragonClient } from "@lib/services/external/DataDragon/client";
+import { CommunityDragonSpellsService } from "./community-dragon-spells";
 
 export interface AssetCounts {
   champions: number;
@@ -223,18 +224,25 @@ class AssetCounterService {
 
   /**
    * Count summoner spell assets
-   * Each spell has: 1 data.json + 1 icon.png = 2 assets per spell
+   * Includes both DataDragon summoner spells and CommunityDragon additional spells
    */
   private async countSpellAssets(): Promise<number> {
     try {
       const version = await DataDragonClient.getLatestVersion();
+      
+      // Count DataDragon summoner spells
       const summonerData = await DataDragonClient.getSummonerSpells(version);
+      const dataDragonSpellCount = Object.keys(summonerData.data).length;
 
-      // Count all summoner spells
-      const spellCount = Object.keys(summonerData.data).length;
+      // Count CommunityDragon additional spells
+      const communityDragonSpellCount = await CommunityDragonSpellsService.getSpellCount(version);
 
-      // Each spell has 1 icon
-      return spellCount;
+      // Total spells = DataDragon spells + CommunityDragon spells
+      const totalSpellCount = dataDragonSpellCount + communityDragonSpellCount;
+
+      console.log(`Spell counts - DataDragon: ${dataDragonSpellCount}, CommunityDragon: ${communityDragonSpellCount}, Total: ${totalSpellCount}`);
+
+      return totalSpellCount;
     } catch (error) {
       console.warn("Failed to count summoner spell assets:", error);
       return 0;

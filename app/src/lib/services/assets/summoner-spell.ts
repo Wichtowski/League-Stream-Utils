@@ -6,6 +6,7 @@ import {
 } from "@lib/types/summoner-spell";
 import { DDRAGON_CDN } from "@lib/services/common/constants";
 import { BaseCacheService } from "@lib/services/assets/base";
+import { CommunityDragonSpellsService } from "./community-dragon-spells";
 
 class SummonerSpellCacheService extends BaseCacheService<SummonerSpell> {
   private isMainDownloadRunning = false;
@@ -237,6 +238,7 @@ class SummonerSpellCacheService extends BaseCacheService<SummonerSpell> {
       const allSpellKeys = Object.keys(summonerData.data);
       const totalExpected = allSpellKeys.length;
 
+
       const missingSpells: string[] = [];
       for (const spellKey of allSpellKeys) {
         const spell = summonerData.data[spellKey]!;
@@ -246,9 +248,46 @@ class SummonerSpellCacheService extends BaseCacheService<SummonerSpell> {
         if (!exists) missingSpells.push(spellKey);
       }
 
+
       return { missingSpells, totalExpected, allSpellKeys };
     } catch (error) {
       console.error("Failed to check cache completeness:", error);
+      return { missingSpells: [], totalExpected: 0, allSpellKeys: [] };
+    }
+  }
+
+  async checkCommunityDragonSpellsCompleteness(): Promise<{
+    missingSpells: string[];
+    totalExpected: number;
+    allSpellKeys: string[];
+  }> {
+    await this.initialize();
+
+    if (typeof window === "undefined" || !window.electronAPI) {
+      return { missingSpells: [], totalExpected: 0, allSpellKeys: [] };
+    }
+
+    try {
+      const version = await this.getLatestVersion();
+      const communitySpells = await CommunityDragonSpellsService.getAvailableSpells(version);
+      const allSpellKeys = communitySpells.map(spell => spell.filename);
+      const totalExpected = allSpellKeys.length;
+
+      console.log(`Checking cache completeness for ${totalExpected} CommunityDragon spells...`);
+
+      const missingSpells: string[] = [];
+      for (const spell of communitySpells) {
+        const imagePath = `${version}/summoner-spells/${spell.filename}`;
+        const cachedFullPath = this.getCachedPathForKey(imagePath);
+        const exists = await this.checkFileExists(cachedFullPath);
+        if (!exists) missingSpells.push(spell.filename);
+      }
+
+      console.log(`CommunityDragon cache completeness check: ${missingSpells.length} missing out of ${totalExpected} total spells`);
+
+      return { missingSpells, totalExpected, allSpellKeys };
+    } catch (error) {
+      console.error("Failed to check CommunityDragon cache completeness:", error);
       return { missingSpells: [], totalExpected: 0, allSpellKeys: [] };
     }
   }
@@ -273,116 +312,43 @@ class SummonerSpellCacheService extends BaseCacheService<SummonerSpell> {
       const version = await this.getLatestVersion();
       this.version = version;
 
-      const cacheCheck = await this.checkCacheCompleteness();
-      const missingSpellKeys = cacheCheck.missingSpells;
-      const totalSpells = missingSpellKeys.length;
-      const totalExpected = cacheCheck.totalExpected;
-      const allSpellKeys = cacheCheck.allSpellKeys;
-      const errors: string[] = [];
 
-      const validCompletedSet = new Set<string>();
+      // Check CommunityDragon spells completeness first
+      const communityDragonCompleteness = await this.checkCommunityDragonSpellsCompleteness();
+      console.log(`CommunityDragon spells: ${communityDragonCompleteness.missingSpells.length === 0 ? 'complete' : `missing ${communityDragonCompleteness.missingSpells.length}`}`);
 
-      for (const spellKey of allSpellKeys) {
-        if (!missingSpellKeys.includes(spellKey)) {
-          validCompletedSet.add(spellKey);
-        }
+      // Download regular DataDragon summoner spells first
+      const dataDragonResult = await this.downloadDataDragonSpells(version);
+      
+      // Then download additional CommunityDragon spells if needed
+      let communityDragonResult = { success: true, totalSpells: 0, errors: [] as string[] };
+      if (communityDragonCompleteness.missingSpells.length > 0) {
+        communityDragonResult = await this.downloadCommunityDragonSpells(version);
+      } else {
+        console.log("All CommunityDragon spells are already cached!");
       }
 
-      console.log(`Found ${validCompletedSet.size} summoner spells already downloaded.`);
+      const totalSpells = dataDragonResult.totalSpells + communityDragonResult.totalSpells;
+      const allErrors = [...dataDragonResult.errors, ...communityDragonResult.errors];
 
-      const ASSETS_PER_SPELL = 2;
-
-      if (totalSpells === 0) {
-        console.log("All summoner spells are already cached!");
-
-        const totalAssets = totalExpected * ASSETS_PER_SPELL;
-        this.updateProgress({
-          current: totalAssets,
-          total: totalAssets,
-          itemName: `All ${totalExpected} summoner spells already cached`,
-          stage: "complete",
-          assetType: "spell-data",
-          currentAsset: "Summoner spells downloaded successfully"
-        });
-
-        return { success: true, totalSpells: totalExpected, errors: [] };
-      }
-
-      console.log(`Found ${totalSpells} missing summoner spells to download`);
 
       this.updateProgress({
-        current: Math.min(validCompletedSet.size, totalExpected) * ASSETS_PER_SPELL,
-        total: totalExpected * ASSETS_PER_SPELL,
-        itemName: "summoner-spells",
-        stage: "downloading",
-        assetType: "spell-data",
-        currentAsset: `${validCompletedSet.size}/${totalExpected}`
-      });
-
-      let downloadedCount = 0;
-
-      for (const spellKey of missingSpellKeys) {
-        try {
-          await this.downloadSummonerSpellData(spellKey, version);
-          downloadedCount++;
-
-          validCompletedSet.add(spellKey);
-
-          await this.updateCategoryProgress(
-            "summoner-spells",
-            version,
-            spellKey,
-            totalExpected,
-            Math.min(validCompletedSet.size, totalExpected),
-            Array.from(validCompletedSet)
-          );
-
-          this.updateProgress({
-            current: Math.min(validCompletedSet.size, totalExpected) * ASSETS_PER_SPELL,
-            total: totalExpected * ASSETS_PER_SPELL,
-            itemName: spellKey,
-            stage: "downloading",
-            assetType: "spell-data",
-            currentAsset: spellKey
-          });
-        } catch (error) {
-          const errorMsg = `Failed to download ${spellKey}: ${error}`;
-          console.error(errorMsg);
-          errors.push(errorMsg);
-
-          downloadedCount++;
-
-          this.updateProgress({
-            current: Math.min(validCompletedSet.size, totalExpected) * ASSETS_PER_SPELL,
-            total: totalExpected * ASSETS_PER_SPELL,
-            itemName: spellKey,
-            stage: "downloading",
-            assetType: "spell-data",
-            currentAsset: spellKey
-          });
-        }
-
-        await new Promise((resolve) => setTimeout(resolve, 500));
-      }
-
-      this.updateProgress({
-        current: totalExpected * ASSETS_PER_SPELL,
-        total: totalExpected * ASSETS_PER_SPELL,
-        itemName: `All ${totalExpected} summoner spells complete`,
+        current: totalSpells,
+        total: totalSpells,
+        itemName: `All ${totalSpells} summoner spells complete`,
         stage: "complete",
         assetType: "spell-data",
         currentAsset: "Summoner spells downloaded successfully"
       });
 
-      if (downloadedCount > 0) {
-        console.log("All summoner spells downloaded successfully");
+      if (totalSpells > 0) {
         await this.cleanupManifestAfterSuccess();
       }
 
       return {
-        success: downloadedCount > 0,
-        totalSpells: downloadedCount,
-        errors
+        success: totalSpells > 0,
+        totalSpells,
+        errors: allErrors
       };
     } catch (error) {
       console.error("Failed to download summoner spells:", error);
@@ -393,6 +359,215 @@ class SummonerSpellCacheService extends BaseCacheService<SummonerSpell> {
       };
     } finally {
       this.isMainDownloadRunning = false;
+    }
+  }
+
+  private chunkArray<T>(array: T[], chunkSize: number): T[][] {
+    const chunks: T[][] = [];
+    for (let i = 0; i < array.length; i += chunkSize) {
+      chunks.push(array.slice(i, i + chunkSize));
+    }
+    return chunks;
+  }
+
+  private async downloadDataDragonSpells(version: string): Promise<{
+    success: boolean;
+    totalSpells: number;
+    errors: string[];
+  }> {
+    const cacheCheck = await this.checkCacheCompleteness();
+    const missingSpellKeys = cacheCheck.missingSpells;
+    const totalExpected = cacheCheck.totalExpected;
+    const allSpellKeys = cacheCheck.allSpellKeys;
+    const errors: string[] = [];
+
+    const validCompletedSet = new Set<string>();
+
+    for (const spellKey of allSpellKeys) {
+      if (!missingSpellKeys.includes(spellKey)) {
+        validCompletedSet.add(spellKey);
+      }
+    }
+
+    const ASSETS_PER_SPELL = 2;
+
+    if (missingSpellKeys.length === 0) {
+      return { success: true, totalSpells: totalExpected, errors: [] };
+    }
+
+    console.log(`Downloading ${missingSpellKeys.length} DataDragon spells in parallel...`);
+
+    this.updateProgress({
+      current: Math.min(validCompletedSet.size, totalExpected) * ASSETS_PER_SPELL,
+      total: totalExpected * ASSETS_PER_SPELL,
+      itemName: "DataDragon summoner-spells",
+      stage: "downloading",
+      assetType: "spell-data",
+      currentAsset: `${validCompletedSet.size}/${totalExpected}`
+    });
+
+    let downloadedCount = 0;
+
+    // Download spells in parallel with concurrency limit
+    const CONCURRENCY_LIMIT = 8;
+    const chunks = this.chunkArray(missingSpellKeys, CONCURRENCY_LIMIT);
+
+    for (let chunkIndex = 0; chunkIndex < chunks.length; chunkIndex++) {
+      const chunk = chunks[chunkIndex]!;
+      
+      const promises = chunk.map(async (spellKey) => {
+        try {
+          await this.downloadSummonerSpellData(spellKey, version);
+          validCompletedSet.add(spellKey);
+          downloadedCount++;
+          return { success: true, spellKey };
+        } catch (error) {
+          const errorMsg = `Failed to download ${spellKey}: ${error}`;
+          console.error(errorMsg);
+          errors.push(errorMsg);
+          downloadedCount++;
+          return { success: false, spellKey, error: errorMsg };
+        }
+      });
+
+      await Promise.all(promises);
+
+      // Update progress after each batch
+      await this.updateCategoryProgress(
+        "summoner-spells",
+        version,
+        `batch_${chunkIndex + 1}`,
+        totalExpected,
+        Math.min(validCompletedSet.size, totalExpected),
+        Array.from(validCompletedSet)
+      );
+
+      this.updateProgress({
+        current: Math.min(validCompletedSet.size, totalExpected) * ASSETS_PER_SPELL,
+        total: totalExpected * ASSETS_PER_SPELL,
+        itemName: "DataDragon spells",
+        stage: "downloading",
+        assetType: "spell-data",
+        currentAsset: `Batch ${chunkIndex + 1}/${chunks.length} (${validCompletedSet.size}/${totalExpected})`
+      });
+    }
+
+    return {
+      success: downloadedCount > 0,
+      totalSpells: totalExpected,
+      errors
+    };
+  }
+
+  private async downloadCommunityDragonSpells(version: string): Promise<{
+    success: boolean;
+    totalSpells: number;
+    errors: string[];
+  }> {
+    try {
+      const communitySpells = await CommunityDragonSpellsService.getAvailableSpells(version);
+      const totalSpells = communitySpells.length;
+      const errors: string[] = [];
+      let downloadedCount = 0;
+      const completedSpells: string[] = [];
+
+      console.log(`Downloading ${totalSpells} CommunityDragon spells in parallel...`);
+
+      this.updateProgress({
+        current: 0,
+        total: totalSpells,
+        itemName: "CommunityDragon spells",
+        stage: "downloading",
+        assetType: "spell-data",
+        currentAsset: "Starting CommunityDragon spells download"
+      });
+
+      // Download spells in parallel with concurrency limit
+      const CONCURRENCY_LIMIT = 6; // Slightly lower for external API
+      const chunks = this.chunkArray(communitySpells, CONCURRENCY_LIMIT);
+
+      for (let chunkIndex = 0; chunkIndex < chunks.length; chunkIndex++) {
+        const chunk = chunks[chunkIndex]!;
+        
+        const promises = chunk.map(async (spell) => {
+          try {
+            const imagePath = await CommunityDragonSpellsService.downloadSpellImage(spell, version);
+            const success = await this.downloadCommunityDragonImage(spell.url, imagePath);
+            
+            if (success) {
+              downloadedCount++;
+              completedSpells.push(spell.filename);
+              return { success: true, spell: spell.filename };
+            } else {
+              const errorMsg = `Failed to download CommunityDragon spell: ${spell.filename}`;
+              console.error(errorMsg);
+              errors.push(errorMsg);
+              return { success: false, spell: spell.filename, error: errorMsg };
+            }
+          } catch (error) {
+            const errorMsg = `Failed to download CommunityDragon spell ${spell.filename}: ${error}`;
+            console.error(errorMsg);
+            errors.push(errorMsg);
+            return { success: false, spell: spell.filename, error: errorMsg };
+          }
+        });
+
+        await Promise.all(promises);
+
+        // Update progress after each batch
+        await this.updateCategoryProgress(
+          "community-dragon-spells",
+          version,
+          `batch_${chunkIndex + 1}`,
+          totalSpells,
+          completedSpells.length,
+          completedSpells
+        );
+
+        this.updateProgress({
+          current: completedSpells.length,
+          total: totalSpells,
+          itemName: "CommunityDragon spells",
+          stage: "downloading",
+          assetType: "spell-data",
+          currentAsset: `Batch ${chunkIndex + 1}/${chunks.length} (${completedSpells.length}/${totalSpells})`
+        });
+      }
+
+      return {
+        success: downloadedCount > 0,
+        totalSpells: downloadedCount,
+        errors
+      };
+    } catch (error) {
+      console.error("Failed to download CommunityDragon spells:", error);
+      return {
+        success: false,
+        totalSpells: 0,
+        errors: [`Failed to download CommunityDragon spells: ${error}`]
+      };
+    }
+  }
+
+  private async downloadCommunityDragonImage(url: string, destPath: string): Promise<boolean> {
+    if (typeof window === "undefined" || !window.electronAPI) {
+      return false;
+    }
+
+    try {
+      
+      // Try the standard downloadAsset method
+      const result = await window.electronAPI.downloadAsset(url, "assets", destPath);
+      
+      if (result.success) {
+        return true;
+      } else {
+        console.error(`Download failed for ${url}:`, result.error);
+        return false;
+      }
+    } catch (error) {
+      console.error(`Exception downloading CommunityDragon image from ${url}:`, error);
+      return false;
     }
   }
 

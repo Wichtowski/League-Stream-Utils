@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { startupService } from "@lib/services/system";
 import { useAuth } from "@lib/contexts/AuthContext";
 
@@ -16,6 +17,7 @@ export const ChampionCacheInitializer = () => {
   const [progress, setProgress] = useState<StartupProgress | null>(null);
   const [isElectron, setIsElectron] = useState(false);
   const { user, isLoading } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
     // Check if we're in Electron environment
@@ -26,36 +28,27 @@ export const ChampionCacheInitializer = () => {
     if (electron && user && !isLoading) {
       checkAndInitializeCache();
     }
-  }, [user, isLoading]);
+  }, [user, isLoading, router]);
 
   const checkAndInitializeCache = async () => {
     try {
-      // Check if cache is complete first
-      const completeness = await startupService.initializeChampionCache();
+      // Check if all assets are complete
+      const completeness = await startupService.checkAllAssetsCompleteness();
 
-      if (completeness.success && completeness.message.includes("already complete")) {
-        // Cache is complete, no need to show initializer
+      if (completeness.isComplete) {
+        // All assets are complete, no need to show initializer
+        console.log("All assets are complete, proceeding to modules");
         return;
       }
 
-      // Cache needs initialization, show the initializer
-      setShowInitializer(true);
-
-      // Start the download with progress
-      await startupService.initializeChampionCacheWithProgress((progressUpdate) => {
-        setProgress(progressUpdate);
-      });
-
-      // Hide the initializer after completion
-      setTimeout(() => {
-        setShowInitializer(false);
-      }, 2000);
+      // Assets are missing, redirect to download page
+      console.log(`Missing assets detected: ${completeness.message}`);
+      console.log("Redirecting to download page...");
+      router.push("/download");
     } catch (error) {
-      console.error("Failed to initialize champion cache:", error);
-      setProgress({
-        stage: "error",
-        message: `Failed to initialize champion cache: ${error}`
-      });
+      console.error("Failed to check assets completeness:", error);
+      // On error, redirect to download page to be safe
+      router.push("/download");
     }
   };
 
@@ -108,7 +101,7 @@ export const ChampionCacheInitializer = () => {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-white">Champion Cache Initialization</h3>
+          <h3 className="text-lg font-semibold text-white">Asset Initialization</h3>
           {progress?.stage === "complete" && (
             <button onClick={handleSkip} className="text-gray-400 hover:text-white">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -155,14 +148,14 @@ export const ChampionCacheInitializer = () => {
 
         {progress?.stage === "complete" && (
           <div className="text-center">
-            <p className="text-green-400 text-sm mb-2">Champion cache initialized successfully!</p>
-            <p className="text-gray-400 text-xs">All champion data is now available offline.</p>
+            <p className="text-green-400 text-sm mb-2">Assets initialized successfully!</p>
+            <p className="text-gray-400 text-xs">All game assets are now available offline.</p>
           </div>
         )}
 
         {!progress && (
           <div className="text-center">
-            <p className="text-gray-400 text-sm">Preparing to download champion data...</p>
+            <p className="text-gray-400 text-sm">Preparing to download game assets...</p>
           </div>
         )}
       </div>

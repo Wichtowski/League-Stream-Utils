@@ -1,4 +1,5 @@
 import { championCacheService } from "@lib/services/assets";
+import { summonerSpellCacheService } from "@lib/services/assets/summoner-spell";
 
 interface StartupProgress {
   stage: "checking" | "downloading" | "complete" | "error";
@@ -178,6 +179,82 @@ class StartupService {
 
   isDownloadInProgress(): boolean {
     return this.downloadInProgress;
+  }
+
+  async checkAllAssetsCompleteness(): Promise<{
+    isComplete: boolean;
+    missingAssets: {
+      champions: number;
+      spells: number;
+      total: number;
+    };
+    message: string;
+  }> {
+    if (this.isInitialized || this.downloadInProgress) {
+      return {
+        isComplete: true,
+        missingAssets: { champions: 0, spells: 0, total: 0 },
+        message: "Already initialized or download in progress"
+      };
+    }
+
+    // Only run in Electron environment
+    if (typeof window === "undefined" || !window.electronAPI) {
+      return {
+        isComplete: true,
+        missingAssets: { champions: 0, spells: 0, total: 0 },
+        message: "Not in Electron environment, skipping asset check"
+      };
+    }
+
+    try {
+      console.log("Checking all assets completeness...");
+
+      // Check champions
+      const championCompleteness = await championCacheService.checkCacheCompleteness();
+      console.log(`Champions: ${championCompleteness.isComplete ? 'complete' : `missing ${championCompleteness.missingChampions.length}`}`);
+
+      // Check all summoner spells (DataDragon + CommunityDragon)
+      const spellCompleteness = await summonerSpellCacheService.checkCacheCompleteness();
+      const communityDragonCompleteness = await summonerSpellCacheService.checkCommunityDragonSpellsCompleteness();
+      
+      const missingDataDragonSpells = spellCompleteness.missingSpells.length;
+      const missingCommunityDragonSpells = communityDragonCompleteness.missingSpells.length;
+      const totalMissingSpells = missingDataDragonSpells + missingCommunityDragonSpells;
+      
+      console.log(`Spells: ${totalMissingSpells === 0 ? 'complete' : `missing ${totalMissingSpells} (${missingDataDragonSpells} DataDragon, ${missingCommunityDragonSpells} CommunityDragon)`}`);
+
+      const missingChampions = championCompleteness.isComplete ? 0 : championCompleteness.missingChampions.length;
+      const totalMissing = missingChampions + totalMissingSpells;
+
+      const isComplete = totalMissing === 0;
+
+      if (isComplete) {
+        this.isInitialized = true;
+        return {
+          isComplete: true,
+          missingAssets: { champions: 0, spells: 0, total: 0 },
+          message: "All assets are complete"
+        };
+      } else {
+        return {
+          isComplete: false,
+          missingAssets: {
+            champions: missingChampions,
+            spells: totalMissingSpells,
+            total: totalMissing
+          },
+          message: `Missing ${totalMissing} assets (${missingChampions} champions, ${totalMissingSpells} spells)`
+        };
+      }
+    } catch (error) {
+      console.error("Failed to check assets completeness:", error);
+      return {
+        isComplete: false,
+        missingAssets: { champions: 0, spells: 0, total: 0 },
+        message: `Failed to check assets: ${error}`
+      };
+    }
   }
 
   reset(): void {

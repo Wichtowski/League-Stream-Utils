@@ -8,6 +8,7 @@ import type { Match, GameResult, MatchStatus, MatchFormat } from "@lib/types/mat
 import type { Tournament } from "@lib/types/tournament";
 import type { PlayerStatsDoc } from "@lib/database/models";
 import { Team } from "@lib/types/team";
+import { getTeamWins } from "@libLeagueClient/utils/teamWins";
 
 interface MatchDetailPageProps {
   params: Promise<{
@@ -434,37 +435,6 @@ export default function MatchDetailPage({ params }: MatchDetailPageProps): React
     }
   };
 
-  const getTeamWins = (games: GameResult[]): {team1Wins: number, team2Wins: number} => {
-    if (!games || games.length === 0) return {team1Wins: 0, team2Wins: 0};
-    
-    // Get the team names from the first game to identify which team is which
-    const firstGame = games[0];
-    const team1 = firstGame.blueTeam;
-    const _team2 = firstGame.redTeam;
-    
-    let team1Wins = 0;
-    let team2Wins = 0;
-    
-    games.forEach(game => {
-      if (game.winner === "blue") {
-        // Blue team won this game
-        if (game.blueTeam === team1) {
-          team1Wins++;
-        } else {
-          team2Wins++;
-        }
-      } else if (game.winner === "red") {
-        // Red team won this game
-        if (game.redTeam === team1) {
-          team1Wins++;
-        } else {
-          team2Wins++;
-        }
-      }
-    });
-    
-    return {team1Wins, team2Wins};
-  };
 
   const removeUnnecessaryGames = (games: GameResult[]) => {
     if (!match || games.length === 0) return games;

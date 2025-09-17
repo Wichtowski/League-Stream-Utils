@@ -28,10 +28,15 @@ export default function AuthPage() {
         localStorage.removeItem("returnTo"); // Clean up
         router.push(returnTo);
       } else {
-        router.push("/modules");
+        // In Electron mode, redirect to download page to check assets first
+        if (isElectron) {
+          router.push("/download");
+        } else {
+          router.push("/modules");
+        }
       }
     }
-  }, [setActiveModule, user, isLoading, router]);
+  }, [setActiveModule, user, isLoading, router, isElectron]);
 
   const clearMessages = () => {
     setError("");

@@ -3,6 +3,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@lib/contexts/AuthContext";
 import { Button } from "@lib/components/common";
 import { AuthCredentials } from "@lib/types/auth";
+import { useElectron } from "@libElectron/contexts/ElectronContext";
 
 export function LoginForm() {
   const [credentials, setCredentials] = useState<AuthCredentials>({
@@ -13,6 +14,7 @@ export function LoginForm() {
   const [errorMessage, setErrorMessage] = useState<string>("");
   const { login } = useAuth();
   const router = useRouter();
+  const { isElectron } = useElectron();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,7 +31,12 @@ export function LoginForm() {
           sessionStorage.removeItem("returnTo");
           router.push(returnTo);
         } else {
-          router.push("/");
+          // In Electron mode, redirect to download page to check assets first
+          if (isElectron) {
+            router.push("/download");
+          } else {
+            router.push("/");
+          }
         }
       } else {
         setErrorMessage(result.message || "Login failed");
@@ -76,7 +83,12 @@ export function LoginForm() {
           sessionStorage.removeItem("returnTo");
           router.push(returnTo);
         } else {
-          router.push("/modules");
+          // In Electron mode, redirect to download page to check assets first
+          if (isElectron) {
+            router.push("/download");
+          } else {
+            router.push("/modules");
+          }
         }
       } catch {
         // ignore
