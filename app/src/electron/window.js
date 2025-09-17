@@ -52,7 +52,6 @@ async function createWindow(mainWindow, localhostUrl, createInterceptor) {
 
   // Load the Next.js app
   const appUrl = localhostUrl + "/login";
-  console.log(`Loading Electron app from: ${appUrl}`);
 
   // ⬇ Next.js handler ⬇
   if (!isDev) {
