@@ -24,7 +24,7 @@ export const MatchSchema = new Schema({
     enum: ["BO1", "BO3", "BO5"], 
     required: true 
   },
-  isFearlessDraft: { type: Boolean, required: true },
+  // Fearless behavior is derived from championsPlayed; explicit flag removed
   patchName: { type: String, required: true },
 
   // Scheduling
@@ -59,6 +59,7 @@ export const MatchSchema = new Schema({
     redScore: { type: Number, required: true },
     blueTeam: { type: String, required: true },
     redTeam: { type: String, required: true },
+    championsPlayed: { type: Object, required: false },
     startTime: { type: Date, required: false },
     endTime: { type: Date, required: false },
     completedAt: { type: Date, required: false }

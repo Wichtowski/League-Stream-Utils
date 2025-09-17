@@ -17,7 +17,6 @@ export interface Match {
 
   // Match configuration
   format: MatchFormat;
-  isFearlessDraft: boolean;
   patchName: string;
 
   // Scheduling
@@ -71,6 +70,9 @@ export interface GameResult {
   redScore: number;
   blueTeam: string;
   redTeam: string;
+  championsPlayed?: {
+    [teamId: string]: { [playerId: string]: number };
+  };
   startTime?: Date;
   endTime?: Date;
   completedAt?: Date;
@@ -86,7 +88,6 @@ export interface CreateMatchRequest {
   blueTeamId: string;
   redTeamId: string;
   format: MatchFormat;
-  isFearlessDraft: boolean;
   patchName: string;
   scheduledTime?: string;
   createdBy: string;
