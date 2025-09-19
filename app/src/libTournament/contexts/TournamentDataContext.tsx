@@ -140,8 +140,8 @@ export function TournamentDataProvider({ children }: { children: ReactNode }) {
         return tournaments;
       }
 
-      // Don't fetch if user is not authenticated
-      if (!user) {
+      // Don't fetch if user is not authenticated or auth is still loading
+      if (!user || authLoading) {
         if (showLoading) setLoading(false);
         return [];
       }
@@ -153,6 +153,11 @@ export function TournamentDataProvider({ children }: { children: ReactNode }) {
         const response = await authenticatedFetch("/api/v1/tournaments");
 
         if (!response.ok) {
+          // If we get 401, it means we're logged out, so just return empty array
+          if (response.status === 401) {
+            if (showLoading) setLoading(false);
+            return [];
+          }
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
 
@@ -180,20 +185,24 @@ export function TournamentDataProvider({ children }: { children: ReactNode }) {
         if (showLoading) setLoading(false);
       }
     },
-    [user, authenticatedFetch, tournaments, areTournamentsEqual, isLocalDataMode]
+    [user, authLoading, authenticatedFetch, tournaments, areTournamentsEqual, isLocalDataMode]
   );
 
   const checkDataSync = useCallback(async (): Promise<void> => {
     // Skip sync checks in local data mode
     if (isLocalDataMode) return;
 
-    // Don't sync if user is not authenticated
-    if (!user) return;
+    // Don't sync if user is not authenticated or auth is still loading
+    if (!user || authLoading) return;
 
     try {
       const response = await authenticatedFetch("/api/v1/tournaments", {
         method: "HEAD"
       });
+      
+      // If we get 401, just return without error - user is logged out
+      if (response.status === 401) return;
+      
       const lastModified = response.headers.get("Last-Modified");
 
       if (lastModified) {
@@ -208,11 +217,11 @@ export function TournamentDataProvider({ children }: { children: ReactNode }) {
     } catch (err) {
       console.debug("Background tournament sync check failed:", err);
     }
-  }, [user, authenticatedFetch, fetchTournamentsFromAPI, isLocalDataMode]);
+  }, [user, authLoading, authenticatedFetch, fetchTournamentsFromAPI, isLocalDataMode]);
 
   const loadCachedData = useCallback(async (): Promise<void> => {
-    // Don't fetch data if user is not authenticated
-    if (!user) {
+    // Don't fetch data if user is not authenticated or auth is still loading
+    if (!user || authLoading) {
       setLoading(false);
       return;
     }
@@ -239,43 +248,54 @@ export function TournamentDataProvider({ children }: { children: ReactNode }) {
         if (cachedTournaments) {
           setTournaments(cachedTournaments);
           setLoading(false);
-          // Only fetch fresh data in background if cache is expired
-          if (isExpired) {
+          // Only fetch fresh data in background if cache is expired and user is still authenticated
+          if (isExpired && user && !authLoading) {
             fetchTournamentsFromAPI(false);
           }
         } else {
-          // No cache, fetch fresh data
-          await fetchTournamentsFromAPI(true);
+          // No cache, fetch fresh data only if user is authenticated
+          if (user && !authLoading) {
+            await fetchTournamentsFromAPI(true);
+          } else {
+            setLoading(false);
+          }
         }
       }
     } catch (err) {
       console.error("Failed to load cached tournaments:", err);
-      if (!isLocalDataMode) {
+      if (!isLocalDataMode && user && !authLoading) {
         await fetchTournamentsFromAPI(true);
       } else {
         setLoading(false);
       }
     }
-  }, [user, fetchTournamentsFromAPI, isLocalDataMode]);
+  }, [user, authLoading, fetchTournamentsFromAPI, isLocalDataMode]);
 
   useEffect(() => {
-    if (!authLoading && user) {
-      // Use requestIdleCallback for better performance if available
-      if (typeof window !== "undefined" && "requestIdleCallback" in window) {
-        (window as unknown as Window).requestIdleCallback(
-          () => {
+    if (!authLoading) {
+      if (user) {
+        // Use requestIdleCallback for better performance if available
+        if (typeof window !== "undefined" && "requestIdleCallback" in window) {
+          (window as unknown as Window).requestIdleCallback(
+            () => {
+              loadCachedData();
+            },
+            { timeout: 1000 }
+          );
+        } else {
+          // Fallback to setTimeout for immediate execution
+          setTimeout(() => {
             loadCachedData();
-          },
-          { timeout: 1000 }
-        );
+          }, 0);
+        }
       } else {
-        // Fallback to setTimeout for immediate execution
-        setTimeout(() => {
-          loadCachedData();
-        }, 0);
+        // User logged out, clear tournaments
+        setTournaments([]);
+        setLoading(false);
+        setError(null);
       }
     }
-  }, [user, authLoading, loadCachedData]);
+  }, [user, authLoading]); // Removed loadCachedData from dependencies to prevent infinite loop
 
   useEffect(() => {
     // Skip sync checks in local data mode

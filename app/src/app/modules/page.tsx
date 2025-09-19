@@ -13,6 +13,7 @@ import { SpotlightCard } from "@lib/components/modules/SpotlightCard";
 import { Button } from "@lib/components/common/button/Button";
 import { matchStorage } from "@lib/services/match/match-storage";
 import { LastSelectedMatch } from "@lib/services/match/match-storage";
+import { LoadingSpinner } from "@/lib/components/common";
 
 export default function ModulesPage() {
   const router = useRouter();
@@ -142,29 +143,7 @@ export default function ModulesPage() {
   if (loading) {
     return (
       <PageWrapper title="Modules" subtitle="Loading modules..." contentClassName="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {Array(6)
-            .fill(null)
-            .map((_, index) => (
-              <SpotlightCard
-                key={index}
-                module={{
-                  id: `loading-${index}`,
-                  name: "Loading...",
-                  description: "Loading module...",
-                  path: "",
-                  status: "available",
-                  color: "from-gray-500 to-gray-600",
-                  spotlightColor: "#6B7280",
-                  icon: "📦",
-                  category: "core"
-                }}
-                loading={true}
-                spotlightColor="#6B7280"
-                isHiddenBehindTournament={false}
-              />
-            ))}
-        </div>
+        <LoadingSpinner fullscreen>Loading Modules...</LoadingSpinner>
       </PageWrapper>
     );
   }

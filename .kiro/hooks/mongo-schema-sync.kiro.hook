@@ -1,0 +1,23 @@
+{
+  "enabled": true,
+  "name": "MongoDB Schema Sync",
+  "description": "Monitors MongoDB schema files for changes and automatically updates all affected request payloads, query builders, and validation rules to maintain consistency with the latest data schemas",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "**/*schema*.js",
+      "**/*schema*.ts",
+      "**/*model*.js",
+      "**/*model*.ts",
+      "**/models/**/*.js",
+      "**/models/**/*.ts",
+      "**/schemas/**/*.js",
+      "**/schemas/**/*.ts"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A MongoDB schema file has been modified. Please analyze the schema changes and update all affected request data to maintain consistency. Specifically: 1) Identify what fields were added, removed, or updated in the schema 2) Find all request payloads, query builders, and validation rules that reference this schema 3) Update them to match the new schema structure 4) Ensure default values, required fields, and type changes are properly reflected 5) Preserve backwards compatibility where possible 6) Provide a summary of what was updated and why"
+  }
+}

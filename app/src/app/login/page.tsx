@@ -58,26 +58,8 @@ export default function AuthPage() {
         title="Loading..."
         subtitle="Please wait while we check your authentication..."
         contentClassName="max-w-md mx-auto mt-10"
-        actions={<SettingsCog blured={true} />}
         loading={true}
         requireAuth={false}
-        loadingChildren={
-          <div className="max-w-md mx-auto bg-gray-800 rounded-lg p-8 shadow-2xl opacity-50 blur-sm pointer-events-none">
-            <h1 className="text-3xl font-bold mb-6 text-center text-blue-400">League Stream Utils</h1>
-
-            <AuthTabs isLogin={isLogin} onTabChange={setIsLogin} onClearMessages={clearMessages} />
-
-            <MessageDisplay error={error} success={success} />
-
-            {isLogin ? (
-              <LoginForm />
-            ) : (
-              <RegisterForm onSuccess={handleRegisterSuccess} onError={setError} onSwitchToLogin={switchToLogin} />
-            )}
-
-            <ContactInfo />
-          </div>
-        }
       >
         <></>
       </PageWrapper>
@@ -90,21 +72,6 @@ export default function AuthPage() {
 
   return (
     <PageWrapper contentClassName="max-w-md mx-auto mt-10" actions={<SettingsCog />} requireAuth={false}>
-      {/* Electron Mode Indicator */}
-      {isElectron && (
-        <div className="absolute top-6 right-6 flex items-center space-x-4 z-10">
-          <div className="text-right">
-            <div className="text-sm text-gray-400">
-              Mode:{" "}
-              <span className={useLocalData ? "text-green-400" : "text-blue-400"}>
-                {useLocalData ? "Local Data" : "Online"}
-              </span>
-            </div>
-            <div className="text-xs text-gray-500">{useLocalData ? "Saving to AppData" : "Using cloud storage"}</div>
-          </div>
-        </div>
-      )}
-
       <div className="w-full bg-gray-800 rounded-lg p-8 shadow-2xl">
         <h1 className="text-3xl font-bold mb-6 text-center text-blue-400">League Stream Utils</h1>
 

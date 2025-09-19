@@ -9,7 +9,8 @@ import {
   ComputerDesktopIcon,
   CheckCircleIcon,
   VideoCameraIcon,
-  ServerIcon
+  ServerIcon,
+  UserIcon
 } from "@heroicons/react/24/outline";
 import { useModal } from "@lib/contexts/ModalContext";
 import { riotAPI } from "@lib/services/external/RIOT/api";
@@ -20,6 +21,8 @@ import { OBSControl } from "./obsControl";
 import { LocalDatabaseManager } from "./LocalDatabaseManager";
 import { Button } from "@lib/components/common";
 import { useElectron } from "@libElectron/contexts/ElectronContext";
+import { LogoutButton } from "@lib/components/settings/LogoutButton";
+import { useAuth } from "@lib/contexts/AuthContext";
 
 interface RiotAPISettings {
   apiKey: string;
@@ -46,7 +49,8 @@ interface IntegrityCheckResult {
 
 export const ElectronSettings = () => {
   const { showAlert } = useModal();
-  const [activeTab, setActiveTab] = useState("data-mode");
+  const { user, isLoading: authLoading } = useAuth();
+  const [activeTab, setActiveTab] = useState("account");
   const [isElectron, setIsElectron] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -338,14 +342,10 @@ export const ElectronSettings = () => {
   };
 
   const tabs = [
+    { id: "account", name: "Account", icon: UserIcon },
     { id: "data-mode", name: "Data Storage", icon: ComputerDesktopIcon },
     { id: "database", name: "Database Manager", icon: ServerIcon },
     { id: "riot-api", name: "Riot API", icon: ShieldCheckIcon },
-    {
-      id: "templates",
-      name: "Tournament Templates",
-      icon: DocumentDuplicateIcon
-    },
     { id: "cache", name: "Cache Management", icon: CloudIcon },
     { id: "integrity", name: "Data Integrity", icon: CheckCircleIcon },
     { id: "obs-control", name: "OBS Control", icon: VideoCameraIcon }
@@ -428,6 +428,133 @@ export const ElectronSettings = () => {
           ))}
         </nav>
       </div>
+
+      {/* Account Settings */}
+      {activeTab === "account" && (
+        <div className="space-y-6">
+          <div className="bg-gray-800 shadow rounded-lg p-6">
+            <h3 className="text-lg font-medium text-gray-100">User Information</h3>
+            
+            {/* Loading state */}
+            {authLoading && (
+              <div className="text-center py-12">
+                <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg
+                    className="animate-spin h-8 w-8 text-gray-400"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                    role="img"
+                    aria-label="Loading user information"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    />
+                  </svg>
+                </div>
+                <h4 className="text-lg font-medium text-gray-300 mb-2">Loading Account Information</h4>
+                <p className="text-gray-400">Please wait while we load your account details...</p>
+              </div>
+            )}
+
+            {/* Authenticated user state */}
+            {!authLoading && user && (
+              <div className="space-y-8">
+                {/* User Information */}
+                <div className="border-b border-gray-700">
+                  <dl className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <dt className="text-sm font-medium text-gray-300">Username</dt>
+                      <dd className="text-sm text-gray-100 font-mono bg-gray-900 px-3 py-1 rounded border border-gray-600">
+                        {user.username}
+                      </dd>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <dt className="text-sm font-medium text-gray-300">Email</dt>
+                      <dd className="text-sm text-gray-100 font-mono bg-gray-900 px-3 py-1 rounded border border-gray-600">
+                        {user.email}
+                      </dd>
+                    </div>
+                    <div className="flex justify-between items-center mb-2">
+                      <dt className="text-sm font-medium text-gray-300">Role</dt>
+                      <dd className="text-sm text-gray-100">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          user.isAdmin 
+                            ? 'bg-blue-900 text-blue-200 border border-blue-700' 
+                            : 'bg-gray-900 text-gray-200 border border-gray-600'
+                        }`}>
+                          {user.isAdmin ? "Administrator" : "User"}
+                        </span>
+                      </dd>
+                    </div>
+                  </dl>
+                </div>
+
+                {/* Account Actions */}
+                <div>
+                  <h4 className="text-md font-medium text-gray-200 mb-4">Account Actions</h4>
+                  <div className="bg-gray-900 border border-gray-700 rounded-lg p-4">
+                    <div className="flex items-start space-x-4">
+                      <div className="flex-shrink-0">
+                        <div className="w-10 h-10 bg-red-900 rounded-full flex items-center justify-center">
+                          <svg className="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                          </svg>
+                        </div>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h5 className="text-sm font-medium text-gray-200 mb-1">Sign Out</h5>
+                        <p className="text-sm text-gray-400 mb-3">
+                          End your current session and return to the login page. You'll need to sign in again to access your account.
+                        </p>
+                        <LogoutButton 
+                          showConfirmation={true} 
+                          variant="destructive"
+                          size="md"
+                          className="inline-flex"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Unauthenticated state */}
+            {!authLoading && !user && (
+              <div className="text-center py-12">
+                <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <UserIcon className="w-8 h-8 text-gray-400" />
+                </div>
+                <h4 className="text-lg font-medium text-gray-300 mb-2">Not Signed In</h4>
+                <p className="text-gray-400 mb-6">You are not currently logged in to your account.</p>
+                <div className="bg-gray-900 border border-gray-700 rounded-lg p-4">
+                  <p className="text-sm text-gray-400 mb-3">
+                    To access account settings and logout functionality, please sign in to your account.
+                  </p>
+                  <Link
+                    href="/login"
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
+                  >
+                    Sign In
+                  </Link>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Data Storage Mode */}
       {activeTab === "data-mode" && (
@@ -549,45 +676,6 @@ export const ElectronSettings = () => {
                 </p>
               </div>
             )}
-          </div>
-        </div>
-      )}
-
-      {/* Tournament Templates */}
-      {activeTab === "templates" && (
-        <div className="space-y-6">
-          <div className="bg-gray-800 shadow rounded-lg p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-medium text-gray-100">Tournament Templates</h3>
-              <button onClick={loadTemplates} className="text-blue-600 hover:text-blue-800 text-sm font-medium">
-                Refresh
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {templates.map((template) => (
-                <div key={template.id} className="border border-gray-600 rounded-lg p-4 bg-gray-700">
-                  <h4 className="text-lg font-medium text-gray-100 mb-2">{template.name}</h4>
-                  <p className="text-sm text-gray-300 mb-3">{template.description}</p>
-
-                  <div className="space-y-2 text-xs text-gray-400">
-                    <div>Format: {template.format}</div>
-                    <div>Max Teams: {template.maxTeams}</div>
-                    <div>Fearless Draft: {template.fearlessDraft ? "Yes" : "No"}</div>
-                  </div>
-
-                  <div className="mt-4 flex gap-2">
-                    <button
-                      onClick={() => handleExportTemplate(template.id)}
-                      className="text-blue-600 hover:text-blue-800 text-xs font-medium"
-                    >
-                      Export
-                    </button>
-                    <button className="text-green-600 hover:text-green-800 text-xs font-medium">Use Template</button>
-                  </div>
-                </div>
-              ))}
-            </div>
           </div>
         </div>
       )}

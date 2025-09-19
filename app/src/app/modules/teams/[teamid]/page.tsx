@@ -7,7 +7,7 @@ import { useAuthenticatedFetch } from "@lib/hooks/useAuthenticatedFetch";
 import { PageWrapper } from "@lib/layout/PageWrapper";
 import { TeamCard, TeamEditForm } from "@libTeam/components";
 import type { CreateTeamRequest, Team } from "@lib/types";
-import { Button } from "@lib/components/common";
+import { Button, LoadingSpinner } from "@lib/components/common";
 
 const TeamEditPage: React.FC = () => {
   const params = useParams<{ teamId: string }>();
@@ -73,9 +73,9 @@ const TeamEditPage: React.FC = () => {
           { label: "Teams", href: "/modules/teams" },
           { label: teamId, href: "/modules/teams", isActive: true }
         ]}
-        loading
+        loading={true}
       >
-        <></>
+        <LoadingSpinner fullscreen>Loading Team...</LoadingSpinner>
       </PageWrapper>
     );
   }

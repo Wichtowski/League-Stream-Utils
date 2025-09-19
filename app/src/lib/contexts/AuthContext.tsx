@@ -71,6 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }): React.React
   const [isLoading, setIsLoading] = useState(true);
   const { isElectron, isElectronLoading, useLocalData } = useElectron();
   const authCheckInProgress = useRef(false);
+  const isLoggingOut = useRef(false);
 
   const clearAuthData = useCallback(() => {
     setUser(null);
@@ -107,6 +108,11 @@ export function AuthProvider({ children }: { children: ReactNode }): React.React
   );
 
   const refreshToken = useCallback(async (): Promise<boolean> => {
+    // Don't try to refresh if user is already null (logged out) or logout is in progress
+    if (!user || isLoggingOut.current) {
+      return false;
+    }
+    
     try {
       const response = await fetch("/api/v1/auth/validate", {
         method: "GET",
@@ -123,9 +129,19 @@ export function AuthProvider({ children }: { children: ReactNode }): React.React
     } catch (_error) {
       return false;
     }
-  }, []);
+  }, [user]);
 
   const logout = useCallback(async () => {
+    // Prevent multiple logout calls
+    if (isLoggingOut.current) {
+      return;
+    }
+    
+    isLoggingOut.current = true;
+    
+    // Immediately clear user to prevent further API calls
+    setUser(null);
+    
     try {
       await fetch("/api/v1/auth/logout", {
         method: "POST",
@@ -196,13 +212,13 @@ export function AuthProvider({ children }: { children: ReactNode }): React.React
         setUser(data.user);
         setAuthCache(data.user);
       } else {
-        // Session expired, user needs to login again
+        // Session expired or no session, user needs to login again
+        // Don't log 401 as error since it's expected when not logged in
         clearAuthData();
-        // router.push("/login"); // Removed as per edit hint
       }
     } catch (_error) {
+      // Network error or other issue
       clearAuthData();
-      // router.push("/login"); // Removed as per edit hint
     } finally {
       setIsLoading(false);
       authCheckInProgress.current = false;
