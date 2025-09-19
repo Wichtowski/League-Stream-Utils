@@ -5,8 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useNavigation } from "@lib/contexts";
 import { PageWrapper } from "@lib/layout";
 import { TeamListCard } from "@libTeam/components";
-import { GridLoader } from "@lib/components/common";
 import type { Team } from "@lib/types";
+import { LoadingSpinner } from "@/lib/components/common";
 
 export default function TeamsPage(): ReactElement {
   const router = useRouter();
@@ -70,9 +70,8 @@ export default function TeamsPage(): ReactElement {
         title="My Teams"
         breadcrumbs={[{ label: "Teams", href: "/modules/teams", isActive: true }]}
         loading={true}
-        loadingChildren={<GridLoader config="teams" rows={2} />}
       >
-        <></>
+        <LoadingSpinner className="mx-auto mt-16">Loading Teams...</LoadingSpinner>
       </PageWrapper>
     );
   }

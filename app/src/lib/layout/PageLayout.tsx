@@ -3,8 +3,9 @@ import { Breadcrumbs, BreadcrumbItem, SettingsCog } from "@lib/components/common
 import { useElectron } from "@libElectron/contexts/ElectronContext";
 import { Footer } from "@lib/components/common/Footer";
 
-interface PageLayoutProps {
+export interface PageLayoutProps {
   children: React.ReactNode;
+  requireAuth?: boolean;
   breadcrumbs?: BreadcrumbItem[];
   title?: string;
   subtitle?: string;
@@ -12,7 +13,6 @@ interface PageLayoutProps {
   className?: string;
   contentClassName?: string;
   loading?: boolean;
-  loadingChildren?: React.ReactNode;
 }
 
 export const PageLayout: React.FC<PageLayoutProps> = ({
@@ -24,7 +24,6 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
   className = "",
   contentClassName = "",
   loading = false,
-  loadingChildren
 }) => {
   const { isElectron } = useElectron();
 
@@ -35,14 +34,7 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
           <div className="mb-4 flex justify-between items-center">
             <Breadcrumbs items={[]} />
           </div>
-          <div className="mb-8 flex items-center justify-between">
-            <div>
-              <div className="h-8 bg-gray-600 rounded animate-pulse blur-sm w-64"></div>
-            </div>
-            {actions && <div className="flex items-center space-x-4">{actions}</div>}
-            {isElectron && <SettingsCog />}
-          </div>
-          <div className="space-y-6">{loadingChildren || children}</div>
+          <div className="space-y-6">{children}</div>
         </div>
       </div>
     );

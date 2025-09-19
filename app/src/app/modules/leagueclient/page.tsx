@@ -4,6 +4,7 @@ import React, { useEffect } from "react";
 import { useNavigation } from "@lib/contexts/NavigationContext";
 import { useAuth } from "@lib/contexts/AuthContext";
 import { CopyButton } from "@lib/components/common";
+import { PageWrapper } from "@lib/layout";
 import Link from "next/link";
 
 export default function LeagueClientPage(): React.ReactElement {
@@ -63,15 +64,13 @@ export default function LeagueClientPage(): React.ReactElement {
   };
 
   return (
+    <PageWrapper
+      title="League Client Integration"
+      subtitle="Quick links to demo overlays. Open to preview or copy URL for OBS/browser source."
+      breadcrumbs={[{ label: "LeagueClient", href: "/modules/leagueclient" }]}
+    >
     <div className="min-h-screen text-white p-6">
       <div className="max-w-6xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-semibold tracking-tight mb-2">League Client Integration</h1>
-          <p className="text-gray-400">
-            Quick links to demo overlays. Open to preview or copy URL for OBS/browser source.
-          </p>
-        </div>
-
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Champion Select */}
           <LeagueClientCard
@@ -121,11 +120,12 @@ export default function LeagueClientPage(): React.ReactElement {
                 <li>• Wait for the game to load</li>
                 <li>• Open the live game overlay</li>
                 <li>• Monitor player stats and objectives</li>
-              </ul>
+                </ul>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </PageWrapper>
   );
 }

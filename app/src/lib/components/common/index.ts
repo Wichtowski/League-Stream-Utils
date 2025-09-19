@@ -3,7 +3,6 @@ import { Pagination } from "./Pagination";
 import { Footer } from "./Footer";
 import { Accordion } from "./Accordion";
 import { Breadcrumbs, type BreadcrumbItem } from "./Breadcrumbs";
-import { GridLoader } from "./GridLoader";
 import { Button } from "./button/Button";
 import { CopyButton } from "./button/CopyButton";
 import { SettingsCog } from "./SettingsCog";
@@ -18,7 +17,6 @@ export {
   Breadcrumbs,
   BreadcrumbItem,
   Footer,
-  GridLoader,
   LoadingSpinner,
   InlineSpinner,
   PageLoader,

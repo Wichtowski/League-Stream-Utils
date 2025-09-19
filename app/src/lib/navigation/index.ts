@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-export type ModuleCategory = "tournament" | "prediction" | "core" | "integration";
+export type ModuleCategory = "tournament" | "prediction" | "core" | "integration" | "admin";
 
 export interface ModuleCard {
   id: string;
@@ -92,28 +92,6 @@ export const MODULES: ModuleCard[] = [
     path: "/modules/leagueclient",
     color: "from-teal-500 to-cyan-500",
     spotlightColor: "rgba(20, 184, 166, 0.15)",
-    status: "beta",
-    category: "integration"
-  },
-  {
-    id: "leagueclient-champselect-demo",
-    name: "Champ Select Demo",
-    description: "Connect to the League of Legends client to get live champ select data",
-    icon: "📱",
-    path: "/modules/leagueclient/champselect/demo",
-    color: "from-cyan-500 to-blue-500",
-    spotlightColor: "rgba(6, 182, 212, 0.15)",
-    status: "beta",
-    category: "integration"
-  },
-  {
-    id: "leagueclient-game-demo",
-    name: "Live Game",
-    description: "Connect to the League of Legends client to get live game data",
-    icon: "🕹️",
-    path: "/modules/leagueclient/game/demo",
-    color: "from-teal-600 to-emerald-500",
-    spotlightColor: "rgba(13, 148, 136, 0.15)",
     status: "beta",
     category: "integration"
   },

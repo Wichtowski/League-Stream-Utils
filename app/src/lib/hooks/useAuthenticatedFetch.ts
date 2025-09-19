@@ -14,11 +14,16 @@ interface FetchResult<T> {
 export function useAuthenticatedFetch(): {
   authenticatedFetch: (url: string, options?: FetchOptions) => Promise<Response>;
 } {
-  const { refreshToken, logout } = useAuth();
+  const { refreshToken, logout, user } = useAuth();
 
   const authenticatedFetch = useCallback(
     async (url: string, options: FetchOptions = {}): Promise<Response> => {
       const { skipAuth = false, ...fetchOptions } = options;
+
+      // Don't make requests if user is not authenticated
+      if (!user && !skipAuth) {
+        throw new Error("User not authenticated");
+      }
 
       try {
         const defaultOptions: RequestInit = {
@@ -32,19 +37,25 @@ export function useAuthenticatedFetch(): {
 
         let response = await fetch(url, defaultOptions);
 
-        // Try to refresh token on 401
-        if (response.status === 401 && !skipAuth) {
+        // Try to refresh token on 401, but only if we have a user and not already logged out
+        if (response.status === 401 && !skipAuth && user) {
           console.log("401 Unauthorized - attempting token refresh...");
           const refreshed = await refreshToken();
 
           if (refreshed) {
             console.log("Token refreshed, retrying request...");
             response = await fetch(url, defaultOptions);
+          } else {
+            // If refresh failed, force logout but don't retry
+            console.log("Token refresh failed - logging out...");
+            await logout();
+            // Return the original 401 response instead of retrying
+            return response;
           }
 
-          // If refresh failed or the retried request is still unauthorized, force logout
-          if (!refreshed || response.status === 401) {
-            console.log("Token refresh failed or still unauthorized - logging out...");
+          // If the retried request is still unauthorized after successful refresh, logout
+          if (refreshed && response.status === 401) {
+            console.log("Still unauthorized after token refresh - logging out...");
             await logout();
           }
         }
@@ -54,7 +65,7 @@ export function useAuthenticatedFetch(): {
         throw error;
       }
     },
-    [refreshToken, logout]
+    [refreshToken, logout, user]
   );
 
   return { authenticatedFetch };

@@ -5,9 +5,9 @@ import Link from "next/link";
 import { useTournaments } from "@libTournament/contexts/TournamentsContext";
 import { useNavigation } from "@lib/contexts/NavigationContext";
 import { useModal } from "@lib/contexts/ModalContext";
-import { GridLoader } from "@lib/components/common";
 import { PageWrapper } from "@lib/layout";
 import { TournamentPageCard } from "@libTournament/components";
+import { LoadingSpinner } from "@/lib/components/common";
 
 export default function TournamentsPage() {
   const { tournaments, loading: tournamentsLoading, error, refreshTournaments } = useTournaments();
@@ -52,13 +52,7 @@ export default function TournamentsPage() {
         title="My Tournaments"
         breadcrumbs={[{ label: "Tournaments", href: "/modules/tournaments" }]}
       >
-        <GridLoader
-          config="tournaments"
-          rows={3}
-          component={TournamentPageCard}
-          componentProps={{ tournament: placeholderTournament, loading: true }}
-          placeholderData={Array(3).fill(placeholderTournament)}
-        />
+        <LoadingSpinner fullscreen >Loading Tournaments...</LoadingSpinner>
       </PageWrapper>
     );
   }

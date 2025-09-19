@@ -4,11 +4,13 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { PageWrapper } from "@lib/layout";
 import { LoadingSpinner, Button } from "@lib/components/common";
+import { getChampions } from "@lib/champions";
+import { getTeamWins } from "@libLeagueClient/utils/teamWins";
+import type { Champion } from "@lib/types/game";
 import type { Match, GameResult, MatchStatus, MatchFormat } from "@lib/types/match";
 import type { Tournament } from "@lib/types/tournament";
 import type { PlayerStatsDoc } from "@lib/database/models";
 import { Team } from "@lib/types/team";
-import { getTeamWins } from "@libLeagueClient/utils/teamWins";
 
 interface MatchDetailPageProps {
   params: Promise<{
@@ -42,6 +44,7 @@ export default function MatchDetailPage({ params }: MatchDetailPageProps): React
   const [teamsSwapped, setTeamsSwapped] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const preEditSnapshotRef = useRef<Match | null>(null);
+  const [champions, setChampions] = useState<Champion[]>([]);
 
   type NormalizedStats = NonNullable<PlayerStatsDoc["stats"]>;
 
@@ -92,6 +95,49 @@ export default function MatchDetailPage({ params }: MatchDetailPageProps): React
   };
 
   const hasFetchedData = useRef(false);
+
+  useEffect(() => {
+    let mounted = true;
+    getChampions().then((list) => {
+      if (mounted) setChampions(list);
+    }).catch(() => setChampions([]));
+    return () => { mounted = false; };
+  }, []);
+
+  const getTeamIdForSide = (game: GameResult, side: "blue" | "red"): string => {
+    if (!match) return "";
+    const isBlueTeamMatchBlue = blueTeam?.name && game.blueTeam === blueTeam.name;
+    if (side === "blue") {
+      return isBlueTeamMatchBlue ? match.blueTeamId : match.redTeamId;
+    }
+    return isBlueTeamMatchBlue ? match.redTeamId : match.blueTeamId;
+  };
+
+  const handleChampionPlayedChange = (
+    gameNumber: number,
+    side: "blue" | "red",
+    playerId: string,
+    championId: number
+  ): void => {
+    if (!match) return;
+    const games = (editData.games || match.games || []).map((g) => {
+      if (g.gameNumber !== gameNumber) return g as GameResult;
+      const teamId = getTeamIdForSide(g as GameResult, side);
+      const updated: GameResult = {
+        ...(g as GameResult),
+        championsPlayed: {
+          ...((g as GameResult).championsPlayed || {}),
+          [teamId]: {
+            ...(((g as GameResult).championsPlayed || {})[teamId] || {}),
+            [playerId]: championId
+          }
+        }
+      };
+      return updated;
+    });
+    setMatch({ ...match, games });
+    setEditData({ ...editData, games });
+  };
 
   useEffect(() => {
     if (match?.blueTeamId) {
@@ -412,74 +458,76 @@ export default function MatchDetailPage({ params }: MatchDetailPageProps): React
     });
   };
 
-  const [commentators, setCommentators] = useState<Array<{ id: string; name: string }>>([]);
-  const [predictions, setPredictions] = useState<Array<{ username: string; prediction: "blue" | "red"; submittedAt?: string }>>([]);
-  const [newCommentatorId, setNewCommentatorId] = useState("");
-  const [assigningCommentator, setAssigningCommentator] = useState(false);
-  const [submittingPrediction, setSubmittingPrediction] = useState<"blue" | "red" | null>(null);
+const [commentators, setCommentators] = useState<Array<{ id: string; name: string }>>([]);
+const [predictions, setPredictions] = useState<Array<{ username: string; prediction: "blue" | "red"; submittedAt?: string }>>([]);
+const [newCommentatorId, setNewCommentatorId] = useState("");
+const [assigningCommentator, setAssigningCommentator] = useState(false);
+const [submittingPrediction, setSubmittingPrediction] = useState<"blue" | "red" | null>(null);
 
-  useEffect(() => {
-    const loadSideData = async () => {
-      if (!match) return;
-      try {
-        const [comRes, predRes] = await Promise.all([
-          fetch(`/api/v1/matches/${match._id}/commentators`),
-          fetch(`/api/v1/matches/${match._id}/predictions`)
-        ]);
-        if (comRes.ok) {
-          const data = await comRes.json();
-          setCommentators((data.commentators || []).map((c: any) => ({ id: c.id || c._id, name: c.name })));
-        }
-        if (predRes.ok) {
-          const data = await predRes.json();
-          setPredictions((data.predictions || []).map((p: any) => ({ username: p.username || p.commentatorName, prediction: p.prediction, submittedAt: p.submittedAt || p.timestamp })));
-        }
-      } catch (_e) {
-        // noop
-      }
-    };
-    loadSideData();
-  }, [match?._id]);
-
-  const handleAssignCommentator = async () => {
-    if (!match || !newCommentatorId) return;
-    try {
-      setAssigningCommentator(true);
-      const res = await fetch(`/api/v1/matches/${match._id}/commentators`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ commentatorId: newCommentatorId, matchId: match._id })
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setCommentators((data.commentators || []).map((c: any) => ({ id: c.id || c._id, name: c.name })));
-        setNewCommentatorId("");
-      }
-    } finally {
-      setAssigningCommentator(false);
-    }
-  };
-
-  const submitPrediction = async (side: "blue" | "red") => {
+useEffect(() => {
+  const loadSideData = async () => {
     if (!match) return;
     try {
-      setSubmittingPrediction(side);
-      const res = await fetch(`/api/v1/matches/${match._id}/predictions`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prediction: side })
-      });
-      if (res.ok) {
-        const data = await res.json();
+      const [comRes, predRes] = await Promise.all([
+        fetch(`/api/v1/matches/${match._id}/commentators`),
+        fetch(`/api/v1/matches/${match._id}/predictions`)
+      ]);
+      if (comRes.ok) {
+        const data = await comRes.json();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        setCommentators((data.commentators || []).map((c: any) => ({ id: c.id || c._id, name: c.name })));
+      }
+      if (predRes.ok) {
+        const data = await predRes.json();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         setPredictions((data.predictions || []).map((p: any) => ({ username: p.username || p.commentatorName, prediction: p.prediction, submittedAt: p.submittedAt || p.timestamp })));
       }
-    } finally {
-      setSubmittingPrediction(null);
+    } catch (_e) {
+      // noop
     }
   };
+  loadSideData();
+}, [match?._id]);
 
+const handleAssignCommentator = async () => {
+  if (!match || !newCommentatorId) return;
+  try {
+    setAssigningCommentator(true);
+    const res = await fetch(`/api/v1/matches/${match._id}/commentators`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ commentatorId: newCommentatorId, matchId: match._id })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      setCommentators((data.commentators || []).map((c: any) => ({ id: c.id || c._id, name: c.name })));
+      setNewCommentatorId("");
+    }
+  } finally {
+    setAssigningCommentator(false);
+  }
+};
 
-
+const submitPrediction = async (side: "blue" | "red") => {
+  if (!match) return;
+  try {
+    setSubmittingPrediction(side);
+    const res = await fetch(`/api/v1/matches/${match._id}/predictions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prediction: side })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      setPredictions((data.predictions || []).map((p: any) => ({ username: p.username || p.commentatorName, prediction: p.prediction, submittedAt: p.submittedAt || p.timestamp })));
+    }
+  } finally {
+    setSubmittingPrediction(null);
+  }
+};
   const handleDeleteMatch = async () => {
     if (!match) return;
 
@@ -500,7 +548,6 @@ export default function MatchDetailPage({ params }: MatchDetailPageProps): React
       setShowDeleteModal(false);
     }
   };
-
 
   const removeUnnecessaryGames = (games: GameResult[]) => {
     if (!match || games.length === 0) return games;
@@ -595,7 +642,7 @@ export default function MatchDetailPage({ params }: MatchDetailPageProps): React
           <div>
             <h1 className="text-3xl font-bold text-white">{match.name}</h1>
             <p className="text-gray-400 mt-2">
-              {match.format} • {match.isFearlessDraft ? "Fearless Draft" : "Standard Draft"} • {match.status}
+              {match.format} • {match.status}
             </p>
           </div>
           <div className="flex items-center space-x-3">
@@ -928,6 +975,60 @@ export default function MatchDetailPage({ params }: MatchDetailPageProps): React
                               </div>
                             </div>
                           )}
+                          {editing && (
+                            <div className="mt-4">
+                              <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                  <div className="text-xs text-gray-400 mb-2">Blue side champions</div>
+                                  <div className="space-y-2">
+                                    {(blueTeam?.players?.main || []).slice(0,5).map((p) => {
+                                      const teamId = getTeamIdForSide(game, "blue");
+                                      const current = game.championsPlayed?.[teamId]?.[p._id];
+                                      return (
+                                        <div key={`blue_${game.gameNumber}_${p._id}`} className="flex items-center justify-between gap-2">
+                                          <span className="text-sm text-gray-300 truncate">{p.inGameName || p.tag}</span>
+                                          <select
+                                            className="w-40 px-2 py-1 bg-gray-700 border border-gray-600 rounded-md text-white"
+                                            value={current ?? ""}
+                                            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleChampionPlayedChange(game.gameNumber, "blue", p._id, parseInt(e.target.value))}
+                                          >
+                                            <option value="">Select champion</option>
+                                            {champions.map((c) => (
+                                              <option key={c._id} value={c._id}>{c.name}</option>
+                                            ))}
+                                          </select>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                                <div>
+                                  <div className="text-xs text-gray-400 mb-2 text-right">Red side champions</div>
+                                  <div className="space-y-2">
+                                    {(redTeam?.players?.main || []).slice(0,5).map((p) => {
+                                      const teamId = getTeamIdForSide(game, "red");
+                                      const current = game.championsPlayed?.[teamId]?.[p._id];
+                                      return (
+                                        <div key={`red_${game.gameNumber}_${p._id}`} className="flex items-center justify-between gap-2">
+                                          <span className="text-sm text-gray-300 truncate">{p.inGameName || p.tag}</span>
+                                          <select
+                                            className="w-40 px-2 py-1 bg-gray-700 border border-gray-600 rounded-md text-white"
+                                            value={current ?? ""}
+                                            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleChampionPlayedChange(game.gameNumber, "red", p._id, parseInt(e.target.value))}
+                                          >
+                                            <option value="">Select champion</option>
+                                            {champions.map((c) => (
+                                              <option key={c._id} value={c._id}>{c.name}</option>
+                                            ))}
+                                          </select>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          )}
                           {editing && num > getMinGamesByFormat(match.format) && (
                             <div className="mt-3 flex justify-end">
                               <Button
@@ -1137,10 +1238,6 @@ export default function MatchDetailPage({ params }: MatchDetailPageProps): React
                 <div className="flex justify-between">
                   <span className="text-gray-400">Patch:</span>
                   <span className="text-white">{match.patchName}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Fearless Draft:</span>
-                  <span className="text-white">{match.isFearlessDraft ? "Yes" : "No"}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-400">Created:</span>
