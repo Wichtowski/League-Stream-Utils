@@ -1,0 +1,250 @@
+import React, { useState, useEffect, useMemo } from "react";
+import { useRouter } from "next/navigation";
+import { getChampions } from "@lib/champions";
+import { getTeamWins } from "@libLeagueClient/utils/teamWins";
+import type { Champion } from "@lib/types/game";
+import type { Match, Tournament } from "@lib/types";
+import type { MatchStatus } from "@lib/types/match";
+import { useMatchEditing } from "@libTournament/hooks/useMatchEditing";
+import { useMatchGames } from "@libTournament/hooks/useMatchGames";
+import { useMatchTeams } from "@libTournament/hooks/useMatchTeams";
+import { useMatchCommentators } from "@libTournament/hooks/useMatchCommentators";
+import { useMatchPredictions } from "@libTournament/hooks/useMatchPredictions";
+import { usePlayerStats } from "@libTournament/hooks/usePlayerStats";
+import { usePlayerStatsData } from "@libTournament/hooks/usePlayerStatsData";
+import { MatchHeader } from "./MatchHeader";
+import { MatchInfoCard } from "./MatchInfoCard";
+import { GameResultsCard } from "./GameResultsCard";
+import { PlayerStatsCard } from "./PlayerStatsCard";
+import { MatchSidebar } from "./MatchSidebar";
+import { DeleteMatchModal } from "./DeleteMatchModal";
+
+interface MatchDetailPageProps {
+  params: Promise<{
+    tournamentId: string;
+    matchID: string;
+    matchId?: string;
+  }>;
+  match: Match;
+  tournament: Tournament;
+}
+
+export const MatchDetailPage: React.FC<MatchDetailPageProps> = ({ params, match, tournament }) => {
+  const router = useRouter();
+  const [matchId, setMatchId] = useState<string>("");
+  const [champions, setChampions] = useState<Champion[]>([]);
+  const [currentMatch, setCurrentMatch] = useState<Match>(match);
+
+  // Resolve params
+  useEffect(() => {
+    const resolveParams = async () => {
+      const resolvedParams = await params;
+      setMatchId(resolvedParams.matchId ?? resolvedParams.matchID);
+    };
+    resolveParams();
+  }, [params]);
+
+  // Load champions
+  useEffect(() => {
+    let mounted = true;
+    getChampions().then((list) => {
+      if (mounted) setChampions(list);
+    }).catch(() => setChampions([]));
+    return () => { mounted = false; };
+  }, []);
+
+  // Custom hooks - only fetch player stats since match and tournament are already loaded in page
+  const {
+    playerStats,
+    setPlayerStats
+  } = usePlayerStatsData(matchId);
+
+  const {
+    editing,
+    saving,
+    editData,
+    setEditData,
+    showDeleteModal,
+    setShowDeleteModal,
+    startEditing,
+    cancelEditing,
+    handleSave,
+    handleStatusChange,
+    handleDeleteMatch
+  } = useMatchEditing(currentMatch);
+
+  const { blueTeam, redTeam, handleSwapTeams } = useMatchTeams(currentMatch);
+
+  const {
+    teamsSwapped,
+    setTeamsSwapped,
+    getMaxGamesByFormat,
+    getMinGamesByFormat,
+    getTeamIdForSide,
+    handleChampionPlayedChange,
+    handleAddGame,
+    handleUpdateGameWinner,
+    handleSwapGameSides,
+    handleDeleteGame
+  } = useMatchGames(currentMatch, blueTeam, redTeam);
+
+  const {
+    commentators,
+    newCommentatorId,
+    setNewCommentatorId,
+    assigningCommentator,
+    handleAssignCommentator
+  } = useMatchCommentators(currentMatch);
+
+  const {
+    predictions,
+    submittingPrediction,
+    submitPrediction
+  } = useMatchPredictions(currentMatch);
+
+  const { updatePlayerStat } = usePlayerStats(playerStats, setPlayerStats);
+
+  // Memoized team wins calculation
+  const teamWins = useMemo(() => {
+    if (!currentMatch?.games || currentMatch.games.length === 0) return { team1Wins: 0, team2Wins: 0 };
+    return getTeamWins(currentMatch.games);
+  }, [currentMatch?.games]);
+
+  // Handlers
+  const handleSaveWithUpdate = async () => {
+    const success = await handleSave();
+    if (success && currentMatch) {
+      setCurrentMatch(editData as Match);
+    }
+  };
+
+  const handleStatusChangeWithUpdate = async (status: MatchStatus): Promise<boolean> => {
+    const success = await handleStatusChange(status);
+    if (success && currentMatch) {
+      setCurrentMatch({ ...currentMatch, status });
+    }
+    return success;
+  };
+
+  const handleDeleteWithRedirect = async () => {
+    const success = await handleDeleteMatch();
+    if (success && currentMatch) {
+      router.push(`/modules/tournaments/${currentMatch.tournamentId}/matches`);
+    }
+  };
+
+  const handleGameUpdate = (updatedMatch: Match) => {
+    setCurrentMatch(updatedMatch);
+    setEditData(updatedMatch);
+  };
+
+  const handleChampionChange = (
+    gameNumber: number,
+    side: "blue" | "red",
+    playerId: string,
+    championId: number
+  ) => {
+    handleChampionPlayedChange(gameNumber, side, playerId, championId, handleGameUpdate);
+  };
+
+  const handleAddGameWithUpdate = async (winnerOverride?: "blue" | "red") => {
+    await handleAddGame(winnerOverride, handleGameUpdate);
+  };
+
+  const handleUpdateWinnerWithUpdate = (gameNumber: number, winner: "blue" | "red" | "ongoing") => {
+    handleUpdateGameWinner(gameNumber, winner, handleGameUpdate);
+  };
+
+  const handleSwapSidesWithUpdate = (gameNumber: number) => {
+    handleSwapGameSides(gameNumber, handleGameUpdate);
+  };
+
+  const handleDeleteGameWithUpdate = (gameNumber: number) => {
+    handleDeleteGame(gameNumber, handleGameUpdate);
+  };
+
+  const handleSwapTeamsWithUpdate = () => {
+    handleSwapTeams(handleGameUpdate);
+  };
+
+
+  return (
+    <>
+      <MatchHeader
+        match={currentMatch}
+        _tournament={tournament}
+        editing={editing}
+        saving={saving}
+        onStartEditing={startEditing}
+        onCancelEditing={cancelEditing}
+        onSave={handleSaveWithUpdate}
+        onShowDeleteModal={() => setShowDeleteModal(true)}
+      />
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main Match Info */}
+        <div className="lg:col-span-2 space-y-6">
+          <MatchInfoCard
+            match={currentMatch}
+            editing={editing}
+            editData={editData}
+            onEditDataChange={setEditData}
+          />
+
+          <GameResultsCard
+            match={currentMatch}
+            editing={editing}
+            saving={saving}
+            blueTeam={blueTeam}
+            redTeam={redTeam}
+            champions={champions}
+            teamsSwapped={teamsSwapped}
+            onTeamsSwappedChange={setTeamsSwapped}
+            onAddGame={handleAddGameWithUpdate}
+            onUpdateGameWinner={handleUpdateWinnerWithUpdate}
+            onSwapGameSides={handleSwapSidesWithUpdate}
+            onDeleteGame={handleDeleteGameWithUpdate}
+            onChampionPlayedChange={handleChampionChange}
+            getTeamIdForSide={getTeamIdForSide}
+            getMaxGamesByFormat={getMaxGamesByFormat}
+            getMinGamesByFormat={getMinGamesByFormat}
+            teamWins={teamWins}
+          />
+
+          <PlayerStatsCard
+            playerStats={playerStats}
+            editing={editing}
+            updatePlayerStat={updatePlayerStat}
+          />
+        </div>
+
+        {/* Sidebar */}
+        <MatchSidebar
+          match={currentMatch}
+          editing={editing}
+          saving={saving}
+          blueTeam={blueTeam}
+          redTeam={redTeam}
+          teamWins={teamWins}
+          commentators={commentators}
+          newCommentatorId={newCommentatorId}
+          assigningCommentator={assigningCommentator}
+          predictions={predictions}
+          submittingPrediction={submittingPrediction}
+          onStatusChange={handleStatusChangeWithUpdate}
+          onSwapTeams={handleSwapTeamsWithUpdate}
+          onNewCommentatorIdChange={setNewCommentatorId}
+          onAssignCommentator={handleAssignCommentator}
+          onSubmitPrediction={submitPrediction}
+        />
+      </div>
+
+      <DeleteMatchModal
+        show={showDeleteModal}
+        saving={saving}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleDeleteWithRedirect}
+      />
+    </>
+  );
+};
