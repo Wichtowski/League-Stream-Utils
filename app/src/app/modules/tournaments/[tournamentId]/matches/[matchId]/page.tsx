@@ -412,6 +412,72 @@ export default function MatchDetailPage({ params }: MatchDetailPageProps): React
     });
   };
 
+  const [commentators, setCommentators] = useState<Array<{ id: string; name: string }>>([]);
+  const [predictions, setPredictions] = useState<Array<{ username: string; prediction: "blue" | "red"; submittedAt?: string }>>([]);
+  const [newCommentatorId, setNewCommentatorId] = useState("");
+  const [assigningCommentator, setAssigningCommentator] = useState(false);
+  const [submittingPrediction, setSubmittingPrediction] = useState<"blue" | "red" | null>(null);
+
+  useEffect(() => {
+    const loadSideData = async () => {
+      if (!match) return;
+      try {
+        const [comRes, predRes] = await Promise.all([
+          fetch(`/api/v1/matches/${match._id}/commentators`),
+          fetch(`/api/v1/matches/${match._id}/predictions`)
+        ]);
+        if (comRes.ok) {
+          const data = await comRes.json();
+          setCommentators((data.commentators || []).map((c: any) => ({ id: c.id || c._id, name: c.name })));
+        }
+        if (predRes.ok) {
+          const data = await predRes.json();
+          setPredictions((data.predictions || []).map((p: any) => ({ username: p.username || p.commentatorName, prediction: p.prediction, submittedAt: p.submittedAt || p.timestamp })));
+        }
+      } catch (_e) {
+        // noop
+      }
+    };
+    loadSideData();
+  }, [match?._id]);
+
+  const handleAssignCommentator = async () => {
+    if (!match || !newCommentatorId) return;
+    try {
+      setAssigningCommentator(true);
+      const res = await fetch(`/api/v1/matches/${match._id}/commentators`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ commentatorId: newCommentatorId, matchId: match._id })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setCommentators((data.commentators || []).map((c: any) => ({ id: c.id || c._id, name: c.name })));
+        setNewCommentatorId("");
+      }
+    } finally {
+      setAssigningCommentator(false);
+    }
+  };
+
+  const submitPrediction = async (side: "blue" | "red") => {
+    if (!match) return;
+    try {
+      setSubmittingPrediction(side);
+      const res = await fetch(`/api/v1/matches/${match._id}/predictions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prediction: side })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setPredictions((data.predictions || []).map((p: any) => ({ username: p.username || p.commentatorName, prediction: p.prediction, submittedAt: p.submittedAt || p.timestamp })));
+      }
+    } finally {
+      setSubmittingPrediction(null);
+    }
+  };
+
 
 
   const handleDeleteMatch = async () => {
@@ -1104,6 +1170,61 @@ export default function MatchDetailPage({ params }: MatchDetailPageProps): React
                   <div className="text-sm text-gray-300">{redTeam?.name}</div>
                 </div>
               </div>
+            </div>
+          </div>
+
+          {/* Commentators & Predictions */}
+          <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+            <h3 className="text-lg font-semibold text-white mb-4">Commentators</h3>
+            <div className="space-y-3">
+              {commentators.length === 0 ? (
+                <div className="text-gray-400 text-sm">No commentators assigned</div>
+              ) : (
+                <ul className="space-y-2">
+                  {commentators.map((c) => (
+                    <li key={c.id} className="text-sm text-gray-200">{c.name}</li>
+                  ))}
+                </ul>
+              )}
+              {editing && (
+                <div className="flex gap-2">
+                  <input
+                    className="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none"
+                    placeholder="Commentator ID"
+                    value={newCommentatorId}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewCommentatorId(e.target.value)}
+                  />
+                  <Button onClick={handleAssignCommentator} disabled={assigningCommentator || !newCommentatorId} size="sm" variant="secondary">
+                    {assigningCommentator ? "Assigning..." : "Add"}
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            <h3 className="text-lg font-semibold text-white mt-6 mb-3">Predictions</h3>
+            <div className="space-y-3">
+              <div className="flex gap-2">
+                <Button onClick={() => submitPrediction("blue")} size="sm" disabled={submittingPrediction !== null} variant="secondary">
+                  {submittingPrediction === "blue" ? "Submitting..." : "Predict Blue"}
+                </Button>
+                <Button onClick={() => submitPrediction("red")} size="sm" disabled={submittingPrediction !== null} variant="secondary">
+                  {submittingPrediction === "red" ? "Submitting..." : "Predict Red"}
+                </Button>
+              </div>
+              {predictions.length === 0 ? (
+                <div className="text-gray-400 text-sm">No predictions yet</div>
+              ) : (
+                <ul className="space-y-2">
+                  {predictions.map((p, idx) => (
+                    <li key={idx} className="flex items-center justify-between text-sm">
+                      <span className="text-gray-300">{p.username}</span>
+                      <span className={`px-2 py-0.5 rounded ${p.prediction === "blue" ? "bg-blue-600 text-blue-100" : "bg-red-600 text-red-100"}`}>
+                        {p.prediction.toUpperCase()}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
           </div>
         </div>

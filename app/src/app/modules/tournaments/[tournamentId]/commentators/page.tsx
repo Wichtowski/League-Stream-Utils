@@ -4,138 +4,224 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTournaments } from "@libTournament/contexts/TournamentsContext";
 import { useNavigation } from "@lib/contexts/NavigationContext";
-import { useModal } from "@lib/contexts/ModalContext";
 import { LoadingSpinner } from "@lib/components/common";
-import { tournamentStorage, LastSelectedTournament } from "@lib/services/tournament";
 import type { Tournament } from "@lib/types/tournament";
 import { PageWrapper } from "@lib/layout";
 
 interface Commentator {
-  id: string;
+  id?: string;
+  _id?: string;
   name: string;
   xHandle?: string;
-  tournaments: string[]; // tournament IDs
+  instagramHandle?: string;
+  twitchHandle?: string;
+  createdBy: string;
+  createdAt: Date;
 }
 
-export default function CommentatorsPage(): React.ReactElement {
+interface Match {
+  _id: string;
+  name: string;
+  blueTeamId: string;
+  redTeamId: string;
+  commentators: Array<{
+    _id: string;
+    name: string;
+    xHandle?: string;
+    instagramHandle?: string;
+    twitchHandle?: string;
+    assignedAt: Date;
+    assignedBy: string;
+  }>;
+}
+
+interface CommentatorsPageProps {
+  params: Promise<{
+    tournamentId: string;
+  }>;
+}
+
+export default function CommentatorsPage({ params }: CommentatorsPageProps): React.ReactElement {
   const router = useRouter();
   const { tournaments, loading: tournamentsLoading } = useTournaments();
   const { setActiveModule } = useNavigation();
-  const { showAlert } = useModal();
-  const [commentators, setCommentators] = useState<Commentator[]>([]);
-  const [name, setName] = useState("");
-  const [xHandle, setXHandle] = useState("");
+  const [allCommentators, setAllCommentators] = useState<Commentator[]>([]);
+  const [tournamentCommentators, setTournamentCommentators] = useState<Commentator[]>([]);
+  const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
-  const [lastSelectedTournament, setLastSelectedTournament] = useState<LastSelectedTournament | null>(null);
   const [tournament, setTournament] = useState<Tournament | null>(null);
+  const [tournamentId, setTournamentId] = useState<string>("");
 
   useEffect(() => {
     setActiveModule("commentators");
   }, [setActiveModule]);
 
   useEffect(() => {
-    const loadLastSelectedTournament = async () => {
-      try {
-        const lastSelected = await tournamentStorage.getLastSelectedTournament();
-        if (lastSelected) {
-          setLastSelectedTournament(lastSelected);
-        } else {
-          await showAlert({
-            type: "error",
-            message: "No tournament selected. Please select a tournament first."
-          });
-          router.push("/modules/tournaments");
-        }
-      } catch (_error) {
-        await showAlert({
-          type: "error",
-          message: "Failed to load tournament selection."
-        });
-        router.push("/modules/tournaments");
-      }
+    const resolveParams = async () => {
+      const resolvedParams = await params;
+      setTournamentId(resolvedParams.tournamentId);
     };
-
-    loadLastSelectedTournament();
-  }, [router, showAlert]);
+    resolveParams();
+  }, [params]);
 
   useEffect(() => {
-    if (!tournamentsLoading && lastSelectedTournament) {
-      const foundTournament = tournaments.find((t) => t._id === lastSelectedTournament.tournamentId);
+    if (!tournamentsLoading && tournamentId) {
+      const foundTournament = tournaments.find((t) => t._id === tournamentId);
       if (foundTournament) {
         setTournament(foundTournament);
-      } else if (tournaments.length > 0) {
+      } else {
         router.push("/modules/tournaments");
       }
     }
-  }, [tournaments, tournamentsLoading, lastSelectedTournament, router]);
+  }, [tournaments, tournamentsLoading, tournamentId, router]);
 
-  // Fetch commentators from API or Electron
+  // Fetch all commentators, tournament commentators, and matches
   useEffect(() => {
-    if (!lastSelectedTournament) return;
+    if (!tournamentId) return;
 
     setLoading(true);
-    const fetchCommentators = async () => {
-      if (typeof window !== "undefined" && window.electronAPI?.storage?.get) {
-        const data = await window.electronAPI.storage.get("comentators");
-        setCommentators((data as Commentator[]) || []);
-        setLoading(false);
-      } else {
-        const res = await fetch("/api/v1/comentators");
-        if (res.ok) {
-          const { comentators } = await res.json();
-          setCommentators(comentators || []);
+    const fetchData = async () => {
+      try {
+        // Fetch all global commentators
+        const commentatorsResponse = await fetch("/api/v1/commentators");
+        if (commentatorsResponse.ok) {
+          const commentatorsData = await commentatorsResponse.json();
+          console.log("Fetched global commentators:", commentatorsData.commentators);
+          setAllCommentators(commentatorsData.commentators || []);
         }
+
+        // Fetch tournament commentators
+        const tournamentCommentatorsResponse = await fetch(`/api/v1/tournaments/${tournamentId}/commentators`);
+        if (tournamentCommentatorsResponse.ok) {
+          const tournamentCommentatorsData = await tournamentCommentatorsResponse.json();
+          setTournamentCommentators(tournamentCommentatorsData.commentators || []);
+        }
+
+        // Fetch tournament matches
+        const matchesResponse = await fetch(`/api/v1/tournaments/${tournamentId}/matches`);
+        if (matchesResponse.ok) {
+          const matchesData = await matchesResponse.json();
+          setMatches(matchesData.matches || []);
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
         setLoading(false);
       }
     };
-    fetchCommentators();
-  }, [lastSelectedTournament]);
+    fetchData();
+  }, [tournamentId]);
 
-  // Add commentator to selected tournament
-  const handleAdd = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!lastSelectedTournament || !name) return;
-
-    setLoading(true);
-    if (typeof window !== "undefined" && window.electronAPI?.storage?.set) {
-      const newCommentator: Commentator = {
-        id: Date.now().toString(),
-        name,
-        xHandle: xHandle || undefined,
-        tournaments: [lastSelectedTournament.tournamentId]
-      };
-      const updated = [...commentators, newCommentator];
-      await window.electronAPI.storage.set("comentators", updated);
-      setCommentators(updated);
-    } else {
-      await fetch("/api/v1/comentators", {
+  const assignCommentatorToTournament = async (commentatorId: string) => {
+    try {
+      console.log("Assigning commentator to tournament:", { commentatorId, tournamentId });
+      const response = await fetch(`/api/v1/tournaments/${tournamentId}/commentators`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name,
-          xHandle,
-          tournamentId: lastSelectedTournament.tournamentId
-        })
+        body: JSON.stringify({ commentatorId })
       });
-      // Re-fetch
-      const res = await fetch("/api/v1/comentators");
-      if (res.ok) {
-        const { comentators } = await res.json();
-        setCommentators(comentators || []);
+      
+      if (response.ok) {
+        // Refresh tournament commentators
+        const tournamentCommentatorsResponse = await fetch(`/api/v1/tournaments/${tournamentId}/commentators`);
+        if (tournamentCommentatorsResponse.ok) {
+          const tournamentCommentatorsData = await tournamentCommentatorsResponse.json();
+          setTournamentCommentators(tournamentCommentatorsData.commentators || []);
+        }
+        setSuccessMsg("Commentator assigned to tournament!");
+      } else {
+        const error = await response.json();
+        console.error("Error assigning commentator to tournament:", error);
+        setSuccessMsg(`Error: ${error.error}`);
       }
+    } catch (error) {
+      console.error("Error assigning commentator to tournament:", error);
+      setSuccessMsg("Error assigning commentator to tournament");
     }
-    setName("");
-    setXHandle("");
-    setSuccessMsg("Commentator added!");
-    setTimeout(() => setSuccessMsg(""), 2000);
-    setLoading(false);
+    setTimeout(() => setSuccessMsg(""), 3000);
   };
 
-  // Filter commentators for the selected tournament
-  const filteredCommentators = lastSelectedTournament
-    ? commentators.filter((c) => c.tournaments.includes(lastSelectedTournament.tournamentId))
-    : [];
+  const removeCommentatorFromTournament = async (commentatorId: string) => {
+    try {
+      const response = await fetch(`/api/v1/tournaments/${tournamentId}/commentators`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ commentatorId })
+      });
+      
+      if (response.ok) {
+        // Refresh tournament commentators
+        const tournamentCommentatorsResponse = await fetch(`/api/v1/tournaments/${tournamentId}/commentators`);
+        if (tournamentCommentatorsResponse.ok) {
+          const tournamentCommentatorsData = await tournamentCommentatorsResponse.json();
+          setTournamentCommentators(tournamentCommentatorsData.commentators || []);
+        }
+        setSuccessMsg("Commentator removed from tournament!");
+      } else {
+        const error = await response.json();
+        setSuccessMsg(`Error: ${error.error}`);
+      }
+    } catch (error) {
+      console.error("Error removing commentator from tournament:", error);
+      setSuccessMsg("Error removing commentator from tournament");
+    }
+    setTimeout(() => setSuccessMsg(""), 3000);
+  };
+
+  const assignCommentatorToMatch = async (matchId: string, commentatorId: string) => {
+    try {
+      const response = await fetch(`/api/v1/matches/${matchId}/commentators`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ commentatorId })
+      });
+      
+      if (response.ok) {
+        // Refresh matches
+        const matchesResponse = await fetch(`/api/v1/tournaments/${tournamentId}/matches`);
+        if (matchesResponse.ok) {
+          const matchesData = await matchesResponse.json();
+          setMatches(matchesData.matches || []);
+        }
+        setSuccessMsg("Commentator assigned to match!");
+      } else {
+        const error = await response.json();
+        setSuccessMsg(`Error: ${error.error}`);
+      }
+    } catch (error) {
+      console.error("Error assigning commentator:", error);
+      setSuccessMsg("Error assigning commentator");
+    }
+    setTimeout(() => setSuccessMsg(""), 3000);
+  };
+
+  const removeCommentatorFromMatch = async (matchId: string, commentatorId: string) => {
+    try {
+      const response = await fetch(`/api/v1/matches/${matchId}/commentators`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ commentatorId })
+      });
+      
+      if (response.ok) {
+        // Refresh matches
+        const matchesResponse = await fetch(`/api/v1/tournaments/${tournamentId}/matches`);
+        if (matchesResponse.ok) {
+          const matchesData = await matchesResponse.json();
+          setMatches(matchesData.matches || []);
+        }
+        setSuccessMsg("Commentator removed from match!");
+      } else {
+        const error = await response.json();
+        setSuccessMsg(`Error: ${error.error}`);
+      }
+    } catch (error) {
+      console.error("Error removing commentator:", error);
+      setSuccessMsg("Error removing commentator");
+    }
+    setTimeout(() => setSuccessMsg(""), 3000);
+  };
 
   if (loading || tournamentsLoading) {
     return (
@@ -145,16 +231,16 @@ export default function CommentatorsPage(): React.ReactElement {
     );
   }
 
-  if (!tournament || !lastSelectedTournament) {
+  if (!tournament) {
     return (
-      <PageWrapper title="Tournament Not Found">
-        <div className="text-center">
-          <p>The tournament you&apos;re looking for doesn&apos;t exist or you don&apos;t have access to it.</p>
+      <PageWrapper>
+        <div className="text-center text-white">
+          <h2 className="text-2xl font-bold mb-4">Tournament not found</h2>
           <button
             onClick={() => router.push("/modules/tournaments")}
-            className="mt-4 bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
           >
-            Select Tournament
+            Back to Tournaments
           </button>
         </div>
       </PageWrapper>
@@ -163,74 +249,180 @@ export default function CommentatorsPage(): React.ReactElement {
 
   return (
     <PageWrapper
-      title="Commentators"
+      title="Assign Commentators"
       subtitle={`${tournament.name} (${tournament.abbreviation})`}
-      actions={
-        <button
-          onClick={() => router.push("/modules/tournaments")}
-          className="text-blue-400 hover:text-blue-300 text-sm"
-        >
-          ← Change Tournament
-        </button>
-      }
-      contentClassName="max-w-3xl mx-auto"
+      contentClassName="max-w-6xl mx-auto"
     >
-      <div className="bg-gray-900 rounded-xl p-6 mb-10 shadow-lg">
-        <h3 className="text-xl font-semibold text-white mb-4">Add Commentator</h3>
-        <form onSubmit={handleAdd} className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
-          <div>
-            <label className="block text-gray-300 mb-2">Display Name</label>
-            <input
-              className="w-full p-2 rounded bg-gray-700 text-white"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-gray-300 mb-2">x.com Handle (optional)</label>
-            <input
-              className="w-full p-2 rounded bg-gray-700 text-white"
-              value={xHandle}
-              onChange={(e) => setXHandle(e.target.value)}
-              placeholder="@yourhandle"
-            />
-          </div>
-          <button
-            type="submit"
-            className="col-span-1 sm:col-span-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg mt-2"
-            disabled={loading}
-          >
-            {loading ? "Adding..." : "Add Commentator"}
-          </button>
-        </form>
-        {successMsg && <div className="text-green-400 mt-4">{successMsg}</div>}
+      <div className="mb-6">
+        <button
+          onClick={() => router.push(`/modules/tournaments/${tournamentId}`)}
+          className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg"
+        >
+          ← Back to Tournament
+        </button>
       </div>
-
-      <h3 className="text-xl font-semibold text-white mb-4">Commentators for this Tournament</h3>
-      {loading ? (
-        <div className="text-white">Loading...</div>
-      ) : filteredCommentators.length === 0 ? (
-        <div className="text-gray-400">No commentators yet for this tournament.</div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          {filteredCommentators.map((c) => (
-            <div key={c.id} className="bg-gray-800 rounded-xl p-5 border border-gray-700 shadow flex flex-col gap-2">
-              <div className="text-lg font-bold text-white">{c.name}</div>
-              {c.xHandle && (
-                <a
-                  href={`https://x.com/${c.xHandle.replace(/^@/, "")}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-400 hover:underline text-sm"
-                >
-                  {c.xHandle}
-                </a>
-              )}
-            </div>
-          ))}
+      {successMsg && (
+        <div className="bg-green-900 border border-green-700 text-green-300 px-4 py-3 rounded-lg mb-6">
+          {successMsg}
         </div>
       )}
+
+      <div className="mb-6">
+        <h3 className="text-lg font-semibold text-white mb-4">Available Global Commentators</h3>
+        <div className="bg-gray-800 rounded-lg p-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {allCommentators
+              .filter(commentator => !tournamentCommentators.some(tc => tc.id === (commentator._id || commentator.id)))
+              .map((commentator) => (
+                <div key={commentator._id || commentator.id || 'unknown'} className="bg-gray-700 rounded-lg p-4 border border-gray-600">
+                <div className="text-white font-medium">{commentator.name}</div>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {commentator.xHandle && (
+                    <span key="x" className="text-blue-400 text-sm">𝕏 {commentator.xHandle}</span>
+                  )}
+                  {commentator.instagramHandle && (
+                    <span key="instagram" className="text-pink-400 text-sm">📷 {commentator.instagramHandle}</span>
+                  )}
+                  {commentator.twitchHandle && (
+                    <span key="twitch" className="text-purple-400 text-sm">📺 {commentator.twitchHandle}</span>
+                  )}
+                </div>
+                <div className="mt-3">
+                  <button
+                    onClick={() => {
+                      console.log("Button clicked for commentator:", commentator);
+                      const id = commentator._id || commentator.id;
+                      if (id) assignCommentatorToTournament(id);
+                    }}
+                    className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm"
+                  >
+                    Assign to Tournament
+                  </button>
+                </div>
+              </div>
+            ))}
+            {allCommentators.filter(commentator => !tournamentCommentators.some(tc => tc.id === (commentator._id || commentator.id))).length === 0 && (
+              <div className="col-span-full text-gray-400 text-center py-8">
+                All global commentators are already assigned to this tournament.
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="mb-6">
+        <h3 className="text-lg font-semibold text-white mb-4">
+          Tournament Commentators ({tournamentCommentators.length})
+        </h3>
+        {tournamentCommentators.length === 0 ? (
+          <div className="text-gray-400 bg-gray-800 rounded-lg p-6 text-center">
+            No commentators assigned to this tournament yet. Assign commentators from the &quot;Available Global Commentators&quot; section above.
+          </div>
+        ) : (
+          <div className="bg-gray-800 rounded-lg p-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {tournamentCommentators.map((commentator) => (
+                <div key={commentator._id || commentator.id || 'unknown'} className="bg-gray-700 rounded-lg p-4 border border-gray-600">
+                <div className="text-white font-medium">{commentator.name}</div>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {commentator.xHandle && (
+                    <span key="x" className="text-blue-400 text-sm">𝕏 {commentator.xHandle}</span>
+                  )}
+                  {commentator.instagramHandle && (
+                    <span key="instagram" className="text-pink-400 text-sm">📷 {commentator.instagramHandle}</span>
+                  )}
+                  {commentator.twitchHandle && (
+                    <span key="twitch" className="text-purple-400 text-sm">📺 {commentator.twitchHandle}</span>
+                  )}
+                </div>
+                <div className="mt-3">
+                  <button
+                    onClick={() => {
+                      const id = commentator._id || commentator.id;
+                      if (id) removeCommentatorFromTournament(id);
+                    }}
+                    className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
+                  >
+                    Remove from Tournament
+                  </button>
+                </div>
+              </div>
+            ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div>
+        <h3 className="text-lg font-semibold text-white mb-4">Tournament Matches</h3>
+        {matches.length === 0 ? (
+          <div className="text-gray-400">No matches found for this tournament.</div>
+        ) : (
+          <div className="space-y-4">
+            {matches.map((match) => (
+              <div key={match._id} className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <h4 className="text-xl font-semibold text-white">{match.name}</h4>
+                    <div className="text-gray-400 text-sm">
+                      {match.blueTeamId} vs {match.redTeamId}
+                    </div>
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    {match.commentators.length} commentator(s) assigned
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <div>
+                    <h5 className="text-sm font-medium text-gray-300 mb-2">Assigned Commentators</h5>
+                    {match.commentators.length === 0 ? (
+                      <div className="text-gray-500 text-sm">No commentators assigned</div>
+                    ) : (
+                      <div className="flex flex-wrap gap-2">
+                        {match.commentators.map((commentator) => (
+                          <div key={commentator._id} className="bg-gray-700 rounded-lg px-3 py-2 flex items-center gap-2">
+                            <span className="text-white text-sm">{commentator.name}</span>
+                            <button
+                              onClick={() => removeCommentatorFromMatch(match._id, commentator._id)}
+                              className="text-red-400 hover:text-red-300 text-sm"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <h5 className="text-sm font-medium text-gray-300 mb-2">Assign Tournament Commentator</h5>
+                    <div className="flex flex-wrap gap-2">
+                        {tournamentCommentators
+                        .filter(c => !match.commentators.some(mc => mc._id === (c._id || c.id)))
+                        .map((commentator) => (
+                          <button
+                            key={commentator._id || commentator.id || 'unknown'}
+                            onClick={() => {
+                              const id = commentator._id || commentator.id;
+                              if (id) assignCommentatorToMatch(match._id, id);
+                            }}
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm"
+                          >
+                            + {commentator.name}
+                          </button>
+                        ))}
+                    </div>
+                    {tournamentCommentators.length === 0 && (
+                      <div className="text-gray-500 text-sm">No tournament commentators available. Assign commentators to the tournament first.</div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </PageWrapper>
   );
 }

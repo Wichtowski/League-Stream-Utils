@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useUser } from "@lib/contexts/AuthContext";
 import { useTournaments } from "@libTournament/contexts/TournamentsContext";
 import { PageWrapper } from "@lib/layout/PageWrapper";
 import type { Tournament } from "@lib/types";
@@ -39,7 +38,6 @@ interface ComentatorPredictionsPageProps {
 }
 
 export default function ComentatorPredictionsPage({ params }: ComentatorPredictionsPageProps): React.ReactElement {
-  const user = useUser();
   const { tournaments, getBracket } = useTournaments();
   const [mode, setMode] = useState<"tournament" | "quick">();
   const [selectedTournament, setSelectedTournament] = useState<Tournament | null>(null);
@@ -54,7 +52,7 @@ export default function ComentatorPredictionsPage({ params }: ComentatorPredicti
     const resolveParams = async () => {
       const resolvedParams = await params;
       setTournamentId(resolvedParams.tournamentId);
-      setSelectedTournament(tournaments.find((t) => t.id === resolvedParams.tournamentId) || null);
+      setSelectedTournament(tournaments.find((t) => t._id === resolvedParams.tournamentId) || null);
     };
     resolveParams();
   }, [params, tournaments]);
@@ -65,12 +63,12 @@ export default function ComentatorPredictionsPage({ params }: ComentatorPredicti
       getBracket(selectedTournament._id)
         .then((res) => {
           if (res.success && res.bracket) {
-            const structure = res.bracket.structure as BracketStructure;
+            const structure = res.bracket as BracketStructure;
             const nodes = structure.nodes || [];
             const matchList: Match[] = nodes
               .filter((n: BracketNode) => n.team1 && n.team2)
               .map((n: BracketNode) => ({
-                id: n.id,
+                id: n._id,
                 teamA: n.team1!,
                 teamB: n.team2!,
                 startTime: n.scheduledTime ? new Date(n.scheduledTime).toISOString() : "",
@@ -93,15 +91,13 @@ export default function ComentatorPredictionsPage({ params }: ComentatorPredicti
     }
   }, [mode, selectedTournament, getBracket]);
 
-  if (!user) {
-    return <PageWrapper requireAuth={true}>{null}</PageWrapper>;
-  }
+  // Public page: no auth gate
 
   if (!mode) {
     return (
       <PageWrapper
         title="Comentator Predictions"
-        requireAuth={true}
+        requireAuth={false}
         breadcrumbs={[
           { label: "Tournaments", href: "/modules/tournaments" },
           { label: selectedTournamentName, href: `/modules/tournaments/${tournamentId}` },
@@ -135,6 +131,7 @@ export default function ComentatorPredictionsPage({ params }: ComentatorPredicti
     return (
       <PageWrapper
         title="Select Tournament"
+        requireAuth={false}
         breadcrumbs={[
           { label: "Tournaments", href: "/modules/tournaments" },
           { label: selectedTournamentName, href: `/modules/tournaments/${tournamentId}` },
@@ -151,7 +148,7 @@ export default function ComentatorPredictionsPage({ params }: ComentatorPredicti
           {tournaments
             .filter((t) => t.status === "ongoing")
             .map((t) => (
-              <li key={t.id} className="bg-gray-800 rounded-lg p-4 flex justify-between items-center">
+              <li key={t._id} className="bg-gray-800 rounded-lg p-4 flex justify-between items-center">
                 <div className="text-white font-semibold">{t.name}</div>
                 <button
                   className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
@@ -179,6 +176,7 @@ export default function ComentatorPredictionsPage({ params }: ComentatorPredicti
     return (
       <PageWrapper
         title="Select a match"
+        requireAuth={false}
         breadcrumbs={[
           { label: "Tournaments", href: "/modules/tournaments" },
           { label: selectedTournamentName, href: `/modules/tournaments/${tournamentId}` },
@@ -233,14 +231,14 @@ export default function ComentatorPredictionsPage({ params }: ComentatorPredicti
     );
   }
 
-  // Redirect to the match predictions page
+  // Redirect to the match page predictions section
   if (selectedMatch) {
     if (typeof window !== "undefined") {
-      window.location.href = `/modules/comentators/predictions/${selectedMatch.id}`;
+      window.location.href = `/modules/tournaments/${tournamentId}/matches/${selectedMatch.id}`;
     }
-    return <PageWrapper requireAuth={true}>{null}</PageWrapper>;
+    return <PageWrapper requireAuth={false}>{null}</PageWrapper>;
   }
 
   // This should never be reached, but TypeScript requires it
-  return <PageWrapper requireAuth={true}>{null}</PageWrapper>;
+  return <PageWrapper requireAuth={false}>{null}</PageWrapper>;
 }

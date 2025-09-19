@@ -69,14 +69,11 @@ export const MatchSchema = new Schema({
   commentators: [{
     _id: { type: String, required: true },
     name: { type: String, required: true },
-    role: { 
-      type: String, 
-      enum: ["play-by-play", "color", "analyst"], 
-      required: true 
-    },
-    email: { type: String, required: false },
-    phone: { type: String, required: false },
-    assignedAt: { type: Date, required: true }
+    xHandle: { type: String, required: false },
+    instagramHandle: { type: String, required: false },
+    twitchHandle: { type: String, required: false },
+    assignedAt: { type: Date, required: true },
+    assignedBy: { type: String, required: true }
   }],
 
   // Predictions
@@ -88,6 +85,8 @@ export const MatchSchema = new Schema({
       enum: ["blue", "red"], 
       required: true 
     },
+    blueScore: { type: Number, required: false },
+    redScore: { type: Number, required: false },
     confidence: { type: Number, required: false },
     submittedAt: { type: Date, required: true }
   }],

@@ -115,6 +115,20 @@ export const TournamentEditor = ({
           </button>
 
           <button
+            onClick={() => router.push(`/modules/tournaments/${tournament._id}/commentators`)}
+            className={`${buttonStyle} bg-blue-600 hover:bg-blue-700`}
+          >
+            Add commentators
+          </button>
+
+          <button
+            onClick={() => router.push(`/modules/tournaments/${tournament._id}/predictions`)}
+            className={`${buttonStyle} bg-purple-600 hover:bg-purple-700`}
+          >
+            Predictions
+          </button>
+
+          <button
             onClick={() => router.push(`/modules/tournaments/${tournament._id}/matches`)}
             className={`${buttonStyle} bg-red-600 hover:bg-red-700`}
           >

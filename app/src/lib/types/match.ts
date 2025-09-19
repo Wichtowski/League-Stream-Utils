@@ -47,16 +47,19 @@ export interface Match {
 export interface MatchCommentator {
   _id: string;
   name: string;
-  role: "play-by-play" | "color" | "analyst";
-  email?: string;
-  phone?: string;
+  xHandle?: string;
+  instagramHandle?: string;
+  twitchHandle?: string;
   assignedAt: Date;
+  assignedBy: string;
 }
 
 export interface MatchPrediction {
   userId: string;
   username: string;
   prediction: "blue" | "red";
+  blueScore?: number;
+  redScore?: number;
   confidence?: number;
   submittedAt: Date;
 }
@@ -113,5 +116,7 @@ export interface SubmitPredictionRequest {
   userId: string;
   username: string;
   prediction: "blue" | "red";
+  blueScore?: number;
+  redScore?: number;
   confidence?: number;
 }

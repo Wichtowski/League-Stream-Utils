@@ -203,13 +203,16 @@ export async function submitPrediction(
     {
       $push: {
         predictions: {
-          commentatorId,
-          commentatorName: commentator.name,
+          userId: request.userId || commentatorId,
+          username: request.username || commentator.name,
           prediction: request.prediction,
-          timestamp: new Date()
+          blueScore: request.blueScore,
+          redScore: request.redScore,
+          confidence: request.confidence,
+          submittedAt: new Date()
         }
       },
-      $pull: { predictions: { commentatorId } },
+      $pull: { predictions: { userId: request.userId || commentatorId } },
       updatedAt: new Date()
     },
     { new: true }
