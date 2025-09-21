@@ -18,9 +18,9 @@ const getModel = <T>(name: string, schema: Schema): Model<T> => {
   }
 };
 
-export const MatchModel = getModel("Match", MatchSchema);
-export const TournamentModel = getModel("Tournament", TournamentSchema);
-export const CommentatorModel = getModel("Commentator", CommentatorSchema);
+export const MatchModel = getModel<MatchDoc>("Match", MatchSchema);
+export const TournamentModel = getModel<TournamentDoc>("Tournament", TournamentSchema);
+export const CommentatorModel = getModel<CommentatorDoc>("Commentator", CommentatorSchema);
 
 export type MatchDoc = InferSchemaType<typeof MatchSchema>;
 export type TournamentDoc = InferSchemaType<typeof TournamentSchema>;

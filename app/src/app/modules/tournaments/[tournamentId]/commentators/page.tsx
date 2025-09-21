@@ -87,7 +87,6 @@ export default function CommentatorsPage({ params }: CommentatorsPageProps): Rea
         const commentatorsResponse = await fetch("/api/v1/commentators");
         if (commentatorsResponse.ok) {
           const commentatorsData = await commentatorsResponse.json();
-          console.log("Fetched global commentators:", commentatorsData.commentators);
           setAllCommentators(commentatorsData.commentators || []);
         }
 
@@ -268,7 +267,7 @@ export default function CommentatorsPage({ params }: CommentatorsPageProps): Rea
       )}
 
       <div className="mb-6">
-        <h3 className="text-lg font-semibold text-white mb-4">Available Global Commentators</h3>
+        <h3 className="text-lg font-semibold text-white mb-4">Available Commentators</h3>
         <div className="bg-gray-800 rounded-lg p-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {allCommentators
@@ -303,7 +302,7 @@ export default function CommentatorsPage({ params }: CommentatorsPageProps): Rea
             ))}
             {allCommentators.filter(commentator => !tournamentCommentators.some(tc => tc.id === (commentator._id || commentator.id))).length === 0 && (
               <div className="col-span-full text-gray-400 text-center py-8">
-                All global commentators are already assigned to this tournament.
+                All  commentators are already assigned to this tournament.
               </div>
             )}
           </div>
@@ -316,7 +315,7 @@ export default function CommentatorsPage({ params }: CommentatorsPageProps): Rea
         </h3>
         {tournamentCommentators.length === 0 ? (
           <div className="text-gray-400 bg-gray-800 rounded-lg p-6 text-center">
-            No commentators assigned to this tournament yet. Assign commentators from the &quot;Available Global Commentators&quot; section above.
+            No commentators assigned to this tournament yet. Assign commentators from the &quot;Available Commentators&quot; section above.
           </div>
         ) : (
           <div className="bg-gray-800 rounded-lg p-6">

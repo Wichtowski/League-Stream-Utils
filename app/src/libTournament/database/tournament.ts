@@ -1,7 +1,7 @@
 import { connectToDatabase } from "@lib/database";
-import { TournamentModel } from "@libTournament/database/models";
+import { TournamentModel, type TournamentDoc } from "@libTournament/database/models";
 
-import type { Tournament as TournamentType, CreateTournamentRequest } from "@lib/types";  
+import type { Tournament as TournamentType, CreateTournamentRequest } from "@lib/types";
 import { Document } from "mongoose";
 
 // Clean MongoDB document converter
@@ -54,12 +54,12 @@ export const createTournament = async (
   });
 
   await newTournament.save();
-  
+
   // Automatically grant tournament owner permissions to the creator
   try {
     const { PermissionService } = await import("@lib/services/permissions");
     const { Role } = await import("@lib/types/permissions");
-    
+
     await PermissionService.grantTournamentRole(
       newTournament._id.toString(),
       userId,
@@ -70,33 +70,33 @@ export const createTournament = async (
     console.error("Failed to grant tournament owner permissions:", error);
     // Don't fail tournament creation if permission granting fails
   }
-  
+
   return convertMongoDoc(newTournament);
 };
 
 // Get tournaments for a specific user (including tournaments they have permissions for)
 export const getUserTournaments = async (userId: string): Promise<TournamentType[]> => {
   await connectToDatabase();
-  
+
   try {
     // Get tournaments where user is the owner
     const ownedTournaments = await TournamentModel.find({ userId }).sort({ createdAt: -1 });
-    
+
     // Get tournaments where user has permissions
     const { PermissionService } = await import("@lib/services/permissions");
     const userPermissions = await PermissionService.getUserTournamentPermissions(userId);
-    
+
     const tournamentIds = userPermissions.map(p => p.tournamentId);
-    const permissionTournaments = tournamentIds.length > 0 
+    const permissionTournaments = tournamentIds.length > 0
       ? await TournamentModel.find({ _id: { $in: tournamentIds } }).sort({ createdAt: -1 })
       : [];
-    
+
     // Combine and deduplicate tournaments
     const allTournaments = [...ownedTournaments, ...permissionTournaments];
-    const uniqueTournaments = allTournaments.filter((tournament, index, self) => 
+    const uniqueTournaments = allTournaments.filter((tournament, index, self) =>
       index === self.findIndex(t => t._id.toString() === tournament._id.toString())
     );
-    
+
     return uniqueTournaments.map(convertMongoDoc);
   } catch (error) {
     console.error("Error getting user tournaments:", error);
@@ -155,10 +155,7 @@ export const registerTeamForTournament = async (
 ): Promise<TournamentType | null> => {
   await connectToDatabase();
 
-  const tournament = await TournamentModel.findById(tournamentId) as Document & {
-    registeredTeams: string[];
-    save(): Promise<Document>;
-  };
+  const tournament = await TournamentModel.findById(tournamentId) as TournamentDoc | null;
   if (!tournament) return null;
 
   // Add team if not already registered
@@ -177,10 +174,7 @@ export const unregisterTeamFromTournament = async (
 ): Promise<TournamentType | null> => {
   await connectToDatabase();
 
-  const tournament = await TournamentModel.findById(tournamentId) as Document & {
-    registeredTeams: string[];
-    save(): Promise<Document>;
-  };
+  const tournament = await TournamentModel.findById(tournamentId) as TournamentDoc | null;
   if (!tournament) return null;
 
   // Remove team from registered teams
@@ -231,11 +225,7 @@ export const getTournamentStats = async (
 } | null> => {
   await connectToDatabase();
 
-  const tournament = await TournamentModel.findById(tournamentId) as Document & {
-    maxTeams: number;
-    registeredTeams: string[];
-    matches?: string[];
-  };
+  const tournament = await TournamentModel.findById(tournamentId) as TournamentDoc | null;
   if (!tournament) return null;
 
   return {

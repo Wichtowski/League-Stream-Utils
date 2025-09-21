@@ -1,22 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@lib/auth";
 import { connectToDatabase } from "@/lib/database/connection";
-import { MatchModel, CommentatorModel } from "@/libTournament/database/models";
+import { MatchModel, CommentatorModel, type MatchDoc, type CommentatorDoc } from "@/libTournament/database/models";
 
-interface CommentatorData {
-  name: string;
-  xHandle?: string;
-  instagramHandle?: string;
-  twitchHandle?: string;
-}
+// Remove the interface since we're using the typed CommentatorDoc
 
 // GET: get commentators for a match
 export const GET = withAuth(async (req: NextRequest) => {
   try {
     const matchId = req.nextUrl.pathname.split("/")[4];
     await connectToDatabase();
-    
-    const match = await MatchModel.findById(matchId);
+
+    const match = await MatchModel.findById(matchId) as MatchDoc | null;
     if (!match) {
       return NextResponse.json({ error: "Match not found" }, { status: 404 });
     }
@@ -33,43 +28,42 @@ export const POST = withAuth(async (req: NextRequest, user) => {
   try {
     const matchId = req.nextUrl.pathname.split("/")[4];
     const { commentatorId } = await req.json();
-    
+
     if (!commentatorId) {
       return NextResponse.json({ error: "Commentator ID is required" }, { status: 400 });
     }
-    
+
     await connectToDatabase();
-    
+
     // Get the commentator details from global commentators
-    const commentator = await CommentatorModel.findById(commentatorId);
+    const commentator = await CommentatorModel.findById(commentatorId) as CommentatorDoc | null;
     if (!commentator) {
       return NextResponse.json({ error: "Commentator not found" }, { status: 404 });
     }
-    
+
     // Get the match
-    const match = await MatchModel.findById(matchId);
+    const match = await MatchModel.findById(matchId) as MatchDoc | null;
     if (!match) {
       return NextResponse.json({ error: "Match not found" }, { status: 404 });
     }
-    
+
     // Check if commentator is already assigned
-    const isAlreadyAssigned = match.commentators.some((c: any) => c._id === commentatorId);
+    const isAlreadyAssigned = match.commentators?.some((c: any) => c._id === commentatorId);
     if (isAlreadyAssigned) {
       return NextResponse.json({ error: "Commentator already assigned to this match" }, { status: 400 });
     }
-    
+
     // Add commentator to match
-    const commentatorDoc = commentator as unknown as CommentatorData;
     const newCommentator = {
       _id: commentatorId,
-      name: commentatorDoc.name || "",
-      xHandle: commentatorDoc.xHandle || undefined,
-      instagramHandle: commentatorDoc.instagramHandle || undefined,
-      twitchHandle: commentatorDoc.twitchHandle || undefined,
+      name: commentator.name,
+      xHandle: commentator.xHandle,
+      instagramHandle: commentator.instagramHandle,
+      twitchHandle: commentator.twitchHandle,
       assignedAt: new Date(),
       assignedBy: user.username
     };
-    
+
     const updatedMatch = await MatchModel.findByIdAndUpdate(
       matchId,
       {
@@ -77,8 +71,8 @@ export const POST = withAuth(async (req: NextRequest, user) => {
         $set: { updatedAt: new Date() }
       },
       { new: true }
-    );
-    
+    ) as MatchDoc | null;
+
     return NextResponse.json({
       success: true,
       commentators: updatedMatch?.commentators || []
@@ -90,17 +84,17 @@ export const POST = withAuth(async (req: NextRequest, user) => {
 });
 
 // DELETE: remove a commentator from a match
-export const DELETE = withAuth(async (req: NextRequest, user) => {
+export const DELETE = withAuth(async (req: NextRequest) => {
   try {
     const matchId = req.nextUrl.pathname.split("/")[4];
     const { commentatorId } = await req.json();
-    
+
     if (!commentatorId) {
       return NextResponse.json({ error: "Commentator ID is required" }, { status: 400 });
     }
-    
+
     await connectToDatabase();
-    
+
     const updatedMatch = await MatchModel.findByIdAndUpdate(
       matchId,
       {
@@ -108,12 +102,12 @@ export const DELETE = withAuth(async (req: NextRequest, user) => {
         $set: { updatedAt: new Date() }
       },
       { new: true }
-    );
-    
+    ) as MatchDoc | null;
+
     if (!updatedMatch) {
       return NextResponse.json({ error: "Match not found" }, { status: 404 });
     }
-    
+
     return NextResponse.json({
       success: true,
       commentators: updatedMatch.commentators || []

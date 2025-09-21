@@ -38,7 +38,7 @@ export default function MatchDetailPageWrapper({ params }: MatchDetailPageProps)
   useEffect(() => {
     const fetchData = async () => {
       if (!tournamentId || !matchId) return;
-      
+
       try {
         const [matchResponse, tournamentResponse] = await Promise.all([
           fetch(`/api/v1/matches/${matchId}`),
@@ -89,7 +89,7 @@ export default function MatchDetailPageWrapper({ params }: MatchDetailPageProps)
         <div className="min-h-screen p-6 max-w-7xl mx-auto">
           <div className="text-center py-12">
             <div className="text-red-400 text-lg mb-4">Error loading match</div>
-            <p className="text-gray-500">{error || "Match not found"}</p>
+            <p className="text-gray-500">{error ? "Match not found" : ""}</p>
             <Button onClick={() => router.push(`/modules/tournaments/${tournament?._id}/matches`)} className="mt-4">
               Go Back
             </Button>
