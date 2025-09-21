@@ -1,6 +1,7 @@
 import { Schema } from "mongoose";
 
 export const CommentatorSchema = new Schema({
+  _id: { type: String, required: true },
   name: { type: String, required: true },
   xHandle: { type: String, required: false },
   instagramHandle: { type: String, required: false },

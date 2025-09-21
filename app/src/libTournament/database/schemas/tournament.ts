@@ -1,6 +1,7 @@
 import { Schema } from "mongoose";
 import { ImageStorageSchema } from "@lib/database/schemas/common";
 import { SponsorSchema } from "@lib/database/schemas/sponsors";
+import { StreamBannerSchema } from "@lib/database/schemas/streamBanner";
 
 export const TournamentSchema = new Schema({
   name: { type: String, required: true },
@@ -64,6 +65,9 @@ export const TournamentSchema = new Schema({
 
   // Sponsors
   sponsors: { type: [SponsorSchema], default: [] },
+
+  // Stream Banners
+  streamBanners: { type: [StreamBannerSchema], default: [] },
 
   userId: { type: String, required: true },
   createdAt: { type: Date, default: Date.now },

@@ -85,6 +85,9 @@ export interface Tournament {
   // Sponsors
   sponsors?: Sponsorship[];
 
+  // Stream Banners
+  streamBanners?: StreamBanner[];
+
   // Ownership & timestamps
   userId: string; // Tournament organizer
   createdAt: Date;
@@ -342,6 +345,26 @@ export interface Sponsorship {
   updatedAt: Date;
 }
 
+export interface CarouselItem {
+  _id?: string; // MongoDB auto-generated ID
+  text: string;
+  backgroundColor?: string; // Default: "#1f2937"
+  textColor?: string; // Default: "#ffffff"
+  order: number; // Default: 0
+}
+
+export interface StreamBanner {
+  _id: string;
+  title: string;
+  carouselItems: CarouselItem[]; // Default: []
+  displayDuration: number; // seconds for main title display, Default: 5
+  carouselSpeed: number; // pixels per second for carousel, Default: 50
+  isActive: boolean; // Default: true
+  priority: number; // for ordering multiple banners, Default: 0
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface BrandingConfig {
   primaryColor: string;
   secondaryColor: string;
@@ -475,6 +498,27 @@ export interface CreateAdvancedTournamentRequest extends CreateTournamentRequest
     channelId: string;
     roleId: string;
   };
+}
+
+// Stream Banner API Request/Response Types
+export interface CreateStreamBannerRequest {
+  title: string;
+  carouselItems: Omit<CarouselItem, "_id">[];
+  displayDuration: number;
+  carouselSpeed: number;
+  isActive: boolean;
+  priority: number;
+}
+
+export interface UpdateStreamBannerRequest extends Partial<CreateStreamBannerRequest> {
+  _id: string;
+}
+
+export interface StreamBannerAPIResponse {
+  success: boolean;
+  streamBanner?: StreamBanner;
+  streamBanners?: StreamBanner[];
+  error?: string;
 }
 
 // API Response Types
