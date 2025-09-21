@@ -1,177 +1,179 @@
 # League Stream Utils 🎮
 
-A comprehensive application for managing League of Legends tournaments, pick/ban sessions, and streaming setups. Built with modern web technologies and designed for tournament organizers, streamers, and esports teams.
+A comprehensive esports tournament management platform for League of Legends. Built with modern web technologies and designed for tournament organizers, streamers, and esports teams to deliver professional broadcasting experiences.
 
 ## 📋 Project Overview
 
 League Stream Utils is a full-stack application that provides:
 
-- **Tournament Management**: Create and manage tournament brackets with team registration
-- **Pick/Ban System**: Real-time champion select interface with LCU integration
-- **Team Management**: Player verification and team organization tools
-- **Streaming Integration**: OBS-ready overlays and scenes for professional broadcasts
-- **Camera Management**: Multi-stream camera feeds and layout management
-- **Admin Dashboard**: Comprehensive management interface with security monitoring
-- **Electron Desktop App**: Cross-platform desktop application for enhanced functionality
+- **Professional Pick/Ban System**: Real-time draft interface with timer management and fearless draft support
+- **Tournament Management**: Complete bracket generation, team registration, and tournament administration
+- **Streaming Integration**: OBS automation, camera management, and professional broadcast overlays
+- **Team & Player Management**: Riot API integration for player verification and roster management
+- **Analytics & Statistics**: Champion analytics, pick/ban rates, and performance tracking
+- **Desktop Application**: Cross-platform Electron app with enhanced features and local storage
 
-## 🛠️ Technologies Used
+## 🛠️ Technology Stack
 
 ### Frontend
+- **Next.js 15** - React framework with App Router and standalone output
+- **React 19** - Latest UI library with concurrent features
+- **TypeScript 5** - Full type safety throughout the application
+- **Tailwind CSS 4** - Utility-first CSS with PostCSS optimization
 
-- **Next.js 15** - React framework with App Router
-- **React 19** - UI library with latest features
-- **TypeScript** - Type-safe JavaScript
-- **Tailwind CSS 4** - Utility-first CSS framework
-
-### Backend
-
-- **Node.js** - JavaScript runtime
-- **Next.js API Routes** - Server-side API endpoints
-- **MongoDB** - NoSQL database with Mongoose ODM
+### Backend & Database
+- **Next.js API Routes** - Server-side endpoints with middleware
+- **MongoDB 6** - NoSQL database with Mongoose ODM
+- **JWT Authentication** - Secure token-based auth with refresh tokens
+- **bcryptjs** - Password hashing and security
+- **Rate Limiting** - Built-in protection against abuse
 
 ### Desktop Application
+- **Electron 31** - Cross-platform desktop framework
+- **WebSocket** - Real-time communication between components
+- **IPC Handlers** - Secure communication between main and renderer processes
 
-- **Electron** - Cross-platform desktop app framework
-- **WebSocket** - Real-time communication
-
-### Development Tools
-
+### Development & Build Tools
 - **Bun** - Fast JavaScript runtime and package manager
-- **ESLint** - Code linting
-- **PostCSS** - CSS processing
-- **Webpack** - Module bundling with optimizations
+- **ESLint 9** - Code linting with Next.js configuration
+- **Prettier** - Code formatting
+- **Electron Builder** - Desktop app packaging and distribution
+- **Webpack Optimization** - Advanced bundle splitting and compression
 
 ### External Integrations
-
-- **Riot Games API** - League of Legends data
-- **League Client Update (LCU)** - Live game data
-- **OBS WebSocket** - Stream overlay integration
+- **Riot Games API** - Official League of Legends data and player verification
+- **League Client Update (LCU)** - Live game data integration
+- **Champion Cache System** - Optimized champion data management
+- **Node Cache** - In-memory caching for performance
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 
-- Node.js 18+ or Bun
-- MongoDB (for local data mode)
-- Git
+- **Bun** (recommended) or Node.js 18+
+- **MongoDB** (local or remote instance)
+- **Git**
 
 ### Installation
 
 1. **Clone the repository**
-
 ```bash
-   git clone <repository-url>
-   cd League-Stream-Utils
+git clone <repository-url>
+cd League-Stream-Utils
 ```
 
-2 **Install dependencies**
-
+2. **Install dependencies**
 ```bash
 cd app
 bun install
-# or
-npm install
 ```
 
-3 **Setup Local MongoDB (Recommended)**
-
-```bash
-npm run setup
-```
-
-This will:
-
-- Check MongoDB installation
-- Start MongoDB container
-- Create admin user (admin/admin123456789)
-- Configure the application
-
-4 **Manual Setup (Alternative)**
-
-If you prefer to use an external MongoDB:
-
+3. **Environment Setup**
 ```bash
 cp env.example .env.local
 ```
 
 Configure your environment variables:
-
-```javascript
+```env
 MONGODB_URI="mongodb://localhost:27017/league-stream-utils"
 JWT_SECRET="your-super-strong-jwt-secret-at-least-32-characters"
-ADMIN_USERNAME="your-admin-username"
+ADMIN_USERNAME="admin"
 ADMIN_PASSWORD="YourStrongPassword123!@#"
 ADMIN_EMAIL="admin@yourdomain.com"
 RIOT_API_KEY="your-riot-api-key"
 ```
 
-Then create admin user:
-
-```bash
-node scripts/create-admin.js
-```
-
-5 **Start Development Server**
-
+6. **Start Development Server**
 ```bash
 bun run dev
-# or
-npm run dev
+```
+The application will be available at `http://localhost:2137`
+
+### Desktop Application
+
+Run the desktop app alongside the web server:
+```bash
+bun run dev:electron
 ```
 
-6 **Desktop App (Optional)**
-
+Run the desktop app (production style, creating exec file):
 ```bash
 bun run electron-dev
 ```
 
-### MongoDB Management
-
-The application includes local MongoDB management:
-
+Or run separately:
 ```bash
-# Start MongoDB
-npm run mongodb:start
+# Terminal 1: Start web server
+bun run dev
 
-# Stop MongoDB
-npm run mongodb:stop
-
-# Check status
-npm run mongodb:status
-
-# View logs
-npm run mongodb:logs
-
-# Reset data
-npm run mongodb:reset
+# Terminal 2: Start Electron app
+bun run electron
 ```
 
-## 📁 Basic Folder Structure
+### Available Scripts
+
+```bash
+# Development
+bun run dev              # Start Next.js development server
+bun run electron-dev     # Start web server + Electron app
+bun run electron         # Start Electron app only
+
+# Production
+bun run build           # Build for production
+bun run start           # Start production server
+bun run electron-build  # Build desktop app
+bun run dist            # Build and package desktop app
+
+# Utilities
+bun run lint            # Run ESLint
+bun run format          # Format code with Prettier
+```
+
+## 📁 Project Structure
 
 ```text
 League-Stream-Utils/
 ├── app/                          # Main application
 │   ├── src/
 │   │   ├── app/                  # Next.js App Router
-│   │   │   ├── api/v1/          # API endpoints
-│   │   │   ├── modules/         # Feature modules
-│   │   │   └── layout.tsx       # Root layout
-│   │   ├── lib/                 # Shared utilities
-│   │   │   ├── components/      # React components
-│   │   │   ├── contexts/        # React contexts
-│   │   │   ├── database/        # Database schemas & connections
+│   │   │   ├── api/             # API endpoints
+│   │   │   ├── modules/         # Feature-based pages
+│   │   │   ├── login/           # Authentication pages
+│   │   │   ├── settings/        # Settings pages
+│   │   │   └── layout.tsx       # Root layout with providers
+│   │   ├── lib/                 # Core application library
+│   │   │   ├── auth/            # Authentication logic
+│   │   │   ├── components/      # Reusable React components
+│   │   │   ├── contexts/        # React context providers
+│   │   │   ├── database/        # MongoDB schemas & connections
 │   │   │   ├── services/        # Business logic services
-│   │   │   ├── types/           # TypeScript type definitions
-│   │   │   └── utils/           # Utility functions
-│   │   └── theme/               # Styling and theming
-│   ├── electron/                # Desktop app files
+│   │   │   ├── types/           # TypeScript definitions
+│   │   │   └── hooks/           # Custom React hooks
+│   │   ├── libCamera/           # Camera management system
+│   │   ├── libElectron/         # Electron integration
+│   │   ├── libLeagueClient/     # LCU integration
+│   │   ├── libPickban/          # Pick/ban system
+│   │   ├── libTeam/             # Team management
+│   │   ├── libTournament/       # Tournament system
+│   │   └── electron/            # Electron main process
 │   ├── public/                  # Static assets
+│   │   └── assets/              # Game assets (champions, items, etc.)
 │   ├── scripts/                 # Utility scripts
 │   └── package.json
-├── .github/                     # GitHub Actions workflows
-├── readmes/                     # Detailed documentation
-└── scripts/                     # External utility scripts
+├── scripts/                     # External utilities
+│   ├── fetchAccounts/           # Riot account fetching
+│   └── lol-player-scrapper/     # Player data scraping
+├── .github/                     # CI/CD workflows
+└── .kiro/                       # Kiro IDE configuration
 ```
+
+### Architecture Highlights
+
+- **Modular Design**: Feature-based libraries (`lib*`) for separation of concerns
+- **Context-Driven**: Comprehensive React context system for state management
+- **Type Safety**: Full TypeScript coverage with strict typing
+- **Security First**: JWT authentication, rate limiting, and input validation
+- **Performance Optimized**: Bundle splitting, caching, and lazy loading
 
 ## 🤝 How to Contribute
 
@@ -199,6 +201,7 @@ git checkout -b fix/your-bug-fix
 - Add TypeScript types for new features
 - Update documentation if needed
 - Test your changes thoroughly
+- Or vibe code it, I dont really care ¯\_(ツ)_/¯
 
 ### 4. Commit Your Changes
 
@@ -223,20 +226,27 @@ Then create a Pull Request on GitHub with:
 
 ### Development Guidelines
 
-- **TypeScript**: Use strict typing, avoid `any` and `unknown`
-- **Components**: Follow existing patterns in `src/lib/components/`
-- **API Routes**: Use the structure in `src/app/api/v1/`
-- **Database**: Follow schemas in `src/lib/database/schemas/`
-- **Security**: Follow security best practices in the codebase
+- **TypeScript**: Strict typing throughout, avoid `any` - use proper interfaces and types
+- **Components**: Follow feature-based organization in respective `lib*` directories
+- **API Routes**: RESTful structure in `src/app/api/` with proper error handling
+- **Database**: Mongoose schemas in `src/lib/database/` with validation
+- **Security**: JWT auth, rate limiting, input validation, and CSP headers
+- **Performance**: Bundle optimization, lazy loading, and efficient re-renders
+- **Code Style**: ESLint + Prettier with Next.js configuration
+- **Testing**: Focus on behavior over implementation details
+
+See `app/rules.md` for detailed coding guidelines and best practices.
 
 ## 🔒 Security Features
 
-- **JWT Authentication** with refresh tokens
-- **Rate Limiting** and account lockout protection
-- **Input Validation** and sanitization
-- **Security Headers** (CSP, HSTS, XSS protection)
-- **Audit Logging** for security events
-- **Password Security** with bcrypt hashing
+- **JWT Authentication**: Secure token-based auth with refresh token rotation
+- **Password Security**: bcryptjs hashing with salt rounds
+- **Rate Limiting**: Built-in protection against brute force attacks
+- **Input Validation**: Comprehensive sanitization and validation
+- **Security Headers**: CSP, HSTS, XSS protection, and frame options
+- **Account Protection**: Lockout mechanisms and audit logging
+- **Environment Security**: Secure secret management and validation
+- **API Security**: Protected endpoints with proper authorization
 
 ## 📄 License
 
@@ -258,11 +268,38 @@ This project uses the Riot Games API and is subject to Riot's [Developer Terms o
 - This project follows Riot's Legal Jibber Jabber guidelines for fan projects
 - This project uses a valid, non-expirable Riot Games API key obtained through official registration
 
-## 🆘 Support
+## 🆘 Support & Documentation
 
-- **Documentation**: Check the `readmes/` folder for detailed guides
 - **Issues**: Report bugs and feature requests on GitHub Issues
-- **Discussions**: Use GitHub Discussions for questions and ideas
+- **Discussions**: Use GitHub Discussions for questions and community support
+- **Code Guidelines**: See `app/rules.md` for development standards
+- **Scripts**: Utility scripts in `app/scripts/` for common tasks
+
+## 🎯 Key Features
+
+### Tournament Management
+- Complete bracket generation and management
+- Team registration with Riot API verification
+- Match scheduling and result tracking
+- Tournament statistics and analytics
+
+### Pick/Ban System
+- Professional draft interface with real-time updates
+- Timer management and phase control
+- Fearless draft support
+- Champion analytics and statistics
+
+### Streaming Integration
+- OBS automation and scene management
+- Camera feed management and layouts
+- Professional broadcast overlays
+- Real-time data synchronization
+
+### Desktop Application
+- Cross-platform Electron app
+- Enhanced local features and storage
+- Tournament templates and presets
+- Offline capability for events
 
 ---
 
