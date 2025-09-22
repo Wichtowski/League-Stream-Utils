@@ -6,7 +6,6 @@ import { CommentatorModel, type CommentatorDoc } from "@/libTournament/database/
 // GET: get all commentators
 export const GET = withAuth(async (req: NextRequest) => {
   try {
-    await connectToDatabase();
     const commentators = await CommentatorModel.find().sort({ name: 1 }) as CommentatorDoc[];
 
     // Transform the commentators to have consistent ID field
@@ -35,8 +34,6 @@ export const POST = withAuth(async (req: NextRequest, user) => {
     if (!name) {
       return NextResponse.json({ error: "Name is required" }, { status: 400 });
     }
-
-    await connectToDatabase();
 
     const commentator = new CommentatorModel({
       name,
@@ -76,8 +73,6 @@ export const PUT = withAuth(async (req: NextRequest, user) => {
     if (!id || !name) {
       return NextResponse.json({ error: "ID and name are required" }, { status: 400 });
     }
-
-    await connectToDatabase();
 
     const commentator = await CommentatorModel.findByIdAndUpdate(
       id,
@@ -121,8 +116,6 @@ export const DELETE = withAuth(async (req: NextRequest) => {
     if (!id) {
       return NextResponse.json({ error: "ID is required" }, { status: 400 });
     }
-
-    await connectToDatabase();
 
     const commentator = await CommentatorModel.findByIdAndDelete(id);
 

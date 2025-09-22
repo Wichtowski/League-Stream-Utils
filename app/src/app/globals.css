@@ -242,6 +242,50 @@ button {
   animation: champ-select-layout-enter 0.8s ease-out forwards;
 }
 
+/* Stream Banner Animations */
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@keyframes fadeOut {
+  0% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-10px);
+  }
+}
+
+@keyframes scrollLeft {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-in-out forwards;
+}
+
+.animate-fade-out {
+  animation: fadeOut 0.5s ease-in-out forwards;
+}
+
+.animate-scroll-left {
+  animation: scrollLeft 20s linear infinite;
+}
+
 /* Prefers reduced motion support */
 @media (prefers-reduced-motion: reduce) {
   .animate-player-slot {
@@ -266,6 +310,18 @@ button {
   .is-picking-blue,
   .is-picking-red {
     animation: none;
+  }
+
+  .animate-fade-in,
+  .animate-fade-out {
+    animation: none;
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  .animate-scroll-left {
+    animation: none;
+    transform: translateX(0);
   }
 }
 

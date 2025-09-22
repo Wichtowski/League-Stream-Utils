@@ -115,6 +115,13 @@ export const TournamentEditor = ({
           </button>
 
           <button
+            onClick={() => router.push(`/modules/tournaments/${tournament._id}/stream-banners`)}
+            className={`${buttonStyle} bg-purple-600 hover:bg-purple-700`}
+          >
+            Stream Banners
+          </button>
+
+          <button
             onClick={() => router.push(`/modules/tournaments/${tournament._id}/commentators`)}
             className={`${buttonStyle} bg-blue-600 hover:bg-blue-700`}
           >

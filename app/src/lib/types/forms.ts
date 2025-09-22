@@ -33,21 +33,21 @@ export interface CarouselItemFormData {
 
 export interface StreamBannerFormData {
   title: string;
+  titleBackgroundColor: string;
+  titleTextColor: string;
   carouselItems: CarouselItemFormData[];
-  displayDuration: number;
   carouselSpeed: number;
-  isActive: boolean;
-  priority: number;
+  carouselBackgroundColor: string;
 }
 
 // Utility function to create default form data
 export const createDefaultStreamBannerForm = (): StreamBannerFormData => ({
   title: "",
+  titleBackgroundColor: "#1f2937",
+  titleTextColor: "#ffffff",
   carouselItems: [],
-  displayDuration: 5,
   carouselSpeed: 50,
-  isActive: true,
-  priority: 0,
+  carouselBackgroundColor: "#1f2937",
 });
 
 export const createDefaultCarouselItemForm = (): CarouselItemFormData => ({

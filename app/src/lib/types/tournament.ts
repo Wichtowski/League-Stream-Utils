@@ -86,7 +86,7 @@ export interface Tournament {
   sponsors?: Sponsorship[];
 
   // Stream Banners
-  streamBanners?: StreamBanner[];
+  streamBanner?: EmbeddedStreamBanner;
 
   // Ownership & timestamps
   userId: string; // Tournament organizer
@@ -118,6 +118,7 @@ export interface CreateTournamentRequest {
   apiVersion?: string;
   patchVersion?: string;
   sponsors?: Sponsorship[];
+  streamBanner?: StreamBanner;
 }
 
 export interface CreateTeamRequest {
@@ -356,14 +357,17 @@ export interface CarouselItem {
 export interface StreamBanner {
   _id: string;
   title: string;
+  titleBackgroundColor?: string; // Default: "#1f2937"
+  titleTextColor?: string; // Default: "#ffffff"
   carouselItems: CarouselItem[]; // Default: []
-  displayDuration: number; // seconds for main title display, Default: 5
   carouselSpeed: number; // pixels per second for carousel, Default: 50
-  isActive: boolean; // Default: true
-  priority: number; // for ordering multiple banners, Default: 0
+  carouselBackgroundColor?: string; // Default: "#1f2937"
   createdAt: Date;
   updatedAt: Date;
 }
+
+// Type for embedded stream banners (without _id)
+export type EmbeddedStreamBanner = Omit<StreamBanner, '_id'>;
 
 export interface BrandingConfig {
   primaryColor: string;
@@ -503,11 +507,11 @@ export interface CreateAdvancedTournamentRequest extends CreateTournamentRequest
 // Stream Banner API Request/Response Types
 export interface CreateStreamBannerRequest {
   title: string;
+  titleBackgroundColor?: string;
+  titleTextColor?: string;
   carouselItems: Omit<CarouselItem, "_id">[];
-  displayDuration: number;
   carouselSpeed: number;
-  isActive: boolean;
-  priority: number;
+  carouselBackgroundColor?: string;
 }
 
 export interface UpdateStreamBannerRequest extends Partial<CreateStreamBannerRequest> {
@@ -517,7 +521,6 @@ export interface UpdateStreamBannerRequest extends Partial<CreateStreamBannerReq
 export interface StreamBannerAPIResponse {
   success: boolean;
   streamBanner?: StreamBanner;
-  streamBanners?: StreamBanner[];
   error?: string;
 }
 

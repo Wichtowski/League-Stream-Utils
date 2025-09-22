@@ -11,10 +11,7 @@ export const GET = async (req: NextRequest, { params }: { params: Promise<{ tour
             return NextResponse.json({ error: "Tournament not found" }, { status: 404 });
         }
 
-        // Return active banners sorted by priority (highest first)
-        const streamBanners = (tournament.streamBanners || [])
-            .filter(banner => banner.isActive)
-            .sort((a, b) => (b.priority || 0) - (a.priority || 0));
+        const streamBanner = tournament.streamBanner
 
         return NextResponse.json({
             tournament: {
@@ -22,7 +19,7 @@ export const GET = async (req: NextRequest, { params }: { params: Promise<{ tour
                 name: tournament.name,
                 abbreviation: tournament.abbreviation
             },
-            streamBanners
+            streamBanner
         });
     } catch (error) {
         console.error("Error fetching tournament stream banners for display:", error);

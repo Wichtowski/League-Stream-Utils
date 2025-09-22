@@ -64,4 +64,4 @@ The Stream Banner feature is a TV ticker-style component system for tournaments 
 2. WHEN the preview loads THEN the system SHALL show both the main title and carousel animation
 3. WHEN banner settings are changed THEN the preview SHALL update in real-time
 4. WHEN the preview is displayed THEN the system SHALL use the same styling as the actual stream overlay
-5. IF there are validation errors THEN the system SHALL highlight issues in the preview
+5. IF there are validation errors THEN the system SHALL highlight issues in the preview [tasks.md](./tasks.md)

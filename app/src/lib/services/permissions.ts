@@ -27,7 +27,6 @@ interface UserWithGlobalRoles {
 export class PermissionService {
   // Check if a user has a specific permission
   static async checkPermission(check: PermissionCheck): Promise<PermissionResult> {
-    await connectToDatabase();
 
     const { userId, permission, resourceId } = check;
 
@@ -61,7 +60,6 @@ export class PermissionService {
 
   // Get all active roles for a user (global + tournament-specific)
   static async getUserRoles(userId: string, tournamentId?: string): Promise<Role[]> {
-    await connectToDatabase();
 
     const roles: Role[] = [];
 
@@ -104,7 +102,6 @@ export class PermissionService {
     grantedBy: string,
     expiresAt?: Date
   ): Promise<TournamentPermissionDoc> {
-    await connectToDatabase();
 
     // Check if permission already exists
     const existing = await TournamentPermissionModel.findOne({
@@ -164,7 +161,6 @@ export class PermissionService {
     grantedBy: string,
     _expiresAt?: Date
   ): Promise<boolean> {
-    await connectToDatabase();
 
     // Handle special case for "admin" user (hardcoded admin)
     if (userId === "admin") {
@@ -210,7 +206,6 @@ export class PermissionService {
     userId: string,
     revokedBy: string
   ): Promise<boolean> {
-    await connectToDatabase();
 
     const permission = await TournamentPermissionModel.findOne({
       tournamentId,
@@ -242,7 +237,6 @@ export class PermissionService {
     role: Role,
     revokedBy: string
   ): Promise<boolean> {
-    await connectToDatabase();
 
     // Handle special case for "admin" user (hardcoded admin)
     if (userId === "admin") {
@@ -283,7 +277,6 @@ export class PermissionService {
 
   // Get all users with permissions for a tournament
   static async getTournamentPermissions(tournamentId: string): Promise<TournamentPermissionDoc[]> {
-    await connectToDatabase();
 
     return await TournamentPermissionModel.find({
       tournamentId,
@@ -297,7 +290,6 @@ export class PermissionService {
 
   // Get all global roles for a user
   static async getUserGlobalRoles(userId: string): Promise<Role[]> {
-    await connectToDatabase();
 
     // Handle special case for "admin" user (hardcoded admin)
     if (userId === "admin") {
@@ -312,7 +304,6 @@ export class PermissionService {
 
   // Get all tournament permissions for a user
   static async getUserTournamentPermissions(userId: string): Promise<TournamentPermissionDoc[]> {
-    await connectToDatabase();
 
     return await TournamentPermissionModel.find({
       userId,
@@ -331,7 +322,6 @@ export class PermissionService {
     tournamentId: string | undefined,
     reason: string
   ): Promise<PermissionRequestDoc> {
-    await connectToDatabase();
 
     const request = new PermissionRequestModel({
       requesterId,
@@ -351,7 +341,6 @@ export class PermissionService {
     reviewerId: string,
     reviewNotes?: string
   ): Promise<boolean> {
-    await connectToDatabase();
 
     const request = await PermissionRequestModel.findById(requestId);
     if (!request || request.status !== "PENDING") {
@@ -390,7 +379,6 @@ export class PermissionService {
     reviewerId: string,
     reviewNotes?: string
   ): Promise<boolean> {
-    await connectToDatabase();
 
     const request = await PermissionRequestModel.findById(requestId);
     if (!request || request.status !== "PENDING") {
@@ -408,7 +396,6 @@ export class PermissionService {
 
   // Get pending permission requests
   static async getPendingRequests(tournamentId?: string): Promise<PermissionRequestDoc[]> {
-    await connectToDatabase();
 
     const query: Record<string, unknown> = { status: "PENDING" };
     if (tournamentId) {
@@ -428,7 +415,6 @@ export class PermissionService {
     reason?: string;
     metadata?: Record<string, unknown>;
   }): Promise<void> {
-    await connectToDatabase();
 
     const audit = new PermissionAuditModel(data);
     await audit.save();
@@ -440,7 +426,6 @@ export class PermissionService {
     tournamentId?: string,
     limit: number = 50
   ): Promise<PermissionAuditDoc[]> {
-    await connectToDatabase();
 
     const query: Record<string, unknown> = {};
     if (userId) query.targetUserId = userId;
@@ -453,7 +438,6 @@ export class PermissionService {
 
   // Check if user is tournament owner
   static async isTournamentOwner(tournamentId: string, userId: string): Promise<boolean> {
-    await connectToDatabase();
 
     const permission = await TournamentPermissionModel.findOne({
       tournamentId,
@@ -467,7 +451,6 @@ export class PermissionService {
 
   // Get available roles for a user to grant (based on their permissions)
   static async getGrantableRoles(granterUserId: string, tournamentId?: string): Promise<Role[]> {
-    await connectToDatabase();
 
     const granterRoles = await this.getUserRoles(granterUserId, tournamentId);
     const grantableRoles: Role[] = [];

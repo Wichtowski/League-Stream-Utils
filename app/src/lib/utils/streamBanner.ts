@@ -7,16 +7,16 @@ import { CreateStreamBannerRequest, UpdateStreamBannerRequest, StreamBanner, Car
 export const formDataToCreateRequest = (formData: StreamBannerFormData): CreateStreamBannerRequest => {
     return {
         title: formData.title.trim(),
-        carouselItems: formData.carouselItems.map((item, index) => ({
+        titleBackgroundColor: formData.titleBackgroundColor || "#1f2937",
+        titleTextColor: formData.titleTextColor || "#ffffff",
+        carouselItems: (formData.carouselItems || []).map((item, index) => ({
             text: item.text.trim(),
             backgroundColor: item.backgroundColor || "#1f2937",
             textColor: item.textColor || "#ffffff",
             order: item.order || index
         })),
-        displayDuration: formData.displayDuration || 5,
         carouselSpeed: formData.carouselSpeed || 50,
-        isActive: formData.isActive ?? true,
-        priority: formData.priority || 0
+        carouselBackgroundColor: formData.carouselBackgroundColor || "#1f2937",
     };
 };
 
@@ -36,16 +36,16 @@ export const formDataToUpdateRequest = (formData: StreamBannerFormData, bannerId
 export const streamBannerToFormData = (banner: StreamBanner): StreamBannerFormData => {
     return {
         title: banner.title,
-        carouselItems: banner.carouselItems.map(item => ({
+        titleBackgroundColor: banner.titleBackgroundColor || "#1f2937",
+        titleTextColor: banner.titleTextColor || "#ffffff",
+        carouselItems: (banner.carouselItems || []).map(item => ({
             text: item.text,
             backgroundColor: item.backgroundColor || "#1f2937",
             textColor: item.textColor || "#ffffff",
             order: item.order
         })),
-        displayDuration: banner.displayDuration,
         carouselSpeed: banner.carouselSpeed,
-        isActive: banner.isActive,
-        priority: banner.priority
+        carouselBackgroundColor: banner.carouselBackgroundColor || "#1f2937",
     };
 };
 

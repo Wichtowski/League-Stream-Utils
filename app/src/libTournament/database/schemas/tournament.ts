@@ -1,7 +1,6 @@
 import { Schema } from "mongoose";
 import { ImageStorageSchema } from "@lib/database/schemas/common";
 import { SponsorSchema } from "@lib/database/schemas/sponsors";
-import { StreamBannerSchema } from "@lib/database/schemas/streamBanner";
 
 export const TournamentSchema = new Schema({
   name: { type: String, required: true },
@@ -66,8 +65,22 @@ export const TournamentSchema = new Schema({
   // Sponsors
   sponsors: { type: [SponsorSchema], default: [] },
 
-  // Stream Banners
-  streamBanners: { type: [StreamBannerSchema], default: [] },
+  // Stream Banner - single object (not array)
+  streamBanner: {
+    title: { type: String },
+    titleBackgroundColor: { type: String, default: "#1f2937" },
+    titleTextColor: { type: String, default: "#ffffff" },
+    carouselItems: [{
+      text: { type: String },
+      backgroundColor: { type: String, default: "#1f2937" },
+      textColor: { type: String, default: "#ffffff" },
+      order: { type: Number, default: 0 }
+    }],
+    carouselSpeed: { type: Number, default: 50 },
+    carouselBackgroundColor: { type: String, default: "#1f2937" },
+    createdAt: { type: Date },
+    updatedAt: { type: Date }
+  },
 
   userId: { type: String, required: true },
   createdAt: { type: Date, default: Date.now },

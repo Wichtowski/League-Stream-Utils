@@ -2,7 +2,7 @@ import { Schema, models, model, Model, InferSchemaType } from "mongoose";
 import { MatchSchema } from "./schemas/match";
 import { TournamentSchema } from "./schemas/tournament";
 import { CommentatorSchema } from "./schemas/commentator";
-import { StreamBannerSchema } from "@lib/database/schemas/streamBanner";
+
 
 const getModel = <T>(name: string, schema: Schema): Model<T> => {
   try {
@@ -22,9 +22,9 @@ const getModel = <T>(name: string, schema: Schema): Model<T> => {
 export const MatchModel = getModel<MatchDoc>("Match", MatchSchema);
 export const TournamentModel = getModel<TournamentDoc>("Tournament", TournamentSchema);
 export const CommentatorModel = getModel<CommentatorDoc>("Commentator", CommentatorSchema);
-export const StreamBannerModel = getModel<StreamBannerDoc>("StreamBanner", StreamBannerSchema);
+
 
 export type MatchDoc = InferSchemaType<typeof MatchSchema>;
 export type TournamentDoc = InferSchemaType<typeof TournamentSchema>;
 export type CommentatorDoc = InferSchemaType<typeof CommentatorSchema>;
-export type StreamBannerDoc = InferSchemaType<typeof StreamBannerSchema>;
+

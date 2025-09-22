@@ -23,7 +23,11 @@ export type { AuthCredentials, User, UserRegistration } from "./auth";
 export type { SessionUrls, SessionResponse } from "./api";
 export type { WSMessage } from "./websocket";
 export type { GameState } from "./ui";
-export type { TournamentForm } from "./forms";
+export type { 
+  TournamentForm, 
+  StreamBannerFormData, 
+  CarouselItemFormData 
+} from "./forms";
 export type { UserDocument, UserQueryResult } from "./database";
 export type { PlayerRole, GamePhase } from "./common";
 export type { Team } from "./team";
@@ -54,7 +58,9 @@ export type {
   GameResult,
   TournamentStats,
   Bracket,
-  Sponsorship
+  Sponsorship,
+  StreamBanner,
+  CarouselItem
 } from "./tournament";
 export { createDefaultTeamRequest } from "./tournament";
 export type { CameraPlayer, CameraTeam } from "@libCamera/types/camera";

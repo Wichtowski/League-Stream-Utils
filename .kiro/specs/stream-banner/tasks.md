@@ -7,8 +7,6 @@
   - _Requirements: 1.1, 4.1, 4.4_
 
 - [x] 2. Implement API routes for stream banner CRUD operations
-
-
   - Create GET /api/v1/tournaments/[tournamentId]/stream-banners route to fetch banners
   - Create POST /api/v1/tournaments/[tournamentId]/stream-banners route to add new banners
   - Create PUT /api/v1/tournaments/[tournamentId]/stream-banners/[bannerId] route to update banners
@@ -24,7 +22,7 @@
   - Create utility functions for form data conversion and carousel item management
   - _Requirements: 1.2, 4.4, 5.5_
 
-- [ ] 4. Build StreamBannerForm component for creating and editing banners
+- [x] 4. Build StreamBannerForm component for creating and editing banners
   - Create StreamBannerForm component with title input field
   - Implement dynamic carousel items management (add/remove/reorder functionality)
   - Add display settings controls (duration, speed, priority)
@@ -32,7 +30,7 @@
   - Add form validation with real-time feedback
   - _Requirements: 1.2, 2.1, 2.2, 2.3, 5.1, 5.3_
 
-- [ ] 5. Create StreamBannerPreview component for live preview
+- [x] 5. Create StreamBannerPreview component for live preview
   - Build MainTitle component with fade animations and configurable duration
   - Build CarouselTicker component with smooth infinite scrolling
   - Implement StreamBannerPreview that combines MainTitle and CarouselTicker
@@ -40,14 +38,14 @@
   - Ensure preview uses same styling as actual overlay
   - _Requirements: 5.1, 5.2, 5.3, 5.4_
 
-- [ ] 6. Implement StreamBannerList component for managing existing banners
+- [x] 6. Implement StreamBannerList component for managing existing banners
   - Create banner cards displaying title, item count, and status
   - Add edit/delete action buttons with confirmation dialogs
   - Implement active/inactive status toggle functionality
   - Add priority ordering controls for banner display sequence
   - _Requirements: 1.1, 1.4, 2.5_
 
-- [ ] 7. Build StreamBannerManager container component
+- [x] 7. Build StreamBannerManager container component
   - Create main container component handling state management for banners list
   - Implement CRUD operations via API calls following sponsors pattern
   - Add form state management for create/edit modes
@@ -55,7 +53,7 @@
   - Handle loading states and error handling
   - _Requirements: 1.1, 1.3, 1.4, 4.1_
 
-- [ ] 8. Create stream banner management page
+- [x] 8. Create stream banner management page
   - Build main page component at /modules/tournaments/[tournamentId]/stream-banners
   - Integrate StreamBannerManager, StreamBannerForm, StreamBannerList, and StreamBannerPreview
   - Add OBSDisplayInfo component for stream overlay URL
@@ -63,7 +61,8 @@
   - Add proper loading states and error handling
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 4.3_
 
-- [ ] 9. Implement StreamBannerDisplay component for OBS overlay
+- [x] 9. Implement StreamBannerDisplay component for OBS overlay
+
   - Create main overlay component that fetches active banners from API
   - Implement banner rotation logic based on priority and timing
   - Handle main title display lifecycle with proper fade transitions
@@ -71,11 +70,15 @@
   - Add responsive design for different stream resolutions
   - _Requirements: 3.1, 3.2, 3.3, 3.4_
 
-- [ ] 10. Create OBS overlay page for stream banners
+
+- [-] 10. Create OBS overlay page for stream banners
+
+
   - Build dedicated page at /modules/tournaments/[tournamentId]/stream-banners/obs
   - Implement StreamBannerDisplay component integration
   - Add proper error handling for missing or invalid banner data
   - Ensure page works in OBS browser source with transparent background
+
   - Add automatic refresh functionality for banner updates
   - _Requirements: 3.1, 3.2, 3.3, 3.4_
 

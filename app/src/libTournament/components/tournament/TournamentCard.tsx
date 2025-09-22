@@ -78,6 +78,12 @@ export const TournamentCard = ({
         >
           Sponsors
         </a>
+        <a
+          href={`/modules/tournaments/${tournament._id}/stream-banners`}
+          className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded text-sm"
+        >
+          Stream Banners
+        </a>
         {tournament.status === "draft" && (
           <button
             onClick={() => onStatusUpdate(tournament._id, "registration")}

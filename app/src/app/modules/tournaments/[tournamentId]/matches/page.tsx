@@ -39,7 +39,7 @@ export default function TournamentMatchesPage({ params }: TournamentMatchesPageP
   }, [params]);
 
   useEffect(() => {
-    if (!tournamentId) return;
+    if (!tournamentId || !user) return;
 
     const fetchData = async () => {
       try {
@@ -68,7 +68,7 @@ export default function TournamentMatchesPage({ params }: TournamentMatchesPageP
     };
 
     fetchData();
-  }, [tournamentId, authenticatedFetch]);
+  }, [tournamentId, user, authenticatedFetch]);
 
   if (!user) {
     return <PageWrapper requireAuth={true}>{null}</PageWrapper>;
