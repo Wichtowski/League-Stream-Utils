@@ -1,10 +1,10 @@
-import { StreamBannerFormData, CarouselItemFormData } from "@lib/types/forms";
-import { CreateStreamBannerRequest, UpdateStreamBannerRequest, StreamBanner, CarouselItem } from "@lib/types/tournament";
+import { TickerFormData, CarouselItemFormData } from "@lib/types/forms";
+import { CreateTickerRequest, UpdateTickerRequest, Ticker, CarouselItem } from "@/libTournament/types/ticker";
 
 /**
- * Converts form data to API request format for creating a new stream banner
+ * Converts form data to API request format for creating a new Ticker
  */
-export const formDataToCreateRequest = (formData: StreamBannerFormData): CreateStreamBannerRequest => {
+export const formDataToCreateRequest = (formData: TickerFormData): CreateTickerRequest => {
     return {
         title: formData.title.trim(),
         titleBackgroundColor: formData.titleBackgroundColor || "#1f2937",
@@ -21,31 +21,31 @@ export const formDataToCreateRequest = (formData: StreamBannerFormData): CreateS
 };
 
 /**
- * Converts form data to API request format for updating an existing stream banner
+ * Converts form data to API request format for updating an existing Ticker
  */
-export const formDataToUpdateRequest = (formData: StreamBannerFormData, bannerId: string): UpdateStreamBannerRequest => {
+export const formDataToUpdateRequest = (formData: TickerFormData, tickerId: string): UpdateTickerRequest => {
     return {
-        _id: bannerId,
+        _id: tickerId,
         ...formDataToCreateRequest(formData)
     };
 };
 
 /**
- * Converts a stream banner from the API to form data format
+ * Converts a Ticker from the API to form data format
  */
-export const streamBannerToFormData = (banner: StreamBanner): StreamBannerFormData => {
+export const TickerToFormData = (ticker: Ticker): TickerFormData => {
     return {
-        title: banner.title,
-        titleBackgroundColor: banner.titleBackgroundColor || "#1f2937",
-        titleTextColor: banner.titleTextColor || "#ffffff",
-        carouselItems: (banner.carouselItems || []).map(item => ({
+        title: ticker.title,
+        titleBackgroundColor: ticker.titleBackgroundColor || "#1f2937",
+        titleTextColor: ticker.titleTextColor || "#ffffff",
+        carouselItems: (ticker.carouselItems || []).map(item => ({
             text: item.text,
             backgroundColor: item.backgroundColor || "#1f2937",
             textColor: item.textColor || "#ffffff",
             order: item.order
         })),
-        carouselSpeed: banner.carouselSpeed,
-        carouselBackgroundColor: banner.carouselBackgroundColor || "#1f2937",
+        carouselSpeed: ticker.carouselSpeed,
+        carouselBackgroundColor: ticker.carouselBackgroundColor || "#1f2937",
     };
 };
 

@@ -31,7 +31,7 @@ export interface CarouselItemFormData {
   order: number;
 }
 
-export interface StreamBannerFormData {
+export interface TickerFormData {
   title: string;
   titleBackgroundColor: string;
   titleTextColor: string;
@@ -41,7 +41,7 @@ export interface StreamBannerFormData {
 }
 
 // Utility function to create default form data
-export const createDefaultStreamBannerForm = (): StreamBannerFormData => ({
+export const createDefaultTickerForm = (): TickerFormData => ({
   title: "",
   titleBackgroundColor: "#1f2937",
   titleTextColor: "#ffffff",

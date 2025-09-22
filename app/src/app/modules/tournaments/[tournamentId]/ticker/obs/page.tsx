@@ -1,6 +1,6 @@
 "use client";
 
-import { StreamBannerDisplay } from "@libTournament/components/stream-banners";
+import { TickerDisplay } from "@/libTournament/components/ticker";
 import { use } from "react";
 
 interface PageProps {
@@ -13,7 +13,7 @@ interface PageProps {
   }>;
 }
 
-export default function OBSStreamBannerPage({ params, searchParams }: PageProps) {
+export default function OBSTickerPage({ params, searchParams }: PageProps) {
   const { tournamentId } = use(params);
   const { refresh, displayInfo } = use(searchParams);
 
@@ -23,7 +23,7 @@ export default function OBSStreamBannerPage({ params, searchParams }: PageProps)
 
   return (
     <div className="w-screen h-screen bg-transparent overflow-hidden">
-      <StreamBannerDisplay
+      <TickerDisplay
         tournamentId={tournamentId}
         refreshInterval={refreshInterval}
         showDebugInfo={showDebugInfo}

@@ -2,16 +2,16 @@
 
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { StreamBannerDisplay } from "@/libTournament/components/stream-banners/StreamBannerDisplay";
+import { TickerDisplay } from "@/libTournament/components/ticker/TickerDisplay";
 import type { Tournament, Match, Team } from "@lib/types";
 
-interface MatchStreamBannerPageProps {}
+interface MatchTickerPageProps { }
 
-export default function MatchStreamBannerPage({}: MatchStreamBannerPageProps) {
+export default function MatchTickerPage({ }: MatchTickerPageProps) {
   const params = useParams();
   const tournamentId = params.tournamentId as string;
   const matchId = params.matchId as string;
-  
+
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [match, setMatch] = useState<Match | null>(null);
   const [team1, setTeam1] = useState<Team | null>(null);
@@ -23,7 +23,7 @@ export default function MatchStreamBannerPage({}: MatchStreamBannerPageProps) {
     const fetchData = async () => {
       try {
         setLoading(true);
-        
+
         // Fetch tournament data
         const tournamentResponse = await fetch(`/api/v1/tournaments/${tournamentId}`);
         if (!tournamentResponse.ok) {
@@ -72,7 +72,7 @@ export default function MatchStreamBannerPage({}: MatchStreamBannerPageProps) {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="text-white text-xl">Loading match stream banner...</div>
+        <div className="text-white text-xl">Loading match Ticker...</div>
       </div>
     );
   }
@@ -95,7 +95,7 @@ export default function MatchStreamBannerPage({}: MatchStreamBannerPageProps) {
 
   return (
     <div className="min-h-screen bg-gray-900">
-      <StreamBannerDisplay 
+      <TickerDisplay
         tournament={tournament}
         match={match}
         team1={team1}

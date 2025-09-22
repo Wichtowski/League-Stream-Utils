@@ -1,20 +1,20 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { StreamBannerFormData } from "@lib/types";
+import type { TickerFormData } from "@lib/types";
 import { CarouselTicker } from "./CarouselTicker";
 
-interface StreamBannerPreviewProps {
-  formData: StreamBannerFormData;
+interface TickerPreviewProps {
+  formData: TickerFormData;
   className?: string;
   autoPlay?: boolean;
 }
 
-export const StreamBannerPreview = ({
+export const TickerPreview = ({
   formData,
   className = "",
   autoPlay = true
-}: StreamBannerPreviewProps) => {
+}: TickerPreviewProps) => {
   const [previewKey, setPreviewKey] = useState(0);
 
   // Reset preview when form data changes significantly
@@ -79,7 +79,7 @@ export const StreamBannerPreview = ({
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center text-gray-400">
               <div className="text-4xl mb-2">📺</div>
-              <p className="text-lg font-medium">Stream Banner Preview</p>
+              <p className="text-lg font-medium">Ticker Preview</p>
               <p className="text-sm">Add a title and carousel items to see the preview</p>
             </div>
           </div>

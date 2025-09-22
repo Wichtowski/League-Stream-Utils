@@ -1,6 +1,8 @@
 import { MatchFormat } from "./match";
 import { ImageStorage } from "./common";
 import { Player } from "./game";
+import { Ticker, EmbeddedTicker } from "@/libTournament/types/ticker"
+import { Sponsorship } from "@/libTournament/types/sponsors"
 
 export type TournamentFormat = "Ladder" | "Swiss into Ladder" | "Round Robin into Ladder" | "Groups";
 
@@ -85,8 +87,8 @@ export interface Tournament {
   // Sponsors
   sponsors?: Sponsorship[];
 
-  // Stream Banners
-  streamBanner?: EmbeddedStreamBanner;
+  // Ticker
+  ticker?: EmbeddedTicker;
 
   // Ownership & timestamps
   userId: string; // Tournament organizer
@@ -118,7 +120,7 @@ export interface CreateTournamentRequest {
   apiVersion?: string;
   patchVersion?: string;
   sponsors?: Sponsorship[];
-  streamBanner?: StreamBanner;
+  ticker?: Ticker;
 }
 
 export interface CreateTeamRequest {
@@ -332,42 +334,6 @@ export interface StreamConfig {
   chatIntegration: boolean;
 }
 
-export interface Sponsorship {
-  _id: string;
-  name: string;
-  logo: ImageStorage;
-  website?: string;
-  description?: string;
-  tier: "platinum" | "gold" | "silver" | "bronze";
-  startDate: Date;
-  endDate: Date;
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface CarouselItem {
-  _id?: string; // MongoDB auto-generated ID
-  text: string;
-  backgroundColor?: string; // Default: "#1f2937"
-  textColor?: string; // Default: "#ffffff"
-  order: number; // Default: 0
-}
-
-export interface StreamBanner {
-  _id: string;
-  title: string;
-  titleBackgroundColor?: string; // Default: "#1f2937"
-  titleTextColor?: string; // Default: "#ffffff"
-  carouselItems: CarouselItem[]; // Default: []
-  carouselSpeed: number; // pixels per second for carousel, Default: 50
-  carouselBackgroundColor?: string; // Default: "#1f2937"
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-// Type for embedded stream banners (without _id)
-export type EmbeddedStreamBanner = Omit<StreamBanner, '_id'>;
 
 export interface BrandingConfig {
   primaryColor: string;
@@ -502,26 +468,6 @@ export interface CreateAdvancedTournamentRequest extends CreateTournamentRequest
     channelId: string;
     roleId: string;
   };
-}
-
-// Stream Banner API Request/Response Types
-export interface CreateStreamBannerRequest {
-  title: string;
-  titleBackgroundColor?: string;
-  titleTextColor?: string;
-  carouselItems: Omit<CarouselItem, "_id">[];
-  carouselSpeed: number;
-  carouselBackgroundColor?: string;
-}
-
-export interface UpdateStreamBannerRequest extends Partial<CreateStreamBannerRequest> {
-  _id: string;
-}
-
-export interface StreamBannerAPIResponse {
-  success: boolean;
-  streamBanner?: StreamBanner;
-  error?: string;
 }
 
 // API Response Types

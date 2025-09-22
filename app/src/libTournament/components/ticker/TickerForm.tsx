@@ -1,30 +1,30 @@
 "use client";
 
 import { useState } from "react";
-import type { StreamBanner } from "@lib/types";
-import type { StreamBannerFormData, CarouselItemFormData } from "@lib/types/forms";
+import type { Ticker } from "@lib/types";
+import type { TickerFormData, CarouselItemFormData } from "@lib/types/forms";
 import { createDefaultCarouselItemForm } from "@lib/types/forms";
-import { StreamBannerPreview } from "./StreamBannerPreview";
+import { TickerPreview } from "./TickerPreview";
 
-interface StreamBannerFormProps {
-  formData: StreamBannerFormData;
-  setFormData: React.Dispatch<React.SetStateAction<StreamBannerFormData>>;
-  editingBanner: StreamBanner | null;
-  onAddBanner: () => void;
-  onUpdateBanner: () => void;
+interface TickerFormProps {
+  formData: TickerFormData;
+  setFormData: React.Dispatch<React.SetStateAction<TickerFormData>>;
+  editingTicker: Ticker | null;
+  onAddTicker: () => void;
+  onUpdateTicker: () => void;
   onCancelEdit: () => void;
   onCloseForm: () => void;
 }
 
-export const StreamBannerForm = ({
+export const TickerForm = ({
   formData,
   setFormData,
-  editingBanner,
-  onAddBanner,
-  onUpdateBanner,
+  editingTicker,
+  onAddTicker,
+  onUpdateTicker,
   onCancelEdit,
   onCloseForm
-}: StreamBannerFormProps) => {
+}: TickerFormProps) => {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Validation function
@@ -56,10 +56,10 @@ export const StreamBannerForm = ({
 
   const handleSubmit = () => {
     if (validateForm()) {
-      if (editingBanner) {
-        onUpdateBanner();
+      if (editingTicker) {
+        onUpdateTicker();
       } else {
-        onAddBanner();
+        onAddTicker();
       }
     }
   };
@@ -131,7 +131,7 @@ export const StreamBannerForm = ({
     <div className="bg-gray-800 rounded-lg p-6">
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-semibold">
-          {editingBanner ? "Edit Stream Banner" : "Add New Stream Banner"}
+          {editingTicker ? "Edit Ticker" : "Add New Ticker"}
         </h3>
         <button
           onClick={onCloseForm}
@@ -158,7 +158,7 @@ export const StreamBannerForm = ({
               }}
               className={`w-full bg-gray-700 border rounded px-3 py-2 ${errors.title ? 'border-red-500' : 'border-gray-600'
                 }`}
-              placeholder="Enter banner title"
+              placeholder="Enter Ticker title"
             />
             {errors.title && (
               <p className="text-red-400 text-xs mt-1">{errors.title}</p>
@@ -404,7 +404,7 @@ export const StreamBannerForm = ({
 
         {/* Live Preview */}
         <div>
-          <StreamBannerPreview
+          <TickerPreview
             key={`${formData.titleBackgroundColor}-${formData.titleTextColor}-${formData.carouselBackgroundColor}`}
             formData={formData}
             autoPlay={false}
@@ -415,7 +415,7 @@ export const StreamBannerForm = ({
 
       {/* Form Actions */}
       <div className="flex justify-end space-x-3 mt-6">
-        {editingBanner && (
+        {editingTicker && (
           <button
             onClick={onCancelEdit}
             className="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded-lg"
@@ -427,7 +427,7 @@ export const StreamBannerForm = ({
           onClick={handleSubmit}
           className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg"
         >
-          {editingBanner ? "Update Banner" : "Save Banner"}
+          {editingTicker ? "Update Ticker" : "Save Ticker"}
         </button>
       </div>
     </div>

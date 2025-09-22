@@ -23,10 +23,10 @@ export type { AuthCredentials, User, UserRegistration } from "./auth";
 export type { SessionUrls, SessionResponse } from "./api";
 export type { WSMessage } from "./websocket";
 export type { GameState } from "./ui";
-export type { 
-  TournamentForm, 
-  StreamBannerFormData, 
-  CarouselItemFormData 
+export type {
+  TournamentForm,
+  TickerFormData,
+  CarouselItemFormData
 } from "./forms";
 export type { UserDocument, UserQueryResult } from "./database";
 export type { PlayerRole, GamePhase } from "./common";
@@ -59,7 +59,7 @@ export type {
   TournamentStats,
   Bracket,
   Sponsorship,
-  StreamBanner,
+  Ticker,
   CarouselItem
 } from "./tournament";
 export { createDefaultTeamRequest } from "./tournament";

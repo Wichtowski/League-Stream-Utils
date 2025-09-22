@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import type { StreamBanner, EmbeddedStreamBanner, Tournament } from "@lib/types/tournament";
+import type { Ticker, EmbeddedTicker, } from "@libTournament/types/ticker";
+import type { Tournament } from "@lib/types/tournament"
 import type { Match, Team } from "@lib/types";
 import { CarouselTicker } from "./CarouselTicker";
 import Image from "next/image";
 
-interface StreamBannerDisplayProps {
+interface TickerDisplayProps {
   tournamentId?: string;
   tournament?: Tournament;
   match?: Match;
@@ -23,10 +24,10 @@ interface DisplayData {
     name: string;
     abbreviation: string;
   };
-  streamBanner: StreamBanner | EmbeddedStreamBanner;
+  Ticker: Ticker | EmbeddedTicker;
 }
 
-export const StreamBannerDisplay = ({
+export const TickerDisplay = ({
   tournamentId,
   tournament,
   match,
@@ -35,27 +36,27 @@ export const StreamBannerDisplay = ({
   className = "",
   refreshInterval = 60000,
   showDebugInfo = false
-}: StreamBannerDisplayProps) => {
+}: TickerDisplayProps) => {
   const [displayData, setDisplayData] = useState<DisplayData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastFetchTime, setLastFetchTime] = useState<number>(0);
   const [connectionStatus, setConnectionStatus] = useState<'connected' | 'disconnected' | 'reconnecting'>('connected');
 
-  const banner = displayData?.streamBanner || null
+  const ticker = displayData?.ticker || null
 
-  // Fetch banner data from API (only when using tournamentId mode)
-  const fetchBannerData = useCallback(async () => {
+  // Fetch ticker data from API (only when using tournamentId mode)
+  const fetchtickerData = useCallback(async () => {
     if (!tournamentId) {
       // If tournament data is passed directly, use it
-      if (tournament?.streamBanner) {
+      if (tournament?.ticker) {
         setDisplayData({
           tournament: {
             _id: tournament._id,
             name: tournament.name,
             abbreviation: tournament.abbreviation
           },
-          streamBanner: tournament.streamBanner
+          Ticker: tournament.ticker
         });
       }
       setIsLoading(false);
@@ -64,7 +65,7 @@ export const StreamBannerDisplay = ({
 
     try {
       setConnectionStatus('reconnecting');
-      const response = await fetch(`/api/v1/tournaments/${tournamentId}/stream-banners/display`, {
+      const response = await fetch(`/api/v1/tournaments/${tournamentId}/tickers/display`, {
         // Add cache headers to prevent unnecessary requests
         headers: {
           'Cache-Control': 'no-cache'
@@ -72,7 +73,7 @@ export const StreamBannerDisplay = ({
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to fetch banner data: ${response.status}`);
+        throw new Error(`Failed to fetch ticker data: ${response.status}`);
       }
 
       const data: DisplayData = await response.json();
@@ -87,8 +88,8 @@ export const StreamBannerDisplay = ({
       setLastFetchTime(Date.now());
       setConnectionStatus('connected');
     } catch (err) {
-      console.error("Error fetching banner data:", err);
-      setError(err instanceof Error ? err.message : "Failed to fetch banner data");
+      console.error("Error fetching ticker data:", err);
+      setError(err instanceof Error ? err.message : "Failed to fetch ticker data");
       setConnectionStatus('disconnected');
     } finally {
       setIsLoading(false);
@@ -97,26 +98,26 @@ export const StreamBannerDisplay = ({
 
   // Initial fetch and periodic refresh
   useEffect(() => {
-    fetchBannerData();
+    fetchtickerData();
 
     // Only set up interval if refreshInterval is greater than 0
     if (refreshInterval > 0) {
-      const interval = setInterval(fetchBannerData, refreshInterval);
+      const interval = setInterval(fetchtickerData, refreshInterval);
       return () => clearInterval(interval);
     }
-  }, [fetchBannerData, refreshInterval]);
+  }, [fetchtickerData, refreshInterval]);
 
-  // Get the single banner (first active banner)
+  // Get the single ticker (first active ticker)
 
   // Error state
   if (error) {
     return (
       <div className={`w-full h-screen bg-transparent flex items-center justify-center ${className}`}>
         <div className="bg-red-900/20 backdrop-blur-sm border border-red-500/30 rounded-lg p-6 text-center">
-          <div className="text-red-400 text-lg font-semibold mb-2">Stream Banner Error</div>
+          <div className="text-red-400 text-lg font-semibold mb-2">Ticker Error</div>
           <div className="text-red-300 text-sm">{error}</div>
           <button
-            onClick={fetchBannerData}
+            onClick={fetchtickerData}
             className="mt-4 bg-red-600 hover:bg-red-700 px-4 py-2 rounded text-sm transition-colors"
           >
             Retry
@@ -133,8 +134,8 @@ export const StreamBannerDisplay = ({
     );
   }
 
-  // No banners state
-  if (!displayData?.streamBanner) {
+  // No tickers state
+  if (!displayData?.ticker) {
     return (
       <div className={`w-full h-screen bg-transparent ${className}`}>
         {/* Empty state - completely transparent for OBS */}
@@ -145,15 +146,15 @@ export const StreamBannerDisplay = ({
   return (
     <>
       <div className={`w-full h-screen bg-transparent relative overflow-hidden ${className}`}>
-        {/* Banner Content - Title sticks above carousel */}
-        {banner && (
+        {/* ticker Content - Title sticks above carousel */}
+        {ticker && (
           <div className="absolute bottom-0 left-0 right-0">
             {/* Title directly above carousel - Full width */}
-            {banner.title.trim() && (
+            {ticker.title.trim() && (
               <div
                 className="w-full backdrop-blur-sm border-t border-gray-600/50"
                 style={{
-                  backgroundColor: banner.titleBackgroundColor || "#1f2937",
+                  backgroundColor: ticker.titleBackgroundColor || "#1f2937",
                   animation: "fadeIn 0.5s ease-out"
                 }}
               >
@@ -184,7 +185,7 @@ export const StreamBannerDisplay = ({
                       {team1 && team2 && (
                         <span
                           className="text-lg font-bold tracking-wider drop-shadow-lg"
-                          style={{ color: banner.titleTextColor || "#ffffff" }}
+                          style={{ color: ticker.titleTextColor || "#ffffff" }}
                         >
                           VS
                         </span>
@@ -215,21 +216,21 @@ export const StreamBannerDisplay = ({
                   <h1
                     className="font-bold text-center tracking-wide drop-shadow-lg max-w-[60vw] overflow-hidden text-ellipsis text-lg sm:text-xl md:text-2xl lg:text-3xl"
                     style={{
-                      color: banner.titleTextColor || "#ffffff"
+                      color: ticker.titleTextColor || "#ffffff"
                     }}
                   >
-                    {banner.title}
+                    {ticker.title}
                   </h1>
                 </div>
               </div>
             )}
 
             {/* Carousel Ticker */}
-            {banner.carouselItems.length > 0 && (
+            {ticker.carouselItems.length > 0 && (
               <CarouselTicker
-                items={banner.carouselItems}
-                speed={banner.carouselSpeed}
-                backgroundColor={banner.carouselBackgroundColor}
+                items={ticker.carouselItems}
+                speed={ticker.carouselSpeed}
+                backgroundColor={ticker.carouselBackgroundColor}
               />
             )}
           </div>
@@ -246,9 +247,9 @@ export const StreamBannerDisplay = ({
               <span className="capitalize">{connectionStatus}</span>
             </div>
             <div>Tournament: {displayData.tournament.abbreviation}</div>
-            <div>Banner: {banner ? 'Active' : 'None'}</div>
-            <div>Speed: {banner?.carouselSpeed || 50}px/s</div>
-            <div>Items: {banner?.carouselItems.length || 0}</div>
+            <div>ticker: {ticker ? 'Active' : 'None'}</div>
+            <div>Speed: {ticker?.carouselSpeed || 50}px/s</div>
+            <div>Items: {ticker?.carouselItems.length || 0}</div>
             <div>Last Update: {new Date(lastFetchTime).toLocaleTimeString()}</div>
           </div>
         )}

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getTournament } from "@/libTournament/database/tournament";
 
-// GET /api/v1/tournaments/[tournamentId]/stream-banners/display - Get tournament stream banners for OBS display
+// GET /api/v1/tournaments/[tournamentId]/ticker/display - Get tournament Ticker for OBS display
 export const GET = async (req: NextRequest, { params }: { params: Promise<{ tournamentId: string }> }) => {
     try {
         const { tournamentId } = await params;
@@ -11,7 +11,7 @@ export const GET = async (req: NextRequest, { params }: { params: Promise<{ tour
             return NextResponse.json({ error: "Tournament not found" }, { status: 404 });
         }
 
-        const streamBanner = tournament.streamBanner
+        const Ticker = tournament.ticker
 
         return NextResponse.json({
             tournament: {
@@ -19,10 +19,10 @@ export const GET = async (req: NextRequest, { params }: { params: Promise<{ tour
                 name: tournament.name,
                 abbreviation: tournament.abbreviation
             },
-            streamBanner
+            Ticker
         });
     } catch (error) {
-        console.error("Error fetching tournament stream banners for display:", error);
+        console.error("Error fetching tournament Ticker for display:", error);
         return NextResponse.json({ error: "Internal server error" }, { status: 500 });
     }
 };

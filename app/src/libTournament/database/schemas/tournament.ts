@@ -65,8 +65,8 @@ export const TournamentSchema = new Schema({
   // Sponsors
   sponsors: { type: [SponsorSchema], default: [] },
 
-  // Stream Banner - single object (not array)
-  streamBanner: {
+  // Ticker
+  ticker: {
     title: { type: String },
     titleBackgroundColor: { type: String, default: "#1f2937" },
     titleTextColor: { type: String, default: "#ffffff" },

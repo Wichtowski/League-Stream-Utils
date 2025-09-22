@@ -50,7 +50,7 @@ export const createTournament = async (
     apiVersion: tournamentData.apiVersion,
     patchVersion: tournamentData.patchVersion,
     sponsors: tournamentData.sponsors,
-    streamBanner: tournamentData.streamBanner,
+    ticker: tournamentData.ticker,
     userId
   });
 
@@ -146,23 +146,23 @@ export const updateTournament = async (
   try {
     // Use findByIdAndUpdate with $set to avoid full document validation
     console.log("Using findByIdAndUpdate with $set...");
-    
+
     const updatedTournament = await TournamentModel.findByIdAndUpdate(
       tournamentId,
       { $set: updates },
-      { 
-        new: true, 
+      {
+        new: true,
         runValidators: false, // Skip validation to avoid sponsors issue
         strict: false // Allow updates to fields not in schema
       }
     );
-    
+
     console.log("MongoDB update result:", updatedTournament ? "Document found and updated" : "No document found");
-    
+
     if (updatedTournament) {
-      console.log("Updated tournament streamBanner:", JSON.stringify(updatedTournament.streamBanner, null, 2));
+      console.log("Updated tournament Ticker:", JSON.stringify(updatedTournament.ticker, null, 2));
     }
-    
+
     if (!updatedTournament) return null;
 
     return convertMongoDoc(updatedTournament);

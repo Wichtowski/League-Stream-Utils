@@ -5,22 +5,23 @@ import { useTournaments } from "@libTournament/contexts/TournamentsContext";
 import { useNavigation } from "@lib/contexts/NavigationContext";
 import { useModal } from "@lib/contexts/ModalContext";
 import { LoadingSpinner } from "@lib/components/common";
-import { Tournament, StreamBanner } from "@lib/types/tournament";
-import { StreamBannerFormData } from "@lib/types/forms";
+import { Tournament } from "@lib/types/tournament";
+import { Ticker } from "@libTournament/types/ticker";
+import { TickerFormData } from "@lib/types/forms";
 import {
   OBSDisplayInfo,
-  StreamBannerManager,
-  StreamBannerPreview
-} from "@libTournament/components/stream-banners";
+  TickerManager,
+  TickerPreview
+} from "@/libTournament/components/ticker";
 import { PageWrapper } from "@lib/layout";
 
-interface TournamentStreamBannerPageProps {
+interface TournamentTickerPageProps {
   params: Promise<{
     tournamentId: string;
   }>;
 }
 
-export default function TournamentStreamBannerPage({ params }: TournamentStreamBannerPageProps) {
+export default function TournamentTickerPage({ params }: TournamentTickerPageProps) {
   const { tournaments, loading: tournamentsLoading, error, refreshTournaments } = useTournaments();
   const { setActiveModule } = useNavigation();
   const { showAlert } = useModal();
@@ -28,10 +29,10 @@ export default function TournamentStreamBannerPage({ params }: TournamentStreamB
   const [loading, setLoading] = useState(true);
   const [tournamentId, setTournamentId] = useState<string>("");
 
-  // Stream banner management state
-  const [banner, setBanner] = useState<StreamBanner | null>(null);
-  const [bannerLoading, setBannerLoading] = useState(true);
-  const [previewBanner, setPreviewBanner] = useState<StreamBannerFormData | null>(null);
+  // Ticker management state
+  const [Ticker, setTicker] = useState<Ticker | null>(null);
+  const [TickerLoading, setTickerLoading] = useState(true);
+  const [previewTicker, setPreviewTicker] = useState<TickerFormData | null>(null);
 
   useEffect(() => {
     setActiveModule("tournaments");
@@ -61,32 +62,32 @@ export default function TournamentStreamBannerPage({ params }: TournamentStreamB
     }
   }, [error, showAlert]);
 
-  const fetchBanner = useCallback(async (): Promise<void> => {
+  const fetchTicker = useCallback(async (): Promise<void> => {
     try {
-      const response = await fetch(`/api/v1/tournaments/${tournamentId}/stream-banners`);
+      const response = await fetch(`/api/v1/tournaments/${tournamentId}/ticker`);
       if (!response.ok) {
-        throw new Error("Failed to fetch stream banner");
+        throw new Error("Failed to fetch Ticker");
       }
       const data = await response.json();
-      setBanner(data.streamBanner || null);
-      setBannerLoading(false);
+      setTicker(data.ticker || null);
+      setTickerLoading(false);
     } catch (_error) {
       await showAlert({
         type: "error",
-        message: "Failed to load stream banner"
+        message: "Failed to load Ticker"
       });
-      setBannerLoading(false);
+      setTickerLoading(false);
     }
   }, [tournamentId, showAlert]);
 
   useEffect(() => {
     if (tournamentId) {
-      fetchBanner();
+      fetchTicker();
     }
-  }, [fetchBanner, tournamentId]);
+  }, [fetchTicker, tournamentId]);
 
-  const handleBannerUpdated = (): void => {
-    fetchBanner();
+  const handleTickerUpdated = (): void => {
+    fetchTicker();
     refreshTournaments();
   };
 
@@ -104,7 +105,7 @@ export default function TournamentStreamBannerPage({ params }: TournamentStreamB
         title="Tournament Not Found"
         breadcrumbs={[
           { label: "Tournaments", href: `/modules/tournaments` },
-          { label: "Stream Banner", href: `/modules/tournaments/${tournamentId}/stream-banners`, isActive: true }
+          { label: "Ticker", href: `/modules/tournaments/${tournamentId}/ticker`, isActive: true }
         ]}
       >
         <div className="text-center">
@@ -119,9 +120,9 @@ export default function TournamentStreamBannerPage({ params }: TournamentStreamB
       breadcrumbs={[
         { label: "Tournaments", href: `/modules/tournaments` },
         { label: tournament.name, href: `/modules/tournaments/${tournamentId}` },
-        { label: "Stream Banner", href: `/modules/tournaments/${tournamentId}/stream-banners`, isActive: true }
+        { label: "Ticker", href: `/modules/tournaments/${tournamentId}/ticker`, isActive: true }
       ]}
-      title="Stream Banner Management"
+      title="Ticker Management"
       subtitle={`${tournament.name} (${tournament.abbreviation})`}
     >
       <div className="space-y-6">
@@ -129,22 +130,22 @@ export default function TournamentStreamBannerPage({ params }: TournamentStreamB
           {/* Live Preview Section */}
           <div className="flex-1 bg-gray-800 rounded-lg p-6 h-[400px] flex flex-col">
             <div className="flex-1 flex flex-col justify-center items-center">
-              {banner ? (
+              {Ticker ? (
                 <div className="text-center w-full">
                   <div className="relative w-full max-w-2xl mx-auto">
-                    <StreamBannerPreview
+                    <TickerPreview
                       formData={{
-                        title: banner.title,
-                        titleBackgroundColor: banner.titleBackgroundColor || "#1f2937",
-                        titleTextColor: banner.titleTextColor || "#ffffff",
-                        carouselItems: (banner.carouselItems || []).map(item => ({
+                        title: Ticker.title,
+                        titleBackgroundColor: Ticker.titleBackgroundColor || "#1f2937",
+                        titleTextColor: Ticker.titleTextColor || "#ffffff",
+                        carouselItems: (Ticker.carouselItems || []).map(item => ({
                           text: item.text,
                           backgroundColor: item.backgroundColor || "#1f2937",
                           textColor: item.textColor || "#ffffff",
                           order: item.order
                         })),
-                        carouselSpeed: banner.carouselSpeed,
-                        carouselBackgroundColor: banner.carouselBackgroundColor || "#1f2937",
+                        carouselSpeed: Ticker.carouselSpeed,
+                        carouselBackgroundColor: Ticker.carouselBackgroundColor || "#1f2937",
                       }}
                       autoPlay={true}
                     />
@@ -154,10 +155,10 @@ export default function TournamentStreamBannerPage({ params }: TournamentStreamB
                 <div className="text-center text-gray-400">
                   <div className="text-6xl mb-4">📺</div>
                   <p className="text-lg font-medium">
-                    {banner ? "Stream banner is inactive" : "No stream banner"}
+                    {Ticker ? "Ticker is inactive" : "No Ticker"}
                   </p>
                   <p className="text-sm">
-                    {banner ? "Activate your banner to see the live preview" : "Create a stream banner to see the live preview"}
+                    {Ticker ? "Activate your Ticker to see the live preview" : "Create a Ticker to see the live preview"}
                   </p>
                 </div>
               )}
@@ -169,24 +170,24 @@ export default function TournamentStreamBannerPage({ params }: TournamentStreamB
             {/* OBS Display Info */}
             <OBSDisplayInfo tournamentId={tournamentId} />
 
-            {/* Banner Status */}
+            {/* Ticker Status */}
             <div className="bg-gray-800 rounded-lg p-4">
-              <h3 className="text-lg font-semibold mb-3">Banner Status</h3>
+              <h3 className="text-lg font-semibold mb-3">Ticker Status</h3>
               <div className="text-sm">
-                {banner ? (
+                {Ticker ? (
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <span className="text-gray-300">Title:</span>
-                      <span className="text-white">{banner.title}</span>
+                      <span className="text-white">{Ticker.title}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-300">Carousel Items:</span>
-                      <span className="text-white">{banner.carouselItems?.length || 0}</span>
+                      <span className="text-white">{Ticker.carouselItems?.length || 0}</span>
                     </div>
                   </div>
                 ) : (
                   <div className="text-center text-gray-400">
-                    <p>No stream banner configured</p>
+                    <p>No Ticker configured</p>
                   </div>
                 )}
               </div>
@@ -194,14 +195,14 @@ export default function TournamentStreamBannerPage({ params }: TournamentStreamB
           </div>
         </div>
 
-        {/* Stream Banner Manager */}
-        <StreamBannerManager
+        {/* Ticker Manager */}
+        <TickerManager
           tournamentId={tournamentId}
           tournament={tournament}
-          banner={banner}
-          bannerLoading={bannerLoading}
-          onBannerUpdated={handleBannerUpdated}
-          onPreviewChange={setPreviewBanner}
+          ticker={Ticker}
+          tickerLoading={TickerLoading}
+          onTickerUpdated={handleTickerUpdated}
+          onPreviewChange={setPreviewTicker}
         />
       </div>
     </PageWrapper>
