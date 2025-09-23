@@ -30,7 +30,7 @@ export const POST = withAuth(async (req: NextRequest, user: JWTPayload) => {
     // 1. Own the team, OR
     // 2. Are an admin, OR
     // 3. Are the tournament organizer
-    const canRegisterTeam = team.userId === user.userId || user.isAdmin || tournament.userId === user.userId;
+    const canRegisterTeam = team.teamOwnerId === user.userId || user.isAdmin || tournament.userId === user.userId;
 
     if (!canRegisterTeam) {
       return NextResponse.json(
@@ -112,7 +112,7 @@ export const DELETE = withAuth(async (req: NextRequest, user: JWTPayload) => {
     // 1. Own the team, OR
     // 2. Are an admin, OR
     // 3. Are the tournament organizer
-    const canUnregisterTeam = team.userId === user.userId || user.isAdmin || tournament.userId === user.userId;
+    const canUnregisterTeam = team.teamOwnerId === user.userId || user.isAdmin || tournament.userId === user.userId;
 
     if (!canUnregisterTeam) {
       return NextResponse.json(
