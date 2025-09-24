@@ -1,5 +1,6 @@
 import { connectToDatabase } from "./connection";
 import { PlayerStatsModel } from "./models";
+import type { Document, PipelineStage } from "mongoose";
 
 export interface CreatePlayerStatsRequest {
   playerId: string;
@@ -66,7 +67,7 @@ export interface PlayerStatsQuery {
   offset?: number;
 }
 
-const convertMongoDoc = (doc: any): any => {
+const convertMongoDoc = (doc: Document): Record<string, unknown> => {
   const obj = doc.toObject();
   return {
     ...obj,
@@ -78,7 +79,7 @@ const convertMongoDoc = (doc: any): any => {
   };
 };
 
-export const createPlayerStats = async (statsData: CreatePlayerStatsRequest): Promise<any> => {
+export const createPlayerStats = async (statsData: CreatePlayerStatsRequest): Promise<Record<string, unknown>> => {
   await connectToDatabase();
 
   const newStats = new PlayerStatsModel({
@@ -95,7 +96,7 @@ export const createPlayerStats = async (statsData: CreatePlayerStatsRequest): Pr
 export const updatePlayerStats = async (
   id: string,
   updates: Partial<CreatePlayerStatsRequest>
-): Promise<any | null> => {
+): Promise<Record<string, unknown> | null> => {
   await connectToDatabase();
 
   const updatedStats = await PlayerStatsModel.findByIdAndUpdate(
@@ -118,7 +119,7 @@ export const deletePlayerStats = async (id: string): Promise<boolean> => {
   return !!result;
 };
 
-export const getPlayerStatsById = async (id: string): Promise<any | null> => {
+export const getPlayerStatsById = async (id: string): Promise<Record<string, unknown> | null> => {
   await connectToDatabase();
 
   const stats = await PlayerStatsModel.findById(id);
@@ -126,10 +127,10 @@ export const getPlayerStatsById = async (id: string): Promise<any | null> => {
   return convertMongoDoc(stats);
 };
 
-export const getPlayerStats = async (query: PlayerStatsQuery): Promise<any[]> => {
+export const getPlayerStats = async (query: PlayerStatsQuery): Promise<Record<string, unknown>[]> => {
   await connectToDatabase();
 
-  const filter: any = {};
+  const filter: Record<string, unknown> = {};
 
   if (query.playerId) filter.playerId = query.playerId;
   if (query.teamId) filter.teamId = query.teamId;
@@ -138,9 +139,10 @@ export const getPlayerStats = async (query: PlayerStatsQuery): Promise<any[]> =>
   if (query.championId) filter.championId = query.championId;
 
   if (query.startDate || query.endDate) {
-    filter.playedAt = {};
-    if (query.startDate) filter.playedAt.$gte = query.startDate;
-    if (query.endDate) filter.playedAt.$lte = query.endDate;
+    const playedAtFilter: Record<string, Date> = {};
+    if (query.startDate) playedAtFilter.$gte = query.startDate;
+    if (query.endDate) playedAtFilter.$lte = query.endDate;
+    filter.playedAt = playedAtFilter;
   }
 
   const queryBuilder = PlayerStatsModel.find(filter).sort({ playedAt: -1 });
@@ -152,19 +154,19 @@ export const getPlayerStats = async (query: PlayerStatsQuery): Promise<any[]> =>
   return stats.map(convertMongoDoc);
 };
 
-export const getPlayerStatsByPlayer = async (playerId: string, limit: number = 50): Promise<any[]> => {
+export const getPlayerStatsByPlayer = async (playerId: string, limit: number = 50): Promise<Record<string, unknown>[]> => {
   return getPlayerStats({ playerId, limit });
 };
 
-export const getPlayerStatsByTeam = async (teamId: string, limit: number = 50): Promise<any[]> => {
+export const getPlayerStatsByTeam = async (teamId: string, limit: number = 50): Promise<Record<string, unknown>[]> => {
   return getPlayerStats({ teamId, limit });
 };
 
-export const getPlayerStatsByTournament = async (tournamentId: string, limit: number = 100): Promise<any[]> => {
+export const getPlayerStatsByTournament = async (tournamentId: string, limit: number = 100): Promise<Record<string, unknown>[]> => {
   return getPlayerStats({ tournamentId, limit });
 };
 
-export const getPlayerStatsByMatch = async (matchId: string): Promise<any[]> => {
+export const getPlayerStatsByMatch = async (matchId: string): Promise<Record<string, unknown>[]> => {
   return getPlayerStats({ matchId });
 };
 
@@ -172,11 +174,11 @@ export const getPlayerChampionStats = async (
   playerId: string,
   championId: number,
   limit: number = 20
-): Promise<any[]> => {
+): Promise<Record<string, unknown>[]> => {
   return getPlayerStats({ playerId, championId, limit });
 };
 
-export const getPlayerCareerStats = async (playerId: string): Promise<any> => {
+export const getPlayerCareerStats = async (playerId: string): Promise<Record<string, unknown> | null> => {
   await connectToDatabase();
 
   const pipeline = [
@@ -237,10 +239,10 @@ export const getPlayerCareerStats = async (playerId: string): Promise<any> => {
   return result[0] || null;
 };
 
-export const getPlayerChampionMastery = async (playerId: string): Promise<any[]> => {
+export const getPlayerChampionMastery = async (playerId: string): Promise<Record<string, unknown>[]> => {
   await connectToDatabase();
 
-  const pipeline = [
+  const pipeline: PipelineStage[] = [
     { $match: { playerId } },
     {
       $group: {
@@ -283,14 +285,14 @@ export const getPlayerChampionMastery = async (playerId: string): Promise<any[]>
         lastPlayed: 1
       }
     },
-    { $sort: { gamesPlayed: -1, winRate: -1 } }
+    { $sort: { gamesPlayed: -1, winRate: -1 } as const }
   ];
 
   const result = await PlayerStatsModel.aggregate(pipeline);
   return result;
 };
 
-export const bulkCreatePlayerStats = async (statsArray: CreatePlayerStatsRequest[]): Promise<any[]> => {
+export const bulkCreatePlayerStats = async (statsArray: CreatePlayerStatsRequest[]): Promise<Record<string, unknown>[]> => {
   await connectToDatabase();
 
   const statsWithTimestamps = statsArray.map((stats) => ({

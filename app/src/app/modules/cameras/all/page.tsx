@@ -84,10 +84,10 @@ export default function AllCamerasPage() {
   }
 
   // Filter out teams that don't have proper data
-  const validTeams = teams.filter((team) => team && team.id && team.name);
+  const validTeams = teams.filter((team) => team && team._id && team.name);
 
   const accordionItems: AccordionItem[] = validTeams.map((team) => ({
-    id: team.id,
+    id: team._id,
     header: (
       <div className="flex items-center gap-4">
         {team.logo && team.logo.type === "url" && team.logo.url ? (
@@ -109,13 +109,13 @@ export default function AllCamerasPage() {
       </div>
     ),
     renderContent: () =>
-      loadingTeams.has(team.id) ? (
+      loadingTeams.has(team._id) ? (
         <div className="flex justify-center py-8">
           <LoadingSpinner size="md" variant="white" />
         </div>
-      ) : teamData[team.id] && teamData[team.id]?.players?.length ? (
+      ) : teamData[team._id] && teamData[team._id]?.players?.length ? (
         <div className={`grid grid-cols-1 md:grid-cols-3 gap-4 auto-rows-fr`}>
-          {teamData[team.id]!.players.map((player, index) => (
+          {teamData[team._id]!.players.map((player, index) => (
             <div
               key={player.playerId || player.inGameName || player.playerName || index}
               className="bg-gray-800 rounded-lg overflow-hidden border border-gray-700 hover:border-gray-600 transition-colors"

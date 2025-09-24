@@ -2,7 +2,7 @@ import type { User } from "./auth";
 import type { ObjectId } from "mongoose";
 
 // Database document types that extend the base types with MongoDB methods
-export interface UserDocument extends User {
+export interface UserDocument extends Omit<User, "_id"> {
   _id: ObjectId;
   __v?: number;
   save(): Promise<UserDocument>;

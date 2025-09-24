@@ -58,8 +58,8 @@ export default function CameraSetupListPage(): ReactElement {
             const configuredCount = team.allPlayers.filter((p) => p.cameraUrl && p.cameraUrl.trim() !== "").length;
             return (
               <div
-                key={team.id || idx}
-                onClick={() => router.push(`/modules/cameras/setup/${team.id}`)}
+                key={team._id || idx}
+                onClick={() => router.push(`/modules/cameras/setup/${team._id}`)}
                 className="bg-gray-800 hover:bg-gray-750 border border-gray-700 hover:border-blue-500 rounded-lg p-6 cursor-pointer transition-all duration-200 transform hover:scale-105"
               >
                 <div className="flex items-center gap-4 mb-4">

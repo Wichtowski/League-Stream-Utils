@@ -166,7 +166,7 @@ export const updateTournament = async (
     if (!updatedTournament) return null;
 
     return convertMongoDoc(updatedTournament);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("MongoDB update error:", error);
     console.error("Error details:", error?.message);
     if (error?.errors) {

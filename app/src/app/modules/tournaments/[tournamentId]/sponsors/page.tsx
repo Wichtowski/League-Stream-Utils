@@ -5,7 +5,8 @@ import { useTournaments } from "@libTournament/contexts/TournamentsContext";
 import { useNavigation } from "@lib/contexts/NavigationContext";
 import { useModal } from "@lib/contexts/ModalContext";
 import { LoadingSpinner } from "@lib/components/common";
-import { Tournament, Sponsorship } from "@lib/types/tournament";
+import { Tournament } from "@lib/types/tournament";
+import { Sponsorship } from "@libTournament/types";
 import { SponsorFormData } from "@lib/types/forms";
 import {
   OBSDisplayInfo,

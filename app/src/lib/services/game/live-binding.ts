@@ -74,13 +74,13 @@ const bindTeam = (roster: Player[], liveTeam: LivePlayer[], team: "ORDER" | "CHA
 
 export const bindLivePlayersToMatch = (
   livePlayers: LivePlayer[],
-  match: Match
+  match: Match & { blueTeam?: { players?: Player[] }; redTeam?: { players?: Player[] } }
 ): { blue: BoundPlayer[]; red: BoundPlayer[]; unbound: LivePlayer[] } => {
   const order = livePlayers.filter((p) => p.team === "ORDER");
   const chaos = livePlayers.filter((p) => p.team === "CHAOS");
 
-  const blueRoster: Player[] = match.blueTeam.players || [];
-  const redRoster: Player[] = match.redTeam.players || [];
+  const blueRoster: Player[] = match.blueTeam?.players || [];
+  const redRoster: Player[] = match.redTeam?.players || [];
 
   const blue = bindTeam(blueRoster, order, "ORDER");
   const red = bindTeam(redRoster, chaos, "CHAOS");

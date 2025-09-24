@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@lib/auth";
 import { getTournament, updateTournamentFields } from "@libTournament/database/tournament";
-import type { Sponsorship } from "@lib/types";
+import { Sponsorship } from "@libTournament/types";
 
 // Utility function to extract IDs from URL
 const extractIds = (req: NextRequest): { tournamentId: string; sponsorId: string } => {

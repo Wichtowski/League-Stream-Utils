@@ -48,7 +48,7 @@ export const POST = withAuth(async (req: NextRequest, user) => {
     }
 
     // Check if commentator is already assigned
-    const isAlreadyAssigned = match.commentators?.some((c: any) => c._id === commentatorId);
+    const isAlreadyAssigned = match.commentators?.some((c) => c._id === commentatorId);
     if (isAlreadyAssigned) {
       return NextResponse.json({ error: "Commentator already assigned to this match" }, { status: 400 });
     }

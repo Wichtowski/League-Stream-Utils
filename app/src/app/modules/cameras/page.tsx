@@ -121,8 +121,8 @@ export default function CamerasPage(): ReactElement {
           <h2 className="text-xl font-bold text-white mb-4">Teams Overview</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {mergedTeams.map((team: MergedTeamWithPlayers) => (
-              <div key={team.id} className="bg-gray-700 rounded-lg p-4">
-                <Link href={`/modules/teams/${team.id}`} className="cursor-pointer">
+              <div key={team._id} className="bg-gray-700 rounded-lg p-4">
+                <Link href={`/modules/teams/${team._id}`} className="cursor-pointer">
                   <div className="flex justify-between items-center mb-2">
                     <h3 className="font-semibold text-white flex items-center gap-2">
                       {team.logo?.data ? (

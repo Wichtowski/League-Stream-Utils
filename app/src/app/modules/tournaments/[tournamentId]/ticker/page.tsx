@@ -6,7 +6,7 @@ import { useNavigation } from "@lib/contexts/NavigationContext";
 import { useModal } from "@lib/contexts/ModalContext";
 import { LoadingSpinner } from "@lib/components/common";
 import { Tournament } from "@lib/types/tournament";
-import { Ticker } from "@libTournament/types/ticker";
+import { Ticker } from "@libTournament/types";
 import { TickerFormData } from "@lib/types/forms";
 import {
   OBSDisplayInfo,

@@ -7,6 +7,7 @@ import { Breadcrumbs } from "@lib/components/common";
 import { getChampions } from "@lib/champions";
 import { getSummonerSpells } from "@lib/summoner-spells";
 import { staticPlayersOrderMock, staticPlayersChaosMock, MockedEvents } from "@lib/mocks/game";
+import { mockMatch, mockTournament } from "@lib/mocks/game";
 
 const makeLiveGameData = (elapsedSeconds: number): LiveGameData => {
   return {
@@ -25,8 +26,6 @@ const makeLiveGameData = (elapsedSeconds: number): LiveGameData => {
 const DemoGamePage: React.FC = () => {
   const [mockData, setMockData] = useState<LiveGameData | null>(null);
   const startTime = useMemo<number>(() => Date.now(), []);
-  const tournamentId = "c8ca4d50-49e6-4956-9849-a35a83fc737b";
-  const matchId = "685726fd0eee50233623f977";
 
   useEffect(() => {
     const init = async (): Promise<void> => {
@@ -49,7 +48,7 @@ const DemoGamePage: React.FC = () => {
 
   return (
     <>
-      <GameDataDisplay gameData={mockData} matchId={matchId} tournamentId={tournamentId} />
+      <GameDataDisplay gameData={mockData} match={mockMatch} tournament={mockTournament} />
       <Breadcrumbs
         className="absolute left-4 bottom-0 z-10"
         items={[

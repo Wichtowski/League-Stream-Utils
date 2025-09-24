@@ -35,7 +35,7 @@ async function fetchItemsFromAPI(): Promise<{ items: Item[]; version: string }> 
     >;
   };
   const items: Item[] = Object.entries(data.data).map(([id, item]) => ({
-    id,
+    _id: id,
     name: item.name,
     description: item.description,
     plaintext: item.plaintext,
@@ -57,7 +57,21 @@ async function loadFromElectronCache(): Promise<{ items: Item[]; timestamp: numb
   try {
     const items = await itemCacheService.getAllItems();
     if (items.length > 0) {
-      const mapped = (items as Item[]).map((i) => ({ ...i, image: toLocalImageUrl(i.image) }));
+      const mapped: Item[] = items.map((i) => ({
+        _id: i.id,
+        name: i.name,
+        description: i.description,
+        plaintext: i.plaintext,
+        cost: i.cost,
+        sellValue: i.sellValue,
+        tags: i.tags,
+        stats: i.stats,
+        image: toLocalImageUrl(i.image),
+        buildPath: {
+          into: i.buildPath.into,
+          from: i.buildPath.from
+        }
+      }));
       return { items: mapped, timestamp: Date.now() };
     }
   } catch (_error) {
@@ -101,7 +115,7 @@ export const getItemImage = (itemId: number | string): string => {
   const id = String(itemId);
   const cached = loadListFromLocal<Item>("items");
   if (cached?.data?.length) {
-    const found = cached.data.find((i) => i.id === id);
+    const found = cached.data.find((i) => (i as Item)._id === id);
     if (found?.image) return toLocalImageUrl(found.image);
   }
   return toLocalImageUrl(`assets/${id}.png`);
@@ -114,5 +128,5 @@ export const getItemsCached = (): Item[] => {
 
 export const getItemById = (id: string): Item | undefined => {
   const items = getItemsCached();
-  return items.find((i) => i.id === id);
+  return items.find((i) => i._id === id);
 };

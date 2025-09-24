@@ -17,7 +17,7 @@ export interface MergedTeamPlayers {
 }
 
 type BaseMergedTeam = {
-  id: string;
+  _id: string;
   name: string;
   logo: Team["logo"];
 };
@@ -31,7 +31,7 @@ function mapPlayerWithCameraUrl(
 ): MergedPlayer {
   const cameraPlayer = cameraTeam?.players.find(
     (cp: CameraPlayer) =>
-      (cp.playerId && cp.playerId === player.id) || (cp.inGameName && cp.inGameName === player.inGameName)
+      (cp.playerId && cp.playerId === player._id) || (cp.inGameName && cp.inGameName === player.inGameName)
   );
   return {
     ...player,
@@ -103,14 +103,14 @@ function useMergedCameraTeams(withAllPlayers = false) {
 
   const mergedTeams = useMemo(() => {
     const result = userTeams.map((team) => {
-      const cameraTeam = cameraTeams.find((ct: CameraTeam) => ct.teamId === team.id);
+      const cameraTeam = cameraTeams.find((ct: CameraTeam) => ct.teamId === team._id);
       if (withAllPlayers) {
         const allPlayers = [
           ...team.players.main.map((p) => mapPlayerWithCameraUrl(p, cameraTeam)),
           ...team.players.substitutes.map((p) => mapPlayerWithCameraUrl(p, cameraTeam))
         ];
         return {
-          id: team.id,
+          _id: team._id,
           name: team.name,
           logo: team.logo,
           allPlayers
@@ -118,7 +118,7 @@ function useMergedCameraTeams(withAllPlayers = false) {
       }
 
       return {
-        id: team.id,
+        _id: team._id,
         name: team.name,
         logo: team.logo,
         players: {

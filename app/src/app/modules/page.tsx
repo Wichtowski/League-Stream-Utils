@@ -6,6 +6,7 @@ import { useNavigation } from "@lib/contexts/NavigationContext";
 import { useUser } from "@lib/contexts/AuthContext";
 import { useElectron } from "@libElectron/contexts/ElectronContext";
 import { useDownload } from "@lib/contexts/DownloadContext";
+import { useAuthenticatedFetch } from "@lib/hooks/useAuthenticatedFetch";
 import { getVisibleModules, ModuleCard } from "@lib/navigation";
 import { tournamentStorage, LastSelectedTournament } from "@lib/services/tournament";
 import { PageWrapper } from "@lib/layout/PageWrapper";
@@ -21,8 +22,10 @@ export default function ModulesPage() {
   const user = useUser();
   const { isElectron, useLocalData } = useElectron();
   const { downloadState: downloadState } = useDownload();
+  const { authenticatedFetch } = useAuthenticatedFetch();
   const [hasLastSelectedTournament, setHasLastSelectedTournament] = useState(false);
   const [lastSelectedTournament, setLastSelectedTournament] = useState<LastSelectedTournament | null>(null);
+  const [lastSelectedTournamentName, setLastSelectedTournamentName] = useState<string | null>(null);
   const [loading, setIsLoading] = useState(true);
   const [hasLastSelectedMatch, setHasLastSelectedMatch] = useState(false);
   const [lastSelectedMatch, setLastSelectedMatch] = useState<LastSelectedMatch | null>(null);
@@ -64,6 +67,28 @@ export default function ModulesPage() {
     window.addEventListener("storage", handleStorageChange);
     return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
+
+  useEffect(() => {
+    const loadTournamentName = async () => {
+      try {
+        const id = lastSelectedTournament?.tournamentId;
+        if (!id) {
+          setLastSelectedTournamentName(null);
+          return;
+        }
+        const res = await authenticatedFetch(`/api/v1/tournaments/${id}`);
+        if (!res.ok) {
+          setLastSelectedTournamentName(null);
+          return;
+        }
+        const data = await res.json();
+        setLastSelectedTournamentName(data?.tournament?.name ?? null);
+      } catch {
+        setLastSelectedTournamentName(null);
+      }
+    };
+    loadTournamentName();
+  }, [lastSelectedTournament, authenticatedFetch]);
 
   // Memoize the visible modules to prevent unnecessary recalculations
   const visibleModules = useMemo(() => {
@@ -113,9 +138,6 @@ export default function ModulesPage() {
         if (!lastSelectedTournament) {
           return;
         } else {
-          console.log("Pushing to tournament module:", module.name);
-          console.log("Tournament ID:", lastSelectedTournament.tournamentId);
-          console.log("Module ID:", module.id);
           router.push(`/modules/tournaments/${lastSelectedTournament.tournamentId}/${module.id}`);
           return;
         }
@@ -139,6 +161,7 @@ export default function ModulesPage() {
 
   const isHiddenBehindTournament = (module: ModuleCard) =>
     module.name === "Matches" || module.name === "Commentators" || module.name === "Sponsors";
+
 
   if (loading) {
     return (
@@ -180,7 +203,7 @@ export default function ModulesPage() {
             spotlightColor={module.spotlightColor}
             module={module}
             isHiddenBehindTournament={isHiddenBehindTournament(module)}
-            lastSelectedTournament={lastSelectedTournament || undefined}
+            tournamentName={lastSelectedTournamentName || undefined}
           />
         ))}
       </div>

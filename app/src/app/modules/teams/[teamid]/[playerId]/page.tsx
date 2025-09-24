@@ -8,6 +8,27 @@ import { PageWrapper } from "@lib/layout/PageWrapper";
 import { Button } from "@lib/components/common";
 import type { Team, Player } from "@lib/types";
 
+interface PlayerCareerStats {
+  totalGames: number;
+  winRate?: number;
+  avgKDA?: number;
+  avgCS?: number;
+  avgGold?: number;
+}
+
+interface ChampionMasteryItem {
+  championId: number;
+  championName: string;
+  gamesPlayed: number;
+  winRate?: number;
+}
+
+interface RecentMatchItem {
+  result: "win" | "loss";
+  championName: string;
+  duration: number;
+}
+
 const PlayerStatsPage: React.FC = () => {
   const params = useParams<{ teamId: string; playerId: string }>();
   const teamId = params?.teamId;
@@ -18,9 +39,9 @@ const PlayerStatsPage: React.FC = () => {
   const { authenticatedFetch } = useAuthenticatedFetch();
   const [team, setTeam] = useState<Team | null>(null);
   const [player, setPlayer] = useState<Player | null>(null);
-  const [stats, setStats] = useState<any>(null);
-  const [careerStats, setCareerStats] = useState<any>(null);
-  const [championMastery, setChampionMastery] = useState<any[]>([]);
+  const [stats, setStats] = useState<RecentMatchItem[] | null>(null);
+  const [careerStats, setCareerStats] = useState<PlayerCareerStats | null>(null);
+  const [championMastery, setChampionMastery] = useState<ChampionMasteryItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -52,7 +73,7 @@ const PlayerStatsPage: React.FC = () => {
 
         console.log("Found player:", foundPlayer);
         console.log("Player _id:", foundPlayer._id);
-        console.log("Player id:", (foundPlayer as Record<string, unknown>).id);
+        console.log("Player id:", (foundPlayer as Player & { id?: string }).id);
 
         // Fetch player stats from our database
         try {
@@ -63,9 +84,9 @@ const PlayerStatsPage: React.FC = () => {
           if (statsResponse.ok) {
             const statsData = await statsResponse.json();
             console.log("Stats response:", statsData);
-            setStats(statsData.recentStats || []);
-            setCareerStats(statsData.careerStats || null);
-            setChampionMastery(statsData.championMastery || []);
+            setStats((statsData.recentStats as RecentMatchItem[]) || []);
+            setCareerStats((statsData.careerStats as PlayerCareerStats) || null);
+            setChampionMastery((statsData.championMastery as ChampionMasteryItem[]) || []);
           } else {
             console.error("Stats response not ok:", statsResponse.status, statsResponse.statusText);
           }
@@ -201,7 +222,12 @@ const PlayerStatsPage: React.FC = () => {
             <h3 className="text-lg font-semibold mb-4">Top Champions</h3>
             {championMastery && championMastery.length > 0 ? (
               <div className="space-y-3">
-                {championMastery.slice(0, 5).map((champion: any, index: number) => (
+                {championMastery.slice(0, 5).map((champion: {
+                  championId: number;
+                  championName: string;
+                  gamesPlayed: number;
+                  winRate?: number;
+                }, index: number) => (
                   <div key={champion.championId} className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                       <span className="text-gray-400 text-sm">#{index + 1}</span>
@@ -224,7 +250,11 @@ const PlayerStatsPage: React.FC = () => {
             <h3 className="text-lg font-semibold mb-4">Recent Matches</h3>
             {stats && stats.length > 0 ? (
               <div className="space-y-3">
-                {stats.slice(0, 5).map((match: any, index: number) => (
+                {stats.slice(0, 5).map((match: {
+                  result: "win" | "loss";
+                  championName: string;
+                  duration: number;
+                }, index: number) => (
                   <div key={index} className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                       <span

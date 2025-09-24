@@ -58,9 +58,6 @@ export type {
   GameResult,
   TournamentStats,
   Bracket,
-  Sponsorship,
-  Ticker,
-  CarouselItem
 } from "./tournament";
 export { createDefaultTeamRequest } from "./tournament";
 export type { CameraPlayer, CameraTeam } from "@libCamera/types/camera";

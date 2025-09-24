@@ -65,9 +65,6 @@ function SettingsDebug() {
           <span className="font-medium">Team Display:</span> {userPreferences.teamDisplayMode}
         </p>
         <p>
-          <span className="font-medium">Favorites:</span> {userPreferences.favoriteChampions.length}
-        </p>
-        <p>
           <span className="font-medium">Platform:</span> {systemInfo?.platform || "Unknown"}
         </p>
         <p>
@@ -164,7 +161,7 @@ function PickbanDebug() {
           <span className="font-medium">Sessions:</span> {sessions.length}
         </p>
         <p>
-          <span className="font-medium">Current Session:</span> {currentSession ? currentSession.id : "None"}
+          <span className="font-medium">Current Session:</span> {currentSession ? currentSession._id : "None"}
         </p>
         <p>
           <span className="font-medium">LCU Status:</span>{" "}

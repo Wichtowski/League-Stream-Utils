@@ -7,7 +7,7 @@ import { getTeamWins } from "@libLeagueClient/utils/teamWins";
 type TeamWithLogo = {
   name: string;
   logo?: string;
-  id?: string;
+  _id?: string;
 };
 
 type MatchInfoProps = {
@@ -68,7 +68,7 @@ const MatchInfoComponent: React.FC<MatchInfoProps> = ({
     }
 
     // Teams can switch sides, so determine current assignment
-    const isBlueTeamOnLeft = currentGameSides.blueTeamId === blueTeam.id;
+    const isBlueTeamOnLeft = currentGameSides.blueTeamId === blueTeam._id;
 
     if (isBlueTeamOnLeft) {
       return {

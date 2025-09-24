@@ -31,7 +31,7 @@ export function SessionList({
     const sessionsArray = Array.isArray(sessions) ? sessions : [];
 
     const sorted = [...sessionsArray].sort((a, b) => {
-      const dateA = new Date(a.lastActivity).getTime();
+      const dateA = new Date(a.createdAt).getTime();
       const dateB = new Date(b.lastActivity).getTime();
       return sortOrder === "newest" ? dateB - dateA : dateA - dateB;
     });
@@ -61,9 +61,9 @@ export function SessionList({
       const newSet = new Set(prev);
       paginatedSessions.forEach((session) => {
         if (checked) {
-          newSet.add(session.id);
+          newSet.add(session._id);
         } else {
-          newSet.delete(session.id);
+          newSet.delete(session._id);
         }
       });
       return newSet;
@@ -85,9 +85,9 @@ export function SessionList({
   };
 
   const allCurrentPageSelected =
-    paginatedSessions.length > 0 && paginatedSessions.every((session) => selectedSessions.has(session.id));
+    paginatedSessions.length > 0 && paginatedSessions.every((session) => selectedSessions.has(session._id));
 
-  const someCurrentPageSelected = paginatedSessions.some((session) => selectedSessions.has(session.id));
+  const someCurrentPageSelected = paginatedSessions.some((session) => selectedSessions.has(session._id));
 
   if (currentPage > totalPages && totalPages > 0) {
     setCurrentPage(Math.max(1, totalPages));
@@ -126,14 +126,14 @@ export function SessionList({
               onClick={handleDeleteSelected}
               disabled={deleting || selectedSessions.size === 0}
               className={`
-                flex items-center gap-2 px-4 py-2 rounded-lg 
-                transition-all duration-300 ease-in-out
-                ${
-                  selectedSessions.size > 0
-                    ? "bg-red-600 hover:bg-red-700 disabled:bg-red-800 text-white opacity-100 scale-100 translate-x-0"
-                    : "bg-red-600/0 text-transparent opacity-0 scale-95 translate-x-4 pointer-events-none"
-                }
-              `}
+                                flex items-center gap-2 px-4 py-2 rounded-lg 
+                                transition-all duration-300 ease-in-out
+                                ${
+                                  selectedSessions.size > 0
+                                    ? "bg-red-600 hover:bg-red-700 disabled:bg-red-800 text-white opacity-100 scale-100 translate-x-0"
+                                    : "bg-red-600/0 text-transparent opacity-0 scale-95 translate-x-4 pointer-events-none"
+                                }
+                            `}
             >
               <TrashIcon className="w-4 h-4" />
               {deleting ? "Deleting..." : `Delete Selected (${selectedSessions.size})`}
@@ -167,14 +167,14 @@ export function SessionList({
           {/* Sessions Grid */}
           <div className="grid gap-4 mb-6">
             {paginatedSessions.map((session) => (
-              <div key={session.id} className="bg-gray-700 rounded-lg p-4">
+              <div key={session._id} className="bg-gray-700 rounded-lg p-4">
                 <div className="flex items-start gap-3">
                   {/* Selection Checkbox */}
                   {isAdmin && (
                     <input
                       type="checkbox"
-                      checked={selectedSessions.has(session.id)}
-                      onChange={(e) => handleSessionSelect(session.id, e.target.checked)}
+                      checked={selectedSessions.has(session._id)}
+                      onChange={(e) => handleSessionSelect(session._id, e.target.checked)}
                       className="mt-1 w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500"
                     />
                   )}
@@ -183,7 +183,7 @@ export function SessionList({
                   <div className="flex-1">
                     <div className="flex justify-between items-start">
                       <div>
-                        <h3 className="font-semibold text-lg">Session {session.id.slice(-8)}</h3>
+                        <h3 className="font-semibold text-lg">Session {session._id.slice(-8)}</h3>
                         <div className="text-sm text-gray-400">
                           Created: {new Date(session.lastActivity).toLocaleString()}
                         </div>
@@ -193,85 +193,34 @@ export function SessionList({
                         </div>
                       </div>
 
-                      {/* Session Password */}
-                      {session.password && (
-                        <div className="mb-2">
-                          <div className="text-sm text-gray-400">Password:</div>
-                          <div className="flex items-center gap-2">
-                            <code className="bg-gray-800 px-2 py-1 rounded text-yellow-400 font-mono text-sm">
-                              {session.password}
-                            </code>
-                            <button
-                              onClick={() => {
-                                navigator.clipboard.writeText(session.password!);
-                                // You could add a toast notification here
-                              }}
-                              className="text-blue-400 hover:text-blue-300 text-sm"
-                              title="Copy password"
-                            >
-                              Copy
-                            </button>
-                          </div>
-                        </div>
-                      )}
-
                       {/* Action Buttons */}
                       <div className="flex gap-2 flex-wrap">
                         <Link
-                          href={`/modules/pickban/static/${session.id}/config`}
+                          href={`/modules/pickban/config/${session._id}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="bg-amber-600 hover:bg-amber-700 text-white px-3 py-1 rounded text-sm transition-colors"
                         >
                           Config
                         </Link>
-
-                        {/* Real-time team access buttons for web sessions */}
-                        {session.type === "web" && (
-                          <>
-                            <Link
-                              href={`/modules/pickban/static/${session.id}/team/blue`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm transition-colors"
-                            >
-                              Blue Team (Real-time)
-                            </Link>
-                            <Link
-                              href={`/modules/pickban/static/${session.id}/team/red`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm transition-colors"
-                            >
-                              Red Team (Real-time)
-                            </Link>
-                          </>
-                        )}
-
-                        {/* Legacy buttons for non-web sessions */}
-                        {session.type !== "web" && (
-                          <>
-                            <Link
-                              href={`/modules/pickban/static/${session.id}/game?team=blue`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm transition-colors"
-                            >
-                              Blue Team
-                            </Link>
-                            <Link
-                              href={`/modules/pickban/static/${session.id}/game?team=red`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm transition-colors"
-                            >
-                              Red Team
-                            </Link>
-                          </>
-                        )}
-
                         <Link
-                          href={`/modules/pickban/static/${session.id}/game`}
+                          href={`/modules/pickban/game/${session._id}?team=blue`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm transition-colors"
+                        >
+                          Blue Team
+                        </Link>
+                        <Link
+                          href={`/modules/pickban/game/${session._id}?team=red`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm transition-colors"
+                        >
+                          Red Team
+                        </Link>
+                        <Link
+                          href={`/modules/pickban/game/${session._id}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm transition-colors"
@@ -279,7 +228,7 @@ export function SessionList({
                           Spectator
                         </Link>
                         <Link
-                          href={`/modules/pickban/static/${session.id}/obs`}
+                          href={`/modules/pickban/obs/${session._id}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded text-sm transition-colors"
@@ -288,7 +237,7 @@ export function SessionList({
                         </Link>
                         {isAdmin && (
                           <button
-                            onClick={() => onDeleteSession(session.id)}
+                            onClick={() => onDeleteSession(session._id)}
                             className="bg-red-700 hover:bg-red-800 text-white px-3 py-1 rounded text-sm transition-colors"
                             title="Delete Session (Admin Only)"
                           >

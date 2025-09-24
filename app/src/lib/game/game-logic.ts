@@ -87,7 +87,7 @@ export async function createGameSession(config?: Partial<GameConfig>): Promise<G
   };
 
   const session: GameSession = {
-    id: sessionId,
+    _id: sessionId,
     type: "web",
     teams: {
       blue: {

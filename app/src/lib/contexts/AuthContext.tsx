@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from "react";
 import type { User } from "@lib/types";
+import { Role } from "@lib/types/permissions";
 import { useElectron } from "@libElectron/contexts/ElectronContext";
 
 interface AuthContextType {
@@ -177,6 +178,7 @@ export function AuthProvider({ children }: { children: ReactNode }): React.React
         _id: "electron-admin",
         username: "Local Admin",
         isAdmin: true,
+        globalRoles: [Role.SUPER_ADMIN],
         email: "admin@local",
         password: "",
         sessionsCreatedToday: 0,

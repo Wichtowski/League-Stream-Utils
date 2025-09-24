@@ -6,6 +6,7 @@ import { Breadcrumbs, type BreadcrumbItem } from "./Breadcrumbs";
 import { Button } from "./button/Button";
 import { CopyButton } from "./button/CopyButton";
 import { SettingsCog } from "./SettingsCog";
+import { ErrorBoundary, withErrorBoundary } from "./ErrorBoundary";
 import { PageLayout } from "@lib/layout/PageLayout";
 import { PageWrapper } from "@lib/layout/PageWrapper";
 
@@ -22,6 +23,8 @@ export {
   PageLoader,
   OverlayLoader,
   Pagination,
+  ErrorBoundary,
+  withErrorBoundary,
   PageLayout,
   PageWrapper
 };

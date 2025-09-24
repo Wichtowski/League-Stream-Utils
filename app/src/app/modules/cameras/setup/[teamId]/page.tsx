@@ -36,7 +36,7 @@ export default function TeamCameraSetupPage() {
   const [saving, setSaving] = useState(false);
 
   // Find the full team info from userTeams
-  const fullTeam = userTeams.find((t) => t.id === teamId);
+  const fullTeam = userTeams.find((t) => t._id === teamId);
 
   // Set module once
   useEffect(() => {
@@ -87,18 +87,18 @@ export default function TeamCameraSetupPage() {
             const allPlayers = [...fullTeam.players.main, ...fullTeam.players.substitutes].map((player) => {
               const cameraPlayer = foundTeam?.players.find(
                 (cp: CameraPlayer) =>
-                  (cp.playerId && cp.playerId === player.id) || (cp.inGameName && cp.inGameName === player.inGameName)
+                  (cp.playerId && cp.playerId === player._id) || (cp.inGameName && cp.inGameName === player.inGameName)
               );
               return {
                 ...player,
-                playerId: player.id,
+                playerId: player._id,
                 playerName: player.inGameName,
                 url: cameraPlayer?.url || "",
                 imagePath: cameraPlayer?.imagePath || ""
               };
             });
             setTeam({
-              teamId: fullTeam.id,
+              teamId: fullTeam._id,
               teamName: fullTeam.name,
               teamLogo: fullTeam.logo?.data,
               players: allPlayers,

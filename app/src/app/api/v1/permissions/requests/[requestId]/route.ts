@@ -3,6 +3,7 @@ import { withAuth } from "@lib/auth";
 import { PermissionService } from "@lib/services/permissions";
 import { Permission } from "@lib/types/permissions";
 import { JWTPayload } from "@lib/types/auth";
+import { PermissionRequestModel } from "@lib/database/models";
 
 // PUT /api/v1/permissions/requests/[requestId] - Approve or reject a permission request
 export const PUT = withAuth(async (req: NextRequest, user: JWTPayload) => {
@@ -23,8 +24,10 @@ export const PUT = withAuth(async (req: NextRequest, user: JWTPayload) => {
     }
 
     // Get the request to check permissions
-    const request = await PermissionService.getPendingRequests();
-    const targetRequest = request.find(r => r._id?.toString() === requestId);
+    const targetRequest = await PermissionRequestModel.findById(requestId);
+    if (targetRequest && targetRequest.status !== "PENDING") {
+      return NextResponse.json({ error: "Request is not pending" }, { status: 400 });
+    }
 
     if (!targetRequest) {
       return NextResponse.json({ error: "Request not found" }, { status: 404 });

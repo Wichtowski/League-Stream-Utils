@@ -49,7 +49,7 @@ export default function ConfigPage() {
 
   useEffect(() => {
     if (selectedBlueTeam) {
-      getTeamLogoUrl(selectedBlueTeam.id).then(setBlueTeamLogoUrl);
+      getTeamLogoUrl(selectedBlueTeam._id).then(setBlueTeamLogoUrl);
     } else {
       setBlueTeamLogoUrl("");
     }
@@ -57,7 +57,7 @@ export default function ConfigPage() {
 
   useEffect(() => {
     if (selectedRedTeam) {
-      getTeamLogoUrl(selectedRedTeam.id).then(setRedTeamLogoUrl);
+      getTeamLogoUrl(selectedRedTeam._id).then(setRedTeamLogoUrl);
     } else {
       setRedTeamLogoUrl("");
     }
@@ -118,7 +118,7 @@ export default function ConfigPage() {
             const allTeams = teamsData.teams || [];
 
             // Filter teams that are registered to this tournament
-            const registeredTeams = allTeams.filter((team: Team) => tournament.registeredTeams.includes(team.id));
+            const registeredTeams = allTeams.filter((team: Team) => tournament.registeredTeams.includes(team._id));
 
             setTournamentTeams(registeredTeams);
           }
@@ -156,7 +156,7 @@ export default function ConfigPage() {
       setSelectedBlueTeam(team);
       setConfig((prev) => ({
         ...prev,
-        blueTeamId: team.id,
+        blueTeamId: team._id,
         blueTeamName: team.name,
         blueTeamPrefix: team.tag,
         blueCoach: team.staff?.coach ? { name: team.staff.coach.name } : undefined
@@ -165,7 +165,7 @@ export default function ConfigPage() {
       setSelectedRedTeam(team);
       setConfig((prev) => ({
         ...prev,
-        redTeamId: team.id,
+        redTeamId: team._id,
         redTeamName: team.name,
         redTeamPrefix: team.tag,
         redCoach: team.staff?.coach ? { name: team.staff.coach.name } : undefined
@@ -263,9 +263,9 @@ export default function ConfigPage() {
             <div>
               <label className="block text-sm font-medium mb-2">Select Tournament (Optional)</label>
               <select
-                value={selectedTournament?.id || ""}
+                value={selectedTournament?._id || ""}
                 onChange={(e) => {
-                  const tournament = tournaments.find((t) => t.id === e.target.value);
+                  const tournament = tournaments.find((t) => t._id === e.target.value);
                   if (tournament) {
                     handleTournamentSelect(tournament);
                   } else {
@@ -280,7 +280,7 @@ export default function ConfigPage() {
               >
                 <option value="">Manual Configuration</option>
                 {tournaments
-                  .filter((tournament) => user?.isAdmin || tournament.userId === user?.id)
+                  .filter((tournament) => user?.isAdmin || tournament.userId === user?._id)
                   .map((tournament) => (
                     <option key={tournament._id} value={tournament._id}>
                       {tournament.name}
@@ -425,9 +425,9 @@ export default function ConfigPage() {
                 <div>
                   <label className="block text-sm font-medium mb-2">Select Team</label>
                   <select
-                    value={selectedBlueTeam?.id || ""}
+                    value={selectedBlueTeam?._id || ""}
                     onChange={(e) => {
-                      const team = tournamentTeams.find((t) => t.id === e.target.value);
+                      const team = tournamentTeams.find((t) => t._id === e.target.value);
                       if (team) {
                         handleTeamSelect("blue", team);
                       } else {
@@ -446,9 +446,9 @@ export default function ConfigPage() {
                   >
                     <option value="">Manual Entry</option>
                     {tournamentTeams
-                      .filter((team) => team.id !== selectedRedTeam?.id)
+                      .filter((team) => team._id !== selectedRedTeam?._id)
                       .map((team) => (
-                        <option key={team.id} value={team.id}>
+                        <option key={team._id} value={team._id}>
                           {team.name} ({team.tag})
                         </option>
                       ))}
@@ -537,9 +537,9 @@ export default function ConfigPage() {
                 <div>
                   <label className="block text-sm font-medium mb-2">Select Team</label>
                   <select
-                    value={selectedRedTeam?.id || ""}
+                    value={selectedRedTeam?._id || ""}
                     onChange={(e) => {
-                      const team = tournamentTeams.find((t) => t.id === e.target.value);
+                      const team = tournamentTeams.find((t) => t._id === e.target.value);
                       if (team) {
                         handleTeamSelect("red", team);
                       } else {
@@ -557,9 +557,9 @@ export default function ConfigPage() {
                   >
                     <option value="">Manual Entry</option>
                     {tournamentTeams
-                      .filter((team) => team.id !== selectedBlueTeam?.id)
+                      .filter((team) => team._id !== selectedBlueTeam?._id)
                       .map((team) => (
-                        <option key={team.id} value={team.id}>
+                        <option key={team._id} value={team._id}>
                           {team.name} ({team.tag})
                         </option>
                       ))}

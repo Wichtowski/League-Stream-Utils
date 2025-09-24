@@ -201,6 +201,8 @@ export interface PickbanAction {
 }
 
 export interface PickbanSession {
+  _id: string;
+  type?: "static" | "lcu" | "tournament" | "web";
   config: PickbanConfig;
   status: "waiting" | "active" | "paused" | "completed";
   currentPhase: GamePhase;
@@ -348,6 +350,7 @@ export interface LCUStatus {
 
 // Team representation used within an in-progress GameSession (simplified vs full tournament Team).
 export interface SessionTeam {
+  _id: string;
   name: string;
   side: "blue" | "red";
   bans: Champion[];

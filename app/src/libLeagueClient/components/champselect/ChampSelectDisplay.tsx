@@ -526,12 +526,12 @@ const ChampSelectDisplayComponent: React.FC<ChampSelectDisplayProps> = ({
               blueTeam={{
                 name: effectiveTournamentData.blueTeam.name,
                 logo: getTeamLogo(effectiveTournamentData.blueTeam),
-                id: effectiveTournamentData.blueTeam._id
+                _id: effectiveTournamentData.blueTeam._id
               }}
               redTeam={{
                 name: effectiveTournamentData.redTeam.name,
                 logo: getTeamLogo(effectiveTournamentData.redTeam),
-                id: effectiveTournamentData.redTeam._id
+                _id: effectiveTournamentData.redTeam._id
               }}
               tournamentLogo={(() => {
                 const logo = effectiveTournamentData.tournament?.logo;

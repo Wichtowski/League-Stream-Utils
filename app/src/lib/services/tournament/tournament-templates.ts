@@ -1,4 +1,5 @@
-import { MatchFormat, Tournament } from "@lib/types/tournament";
+import { Tournament } from "@lib/types/tournament";
+import { MatchFormat } from "@lib/types/match";
 import { TournamentData } from "@lib/types/electron";
 
 interface TournamentTemplate {
@@ -332,7 +333,7 @@ class TournamentTemplateService {
         id: `tournament_${Date.now()}`,
         createdAt: new Date(),
         updatedAt: new Date()
-      } as Tournament, // TODO: Implement proper Tournament type conversion
+      } as unknown as Tournament, // TODO: Implement proper Tournament type conversion
       teams: [],
       settings: {
         templateId: template.id,

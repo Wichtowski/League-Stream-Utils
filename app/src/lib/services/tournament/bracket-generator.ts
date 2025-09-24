@@ -37,7 +37,7 @@ export class BracketGenerator {
       const team2 = i * 2 + 1 < teams.length ? teams[i * 2 + 1] : undefined;
 
       const node: BracketNode = {
-        id: uuidv4(),
+        _id: uuidv4(),
         round: 1,
         position: i,
         team1,
@@ -61,7 +61,7 @@ export class BracketGenerator {
 
       for (let i = 0; i < matchesInRound; i++) {
         const node: BracketNode = {
-          id: uuidv4(),
+          _id: uuidv4(),
           round,
           position: i,
           status: "pending",
@@ -75,7 +75,7 @@ export class BracketGenerator {
     this.setupSingleEliminationPaths(nodes, totalRounds);
 
     return {
-      id: uuidv4(),
+      _id: uuidv4(),
       tournamentId,
       format: "single-elimination",
       nodes,
@@ -112,7 +112,7 @@ export class BracketGenerator {
 
     // Generate grand finals
     const grandFinals: BracketNode = {
-      id: uuidv4(),
+      _id: uuidv4(),
       round: winnerBracketRounds + 1,
       position: 0,
       status: "pending",
@@ -123,7 +123,7 @@ export class BracketGenerator {
     // Generate grand finals reset match if enabled
     if (settings.grandFinalReset) {
       const grandFinalsReset: BracketNode = {
-        id: uuidv4(),
+        _id: uuidv4(),
         round: winnerBracketRounds + 2,
         position: 0,
         status: "pending",
@@ -133,7 +133,7 @@ export class BracketGenerator {
     }
 
     return {
-      id: uuidv4(),
+      _id: uuidv4(),
       tournamentId,
       format: "double-elimination",
       nodes,
@@ -161,7 +161,7 @@ export class BracketGenerator {
       const team2 = i * 2 + 1 < teams.length ? teams[i * 2 + 1] : undefined;
 
       const node: BracketNode = {
-        id: uuidv4(),
+        _id: uuidv4(),
         round: 1,
         position: i,
         team1,
@@ -184,7 +184,7 @@ export class BracketGenerator {
 
       for (let i = 0; i < matchesInRound; i++) {
         const node: BracketNode = {
-          id: uuidv4(),
+          _id: uuidv4(),
           round,
           position: i,
           status: "pending",
@@ -217,7 +217,7 @@ export class BracketGenerator {
 
       for (let i = 0; i < matchesInRound; i++) {
         const node: BracketNode = {
-          id: uuidv4(),
+          _id: uuidv4(),
           round,
           position: i,
           status: "pending",
@@ -241,7 +241,7 @@ export class BracketGenerator {
       currentRoundNodes.forEach((node, index) => {
         const nextMatchIndex = Math.floor(index / 2);
         if (nextRoundNodes[nextMatchIndex]) {
-          node.nextMatchId = nextRoundNodes[nextMatchIndex].id;
+          node.nextMatchId = nextRoundNodes[nextMatchIndex]._id;
         }
       });
     }
@@ -275,7 +275,7 @@ export class BracketGenerator {
    */
   static advanceTeam(bracket: BracketStructure, matchId: string, winner: string, _loser?: string): BracketStructure {
     const updatedNodes = [...bracket.nodes];
-    const matchNode = updatedNodes.find((n) => n.id === matchId);
+    const matchNode = updatedNodes.find((n) => n._id === matchId);
 
     if (!matchNode) {
       throw new Error("Match not found");
@@ -288,7 +288,7 @@ export class BracketGenerator {
 
     // Advance winner to next match
     if (matchNode.nextMatchId) {
-      const nextMatch = updatedNodes.find((n) => n.id === matchNode.nextMatchId);
+      const nextMatch = updatedNodes.find((n) => n._id === matchNode.nextMatchId);
       if (nextMatch) {
         if (!nextMatch.team1) {
           nextMatch.team1 = winner;

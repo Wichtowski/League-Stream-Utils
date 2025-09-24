@@ -163,11 +163,12 @@ export const calculateGoldPerMinute = (gold: number, duration: number): number =
 };
 
 // Helper function to validate player stats
-export const validatePlayerStats = (stats: any): boolean => {
-  if (!stats || typeof stats !== "object") return false;
+export const validatePlayerStats = (stats: unknown): boolean => {
+  if (stats === null || typeof stats !== "object") return false;
+  const s = stats as Record<string, unknown>;
 
-  const requiredFields = ["kda", "cs", "gold", "damageDealt", "damageTaken", "visionScore"];
-  return requiredFields.every((field) => stats[field] !== undefined);
+  const requiredFields = ["kda", "cs", "gold", "damageDealt", "damageTaken", "visionScore"] as const;
+  return requiredFields.every((field) => field in s);
 };
 
 // Helper function to create default player stats

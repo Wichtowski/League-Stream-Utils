@@ -458,7 +458,7 @@ export function PickbanProvider({ children }: { children: ReactNode }) {
       }
 
       try {
-        const response = await authenticatedFetch(`/api/v1/pickban/sessions/${currentSession.id}/action`, {
+        const response = await authenticatedFetch(`/api/v1/pickban/sessions/${currentSession._id}/action`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ action })
@@ -491,7 +491,7 @@ export function PickbanProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      const response = await authenticatedFetch(`/api/v1/pickban/sessions/${currentSession.id}/undo`, {
+      const response = await authenticatedFetch(`/api/v1/pickban/sessions/${currentSession._id}/undo`, {
         method: "POST"
       });
 

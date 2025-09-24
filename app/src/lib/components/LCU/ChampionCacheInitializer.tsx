@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { startupService } from "@lib/services/system";
 import { useAuth } from "@lib/contexts/AuthContext";
@@ -19,7 +19,7 @@ export const ChampionCacheInitializer = () => {
   const { user, isLoading } = useAuth();
   const router = useRouter();
 
-  const checkAndInitializeCache = async () => {
+  const checkAndInitializeCache = useCallback(async () => {
     try {
       // Check if all assets are complete
       const completeness = await startupService.checkAllAssetsCompleteness();
@@ -39,7 +39,7 @@ export const ChampionCacheInitializer = () => {
       // On error, redirect to download page to be safe
       router.push("/download");
     }
-  };
+  }, [router]);
 
   useEffect(() => {
     // Check if we're in Electron environment

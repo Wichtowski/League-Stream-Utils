@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@lib/auth";
 import { getTournament, updateTournamentFields } from "@libTournament/database/tournament";
-import type { Sponsorship } from "@lib/types";
+import type { Sponsorship } from "@libTournament/types";
+import { Types } from "mongoose";
 
 // Utility function to extract tournament ID from URL
 const extractTournamentId = (req: NextRequest): string => {
@@ -53,7 +54,7 @@ export const POST = withAuth(async (req: NextRequest, user) => {
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
-    const sponsorData: Omit<Sponsorship, "id"> = await req.json();
+    const sponsorData: Omit<Sponsorship, "_id"> = await req.json();
 
     // Validate required fields
     if (!sponsorData.name || !sponsorData.logo || !sponsorData.tier) {
@@ -61,18 +62,19 @@ export const POST = withAuth(async (req: NextRequest, user) => {
     }
 
     // Generate unique ID for the sponsor
-    const sponsorId = `sponsor_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const sponsorId = new Types.ObjectId().toString();
 
     const newSponsor: Sponsorship = {
-      id: sponsorId,
+      _id: sponsorId,
       name: sponsorData.name,
       logo: sponsorData.logo,
       website: sponsorData.website,
       tier: sponsorData.tier,
-      displayPriority: sponsorData.displayPriority || 0,
-      showName: sponsorData.showName ?? true,
-      namePosition: sponsorData.namePosition ?? "right",
-      fillContainer: sponsorData.fillContainer ?? false
+      startDate: sponsorData.startDate,
+      endDate: sponsorData.endDate,
+      isActive: sponsorData.isActive,
+      createdAt: new Date(),
+      updatedAt: new Date()
     };
 
     // Add sponsor to tournament
@@ -83,8 +85,8 @@ export const POST = withAuth(async (req: NextRequest, user) => {
       sponsors: updatedSponsors
     });
 
-    if (!result.success) {
-      return NextResponse.json({ error: result.error || "Failed to add sponsor" }, { status: 500 });
+    if (!result) {
+      return NextResponse.json({ error: "Failed to add sponsor" }, { status: 500 });
     }
 
     return NextResponse.json({ sponsor: newSponsor }, { status: 201 });

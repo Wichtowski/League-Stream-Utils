@@ -3,7 +3,6 @@
 import React, { MouseEvent as ReactMouseEvent } from "react";
 import { motion, useMotionTemplate, useMotionValue } from "framer-motion";
 import { ModuleCard } from "@lib/navigation";
-import { LastSelectedTournament } from "@lib/services/tournament";
 
 interface SpotlightCardProps {
   module: ModuleCard;
@@ -11,7 +10,7 @@ interface SpotlightCardProps {
   spotlightColor?: string;
   onClick?: () => void;
   isHiddenBehindTournament?: boolean;
-  lastSelectedTournament?: LastSelectedTournament;
+  tournamentName?: string;
   loading?: boolean;
 }
 
@@ -20,7 +19,7 @@ export const SpotlightCard: React.FC<SpotlightCardProps> = ({
   className = "",
   onClick,
   isHiddenBehindTournament,
-  lastSelectedTournament,
+  tournamentName,
   loading = false
 }) => {
   const mouseX = useMotionValue(0);
@@ -34,6 +33,7 @@ export const SpotlightCard: React.FC<SpotlightCardProps> = ({
 
   const background = useMotionTemplate`radial-gradient(650px circle at ${mouseX}px ${mouseY}px, ${module.spotlightColor}, transparent 80%)`;
   const reversedColor = module.color.split(" ").reverse().join(" ");
+
 
   if (loading) {
     return (
@@ -94,7 +94,7 @@ export const SpotlightCard: React.FC<SpotlightCardProps> = ({
       <h3 className="text-xl font-bold text-white mb-2">
         {isHiddenBehindTournament && (
           <div className="flex items-center space-x-2">
-            <span className="text-gray-400 text-sm">Current Tournament: {lastSelectedTournament?.tournamentName}</span>
+            <span className="text-gray-400 text-sm">Current Tournament: {tournamentName}</span>
           </div>
         )}
         {module.name}

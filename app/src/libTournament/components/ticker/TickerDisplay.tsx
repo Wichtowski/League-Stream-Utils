@@ -1,10 +1,13 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import type { Ticker, EmbeddedTicker, } from "@libTournament/types/ticker";
+import type { Ticker, EmbeddedTicker, } from "@libTournament/types";
 import type { Tournament } from "@lib/types/tournament"
 import type { Match, Team } from "@lib/types";
 import { CarouselTicker } from "./CarouselTicker";
+import { ErrorBoundary } from "@lib/components/common/ErrorBoundary";
+import { useErrorHandling } from "@lib/hooks/useErrorHandling";
+import { logError as _logError } from "@lib/utils/error-handling";
 import Image from "next/image";
 
 interface TickerDisplayProps {
@@ -38,10 +41,21 @@ export const TickerDisplay = ({
   showDebugInfo = false
 }: TickerDisplayProps) => {
   const [displayData, setDisplayData] = useState<DisplayData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [lastFetchTime, setLastFetchTime] = useState<number>(0);
   const [connectionStatus, setConnectionStatus] = useState<'connected' | 'disconnected' | 'reconnecting'>('connected');
+  const [retryCount, setRetryCount] = useState(0);
+  const [maxRetries] = useState(3);
+  
+  const { 
+    error, 
+    isLoading, 
+    executeWithRetry, 
+    clearError 
+  } = useErrorHandling({ 
+    showUserErrors: false, // Don't show user alerts in OBS overlay
+    logErrors: true,
+    context: { component: 'TickerDisplay', tournamentId }
+  });
 
   const ticker = displayData?.ticker || null
 
@@ -59,42 +73,61 @@ export const TickerDisplay = ({
           ticker: tournament.ticker
         });
       }
-      setIsLoading(false);
       return;
     }
 
-    try {
+    const fetchData = async (): Promise<DisplayData> => {
       setConnectionStatus('reconnecting');
-      const response = await fetch(`/api/v1/tournaments/${tournamentId}/tickers/display`, {
-        // Add cache headers to prevent unnecessary requests
+      
+      const response = await fetch(`/api/v1/tournaments/${tournamentId}/ticker/display`, {
         headers: {
-          'Cache-Control': 'no-cache'
-        }
+          'Cache-Control': 'no-cache',
+          'Accept': 'application/json'
+        },
+        // Add timeout to prevent hanging requests
+        signal: AbortSignal.timeout(10000) // 10 second timeout
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to fetch ticker data: ${response.status}`);
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
       const data: DisplayData = await response.json();
+      return data;
+    };
 
+    const result = await executeWithRetry(
+      fetchData,
+      {
+        maxAttempts: maxRetries,
+        delay: 2000,
+        backoff: 'exponential',
+        shouldRetry: (error) => {
+          // Retry on network errors and server errors, but not on 404 (tournament not found)
+          if ('status' in error && error.status === 404) {
+            return false;
+          }
+          return true;
+        }
+      }
+    );
+
+    if (result) {
       // Only update state if data has actually changed
       setDisplayData(prevData => {
-        const dataChanged = JSON.stringify(prevData) !== JSON.stringify(data);
-        return dataChanged ? data : prevData;
+        const dataChanged = JSON.stringify(prevData) !== JSON.stringify(result);
+        return dataChanged ? result : prevData;
       });
 
-      setError(null);
       setLastFetchTime(Date.now());
       setConnectionStatus('connected');
-    } catch (err) {
-      console.error("Error fetching ticker data:", err);
-      setError(err instanceof Error ? err.message : "Failed to fetch ticker data");
+      setRetryCount(0);
+      clearError();
+    } else {
       setConnectionStatus('disconnected');
-    } finally {
-      setIsLoading(false);
+      setRetryCount(prev => Math.min(prev + 1, maxRetries));
     }
-  }, [tournamentId, tournament]);
+  }, [tournamentId, tournament, executeWithRetry, maxRetries, clearError]);
 
   // Initial fetch and periodic refresh
   useEffect(() => {
@@ -109,20 +142,33 @@ export const TickerDisplay = ({
 
   // Get the single ticker (first active ticker)
 
-  // Error state
-  if (error) {
+  // Error state - only show in development or when debug is enabled
+  if (error && (showDebugInfo || process.env.NODE_ENV === 'development')) {
     return (
       <div className={`w-full h-screen bg-transparent flex items-center justify-center ${className}`}>
-        <div className="bg-red-900/20 backdrop-blur-sm border border-red-500/30 rounded-lg p-6 text-center">
-          <div className="text-red-400 text-lg font-semibold mb-2">Ticker Error</div>
-          <div className="text-red-300 text-sm">{error}</div>
+        <div className="bg-red-900/20 backdrop-blur-sm border border-red-500/30 rounded-lg p-6 text-center max-w-md">
+          <div className="text-red-400 text-lg font-semibold mb-2">Ticker Connection Error</div>
+          <div className="text-red-300 text-sm mb-4">{error.message}</div>
+          <div className="text-red-400 text-xs mb-4">
+            Retry {retryCount}/{maxRetries} • Last attempt: {new Date(lastFetchTime).toLocaleTimeString()}
+          </div>
           <button
             onClick={fetchtickerData}
-            className="mt-4 bg-red-600 hover:bg-red-700 px-4 py-2 rounded text-sm transition-colors"
+            disabled={isLoading}
+            className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded text-sm transition-colors disabled:opacity-50"
           >
-            Retry
+            {isLoading ? 'Retrying...' : 'Retry Now'}
           </button>
         </div>
+      </div>
+    );
+  }
+
+  // In production, gracefully degrade to empty state on error
+  if (error && !showDebugInfo && process.env.NODE_ENV === 'production') {
+    return (
+      <div className={`w-full h-screen bg-transparent ${className}`}>
+        {/* Empty state - completely transparent for OBS */}
       </div>
     );
   }
@@ -144,7 +190,15 @@ export const TickerDisplay = ({
   }
 
   return (
-    <>
+    <ErrorBoundary 
+      context="TickerDisplay" 
+      showDetails={showDebugInfo || process.env.NODE_ENV === 'development'}
+      fallback={
+        <div className={`w-full h-screen bg-transparent ${className}`}>
+          {/* Fallback to empty state on component error */}
+        </div>
+      }
+    >
       <div className={`w-full h-screen bg-transparent relative overflow-hidden ${className}`}>
         {/* ticker Content - Title sticks above carousel */}
         {ticker && (
@@ -255,6 +309,6 @@ export const TickerDisplay = ({
         )}
 
       </div>
-    </>
+    </ErrorBoundary>
   );
 };

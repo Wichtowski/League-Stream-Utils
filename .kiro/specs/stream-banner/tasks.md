@@ -85,6 +85,9 @@
 - [ ] 11. Add navigation integration and tournament card updates
   - Add "Stream Banners" link to tournament card navigation
   - Update tournament navigation menu to include stream banners section
+
+
+
   - Ensure proper active state highlighting for stream banner pages
   - Follow existing navigation patterns from sponsors module
   - _Requirements: 4.3_

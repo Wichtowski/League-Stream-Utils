@@ -20,7 +20,12 @@ export const GET = withAuth(async (req: NextRequest, _user: JWTPayload) => {
     const recentStats = await getPlayerStatsByPlayer(playerId, limit);
     console.log("Recent stats found:", recentStats.length);
 
-    const response: any = {
+    const response: {
+      playerId: string;
+      recentStats: unknown[];
+      careerStats?: unknown;
+      championMastery?: unknown[];
+    } = {
       playerId,
       recentStats
     };

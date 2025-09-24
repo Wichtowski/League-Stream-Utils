@@ -12,7 +12,7 @@ export interface PermissionMiddlewareOptions {
 
 // Higher-order function to create permission middleware
 export const withPermission = (options: PermissionMiddlewareOptions) => {
-  return async (req: NextRequest, user: JWTPayload, ...args: unknown[]) => {
+  return async (_req: NextRequest, user: JWTPayload, ..._args: unknown[]) => {
     const { permission, resourceId, allowOwners = false, allowAdmins = true } = options;
 
     // Allow admins by default

@@ -1,19 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import type { Ticker } from "@lib/types";
 import type { TickerFormData, CarouselItemFormData } from "@lib/types/forms";
 import { createDefaultCarouselItemForm } from "@lib/types/forms";
 import { TickerPreview } from "./TickerPreview";
+import { ErrorBoundary } from "@lib/components/common/ErrorBoundary";
+import { 
+  validateStreamBannerForm, 
+  validateCarouselItem,
+  formatValidationErrors,
+  hasUnsavedChanges 
+} from "@lib/utils/stream-banner-validation";
+import { useErrorHandling } from "@lib/hooks/useErrorHandling";
 
 interface TickerFormProps {
   formData: TickerFormData;
   setFormData: React.Dispatch<React.SetStateAction<TickerFormData>>;
   editingTicker: Ticker | null;
-  onAddTicker: () => void;
-  onUpdateTicker: () => void;
+  onAddTicker: () => Promise<void>;
+  onUpdateTicker: () => Promise<void>;
   onCancelEdit: () => void;
   onCloseForm: () => void;
+  isSubmitting?: boolean;
 }
 
 export const TickerForm = ({
@@ -23,44 +32,71 @@ export const TickerForm = ({
   onAddTicker,
   onUpdateTicker,
   onCancelEdit,
-  onCloseForm
+  onCloseForm,
+  isSubmitting = false
 }: TickerFormProps) => {
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [hasChanges, setHasChanges] = useState(false);
+  const [originalData, setOriginalData] = useState<TickerFormData | null>(null);
+  const { handleError, clearError: _clearError } = useErrorHandling();
 
-  // Validation function
-  const validateForm = (): boolean => {
-    const newErrors: Record<string, string> = {};
-
-    if (!formData.title.trim()) {
-      newErrors.title = "Title is required";
+  // Track changes to original data
+  useEffect(() => {
+    if (editingTicker && !originalData) {
+      const original: TickerFormData = {
+        title: editingTicker.title,
+        titleBackgroundColor: editingTicker.titleBackgroundColor || "#1f2937",
+        titleTextColor: editingTicker.titleTextColor || "#ffffff",
+        carouselItems: (editingTicker.carouselItems || []).map((item: {
+          text: string;
+          backgroundColor?: string;
+          textColor?: string;
+          order: number;
+        }) => ({
+          text: item.text,
+          backgroundColor: item.backgroundColor || "#1f2937",
+          textColor: item.textColor || "#ffffff",
+          order: item.order
+        })),
+        carouselSpeed: editingTicker.carouselSpeed,
+        carouselBackgroundColor: editingTicker.carouselBackgroundColor || "#1f2937",
+      };
+      setOriginalData(original);
     }
+  }, [editingTicker, originalData]);
 
+  // Track unsaved changes
+  useEffect(() => {
+    setHasChanges(hasUnsavedChanges(formData, originalData));
+  }, [formData, originalData]);
 
-
-    if (formData.carouselSpeed < 10 || formData.carouselSpeed > 200) {
-      newErrors.carouselSpeed = "Carousel speed must be between 10 and 200 pixels per second";
+  // Validation function with comprehensive error handling
+  const validateForm = useCallback((): boolean => {
+    try {
+      const validationErrors = validateStreamBannerForm(formData);
+      const formattedErrors = formatValidationErrors(validationErrors);
+      
+      setErrors(formattedErrors);
+      return validationErrors.length === 0;
+    } catch (error) {
+      handleError(error instanceof Error ? error : new Error('Validation failed'));
+      return false;
     }
+  }, [formData, handleError]);
 
-
-
-    // Validate carousel items
-    formData.carouselItems.forEach((item, index) => {
-      if (!item.text.trim()) {
-        newErrors[`carouselItem_${index}_text`] = "Carousel item text is required";
+  const handleSubmit = async () => {
+    if (isSubmitting) return;
+    
+    try {
+      if (validateForm()) {
+        if (editingTicker) {
+          await onUpdateTicker();
+        } else {
+          await onAddTicker();
+        }
       }
-    });
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = () => {
-    if (validateForm()) {
-      if (editingTicker) {
-        onUpdateTicker();
-      } else {
-        onAddTicker();
-      }
+    } catch (error) {
+      handleError(error instanceof Error ? error : new Error('Failed to submit form'));
     }
   };
 
@@ -85,21 +121,39 @@ export const TickerForm = ({
     });
   };
 
-  const updateCarouselItem = (index: number, updates: Partial<CarouselItemFormData>) => {
-    const newItems = [...formData.carouselItems];
-    newItems[index] = { ...newItems[index], ...updates };
-    setFormData({
-      ...formData,
-      carouselItems: newItems
-    });
-
-    // Clear specific item errors when user starts typing
-    if (updates.text !== undefined && errors[`carouselItem_${index}_text`]) {
-      const newErrors = { ...errors };
-      delete newErrors[`carouselItem_${index}_text`];
-      setErrors(newErrors);
+  const updateCarouselItem = useCallback((index: number, updates: Partial<CarouselItemFormData>) => {
+    try {
+      const newItems = [...formData.carouselItems];
+      newItems[index] = { ...newItems[index], ...updates };
+      
+      // Validate the updated item
+      if (updates.text !== undefined || updates.backgroundColor !== undefined || updates.textColor !== undefined) {
+        const itemErrors = validateCarouselItem(newItems[index]);
+        const newErrors = { ...errors };
+        
+        // Clear existing errors for this item
+        Object.keys(newErrors).forEach(key => {
+          if (key.startsWith(`carouselItem_${index}_`)) {
+            delete newErrors[key];
+          }
+        });
+        
+        // Add new errors if any
+        itemErrors.forEach(error => {
+          newErrors[`carouselItem_${index}_${error.field}`] = error.message;
+        });
+        
+        setErrors(newErrors);
+      }
+      
+      setFormData({
+        ...formData,
+        carouselItems: newItems
+      });
+    } catch (error) {
+      handleError(error instanceof Error ? error : new Error('Failed to update carousel item'));
     }
-  };
+  }, [formData, errors, handleError, setFormData]);
 
   const moveCarouselItem = (index: number, direction: 'up' | 'down') => {
     const newItems = [...formData.carouselItems];
@@ -119,27 +173,47 @@ export const TickerForm = ({
     }
   };
 
-  const clearError = (field: string) => {
+  const clearFieldError = useCallback((field: string) => {
     if (errors[field]) {
       const newErrors = { ...errors };
       delete newErrors[field];
       setErrors(newErrors);
     }
-  };
+  }, [errors]);
+
+  // Handle unsaved changes warning
+  const handleCloseWithWarning = useCallback(async () => {
+    if (hasChanges) {
+      const confirmed = window.confirm(
+        'You have unsaved changes. Are you sure you want to close without saving?'
+      );
+      if (!confirmed) return;
+    }
+    onCloseForm();
+  }, [hasChanges, onCloseForm]);
 
   return (
-    <div className="bg-gray-800 rounded-lg p-6">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-semibold">
-          {editingTicker ? "Edit Ticker" : "Add New Ticker"}
-        </h3>
-        <button
-          onClick={onCloseForm}
-          className="text-gray-400 hover:text-white text-2xl"
-        >
-          ×
-        </button>
-      </div>
+    <ErrorBoundary context="TickerForm" showDetails={process.env.NODE_ENV === 'development'}>
+      <div className="bg-gray-800 rounded-lg p-6">
+        <div className="flex justify-between items-center mb-4">
+          <div>
+            <h3 className="text-lg font-semibold">
+              {editingTicker ? "Edit Ticker" : "Add New Ticker"}
+            </h3>
+            {hasChanges && (
+              <p className="text-sm text-yellow-400 mt-1">
+                You have unsaved changes
+              </p>
+            )}
+          </div>
+          <button
+            onClick={handleCloseWithWarning}
+            disabled={isSubmitting}
+            className="text-gray-400 hover:text-white text-2xl disabled:opacity-50"
+          >
+            ×
+          </button>
+        </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Form Fields */}
@@ -154,9 +228,10 @@ export const TickerForm = ({
               value={formData.title || ''}
               onChange={(e) => {
                 setFormData({ ...formData, title: e.target.value });
-                clearError('title');
+                clearFieldError('title');
               }}
-              className={`w-full bg-gray-700 border rounded px-3 py-2 ${errors.title ? 'border-red-500' : 'border-gray-600'
+              disabled={isSubmitting}
+              className={`w-full bg-gray-700 border rounded px-3 py-2 disabled:opacity-50 ${errors.title ? 'border-red-500' : 'border-gray-600'
                 }`}
               placeholder="Enter Ticker title"
             />
@@ -242,8 +317,9 @@ export const TickerForm = ({
                   ...formData,
                   carouselSpeed: parseInt(e.target.value) || 50
                 });
-                clearError('carouselSpeed');
+                clearFieldError('carouselSpeed');
               }}
+              disabled={isSubmitting}
               className={`w-full bg-gray-700 border rounded px-3 py-2 ${errors.carouselSpeed ? 'border-red-500' : 'border-gray-600'
                 }`}
             />
@@ -294,7 +370,9 @@ export const TickerForm = ({
               </label>
               <button
                 onClick={addCarouselItem}
-                className="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-sm"
+                disabled={isSubmitting || formData.carouselItems.length >= 20}
+                className="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                title={formData.carouselItems.length >= 20 ? "Maximum 20 items allowed" : "Add new carousel item"}
               >
                 + Add Item
               </button>
@@ -424,11 +502,19 @@ export const TickerForm = ({
         )}
         <button
           onClick={handleSubmit}
-          className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg"
+          disabled={isSubmitting || Object.keys(errors).length > 0}
+          className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
         >
-          {editingTicker ? "Update Ticker" : "Save Ticker"}
+          {isSubmitting && (
+            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+          )}
+          {isSubmitting 
+            ? (editingTicker ? "Updating..." : "Saving...") 
+            : (editingTicker ? "Update Ticker" : "Save Ticker")
+          }
         </button>
       </div>
-    </div>
+      </div>
+    </ErrorBoundary>
   );
 };
