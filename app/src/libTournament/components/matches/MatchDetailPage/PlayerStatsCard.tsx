@@ -4,7 +4,7 @@ import type { PlayerStatsDoc } from "@lib/database/models";
 interface PlayerStatsCardProps {
   playerStats: PlayerStatsDoc[];
   editing: boolean;
-  updatePlayerStat: (target: PlayerStatsDoc, apply: (ns: Record<string, unknown>) => Record<string, unknown>) => void;
+  updatePlayerStat: (target: PlayerStatsDoc, apply: (ns: NonNullable<PlayerStatsDoc["stats"]>) => NonNullable<PlayerStatsDoc["stats"]>) => void;
 }
 
 export const PlayerStatsCard: React.FC<PlayerStatsCardProps> = ({

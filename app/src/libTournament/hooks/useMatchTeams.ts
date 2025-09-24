@@ -1,8 +1,14 @@
 import { useState, useEffect } from "react";
 import type { Team } from "@lib/types/team";
-import type { Match } from "@lib/types/match";
+import type { Match, GameResult } from "@lib/types/match";
 
-export const useMatchTeams = (match: Match | null) => {
+export const useMatchTeams = (match: Match | null): {
+  blueTeam: Team | null;
+  setBlueTeam: (team: Team | null) => void;
+  redTeam: Team | null;
+  setRedTeam: (team: Team | null) => void;
+  handleSwapTeams: (onUpdate: (updatedMatch: Match) => void) => void;
+} => {
   const [blueTeam, setBlueTeam] = useState<Team | null>(null);
   const [redTeam, setRedTeam] = useState<Team | null>(null);
 
@@ -26,11 +32,34 @@ export const useMatchTeams = (match: Match | null) => {
 
   const handleSwapTeams = (onUpdate: (updatedMatch: Match) => void): void => {
     if (!match) return;
-    
-    const updated = {
+
+    const swappedGames: GameResult[] = (match.games || []).map((g) => {
+      const newWinner = g.winner === "blue" ? "red" : g.winner === "red" ? "blue" : "ongoing";
+      return {
+        ...g,
+        winner: newWinner,
+        blueScore: newWinner === "blue" ? 1 : 0,
+        redScore: newWinner === "red" ? 1 : 0,
+        blueTeam: g.redTeam,
+        redTeam: g.blueTeam
+      } as GameResult;
+    });
+
+    const newScore = swappedGames.reduce(
+      (acc, g) => {
+        if (g.winner === "blue") acc.blue += 1;
+        if (g.winner === "red") acc.red += 1;
+        return acc;
+      },
+      { blue: 0, red: 0 }
+    );
+
+    const updated: Match = {
       ...match,
       blueTeamId: match.redTeamId,
-      redTeamId: match.blueTeamId
+      redTeamId: match.blueTeamId,
+      games: swappedGames,
+      score: newScore
     } as Match;
 
     onUpdate(updated);
