@@ -1,4 +1,4 @@
-import { ImageStorage } from "@/lib/types/common";
+import { ImageStorage } from "@lib/types/common";
 
 
 export interface Sponsorship {

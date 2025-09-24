@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@lib/auth";
-import { getMatchById, submitPrediction } from "@/libTournament/database/match";
+import { getMatchById, submitPrediction } from "@libTournament/database/match";
 import type { SubmitPredictionRequest } from "@lib/types/match";
 
 // GET: get predictions for a match
@@ -21,7 +21,7 @@ export const GET = withAuth(async (req: NextRequest) => {
 });
 
 // POST: submit a prediction for a match
-export const POST = withAuth(async (req: NextRequest, user) => {
+export const POST = withAuth(async (req: NextRequest, _user) => {
   try {
     const matchId = req.nextUrl.pathname.split("/")[4];
     const request: SubmitPredictionRequest = await req.json();

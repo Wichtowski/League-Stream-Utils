@@ -19,17 +19,6 @@ export const ChampionCacheInitializer = () => {
   const { user, isLoading } = useAuth();
   const router = useRouter();
 
-  useEffect(() => {
-    // Check if we're in Electron environment
-    const electron = typeof window !== "undefined" && !!window.electronAPI?.isElectron;
-    setIsElectron(electron);
-
-    // Only allow cache initialization when authenticated
-    if (electron && user && !isLoading) {
-      checkAndInitializeCache();
-    }
-  }, [user, isLoading, router]);
-
   const checkAndInitializeCache = async () => {
     try {
       // Check if all assets are complete
@@ -51,6 +40,17 @@ export const ChampionCacheInitializer = () => {
       router.push("/download");
     }
   };
+
+  useEffect(() => {
+    // Check if we're in Electron environment
+    const electron = typeof window !== "undefined" && !!window.electronAPI?.isElectron;
+    setIsElectron(electron);
+
+    // Only allow cache initialization when authenticated
+    if (electron && user && !isLoading) {
+      checkAndInitializeCache();
+    }
+  }, [user, isLoading, router, checkAndInitializeCache]);
 
   const handleSkip = () => {
     setShowInitializer(false);

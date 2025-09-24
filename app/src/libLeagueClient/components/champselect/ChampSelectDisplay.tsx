@@ -21,8 +21,8 @@ import { useImagePreload } from "@lib/hooks/useImagePreload";
 import { getItems } from "@lib/items";
 import { getChampions } from "@lib/champions";
 import { getSummonerSpells } from "@lib/summoner-spells";
-import { getTournamentById } from "@/libTournament/database/tournament";
-import { getMatchById } from "@/libTournament/database/match";
+import { getTournamentById } from "@libTournament/database/tournament";
+import { getMatchById } from "@libTournament/database/match";
 import { getTeamById } from "@libTeam/database";
 
 interface ChampSelectDisplayProps {

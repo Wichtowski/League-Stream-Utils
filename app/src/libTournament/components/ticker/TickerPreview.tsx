@@ -7,13 +7,11 @@ import { CarouselTicker } from "./CarouselTicker";
 interface TickerPreviewProps {
   formData: TickerFormData;
   className?: string;
-  autoPlay?: boolean;
 }
 
 export const TickerPreview = ({
   formData,
   className = "",
-  autoPlay = true
 }: TickerPreviewProps) => {
   const [previewKey, setPreviewKey] = useState(0);
 

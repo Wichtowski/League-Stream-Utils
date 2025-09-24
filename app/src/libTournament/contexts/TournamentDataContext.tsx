@@ -295,7 +295,7 @@ export function TournamentDataProvider({ children }: { children: ReactNode }) {
         setError(null);
       }
     }
-  }, [user, authLoading]); // Removed loadCachedData from dependencies to prevent infinite loop
+  }, [user, authLoading, loadCachedData]); // Removed loadCachedData from dependencies to prevent infinite loop
 
   useEffect(() => {
     // Skip sync checks in local data mode

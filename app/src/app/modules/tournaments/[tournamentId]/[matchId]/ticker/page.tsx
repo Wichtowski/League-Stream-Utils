@@ -2,12 +2,11 @@
 
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { TickerDisplay } from "@/libTournament/components/ticker/TickerDisplay";
+import { TickerDisplay } from "@libTournament/components/ticker/TickerDisplay";
 import type { Tournament, Match, Team } from "@lib/types";
 
-interface MatchTickerPageProps { }
 
-export default function MatchTickerPage({ }: MatchTickerPageProps) {
+export default function MatchTickerPage() {
   const params = useParams();
   const tournamentId = params.tournamentId as string;
   const matchId = params.matchId as string;

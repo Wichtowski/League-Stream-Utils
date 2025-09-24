@@ -395,7 +395,7 @@ export const TickerForm = ({
               {formData.carouselItems.length === 0 && (
                 <div className="text-center py-8 text-gray-400">
                   <p className="text-sm">No carousel items yet</p>
-                  <p className="text-xs">Click "Add Item" to create your first carousel item</p>
+                  <p className="text-xs">Click &quot;Add Item&quot; to create your first carousel item</p>
                 </div>
               )}
             </div>
@@ -407,7 +407,6 @@ export const TickerForm = ({
           <TickerPreview
             key={`${formData.titleBackgroundColor}-${formData.titleTextColor}-${formData.carouselBackgroundColor}`}
             formData={formData}
-            autoPlay={false}
             className="sticky top-4"
           />
         </div>

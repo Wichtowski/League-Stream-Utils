@@ -7,26 +7,13 @@ import { useNavigation } from "@lib/contexts/NavigationContext";
 import { useModal } from "@lib/contexts/ModalContext";
 import { PageWrapper } from "@lib/layout";
 import { TournamentPageCard } from "@libTournament/components";
-import { LoadingSpinner } from "@/lib/components/common";
+import { LoadingSpinner } from "@lib/components/common";
 
 export default function TournamentsPage() {
   const { tournaments, loading: tournamentsLoading, error, refreshTournaments } = useTournaments();
   const { setActiveModule } = useNavigation();
   const { showAlert } = useModal();
   const hasRefreshed = useRef(false);
-
-  const placeholderTournament = {
-    _id: "placeholder",
-    name: "",
-    abbreviation: "",
-    status: "draft" as const,
-    matchFormat: "",
-    tournamentFormat: "",
-    registeredTeams: [],
-    maxTeams: 0,
-    startDate: new Date(""),
-    fearlessDraft: false
-  };
 
   useEffect(() => {
     setActiveModule("tournaments");
@@ -37,7 +24,7 @@ export default function TournamentsPage() {
       hasRefreshed.current = true;
       refreshTournaments();
     }
-  }, [setActiveModule]); // Removed refreshTournaments from dependencies
+  }, [setActiveModule, refreshTournaments]);
 
   useEffect(() => {
     if (error) {

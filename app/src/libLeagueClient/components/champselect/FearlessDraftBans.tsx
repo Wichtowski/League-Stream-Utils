@@ -5,7 +5,7 @@ import { PlayerRole } from "@lib/types/common";
 
 import { getAllRoleIconAssets } from "../common";
 import { useImagePreload } from "@lib/hooks/useImagePreload";
-import { getLatestVersion } from "@/lib/services/common/unified-asset-cache";
+import { getLatestVersion } from "@lib/services/common/unified-asset-cache";
 
 interface FearlessBan {
   championId: number;

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@lib/auth";
-import { getMatchById, updateMatch, deleteMatch } from "@/libTournament/database/match";
+import { getMatchById, updateMatch, deleteMatch } from "@libTournament/database/match";
 import type { UpdateMatchRequest } from "@lib/types/match";
 
 // GET: get a specific match

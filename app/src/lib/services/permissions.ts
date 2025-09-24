@@ -1,4 +1,3 @@
-import { connectToDatabase } from "@lib/database/connection";
 import {
   TournamentPermissionModel,
   PermissionAuditModel,

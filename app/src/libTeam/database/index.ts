@@ -2,7 +2,6 @@ import { TeamModel } from "@libTeam/database/models";
 import type { Team, CreateTeamRequest } from "@lib/types";
 import type { Document } from "mongoose";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const convertMongoDoc = (doc: Document): Team => {
   const obj = doc.toObject();
 

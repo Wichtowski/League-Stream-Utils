@@ -24,7 +24,7 @@ interface DisplayData {
     name: string;
     abbreviation: string;
   };
-  Ticker: Ticker | EmbeddedTicker;
+  ticker: Ticker | EmbeddedTicker;
 }
 
 export const TickerDisplay = ({
@@ -56,7 +56,7 @@ export const TickerDisplay = ({
             name: tournament.name,
             abbreviation: tournament.abbreviation
           },
-          Ticker: tournament.ticker
+          ticker: tournament.ticker
         });
       }
       setIsLoading(false);

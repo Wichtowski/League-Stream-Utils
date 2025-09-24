@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getChampionStatsForOBS } from "@lib/database/champion-stats";
-import { getTournamentById } from "@/libTournament/database";
+import { getTournamentById } from "@libTournament/database";
 
 export async function GET(req: NextRequest) {
   try {

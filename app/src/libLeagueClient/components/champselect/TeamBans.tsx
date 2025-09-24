@@ -72,7 +72,7 @@ const TeamBansComponent: React.FC<TeamBansProps> = ({
         onRegisterImages(urls);
       }
     }
-  }, [bans, banPlaceholder, isFearlessDraft, usedChampions]); // Remove onRegisterImages dependency
+  }, [bans, banPlaceholder, isFearlessDraft, usedChampions, onRegisterImages]); // Remove onRegisterImages dependency
 
   // Check if this team should show hover effect for bans
   const isBanHovering =

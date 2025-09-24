@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@lib/auth";
-import { connectToDatabase } from "@/lib/database/connection";
-import { CommentatorModel, type CommentatorDoc } from "@/libTournament/database/models";
+import { CommentatorModel, type CommentatorDoc } from "@libTournament/database/models";
 
 // GET: get all commentators
-export const GET = withAuth(async (req: NextRequest) => {
+export const GET = withAuth(async (_req: NextRequest) => {
   try {
     const commentators = await CommentatorModel.find().sort({ name: 1 }) as CommentatorDoc[];
 
@@ -66,7 +65,7 @@ export const POST = withAuth(async (req: NextRequest, user) => {
 });
 
 // PUT: update a commentator
-export const PUT = withAuth(async (req: NextRequest, user) => {
+export const PUT = withAuth(async (req: NextRequest, _user) => {
   try {
     const { id, name, xHandle, instagramHandle, twitchHandle } = await req.json();
 

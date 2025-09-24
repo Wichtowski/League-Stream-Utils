@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@lib/auth";
-import { getMatchesByTournament } from "@/libTournament/database/match";
-import { getTournamentById } from "@/libTournament/database/tournament";
+import { getMatchesByTournament } from "@libTournament/database/match";
+import { getTournamentById } from "@libTournament/database/tournament";
 
 // GET: get all matches for a tournament
 export const GET = withAuth(async (req: NextRequest) => {

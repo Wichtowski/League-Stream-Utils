@@ -6,7 +6,7 @@ import { useNavigation } from "@lib/contexts";
 import { PageWrapper } from "@lib/layout";
 import { TeamListCard } from "@libTeam/components";
 import type { Team } from "@lib/types";
-import { LoadingSpinner } from "@/lib/components/common";
+import { LoadingSpinner } from "@lib/components/common";
 
 export default function TeamsPage(): ReactElement {
   const router = useRouter();

@@ -6,7 +6,6 @@ import { useNavigation } from "@lib/contexts/NavigationContext";
 import { useAuth } from "@lib/contexts/AuthContext";
 import { PageWrapper } from "@lib/layout";
 import { PermissionManager, PermissionRequestManager } from "@lib/components/permissions";
-import { PermissionGuard } from "@lib/components/permissions/PermissionGuard";
 import { Permission } from "@lib/types/permissions";
 import { LoadingSpinner } from "@lib/components/common";
 import { usePermissionCheck } from "@lib/hooks/usePermissions";
@@ -64,7 +63,7 @@ export default function TournamentPermissionsPage(): React.ReactElement {
       >
         <div className="text-center py-12">
           <h2 className="text-2xl text-red-400 mb-4">Access Denied</h2>
-          <p className="text-gray-400 mb-4">You don't have permission to manage tournament permissions</p>
+          <p className="text-gray-400 mb-4">You don&apos;t have permission to manage tournament permissions</p>
           <button
             onClick={() => router.push(`/modules/tournaments/${tournamentId}`)}
             className="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-lg"

@@ -30,7 +30,7 @@ export const useMatchPredictions = (match: Match | null) => {
       }
     };
     loadPredictions();
-  }, [match?._id]);
+  }, [match]);
 
   const submitPrediction = async (side: "blue" | "red"): Promise<boolean> => {
     if (!match) return false;

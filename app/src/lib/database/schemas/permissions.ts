@@ -1,5 +1,5 @@
 import { Schema } from "mongoose";
-import { Role, Permission } from "@lib/types/permissions";
+import { Role } from "@lib/types/permissions";
 
 // Schema for tournament-specific permissions
 export const TournamentPermissionSchema = new Schema({

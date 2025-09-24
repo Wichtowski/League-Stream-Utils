@@ -12,7 +12,7 @@ import {
   OBSDisplayInfo,
   TickerManager,
   TickerPreview
-} from "@/libTournament/components/ticker";
+} from "@libTournament/components/ticker";
 import { PageWrapper } from "@lib/layout";
 
 interface TournamentTickerPageProps {
@@ -32,7 +32,7 @@ export default function TournamentTickerPage({ params }: TournamentTickerPagePro
   // Ticker management state
   const [Ticker, setTicker] = useState<Ticker | null>(null);
   const [TickerLoading, setTickerLoading] = useState(true);
-  const [previewTicker, setPreviewTicker] = useState<TickerFormData | null>(null);
+  const [, setPreviewTicker] = useState<TickerFormData | null>(null);
 
   useEffect(() => {
     setActiveModule("tournaments");
@@ -147,7 +147,6 @@ export default function TournamentTickerPage({ params }: TournamentTickerPagePro
                         carouselSpeed: Ticker.carouselSpeed,
                         carouselBackgroundColor: Ticker.carouselBackgroundColor || "#1f2937",
                       }}
-                      autoPlay={true}
                     />
                   </div>
                 </div>

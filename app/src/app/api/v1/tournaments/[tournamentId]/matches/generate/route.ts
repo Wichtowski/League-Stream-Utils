@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@lib/auth";
 import type { JWTPayload } from "@lib/types/auth";
-import { getTournamentById } from "@/libTournament/database/tournament";
+import { getTournamentById } from "@libTournament/database/tournament";
 import { createMatch } from "@libTournament/database/schemas";
 import { MatchGenerator } from "@lib/services/tournament/match-generator";
 

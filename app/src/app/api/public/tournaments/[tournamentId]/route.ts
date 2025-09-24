@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getTournamentById } from "@/libTournament/database/tournament";
+import { getTournamentById } from "@libTournament/database/tournament";
 
 // GET /api/public/tournaments/[tournamentId] - Get specific tournament (public)
 export async function GET(req: NextRequest) {

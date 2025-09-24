@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import {
   CloudIcon,
-  DocumentDuplicateIcon,
   ShieldCheckIcon,
   ComputerDesktopIcon,
   CheckCircleIcon,
@@ -70,7 +69,7 @@ export const ElectronSettings = () => {
     assets: { totalSize: "0 MB", fileCount: 0, formattedSize: "0 MB" }
   });
 
-  const [templates, setTemplates] = useState<TournamentTemplate[]>([]);
+  const [_templates, setTemplates] = useState<TournamentTemplate[]>([]);
   const [championsVersion, setChampionsVersion] = useState("");
   const [integrityCheckResult, setIntegrityCheckResult] = useState<IntegrityCheckResult | null>(null);
   const [isCheckingIntegrity, setIsCheckingIntegrity] = useState(false);
@@ -257,23 +256,6 @@ export const ElectronSettings = () => {
       });
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleExportTemplate = async (templateId: string): Promise<void> => {
-    try {
-      const blob = await tournamentTemplates.exportTemplate(templateId);
-      if (blob) {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `tournament-template-${templateId}.json`;
-        a.click();
-        URL.revokeObjectURL(url);
-      }
-    } catch (error) {
-      console.error("Failed to export template:", error);
-      await showAlert({ type: "error", message: "Failed to export template." });
     }
   };
 
@@ -516,7 +498,7 @@ export const ElectronSettings = () => {
                       <div className="flex-1 min-w-0">
                         <h5 className="text-sm font-medium text-gray-200 mb-1">Sign Out</h5>
                         <p className="text-sm text-gray-400 mb-3">
-                          End your current session and return to the login page. You'll need to sign in again to access your account.
+                          End your current session and return to the login page. You&apos;ll need to sign in again to access your account.
                         </p>
                         <LogoutButton 
                           showConfirmation={true} 

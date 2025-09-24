@@ -26,7 +26,7 @@ export const useMatchCommentators = (match: Match | null) => {
       }
     };
     loadCommentators();
-  }, [match?._id]);
+  }, [match]);
 
   const handleAssignCommentator = async (): Promise<boolean> => {
     if (!match || !newCommentatorId) return false;

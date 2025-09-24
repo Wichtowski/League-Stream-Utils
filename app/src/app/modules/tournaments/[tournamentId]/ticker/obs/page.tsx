@@ -1,6 +1,6 @@
 "use client";
 
-import { TickerDisplay } from "@/libTournament/components/ticker";
+import { TickerDisplay } from "@libTournament/components/ticker";
 import { use } from "react";
 
 interface PageProps {

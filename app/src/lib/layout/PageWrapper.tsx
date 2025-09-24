@@ -1,6 +1,5 @@
 import React from "react";
 import { PageLayout } from "./PageLayout";
-import { BreadcrumbItem } from "@lib/components/common";
 import { AuthGuard } from "@lib/auth/components/AuthGuard";
 import { PageLayoutProps } from "./PageLayout";
 

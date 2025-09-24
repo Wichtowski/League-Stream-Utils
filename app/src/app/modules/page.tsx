@@ -13,7 +13,7 @@ import { SpotlightCard } from "@lib/components/modules/SpotlightCard";
 import { Button } from "@lib/components/common/button/Button";
 import { matchStorage } from "@lib/services/match/match-storage";
 import { LastSelectedMatch } from "@lib/services/match/match-storage";
-import { LoadingSpinner } from "@/lib/components/common";
+import { LoadingSpinner } from "@lib/components/common";
 
 export default function ModulesPage() {
   const router = useRouter();

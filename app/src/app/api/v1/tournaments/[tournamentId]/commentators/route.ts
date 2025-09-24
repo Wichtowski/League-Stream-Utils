@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@lib/auth";
-import { getMatchesByTournament } from "@/libTournament/database/match";
-import { connectToDatabase } from "@/lib/database/connection";
-import { MatchModel, CommentatorModel, type CommentatorDoc } from "@/libTournament/database/models";
+import { getMatchesByTournament } from "@libTournament/database/match";
+import { connectToDatabase } from "@lib/database/connection";
+import { MatchModel, CommentatorModel, type CommentatorDoc } from "@libTournament/database/models";
 import type { MatchCommentator } from "@lib/types/match";
 
 // GET: get all commentators for a tournament

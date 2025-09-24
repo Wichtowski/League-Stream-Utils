@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@lib/auth";
-import { connectToDatabase } from "@/lib/database/connection";
-import { MatchModel, CommentatorModel, type MatchDoc, type CommentatorDoc } from "@/libTournament/database/models";
+import { connectToDatabase } from "@lib/database/connection";
+import { MatchModel, CommentatorModel, type MatchDoc, type CommentatorDoc } from "@libTournament/database/models";
 
 // Remove the interface since we're using the typed CommentatorDoc
 

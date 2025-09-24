@@ -4,17 +4,13 @@ import { getPlayerStatsByPlayer, getPlayerCareerStats, getPlayerChampionMastery 
 import type { JWTPayload } from "@lib/types/auth";
 
 // GET /api/v1/player-stats/[playerId] - Get player statistics and career data
-export const GET = withAuth(async (req: NextRequest, user: JWTPayload) => {
+export const GET = withAuth(async (req: NextRequest, _user: JWTPayload) => {
   try {
     const url = new URL(req.url);
     // Extract playerId from the pathname, handling both _id and id formats
     const pathSegments = url.pathname.split("/");
     const playerId = pathSegments[pathSegments.length - 1];
     const { searchParams } = url;
-
-    console.log("Player stats request for playerId:", playerId);
-    console.log("URL pathname:", url.pathname);
-    console.log("Path segments:", pathSegments);
 
     const includeCareer = searchParams.get("includeCareer") === "true";
     const includeChampions = searchParams.get("includeChampions") === "true";

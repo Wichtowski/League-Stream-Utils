@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getTournament } from "@/libTournament/database/tournament";
+import { getTournament } from "@libTournament/database/tournament";
 
 // GET /api/v1/tournaments/[tournamentId]/ticker/display - Get tournament Ticker for OBS display
 export const GET = async (req: NextRequest, { params }: { params: Promise<{ tournamentId: string }> }) => {

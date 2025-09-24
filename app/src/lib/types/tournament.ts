@@ -1,8 +1,8 @@
 import { MatchFormat } from "./match";
 import { ImageStorage } from "./common";
 import { Player } from "./game";
-import { Ticker, EmbeddedTicker } from "@/libTournament/types/ticker"
-import { Sponsorship } from "@/libTournament/types/sponsors"
+import { Ticker, EmbeddedTicker } from "@libTournament/types/ticker"
+import { Sponsorship } from "@libTournament/types/sponsors"
 
 export type TournamentFormat = "Ladder" | "Swiss into Ladder" | "Round Robin into Ladder" | "Groups";
 

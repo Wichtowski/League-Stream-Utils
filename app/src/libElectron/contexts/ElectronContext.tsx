@@ -1,7 +1,6 @@
 "use client";
 
 import React, { createContext, useContext, ReactNode, useState, useEffect } from "react";
-import { assetDownloaderManager } from "@lib/services/assets";
 
 interface ElectronContextType {
   isElectron: boolean;
