@@ -35,7 +35,7 @@ export const PUT = withAuth(async (req: NextRequest, user) => {
 
     // Find and update the sponsor
     const currentSponsors = tournament.sponsors || [];
-    const sponsorIndex = currentSponsors.findIndex((sponsor) => sponsor.id === sponsorId);
+    const sponsorIndex = currentSponsors.findIndex((sponsor) => sponsor._id === sponsorId);
 
     if (sponsorIndex === -1) {
       return NextResponse.json({ error: "Sponsor not found" }, { status: 404 });
@@ -51,8 +51,8 @@ export const PUT = withAuth(async (req: NextRequest, user) => {
       sponsors: updatedSponsors
     });
 
-    if (!result.success) {
-      return NextResponse.json({ error: result.error || "Failed to update sponsor" }, { status: 500 });
+    if (!result?._id) {
+      return NextResponse.json({ error: "Failed to update sponsor" }, { status: 500 });
     }
 
     return NextResponse.json({ sponsor: updatedSponsors[sponsorIndex] });
@@ -83,14 +83,14 @@ export const DELETE = withAuth(async (req: NextRequest, user) => {
 
     // Remove the sponsor
     const currentSponsors = tournament.sponsors || [];
-    const updatedSponsors = currentSponsors.filter((sponsor) => sponsor.id !== sponsorId);
+    const updatedSponsors = currentSponsors.filter((sponsor) => sponsor._id !== sponsorId);
 
     const result = await updateTournamentFields(tournamentId, {
       sponsors: updatedSponsors
     });
 
-    if (!result.success) {
-      return NextResponse.json({ error: result.error || "Failed to delete sponsor" }, { status: 500 });
+    if (!result?._id) {
+      return NextResponse.json({ error: "Failed to delete sponsor" }, { status: 500 });;
     }
 
     return NextResponse.json({ message: "Sponsor deleted successfully" });

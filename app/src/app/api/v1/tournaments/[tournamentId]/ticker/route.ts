@@ -26,21 +26,12 @@ export const GET = withAuth(async (req: NextRequest, user) => {
         }
 
         // Return single Ticker or null
-        let Ticker = tournament.ticker
+        let ticker = tournament.ticker
             ? tournament.ticker
             : null;
 
-        // Ensure backward compatibility for existing tickers
-        if (Ticker) {
-            Ticker = {
-                ...Ticker,
-                titleBackgroundColor: Ticker.titleBackgroundColor || "#1f2937",
-                titleTextColor: Ticker.titleTextColor || "#ffffff",
-                carouselBackgroundColor: Ticker.carouselBackgroundColor || "#1f2937"
-            };
-        }
 
-        return NextResponse.json({ Ticker });
+        return NextResponse.json({ ticker });
     } catch (error) {
         console.error("Error fetching tournament Ticker:", error);
         return NextResponse.json({ error: "Internal server error" }, { status: 500 });
@@ -74,8 +65,6 @@ export const POST = withAuth(async (req: NextRequest, user) => {
             ? tournament.ticker
             : null;
 
-
-
         // Create a clean ticker object without _id for embedded document
         const cleanTicker: EmbeddedTicker = {
             title: tickerData.title,
@@ -90,22 +79,9 @@ export const POST = withAuth(async (req: NextRequest, user) => {
 
         // Use the existing updateTournr object:", JSON.stringify(cleanTicker, null, 2));
 
-        // Use the existing updateTournamentFields function (no need for extra DB connection)
-        console.log("Updating tournament using existing function...");
-        console.log("Tournament ID:", tournamentId);
-        console.log("Update payload:", JSON.stringify({ Ticker: cleanTicker }, null, 2));
-
         const result = await updateTournamentFields(tournamentId, {
             ticker: cleanTicker
         });
-
-        console.log("Update result:", result ? "Success" : "Failed");
-
-        if (result) {
-            console.log("Updated tournament Ticker field:", JSON.stringify(result.ticker, null, 2));
-        } else {
-            console.log("No result returned from updateTournamentFields");
-        }
 
         if (!result) {
             console.log("Update failed - no result returned");
@@ -113,7 +89,7 @@ export const POST = withAuth(async (req: NextRequest, user) => {
         }
 
         return NextResponse.json({
-            Ticker: cleanTicker,
+            ticker: cleanTicker,
             message: existingTicker ? "Ticker updated successfully" : "Ticker created successfully"
         }, { status: existingTicker ? 200 : 201 });
     } catch (error) {
