@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import type { Ticker, EmbeddedTicker, } from "@libTournament/types";
-import type { Tournament } from "@lib/types/tournament"
-import type { Match, Team } from "@lib/types";
+import { Ticker, EmbeddedTicker, Tournament, Match } from "@libTournament/types";
+import { Team } from "@libTeam/types";
 import { CarouselTicker } from "./CarouselTicker";
 import { ErrorBoundary } from "@lib/components/common/ErrorBoundary";
 import { useErrorHandling } from "@lib/hooks/useErrorHandling";
@@ -60,7 +59,7 @@ export const TickerDisplay = ({
   const ticker = displayData?.ticker || null
 
   // Fetch ticker data from API (only when using tournamentId mode)
-  const fetchtickerData = useCallback(async () => {
+  const fetchTickerData = useCallback(async () => {
     if (!tournamentId) {
       // If tournament data is passed directly, use it
       if (tournament?.ticker) {
@@ -131,14 +130,14 @@ export const TickerDisplay = ({
 
   // Initial fetch and periodic refresh
   useEffect(() => {
-    fetchtickerData();
+    fetchTickerData();
 
     // Only set up interval if refreshInterval is greater than 0
     if (refreshInterval > 0) {
-      const interval = setInterval(fetchtickerData, refreshInterval);
+      const interval = setInterval(fetchTickerData, refreshInterval);
       return () => clearInterval(interval);
     }
-  }, [fetchtickerData, refreshInterval]);
+  }, [fetchTickerData, refreshInterval]);
 
   // Get the single ticker (first active ticker)
 
@@ -148,12 +147,16 @@ export const TickerDisplay = ({
       <div className={`w-full h-screen bg-transparent flex items-center justify-center ${className}`}>
         <div className="bg-red-900/20 backdrop-blur-sm border border-red-500/30 rounded-lg p-6 text-center max-w-md">
           <div className="text-red-400 text-lg font-semibold mb-2">Ticker Connection Error</div>
-          <div className="text-red-300 text-sm mb-4">{error.message}</div>
+          <div className="text-red-300 text-sm mb-4">{
+            typeof error.message === 'string'
+              ? error.message
+              : (error.message instanceof Error ? error.message.message : String(error.message ?? ''))
+          }</div>
           <div className="text-red-400 text-xs mb-4">
             Retry {retryCount}/{maxRetries} • Last attempt: {new Date(lastFetchTime).toLocaleTimeString()}
           </div>
           <button
-            onClick={fetchtickerData}
+            onClick={fetchTickerData}
             disabled={isLoading}
             className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded text-sm transition-colors disabled:opacity-50"
           >

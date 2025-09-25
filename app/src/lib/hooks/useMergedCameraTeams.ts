@@ -3,8 +3,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@lib/contexts/AuthContext";
 import { useCameras } from "@libCamera/context/CamerasContext";
+import { CameraPlayer, CameraTeam } from "@libCamera/types";
+import { Team } from "@libTeam/types";
 
-import type { CameraPlayer, CameraTeam, Team } from "@lib/types";
 
 export type MergedPlayer = Team["players"]["main"][number] & {
   inGameName: string;

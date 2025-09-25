@@ -1,5 +1,5 @@
 import { LivePlayer } from "@libLeagueClient/types";
-import type { Match } from "@lib/types/match";
+import type { Match } from "@libTournament/types/matches";
 import type { Player } from "@lib/types/game";
 import type { PlayerRole } from "@lib/types/common";
 

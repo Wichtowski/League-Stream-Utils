@@ -2,11 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@lib/auth";
 import { getMatchesByTournament } from "@libTournament/database/match";
 import { getTournamentById } from "@libTournament/database/tournament";
+import { JWTPayload } from "@lib/types/auth";
 
 // GET: get all matches for a tournament
-export const GET = withAuth(async (req: NextRequest) => {
+export const GET = withAuth(async (_req: NextRequest, _user: JWTPayload, params: Promise<Record<string, string>>) => {
   try {
-    const tournamentId = req.nextUrl.pathname.split("/")[4];
+    const { tournamentId } = await params;
 
     // Check if tournament exists
     const tournament = await getTournamentById(tournamentId);

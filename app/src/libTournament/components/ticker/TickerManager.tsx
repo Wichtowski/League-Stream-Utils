@@ -4,12 +4,12 @@ import { useState, useEffect, useCallback } from "react";
 import { useModal } from "@lib/contexts/ModalContext";
 import { LoadingSpinner } from "@lib/components/common";
 import { ErrorBoundary } from "@lib/components/common/ErrorBoundary";
-import type { Ticker, Tournament } from "@lib/types";
-import type { TickerFormData } from "@lib/types/forms";
-import { createDefaultTickerForm } from "@lib/types/forms";
+import type { Ticker, TickerFormData } from "@libTournament/types";
+import type { Tournament } from "@lib/types/championStats";
+import { createDefaultTickerForm } from "@libTournament/utils/ticker/defaultValues";
 import { TickerForm } from "./TickerForm";
 import { useApiCall } from "@lib/hooks/useErrorHandling";
-import { sanitizeStreamBannerForm } from "@lib/utils/stream-banner-validation";
+import { sanitizeStreamBannerForm } from "@libTournament/utils/ticker/validators";
 
 interface TickerManagerProps {
   tournamentId: string;
@@ -180,7 +180,7 @@ export const TickerManager = ({
                 <svg className="h-5 w-5 text-red-400 mr-2" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                 </svg>
-                <span className="text-red-800 dark:text-red-200">{error.message}</span>
+                <span className="text-red-800 dark:text-red-200">{error.message instanceof Error ? error.message.message : error.message}</span>
               </div>
               <button
                 onClick={clearError}

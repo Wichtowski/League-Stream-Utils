@@ -3,45 +3,16 @@
 import React, { useState, useEffect } from "react";
 import { useTournaments } from "@libTournament/contexts/TournamentsContext";
 import { PageWrapper } from "@lib/layout/PageWrapper";
-import type { Tournament } from "@lib/types";
-import type { BracketStructure, BracketNode } from "@lib/types/tournament";
+import { Tournament, BracketStructure, BracketNode } from "@libTournament/types";
+import { useParams } from "next/navigation";
+import { Match } from "@libTournament/types";
 
-interface Match {
-  id: string;
-  teamA: string;
-  teamB: string;
-  startTime: string;
-  tournament?: string;
-}
-
-const quickMatches: Match[] = [
-  {
-    id: "q1",
-    teamA: "Team Alpha",
-    teamB: "Team Beta",
-    startTime: "2024-06-10T18:00:00Z",
-    tournament: "Quick Match"
-  },
-  {
-    id: "q2",
-    teamA: "Team Gamma",
-    teamB: "Team Delta",
-    startTime: "2024-06-10T20:00:00Z",
-    tournament: "Quick Match"
-  }
-];
-
-interface ComentatorPredictionsPageProps {
-  params: Promise<{
-    tournamentId: string;
-  }>;
-}
-
-export default function ComentatorPredictionsPage({ params }: ComentatorPredictionsPageProps): React.ReactElement {
+export default function CommentatorPredictionsPage(): React.ReactElement {
+  const params = useParams();
+  const tournamentId = params.tournamentId as string;
   const { tournaments, getBracket } = useTournaments();
   const [mode, setMode] = useState<"tournament" | "quick">();
   const [selectedTournament, setSelectedTournament] = useState<Tournament | null>(null);
-  const [tournamentId, setTournamentId] = useState<string>("");
   const [matches, setMatches] = useState<Match[]>([]);
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const [loadingMatches, setLoadingMatches] = useState(false);
@@ -49,13 +20,8 @@ export default function ComentatorPredictionsPage({ params }: ComentatorPredicti
   const selectedTournamentName: string = selectedTournament ? selectedTournament.name : "Loading...";
 
   useEffect(() => {
-    const resolveParams = async () => {
-      const resolvedParams = await params;
-      setTournamentId(resolvedParams.tournamentId);
-      setSelectedTournament(tournaments.find((t) => t._id === resolvedParams.tournamentId) || null);
-    };
-    resolveParams();
-  }, [params, tournaments]);
+    setSelectedTournament(tournaments.find((t) => t._id === tournamentId) || null);
+  }, [tournamentId, tournaments]);
 
   useEffect(() => {
     if (mode === "tournament" && selectedTournament) {
@@ -68,11 +34,25 @@ export default function ComentatorPredictionsPage({ params }: ComentatorPredicti
             const matchList: Match[] = nodes
               .filter((n: BracketNode) => n.team1 && n.team2)
               .map((n: BracketNode) => ({
-                id: n._id,
-                teamA: n.team1!,
-                teamB: n.team2!,
-                startTime: n.scheduledTime ? new Date(n.scheduledTime).toISOString() : "",
-                tournament: selectedTournament.name
+                _id: n._id,
+                name: `${n.team1} vs ${n.team2}`,
+                blueTeamId: n.team1!,
+                redTeamId: n.team2!,
+                format: selectedTournament.matchFormat,
+                patchName: selectedTournament.patchVersion || "",
+                scheduledTime: n.scheduledTime ? new Date(n.scheduledTime) : undefined,
+                startTime: n.scheduledTime ? new Date(n.scheduledTime) : undefined,
+                endTime: n.scheduledTime ? new Date(n.scheduledTime) : undefined,
+                status: "scheduled",
+                winner: undefined,
+                score: undefined,
+                games: [],
+                commentators: [],
+                predictions: [],
+                createdBy: selectedTournament.userId,
+                createdAt: selectedTournament.createdAt,
+                updatedAt: selectedTournament.updatedAt,
+                type: "tournament",
               }));
             setMatches(matchList);
           } else {
@@ -84,8 +64,6 @@ export default function ComentatorPredictionsPage({ params }: ComentatorPredicti
           setMatches([]);
           setLoadingMatches(false);
         });
-    } else if (mode === "quick") {
-      setMatches(quickMatches);
     } else {
       setMatches([]);
     }
@@ -96,7 +74,7 @@ export default function ComentatorPredictionsPage({ params }: ComentatorPredicti
   if (!mode) {
     return (
       <PageWrapper
-        title="Comentator Predictions"
+        title="Commentator Predictions"
         requireAuth={false}
         breadcrumbs={[
           { label: "Tournaments", href: "/modules/tournaments" },
@@ -199,13 +177,13 @@ export default function ComentatorPredictionsPage({ params }: ComentatorPredicti
         ) : (
           <ul className="space-y-4">
             {matches.map((match) => (
-              <li key={match.id} className="bg-gray-800 rounded-lg p-4 flex justify-between items-center">
+              <li key={match._id} className="bg-gray-800 rounded-lg p-4 flex justify-between items-center">
                 <div>
                   <div className="text-white font-semibold">
-                    {match.teamA} vs {match.teamB}
+                    {match.blueTeamId} vs {match.redTeamId}
                   </div>
                   <div className="text-gray-400 text-sm">
-                    {match.startTime ? new Date(match.startTime).toLocaleString() : ""}
+                    {match.scheduledTime ? new Date(match.scheduledTime).toLocaleString() : ""}
                   </div>
                 </div>
                 <button
@@ -234,7 +212,7 @@ export default function ComentatorPredictionsPage({ params }: ComentatorPredicti
   // Redirect to the match page predictions section
   if (selectedMatch) {
     if (typeof window !== "undefined") {
-      window.location.href = `/modules/tournaments/${tournamentId}/matches/${selectedMatch.id}`;
+      window.location.href = `/modules/tournaments/${tournamentId}/matches/${selectedMatch._id}`;
     }
     return <PageWrapper requireAuth={false}>{null}</PageWrapper>;
   }

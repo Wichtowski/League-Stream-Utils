@@ -5,10 +5,9 @@ import { getTournamentById } from "@libTournament/database/tournament";
 import { createMatch } from "@libTournament/database/schemas";
 import { MatchGenerator } from "@lib/services/tournament/match-generator";
 
-export const POST = withAuth(async (req: NextRequest, user: JWTPayload) => {
+export const POST = withAuth(async (req: NextRequest, user: JWTPayload, params: Promise<Record<string, string>>) => {
   try {
-    const url = new URL(req.url);
-    const tournamentId = url.pathname.split("/")[5];
+    const { tournamentId } = await params;
 
     const tournament = await getTournamentById(tournamentId);
     if (!tournament) {

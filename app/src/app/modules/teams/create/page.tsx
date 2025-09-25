@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { TeamCreationForm } from "@libTeam/components";
 import { PageWrapper } from "@lib/layout";
-import { CreateTeamRequest } from "@lib/types";
+import { CreateTeamRequest } from "@libTeam/types";
 import { useNavigation, useModal } from "@lib/contexts";
 
 export default function CreateTeamPage() {

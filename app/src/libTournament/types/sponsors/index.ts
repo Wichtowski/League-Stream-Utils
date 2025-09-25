@@ -14,3 +14,5 @@ export interface Sponsorship {
   createdAt: Date;
   updatedAt: Date;
 }
+
+export type { SponsorFormData } from "./forms";

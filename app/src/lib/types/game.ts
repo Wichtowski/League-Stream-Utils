@@ -1,6 +1,6 @@
-import { MatchFormat } from "./match";
+import { MatchFormat } from "@libTournament/types";
+import { Team, Coach } from "@libTeam/types";
 import { GamePhase, PlayerRole, ImageStorage } from "./common";
-import { Team } from "./team";
 
 export interface Champion {
   _id: number;
@@ -25,11 +25,6 @@ export interface ChampionSpell {
   isPassive?: boolean;
   isRecast?: boolean;
   baseSpell?: string;
-}
-
-export interface Coach {
-  name: string;
-  _id?: string;
 }
 
 export interface GameConfig {

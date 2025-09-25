@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { connectToDatabase } from "@lib/database/connection";
 import { Schema, models, model } from "mongoose";
-import { CameraPlayer, CameraTeam } from "@lib/types";
+import { CameraPlayer, CameraTeam } from "@libCamera/types";
 
 // Reference the CameraSettings model (should match the one in settings/route.ts)
 const CameraSettingsSchema = new Schema({

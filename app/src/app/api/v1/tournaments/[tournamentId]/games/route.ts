@@ -3,12 +3,12 @@ import { withAuth } from "@lib/auth";
 import { recordGameResult } from "@lib/database/champion-stats";
 import { getTournamentById } from "@libTournament/database/tournament";
 import type { JWTPayload } from "@lib/types/auth";
-import type { GameResult } from "@lib/types";
+import type { GameResult } from "@libTournament/types";
 
 // POST /api/v1/tournaments/[tournamentId]/games - Record a game result
-export const POST = withAuth(async (req: NextRequest, user: JWTPayload) => {
+export const POST = withAuth(async (req: NextRequest, user: JWTPayload, params: Promise<Record<string, string>>) => {
   try {
-    const tournamentId = new URL(req.url).pathname.split("/")[4]; // Extract tournamentId from path
+    const { tournamentId } = await params;
     const gameResultData: Omit<GameResult, "tournamentId"> = await req.json();
 
     // Check if tournament exists and user has access

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { TickerFormData } from "@lib/types";
+import { TickerFormData } from "@libTournament/types";
 import { CarouselTicker } from "./CarouselTicker";
 
 interface TickerPreviewProps {

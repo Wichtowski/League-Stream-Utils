@@ -3,19 +3,12 @@ import { withAuth } from "@lib/auth";
 import { getTournament, updateTournamentFields } from "@libTournament/database/tournament";
 import { Sponsorship } from "@libTournament/types";
 
-// Utility function to extract IDs from URL
-const extractIds = (req: NextRequest): { tournamentId: string; sponsorId: string } => {
-  const pathParts = req.nextUrl.pathname.split("/");
-  return {
-    tournamentId: pathParts[4],
-    sponsorId: pathParts[6]
-  };
-};
+
 
 // PUT /api/v1/tournaments/[tournamentId]/sponsors/[sponsorId] - Update sponsor
-export const PUT = withAuth(async (req: NextRequest, user) => {
+export const PUT = withAuth(async (req: NextRequest, user, params: Promise<Record<string, string>>) => {
   try {
-    const { tournamentId, sponsorId } = extractIds(req);
+    const { tournamentId, sponsorId } = await params;
 
     if (!tournamentId || !sponsorId) {
       return NextResponse.json({ error: "Tournament ID and Sponsor ID are required" }, { status: 400 });
@@ -63,9 +56,9 @@ export const PUT = withAuth(async (req: NextRequest, user) => {
 });
 
 // DELETE /api/v1/tournaments/[tournamentId]/sponsors/[sponsorId] - Delete sponsor
-export const DELETE = withAuth(async (req: NextRequest, user) => {
+export const DELETE = withAuth(async (_req: NextRequest, user, params: Promise<Record<string, string>>) => {
   try {
-    const { tournamentId, sponsorId } = extractIds(req);
+    const { tournamentId, sponsorId } = await params;
 
     if (!tournamentId || !sponsorId) {
       return NextResponse.json({ error: "Tournament ID and Sponsor ID are required" }, { status: 400 });

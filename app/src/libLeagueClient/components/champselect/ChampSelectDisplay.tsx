@@ -2,9 +2,9 @@
 
 import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import type { PlayerRole } from "@lib/types/common";
-import type { EnhancedChampSelectSession, Team } from "@lib/types";
-import type { Match } from "@lib/types/match";
-import type { Tournament } from "@lib/types/tournament";
+import type { EnhancedChampSelectSession } from "@lib/types";
+import type { Team } from "@libTeam/types";
+import type { Tournament, Match } from "@libTournament/types";
 import {
   // TournamentHeader,
   TeamSection,

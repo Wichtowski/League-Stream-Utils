@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { Tournament, CreateTournamentRequest, MatchFormat, TournamentFormat } from "@lib/types";
+import { Tournament, CreateTournamentRequest, MatchFormat, TournamentFormat } from "@libTournament/types";
 import { useModal } from "@lib/contexts/ModalContext";
 import Image from "next/image";
 import { useTournaments } from "@libTournament/contexts/TournamentsContext";

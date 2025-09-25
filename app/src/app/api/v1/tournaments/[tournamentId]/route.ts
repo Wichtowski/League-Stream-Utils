@@ -7,14 +7,14 @@ import {
   updateTournamentStatus,
   getTournamentStats
 } from "@libTournament/database/tournament";
-import type { CreateTournamentRequest, Tournament, TournamentStatus } from "@lib/types";
+import type { CreateTournamentRequest, Tournament, TournamentStatus } from "@libTournament/types";
 import { JWTPayload } from "@lib/types/auth";
 
 // GET /api/v1/tournaments/[tournamentId] - Get specific tournament
-export const GET = withAuth(async (req: NextRequest, user: JWTPayload) => {
+export const GET = withAuth(async (req: NextRequest, user: JWTPayload, params: Promise<Record<string, string>>) => {
   try {
-    const { searchParams, pathname } = new URL(req.url);
-    const tournamentId = pathname.split("/").pop()!;
+    const { searchParams } = new URL(req.url);
+    const { tournamentId } = await params;
     const includeStats = searchParams.get("stats") === "true";
 
     const tournament = await getTournamentById(tournamentId);
@@ -41,9 +41,9 @@ export const GET = withAuth(async (req: NextRequest, user: JWTPayload) => {
 });
 
 // PUT /api/v1/tournaments/[tournamentId] - Update tournament
-export const PUT = withAuth(async (req: NextRequest, user: JWTPayload) => {
+export const PUT = withAuth(async (req: NextRequest, user: JWTPayload, params: Promise<Record<string, string>>) => {
   try {
-    const tournamentId = new URL(req.url).pathname.split("/").pop()!;
+    const { tournamentId } = await params;
     const tournamentData: Partial<CreateTournamentRequest> = await req.json();
 
     // Validate dates if they're being updated
@@ -119,9 +119,10 @@ export const PUT = withAuth(async (req: NextRequest, user: JWTPayload) => {
 });
 
 // DELETE /api/v1/tournaments/[tournamentId] - Delete tournament
-export const DELETE = withAuth(async (req: NextRequest, _user: JWTPayload) => {
+export const DELETE = withAuth(async (req: NextRequest, _user: JWTPayload, params: Promise<Record<string, string>>) => {
   try {
-    const tournamentId = new URL(req.url).pathname.split("/").pop()!;
+    const { tournamentId } = await params;
+
     const success = await deleteTournament(tournamentId);
 
     if (!success) {
@@ -136,9 +137,9 @@ export const DELETE = withAuth(async (req: NextRequest, _user: JWTPayload) => {
 });
 
 // PATCH /api/v1/tournaments/[tournamentId] - Update tournament status
-export const PATCH = withAuth(async (req: NextRequest, user: JWTPayload) => {
+export const PATCH = withAuth(async (req: NextRequest, user: JWTPayload, params: Promise<Record<string, string>>) => {
   try {
-    const tournamentId = new URL(req.url).pathname.split("/").pop()!;
+    const { tournamentId } = await params;
     const { status }: { status: TournamentStatus } = await req.json();
 
     // Debug logging

@@ -1,18 +1,8 @@
 import React from "react";
 import { Button } from "@lib/components/common";
-import type { Match, MatchStatus } from "@lib/types/match";
-import type { Team } from "@lib/types/team";
-
-interface Commentator {
-  id: string;
-  name: string;
-}
-
-interface Prediction {
-  username: string;
-  prediction: "blue" | "red";
-  submittedAt?: string;
-}
+import { Match, MatchStatus } from "@libTournament/types";
+import { Team } from "@libTeam/types";
+import { Commentator, MatchPrediction } from "@libTournament/types";
 
 interface MatchSidebarProps {
   match: Match;
@@ -24,7 +14,7 @@ interface MatchSidebarProps {
   commentators: Commentator[];
   newCommentatorId: string;
   assigningCommentator: boolean;
-  predictions: Prediction[];
+  predictions: MatchPrediction[];
   submittingPrediction: "blue" | "red" | null;
   onStatusChange: (status: MatchStatus) => Promise<boolean>;
   onSwapTeams: () => void;
@@ -151,7 +141,7 @@ export const MatchSidebar: React.FC<MatchSidebarProps> = ({
           ) : (
             <ul className="space-y-2">
               {commentators.map((c) => (
-                <li key={c.id} className="text-sm text-gray-200">{c.name}</li>
+                <li key={c._id} className="text-sm text-gray-200">{c.name}</li>
               ))}
             </ul>
           )}
@@ -186,7 +176,7 @@ export const MatchSidebar: React.FC<MatchSidebarProps> = ({
             <ul className="space-y-2">
               {predictions.map((p, idx) => (
                 <li key={idx} className="flex items-center justify-between text-sm">
-                  <span className="text-gray-300">{p.username}</span>
+                  <span className="text-gray-300">{p.commentatorUsername}</span>
                   <span className={`px-2 py-0.5 rounded ${p.prediction === "blue" ? "bg-blue-600 text-blue-100" : "bg-red-600 text-red-100"}`}>
                     {p.prediction.toUpperCase()}
                   </span>

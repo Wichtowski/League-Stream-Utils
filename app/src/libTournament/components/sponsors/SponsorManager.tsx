@@ -3,8 +3,7 @@
 import { useState } from "react";
 import { useModal } from "@lib/contexts/ModalContext";
 import { LoadingSpinner } from "@lib/components/common";
-import type { Sponsorship, Tournament } from "@lib/types";
-import type { SponsorFormData } from "@lib/types/forms";
+import { SponsorFormData, Sponsorship, Tournament } from "@libTournament/types";
 import Image from "next/image";
 
 interface SponsorManagerProps {

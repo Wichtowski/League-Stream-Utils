@@ -1,37 +1,23 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import type { Tournament, BracketStructure } from "@lib/types/tournament";
-import type { Match } from "@lib/types/match";
+import { useRouter, useParams } from "next/navigation";
+import { Match, Tournament, BracketStructure } from "@libTournament/types";
 import { useUser } from "@lib/contexts";
 import { PageWrapper } from "@lib/layout";
 import { MatchCreationForm } from "@libTournament/components";
 import { LoadingSpinner } from "@lib/components/common";
 
-interface CreateMatchPageProps {
-  params: Promise<{
-    tournamentId: string;
-  }>;
-}
-
-export default function CreateMatchPage({ params }: CreateMatchPageProps): React.ReactElement {
+export default function CreateMatchPage(): React.ReactElement {
   const user = useUser();
   const router = useRouter();
+  const params = useParams();
 
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [bracketStructure, setBracketStructure] = useState<BracketStructure | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [tournamentId, setTournamentId] = useState<string>("");
-
-  useEffect(() => {
-    const resolveParams = async () => {
-      const resolvedParams = await params;
-      setTournamentId(resolvedParams.tournamentId);
-    };
-    resolveParams();
-  }, [params]);
+  const tournamentId = params.tournamentId as string;
 
   useEffect(() => {
     if (!tournamentId) return;

@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import type { Match, MatchStatus } from "@lib/types/match";
+import type { Match, MatchStatus } from "@libTournament/types/matches";
 
 export const useMatchEditing = (match: Match | null) => {
   const [editing, setEditing] = useState(false);

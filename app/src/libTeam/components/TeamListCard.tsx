@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { SafeImage } from "@lib/components/common/SafeImage";
 import { useRouter } from "next/navigation";
-import type { Team } from "@lib/types";
+import { Team } from "@libTeam/types";
 import { getTeamLogoUrl } from "@lib/services/common/image";
 
 interface TeamListCardProps {

@@ -1,4 +1,5 @@
-import { Match, Tournament, Player } from "@lib/types";
+import { Player } from "@lib/types";
+import { Match, Tournament } from "@libTournament/types";
 import { LivePlayer, SummonerSpell } from "@libLeagueClient/types/LivePlayer";
 import { GameEvent } from "@libLeagueClient/types";
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { Tournament } from "@lib/types";
+import { Tournament } from "@libTournament/types";
 import { MyTeamRegistration } from "../tournament/MyTeamRegistration";
 import { StandaloneTeamManager } from "../standalone/StandaloneTeamManager";
 

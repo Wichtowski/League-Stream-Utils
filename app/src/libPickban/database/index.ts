@@ -83,11 +83,11 @@ export async function saveGameSession(session: GameSessionType): Promise<GameSes
   await connectToDatabase();
 
   try {
-    const existingSession = await GameSessionModel.findOne({ id: session.id });
+    const existingSession = await GameSessionModel.findOne({ id: session._id });
 
     if (existingSession) {
       const updated = await GameSessionModel.findOneAndUpdate(
-        { id: session.id },
+        { id: session._id },
         { ...session, lastActivity: new Date() },
         { new: true }
       );

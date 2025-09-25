@@ -107,7 +107,7 @@ export const MODULES: ModuleCard[] = [
     category: "core"
   },
   {
-    id: "comentators",
+    id: "commentators",
     name: "Commentators",
     description: "Manage commentators and their predictions for the selected tournament",
     icon: "🗣️",
@@ -146,8 +146,8 @@ export interface ModuleVisibilityParams {
   useLocalData: boolean;
   isAuthenticated: boolean;
   isAdmin: boolean;
-  hasLastSelectedTournament?: boolean;
-  hasLastSelectedMatch?: boolean;
+  needsTournamentSelected?: boolean;
+  needsMatchSelected?: boolean;
 }
 
 export function getVisibleModules({
@@ -155,8 +155,8 @@ export function getVisibleModules({
   useLocalData,
   isAuthenticated,
   isAdmin,
-  hasLastSelectedTournament = false,
-  hasLastSelectedMatch = false
+  needsTournamentSelected = false,
+  needsMatchSelected = false
 }: ModuleVisibilityParams): ModuleCard[] {
   const isElectronLocal = isElectron && useLocalData;
   const showLeagueClient = isElectron && (isElectronLocal || isAuthenticated);
@@ -175,8 +175,8 @@ export function getVisibleModules({
     if (module.id === "adminTournaments" || module.id === "adminPermissions") {
       return showFullNav && isAdmin;
     }
-    if (module.id === "sponsors" || module.id === "matches" || module.id === "comentators") {
-      return showFullNav && (hasLastSelectedTournament || hasLastSelectedMatch);
+    if (module.id === "sponsors" || module.id === "matches" || module.id === "commentators") {
+      return showFullNav && (needsTournamentSelected || needsMatchSelected);
     }
     // All other modules require full nav
     return showFullNav;

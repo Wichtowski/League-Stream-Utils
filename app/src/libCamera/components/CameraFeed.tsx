@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
-import { CameraPlayer } from "@libCamera/types/camera";
+import { CameraPlayer } from "@libCamera/types";
 
 interface CameraFeedProps {
   player: CameraPlayer;

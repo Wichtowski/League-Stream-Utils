@@ -2,20 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@lib/auth";
 import { getTournament, updateTournamentFields } from "@libTournament/database/tournament";
 import type { EmbeddedTicker, CreateTickerRequest } from "@libTournament/types";
-import { validateStreamBannerForm, sanitizeStreamBannerForm } from "@lib/utils/stream-banner-validation";
+import { validateStreamBannerForm, sanitizeStreamBannerForm } from "@libTournament/utils/ticker/validators";
 import { logError } from "@lib/utils/error-handling";
 
-// Utility function to extract tournament ID from URL
-const extractTournamentId = (req: NextRequest): string => {
-    const url = new URL(req.url);
-    const pathSegments = url.pathname.split("/");
-    return pathSegments[pathSegments.indexOf("tournaments") + 1];
-};
 
 // GET /api/v1/tournaments/[tournamentId]/ticker - Get tournament Ticker
-export const GET = withAuth(async (req: NextRequest, user) => {
+export const GET = withAuth(async (req: NextRequest, user, params: Promise<Record<string, string>>) => {
     try {
-        const tournamentId = extractTournamentId(req);
+        const { tournamentId } = await params;
 
         if (!tournamentId) {
             return NextResponse.json({ 
@@ -47,7 +41,7 @@ export const GET = withAuth(async (req: NextRequest, user) => {
     } catch (error) {
         logError(error instanceof Error ? error : new Error(String(error)), {
             operation: "GET_TICKER",
-            tournamentId: extractTournamentId(req),
+            tournamentId: await params ?? "ERROR",
             userId: user.userId
         });
         
@@ -59,9 +53,9 @@ export const GET = withAuth(async (req: NextRequest, user) => {
 });
 
 // POST /api/v1/tournaments/[tournamentId]/ticker - Create or update tournament Ticker
-export const POST = withAuth(async (req: NextRequest, user) => {
+export const POST = withAuth(async (req: NextRequest, user, params: Promise<Record<string, string>>) => {
     try {
-        const tournamentId = extractTournamentId(req);
+        const { tournamentId } = await params;
 
         if (!tournamentId) {
             return NextResponse.json({ 
@@ -165,7 +159,7 @@ export const POST = withAuth(async (req: NextRequest, user) => {
     } catch (error) {
         logError(error instanceof Error ? error : new Error(String(error)), {
             operation: "POST_TICKER",
-            tournamentId: extractTournamentId(req),
+            tournamentId: await params ?? "ERROR",
             userId: user.userId
         });
         
@@ -177,9 +171,9 @@ export const POST = withAuth(async (req: NextRequest, user) => {
 });
 
 // DELETE /api/v1/tournaments/[tournamentId]/ticker - Delete tournament Ticker
-export const DELETE = withAuth(async (req: NextRequest, user) => {
+export const DELETE = withAuth(async (req: NextRequest, user, params: Promise<Record<string, string>>) => {
     try {
-        const tournamentId = extractTournamentId(req);
+        const { tournamentId } = await params;
 
         if (!tournamentId) {
             return NextResponse.json({ 
@@ -236,7 +230,7 @@ export const DELETE = withAuth(async (req: NextRequest, user) => {
     } catch (error) {
         logError(error instanceof Error ? error : new Error(String(error)), {
             operation: "DELETE_TICKER",
-            tournamentId: extractTournamentId(req),
+            tournamentId: await params ?? "ERROR",
             userId: user.userId
         });
         

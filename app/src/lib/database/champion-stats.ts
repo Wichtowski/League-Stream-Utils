@@ -1,7 +1,9 @@
 import { Schema, model, models } from "mongoose";
 import { connectToDatabase } from "./connection";
-import type { GameResult, TournamentChampionStats, PlayerRole, ChampionStats } from "@lib/types";
+import { PlayerRole } from "@lib/types";
+import { GameResult, TournamentChampionStats } from "@libTournament/types";
 import { getChampionById } from "@lib/champions";
+import { ChampionStats } from "@lib/types/championStats";
 
 const ChampionStatsSchema = new Schema({
   championId: { type: Number, required: true },

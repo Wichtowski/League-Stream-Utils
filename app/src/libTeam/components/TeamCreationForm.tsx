@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
 import { SafeImage } from "@lib/components/common/SafeImage";
-import type { CreateTeamRequest, TeamTier } from "@lib/types";
-import { createDefaultTeamRequest } from "@lib/types";
+import { CreateTeamRequest, TeamTier } from "@libTeam/types";
+import { createDefaultTeamRequest } from "@libTeam/utils/defaultValues";
 import { useModal } from "@lib/contexts";
 import { LOGO_SQUARE_TOLERANCE, ALLOWED_IMAGE_HOSTS } from "@lib/services/common/constants";
 import { isAlmostSquare, extractTeamColorsFromImage } from "@lib/services/common/image";

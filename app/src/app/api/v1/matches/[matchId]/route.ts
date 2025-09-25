@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@lib/auth";
 import { getMatchById, updateMatch, deleteMatch } from "@libTournament/database/match";
-import type { UpdateMatchRequest } from "@lib/types/match";
+import { UpdateMatchRequest } from "@libTournament/types";
 
 // GET: get a specific match
 export const GET = withAuth(async (req: NextRequest) => {

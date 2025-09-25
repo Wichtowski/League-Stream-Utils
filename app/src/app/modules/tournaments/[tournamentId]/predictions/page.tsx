@@ -4,48 +4,32 @@ import React, { useState, useEffect } from "react";
 import { useTournaments } from "@libTournament/contexts/TournamentsContext";
 import { useNavigation } from "@lib/contexts/NavigationContext";
 import { LoadingSpinner } from "@lib/components/common";
-import type { Tournament } from "@lib/types/tournament";
-import type { Match, MatchPrediction } from "@lib/types/match";
+import { Tournament } from "@libTournament/types";
+import { Match, MatchPrediction, Commentator } from "@libTournament/types";
 import { PageWrapper } from "@lib/layout";
+import { useParams } from "next/navigation";
+import { useModal } from "@/lib/contexts/ModalContext";
 
-interface PredictionsPageProps {
-  params: Promise<{
-    tournamentId: string;
-  }>;
-}
 
-export default function PredictionsPage({ params }: PredictionsPageProps): React.ReactElement {
+export default function PredictionsPage(): React.ReactElement {
   const { tournaments, loading: tournamentsLoading } = useTournaments();
   const { setActiveModule } = useNavigation();
+  const params = useParams();
+
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tournamentId, setTournamentId] = useState<string>("");
   const [submittingPrediction, setSubmittingPrediction] = useState<{ matchId: string; side: "blue" | "red" } | null>(null);
   const [scoreInputs, setScoreInputs] = useState<{ [matchId: string]: { blue: number; red: number } }>({});
   const [teams, setTeams] = useState<{ [teamId: string]: { name: string; tag: string } }>({});
-  const [commentators, setCommentators] = useState<Array<{ 
-    id: string; 
-    name: string; 
-    xHandle?: string; 
-    instagramHandle?: string; 
-    twitchHandle?: string; 
-    assignedAt: Date;
-    assignedBy: string;
-  }>>([]);
+  const [commentators, setCommentators] = useState<Array<Commentator>>([]);
+  const { showAlert } = useModal();
+  const tournamentId = params.tournamentId as string;
   const [selectedCommentator, setSelectedCommentator] = useState<string>("");
 
   useEffect(() => {
     setActiveModule("tournaments");
   }, [setActiveModule]);
-
-  useEffect(() => {
-    const resolveParams = async () => {
-      const resolvedParams = await params;
-      setTournamentId(resolvedParams.tournamentId);
-    };
-    resolveParams();
-  }, [params]);
 
   useEffect(() => {
     if (!tournamentsLoading && tournamentId) {
@@ -162,13 +146,15 @@ export default function PredictionsPage({ params }: PredictionsPageProps): React
 
   const submitPrediction = async (matchId: string, blueScore: number, redScore: number) => {
     if (!selectedCommentator) {
-      alert("Please select a commentator first");
+      showAlert({ type: "error", title: "Please select a commentator first", message: "Please select a commentator first" });
+      setSubmittingPrediction(null);
       return;
     }
 
     const commentator = commentators.find(c => c.id === selectedCommentator);
     if (!commentator) {
-      alert("Selected commentator not found");
+      showAlert({ type: "error", title: "Selected commentator not found", message: "Selected commentator not found" });
+      setSubmittingPrediction(null);
       return;
     }
 
@@ -333,7 +319,7 @@ export default function PredictionsPage({ params }: PredictionsPageProps): React
                       <div className="space-y-2">
                         {match.predictions.map((prediction: MatchPrediction, index: number) => (
                           <div key={index} className="flex items-center justify-between bg-gray-700 rounded p-3">
-                            <div className="text-white font-medium">{prediction.username}</div>
+                            <div className="text-white font-medium">{prediction.commentatorUsername}</div>
                             <div className="flex items-center gap-2">
                               <span className="text-sm text-gray-300">
                                 {prediction.blueScore || 0} - {prediction.redScore || 0}

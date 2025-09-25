@@ -1,6 +1,6 @@
 "use client";
 
-import type { Tournament } from "@lib/types";
+import { Tournament } from "@libTournament/types";
 import { TournamentCard } from "..";
 
 interface TournamentListProps {

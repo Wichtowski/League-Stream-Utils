@@ -4,9 +4,9 @@ import React, { useEffect, useState } from "react";
 import { useNavigation } from "@lib/contexts/NavigationContext";
 import { GameDataDisplay } from "@libLeagueClient/components/game/GameDataDisplay";
 import { useGameData } from "@lib/hooks/useGameData";
-import { tournamentStorage } from "@lib/services/tournament";
-import { matchStorage } from "@lib/services/match/match-storage";
-import { Tournament, Match } from "@lib/types";
+import { useCurrentTournament } from "@lib/contexts";
+import { useCurrentMatch } from "@lib/contexts";
+import { Tournament, Match } from "@libTournament/types";
 import { useRouter } from "next/navigation";
 
 const LiveGamePage: React.FC = () => {
@@ -17,11 +17,16 @@ const LiveGamePage: React.FC = () => {
   const [currentMatch, setCurrentMatch] = useState<Match | null>(null);
   const [currentTournament, setCurrentTournament] = useState<Tournament | null>(null);
 
+  const { getCurrentTournament } = useCurrentTournament();
+  const { getCurrentMatch } = useCurrentMatch();
+
   useEffect(() => {
     setActiveModule(null);
     const init = async (): Promise<void> => {
-      const lastSelectedTournament = await tournamentStorage.getLastSelectedTournament();
-      const lastSelectedMatch = await matchStorage.getLastSelectedMatch();
+      const current = await getCurrentTournament();
+      const lastSelectedTournament = current ? { tournamentId: current._id } : null;
+      const match = await getCurrentMatch();
+      const lastSelectedMatch = match ? { matchId: match._id } : null;
       
       if (lastSelectedTournament?.tournamentId && lastSelectedMatch?.matchId) {
         // Redirect to the new URL parameter-based route
@@ -45,7 +50,7 @@ const LiveGamePage: React.FC = () => {
       }
     };
     init();
-  }, [setActiveModule, router, currentMatch, currentTournament, useGameDataLoading]);
+  }, [setActiveModule, router, currentMatch, currentTournament, useGameDataLoading, getCurrentTournament, getCurrentMatch]);
 
   console.log(loading, isConnected, gameData, currentMatch, currentTournament);
   if (loading || !isConnected || !gameData || !currentMatch || !currentTournament) {

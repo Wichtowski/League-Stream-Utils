@@ -3,7 +3,7 @@ import {
   validateFormData, 
   validators 
 } from '@lib/utils/error-handling';
-import type { TickerFormData, CarouselItemFormData } from '@lib/types/forms';
+import type { TickerFormData, CarouselItemFormData } from '@libTournament/types';
 
 /**
  * Stream banner specific validation rules

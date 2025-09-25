@@ -5,7 +5,8 @@ import { useAuthenticatedFetch } from "@lib/hooks/useAuthenticatedFetch";
 import { useAuth } from "@lib/contexts/AuthContext";
 import { useElectron } from "@libElectron/contexts/ElectronContext";
 import { storage } from "@lib/services/common/UniversalStorage";
-import type { Team, CameraPlayer } from "@lib/types";
+import { CameraPlayer } from "@libCamera/types";
+import { Team } from "@libTeam/types";
 
 interface CamerasContextType {
   // Data

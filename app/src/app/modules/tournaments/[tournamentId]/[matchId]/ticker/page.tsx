@@ -3,8 +3,8 @@
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { TickerDisplay } from "@libTournament/components/ticker/TickerDisplay";
-import type { Tournament, Match, Team } from "@lib/types";
-
+import { Tournament, Match } from "@libTournament/types";
+import { Team } from "@libTeam/types";
 
 export default function MatchTickerPage() {
   const params = useParams();

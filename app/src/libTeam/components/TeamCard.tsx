@@ -1,5 +1,5 @@
 import React from "react";
-import type { Team } from "@lib/types";
+import type { Team } from "@libTeam/types";
 
 interface TeamCardProps {
   team: Team;

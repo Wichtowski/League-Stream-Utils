@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
-import type { BracketStructure, BracketNode, BracketSettings } from "@lib/types/tournament";
+import type { BracketStructure, BracketNode, BracketSettings } from "@lib/types/championStats";
 
 export class BracketGenerator {
   /**

@@ -1,38 +1,21 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { PageWrapper } from "@lib/layout";
 import { LoadingSpinner, Button } from "@lib/components/common";
 import { MatchDetailPage } from "@libTournament/components/matches/MatchDetailPage";
-import type { Match, Tournament } from "@lib/types";
+import type { Match, Tournament } from "@libTournament/types";
 
-interface MatchDetailPageProps {
-  params: Promise<{
-    tournamentId: string;
-    matchID: string;
-    matchId?: string;
-  }>;
-}
-
-export default function MatchDetailPageWrapper({ params }: MatchDetailPageProps): React.ReactElement {
+export default function MatchDetailPageWrapper(): React.ReactElement {
+  const params = useParams();
   const router = useRouter();
-  const [tournamentId, setTournamentId] = useState<string>("");
-  const [matchId, setMatchId] = useState<string>("");
+  const tournamentId = params.tournamentId as string;
+  const matchId = params.matchId as string;
   const [match, setMatch] = useState<Match | null>(null);
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Resolve params
-  useEffect(() => {
-    const resolveParams = async () => {
-      const resolvedParams = await params;
-      setTournamentId(resolvedParams.tournamentId);
-      setMatchId(resolvedParams.matchId ?? resolvedParams.matchID);
-    };
-    resolveParams();
-  }, [params]);
 
   // Fetch match and tournament data for PageWrapper
   useEffect(() => {
@@ -122,7 +105,7 @@ export default function MatchDetailPageWrapper({ params }: MatchDetailPageProps)
       }
     >
       <div className="min-h-screen p-6 max-w-7xl mx-auto">
-        <MatchDetailPage params={params} match={match} tournament={tournament} />
+        <MatchDetailPage match={match} tournament={tournament} />
       </div>
     </PageWrapper>
   );

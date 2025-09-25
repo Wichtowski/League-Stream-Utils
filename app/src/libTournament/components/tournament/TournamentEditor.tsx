@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import type { Tournament, TournamentStatus } from "@lib/types";
+import { Tournament, TournamentStatus } from "@libTournament/types";
 import { MyTeamRegistration } from "../tournament/MyTeamRegistration";
 import { StandaloneTeamManager } from "../standalone/StandaloneTeamManager";
 import { PermissionGuard } from "@lib/components/permissions/PermissionGuard";

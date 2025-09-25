@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { useModal } from "@lib/contexts/ModalContext";
-import type { Tournament, Team, CreateTeamRequest } from "@lib/types";
+import { Tournament } from "@libTournament/types";
+import { Team, CreateTeamRequest } from "@libTeam/types";
 import { OverlayLoader } from "@lib/components/common";
 import { TeamCreationForm } from "@libTeam/components/TeamCreationForm";
 

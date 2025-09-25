@@ -1,4 +1,16 @@
+import { Commentator, MatchPrediction } from "@libTournament/types";
+
 export type MatchFormat = "BO1" | "BO3" | "BO5";
+
+export interface PhaseMatchFormats {
+  roundRobin?: MatchFormat; // For Round Robin phase
+  swiss?: MatchFormat; // For Swiss phase
+  groups?: MatchFormat; // For Group stage
+  ladder?: MatchFormat; // For Ladder/Playoff phase
+  semifinals?: MatchFormat; // For Semifinals
+  finals?: MatchFormat; // For Finals
+  default: MatchFormat;
+}
 
 export interface Match {
   _id: string;
@@ -33,7 +45,7 @@ export interface Match {
   games: GameResult[];
 
   // Commentators assigned to this match
-  commentators: MatchCommentator[];
+  commentators: Commentator[];
 
   // Predictions
   predictions: MatchPrediction[];
@@ -42,26 +54,6 @@ export interface Match {
   createdBy: string;
   createdAt: Date;
   updatedAt: Date;
-}
-
-export interface MatchCommentator {
-  _id: string;
-  name: string;
-  xHandle?: string;
-  instagramHandle?: string;
-  twitchHandle?: string;
-  assignedAt: Date;
-  assignedBy: string;
-}
-
-export interface MatchPrediction {
-  userId: string;
-  username: string;
-  prediction: "blue" | "red";
-  blueScore?: number;
-  redScore?: number;
-  confidence?: number;
-  submittedAt: Date;
 }
 
 export interface GameResult {
@@ -83,40 +75,10 @@ export interface GameResult {
 
 export type MatchStatus = "scheduled" | "in-progress" | "ongoing" | "completed" | "cancelled";
 
-export interface CreateMatchRequest {
-  name: string;
-  type: "tournament" | "standalone";
-  tournamentId?: string;
-  bracketNodeId?: string;
-  blueTeamId: string;
-  redTeamId: string;
-  format: MatchFormat;
-  patchName: string;
-  scheduledTime?: string;
-  createdBy: string;
-}
-
-export interface UpdateMatchRequest {
-  name?: string;
-  scheduledTime?: string;
-  status?: MatchStatus;
-  format?: MatchFormat;
-  winner?: "blue" | "red";
-  score?: { blue: number; red: number };
-  commentators?: string[];
-}
-
-export interface AssignCommentatorRequest {
-  commentatorId: string;
-  matchId: string;
-  assignedBy?: string;
-}
-
-export interface SubmitPredictionRequest {
-  userId: string;
-  username: string;
-  prediction: "blue" | "red";
-  blueScore?: number;
-  redScore?: number;
-  confidence?: number;
-}
+export type {
+  UpdateMatchResultRequest,
+  CreateMatchRequest,
+  AssignCommentatorRequest,
+  SubmitPredictionRequest,
+  UpdateMatchRequest
+} from "./requests";

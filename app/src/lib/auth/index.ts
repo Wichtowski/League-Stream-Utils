@@ -78,8 +78,14 @@ export function setSecurityHeaders(response: NextResponse): NextResponse {
   return response;
 }
 
-export function withAuth(handler: (request: NextRequest, user: DecodedToken) => Promise<NextResponse>) {
-  return async (request: NextRequest) => {
+export function withAuth(
+  handler: (
+    request: NextRequest,
+    user: DecodedToken,
+    params: Promise<Record<string, string>>
+  ) => Promise<NextResponse>
+): (request: NextRequest, context: { params: Record<string, string> }) => Promise<NextResponse> {
+  return async (request: NextRequest, { params }: { params: Record<string, string> }) => {
     const ip = getClientIP(request);
     const userAgent = request.headers.get("user-agent") || "unknown";
 
@@ -101,7 +107,9 @@ export function withAuth(handler: (request: NextRequest, user: DecodedToken) => 
 
     // Check for authentication via either header or cookie
     if (!authHeader && !accessTokenCookie) {
-      return setSecurityHeaders(NextResponse.json({ error: "Authentication required" }, { status: 401 }));
+      const loginUrl = new URL("/login", request.url);
+      loginUrl.searchParams.set("redirect", new URL(request.url).pathname);
+      return setSecurityHeaders(NextResponse.redirect(loginUrl));
     }
 
     try {
@@ -117,20 +125,23 @@ export function withAuth(handler: (request: NextRequest, user: DecodedToken) => 
             details: { endpoint: request.url }
           });
 
-          return setSecurityHeaders(NextResponse.json({ error: "Invalid token" }, { status: 401 }));
+          const loginUrl = new URL("/login", request.url);
+          loginUrl.searchParams.set("redirect", new URL(request.url).pathname);
+          return setSecurityHeaders(NextResponse.redirect(loginUrl));
         }
 
         if (decoded.sessionId) {
           const session = activeSessions.get(decoded.sessionId);
           if (session) {
             if (!session.isValid || session.expiresAt < new Date()) {
-              return setSecurityHeaders(NextResponse.json({ error: "Session expired" }, { status: 401 }));
+              const loginUrl = new URL("/login", request.url);
+              loginUrl.searchParams.set("redirect", new URL(request.url).pathname);
+              return setSecurityHeaders(NextResponse.redirect(loginUrl));
             }
             session.lastUsedAt = new Date();
           }
         }
-
-        const response = await handler(request, decoded);
+        const response = await handler(request, decoded, Promise.resolve(params));
         return setSecurityHeaders(response);
       }
 
@@ -147,23 +158,29 @@ export function withAuth(handler: (request: NextRequest, user: DecodedToken) => 
             details: { endpoint: request.url }
           });
 
-          return setSecurityHeaders(NextResponse.json({ error: "Invalid token" }, { status: 401 }));
+          const loginUrl = new URL("/login", request.url);
+          loginUrl.searchParams.set("redirect", new URL(request.url).pathname);
+          return setSecurityHeaders(NextResponse.redirect(loginUrl));
         }
 
         if (decoded.sessionId) {
           const session = activeSessions.get(decoded.sessionId);
           if (session) {
             if (!session.isValid || session.expiresAt < new Date()) {
-              return setSecurityHeaders(NextResponse.json({ error: "Session expired" }, { status: 401 }));
+              const loginUrl = new URL("/login", request.url);
+              loginUrl.searchParams.set("redirect", new URL(request.url).pathname);
+              return setSecurityHeaders(NextResponse.redirect(loginUrl));
             }
             session.lastUsedAt = new Date();
           }
         }
 
-        const response = await handler(request, decoded);
+        const response = await handler(request, decoded, Promise.resolve(params));
         return setSecurityHeaders(response);
       } else {
-        return setSecurityHeaders(NextResponse.json({ error: "Invalid authentication format" }, { status: 401 }));
+        const loginUrl = new URL("/login", request.url);
+        loginUrl.searchParams.set("redirect", new URL(request.url).pathname);
+        return setSecurityHeaders(NextResponse.redirect(loginUrl));
       }
     } catch (error) {
       await logSecurityEvent({
@@ -177,12 +194,18 @@ export function withAuth(handler: (request: NextRequest, user: DecodedToken) => 
         }
       });
 
-      return setSecurityHeaders(NextResponse.json({ error: "Authentication failed" }, { status: 401 }));
+      const loginUrl = new URL("/login", request.url);
+      loginUrl.searchParams.set("redirect", new URL(request.url).pathname);
+      return setSecurityHeaders(NextResponse.redirect(loginUrl));
     }
   };
 }
 
-export async function withSessionLimit(handler: (request: NextRequest, user: JWTPayload) => Promise<NextResponse>) {
+export async function withSessionLimit(
+  handler: (request: NextRequest, user: JWTPayload) => Promise<NextResponse>
+): Promise<
+  (request: NextRequest, context: { params: Record<string, string> }) => Promise<NextResponse>
+> {
   return withAuth(async (request: NextRequest, user: JWTPayload) => {
     if (user.isAdmin) {
       return handler(request, user);

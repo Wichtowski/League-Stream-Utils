@@ -1,6 +1,6 @@
 import type { EnhancedChampSelectSession } from "@lib/types";
-import { Team } from "@lib/types";
-import { ImageStorage } from "../types/common";
+import { Team } from "@libTeam/types";
+import { ImageStorage } from "@lib/types/common";
 import { fmsLogoInBase64 } from "./fmsLogoInBase64";
 
 const defaultPlayerImage: ImageStorage = {

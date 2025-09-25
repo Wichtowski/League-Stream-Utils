@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useNavigation } from "@lib/contexts";
 import { PageWrapper } from "@lib/layout";
 import { TeamListCard } from "@libTeam/components";
-import type { Team } from "@lib/types";
+import type { Team } from "@libTeam/types";
 import { LoadingSpinner } from "@lib/components/common";
 
 export default function TeamsPage(): ReactElement {

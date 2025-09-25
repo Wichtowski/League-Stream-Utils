@@ -1,5 +1,5 @@
 import Image from "next/image";
-import type { Sponsorship } from "@lib/types";
+import { Sponsorship } from "@libTournament/types";
 
 interface SponsorWindowProps {
   currentSponsor?: Sponsorship;

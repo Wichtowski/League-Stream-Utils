@@ -2,8 +2,8 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { LiveGameData } from "@libLeagueClient/types";
 import { TeamScoreDisplay } from "@libLeagueClient/components/game/TeamScoreDisplay";
 import { PlayerCard } from "@libLeagueClient/components/game/PlayerCard";
-import type { GameResult, Match } from "@lib/types/match";
-import type { Tournament } from "@lib/types/tournament";
+import type { GameResult, Match } from "@libTournament/types/matches";
+import type { Tournament } from "@lib/types/championStats";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import {

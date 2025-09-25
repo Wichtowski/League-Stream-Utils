@@ -1,6 +1,6 @@
 import { TeamModel } from "@libTeam/database/models";
-import type { Team, CreateTeamRequest } from "@lib/types";
-import type { Document } from "mongoose";
+import { Team, CreateTeamRequest } from "@libTeam/types";
+import { Document } from "mongoose";
 
 const convertMongoDoc = (doc: Document): Team => {
   const obj = doc.toObject();

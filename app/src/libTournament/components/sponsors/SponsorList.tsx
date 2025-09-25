@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import type { Sponsorship } from "@lib/types";
+import type { Sponsorship } from "@libTournament/types";
 
 interface SponsorListProps {
   sponsors: Sponsorship[];

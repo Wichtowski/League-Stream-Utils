@@ -1,11 +1,10 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import type { Team, Tournament } from "@lib/types";
+import { Team } from "@libTeam/types";
 import { useModal, useCurrentMatch, useUser } from "@lib/contexts";
 import { Button, LoadingSpinner } from "@lib/components/common";
-import { BracketNode } from "@lib/types/tournament";
-import { Match, CreateMatchRequest } from "@lib/types/match";
+import { Match, CreateMatchRequest, BracketNode, Tournament  } from "@libTournament/types";
 
 interface MatchCreationFormProps {
   tournament: Tournament;
@@ -117,7 +116,7 @@ export const MatchCreationForm = ({
         blueTeamId: formData.blueTeamId,
         redTeamId: formData.redTeamId,
         format: formData.format,
-        isFearlessDraft: formData.isFearlessDraft,
+        fearlessDraft: formData.isFearlessDraft,
         patchName: formData.patchName,
         scheduledTime: formData.scheduledTime || undefined,
         createdBy: user?._id || ""

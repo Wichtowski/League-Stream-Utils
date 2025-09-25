@@ -7,7 +7,7 @@ import {
   searchTournaments,
   checkTournamentAvailability
 } from "@libTournament/database/tournament";
-import type { CreateTournamentRequest } from "@lib/types";
+import { CreateTournamentRequest } from "@libTournament/types";
 
 // GET /api/v1/tournaments - Get tournaments
 export const GET = withAuth(async (req: NextRequest, user) => {

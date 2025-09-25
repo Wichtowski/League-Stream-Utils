@@ -1,6 +1,6 @@
-import { Champion, Coach, Player } from "./game";
-import { ImageStorage } from "./common";
-import { Staff, TeamTier } from "./tournament";
+import { Champion } from "@lib/types/game";
+import { ImageStorage } from "@lib/types/common";
+import { Player } from "@lib/types/game";
 
 export interface Team {
   _id: string;
@@ -24,7 +24,7 @@ export interface Team {
   region: string;
   tier: TeamTier;
   founded: Date;
-
+  
   socialMedia?: {
     twitter?: string;
     discord?: string;
@@ -33,11 +33,11 @@ export interface Team {
   teamOwnerId?: string;
   createdAt: Date;
   updatedAt: Date;
-
+  
   // Standalone team fields
   isStandalone?: boolean;
   tournamentId?: string;
-
+  
   // In-game draft fields (optional so tournament objects remain valid)
   side?: "blue" | "red";
   bans?: Champion[];
@@ -46,3 +46,26 @@ export interface Team {
   usedChampions?: Champion[];
   coach?: Coach;
 }
+
+export interface TeamColors {
+  primary: string;
+  secondary: string;
+  accent: string;
+}
+
+export interface Staff {
+  _id: string;
+  name: string;
+  role: "coach" | "analyst" | "manager";
+  contact?: string;
+}
+
+export interface Coach {
+  name: string;
+  _id?: string;
+}
+
+
+export type TeamTier = "amateur" | "semi-pro" | "professional";
+
+export type { UpdateMatchResultRequest, CreateTeamRequest } from "./requests";

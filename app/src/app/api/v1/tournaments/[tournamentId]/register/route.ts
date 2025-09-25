@@ -4,9 +4,9 @@ import { registerTeamForTournament, unregisterTeamFromTournament, getTournamentB
 import { getTeamById } from "@libTeam/database";
 import { JWTPayload } from "@lib/types/auth";
 
-export const POST = withAuth(async (req: NextRequest, user: JWTPayload) => {
+export const POST = withAuth(async (req: NextRequest, user: JWTPayload, params: Promise<Record<string, string>>) => {
   try {
-    const tournamentId = req.url.split("/").slice(-2, -1)[0];
+    const { tournamentId } = await params;
     const { teamId }: { teamId: string } = await req.json();
 
     if (!teamId) {
@@ -86,9 +86,9 @@ export const POST = withAuth(async (req: NextRequest, user: JWTPayload) => {
   }
 });
 
-export const DELETE = withAuth(async (req: NextRequest, user: JWTPayload) => {
+export const DELETE = withAuth(async (req: NextRequest, user: JWTPayload, params: Promise<Record<string, string>>) => {
   try {
-    const tournamentId = req.url.split("/").slice(-2, -1)[0];
+    const { tournamentId } = await params;
     const { teamId }: { teamId: string } = await req.json();
 
     if (!teamId) {

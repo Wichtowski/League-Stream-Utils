@@ -1,48 +1,17 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { useTournaments } from "@libTournament/contexts/TournamentsContext";
 import { useNavigation } from "@lib/contexts/NavigationContext";
 import { LoadingSpinner } from "@lib/components/common";
-import type { Tournament } from "@lib/types/tournament";
+import { Tournament } from "@libTournament/types";
 import { PageWrapper } from "@lib/layout";
+import { Match, Commentator } from "@libTournament/types";
 
-interface Commentator {
-  id?: string;
-  _id?: string;
-  name: string;
-  xHandle?: string;
-  instagramHandle?: string;
-  twitchHandle?: string;
-  createdBy: string;
-  createdAt: Date;
-}
-
-interface Match {
-  _id: string;
-  name: string;
-  blueTeamId: string;
-  redTeamId: string;
-  commentators: Array<{
-    _id: string;
-    name: string;
-    xHandle?: string;
-    instagramHandle?: string;
-    twitchHandle?: string;
-    assignedAt: Date;
-    assignedBy: string;
-  }>;
-}
-
-interface CommentatorsPageProps {
-  params: Promise<{
-    tournamentId: string;
-  }>;
-}
-
-export default function CommentatorsPage({ params }: CommentatorsPageProps): React.ReactElement {
+export default function CommentatorsPage(): React.ReactElement {
   const router = useRouter();
+  const params = useParams();
   const { tournaments, loading: tournamentsLoading } = useTournaments();
   const { setActiveModule } = useNavigation();
   const [allCommentators, setAllCommentators] = useState<Commentator[]>([]);
@@ -51,19 +20,11 @@ export default function CommentatorsPage({ params }: CommentatorsPageProps): Rea
   const [loading, setLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
   const [tournament, setTournament] = useState<Tournament | null>(null);
-  const [tournamentId, setTournamentId] = useState<string>("");
+  const tournamentId = params.tournamentId as string;
 
   useEffect(() => {
     setActiveModule("commentators");
   }, [setActiveModule]);
-
-  useEffect(() => {
-    const resolveParams = async () => {
-      const resolvedParams = await params;
-      setTournamentId(resolvedParams.tournamentId);
-    };
-    resolveParams();
-  }, [params]);
 
   useEffect(() => {
     if (!tournamentsLoading && tournamentId) {
@@ -88,6 +49,9 @@ export default function CommentatorsPage({ params }: CommentatorsPageProps): Rea
         if (commentatorsResponse.ok) {
           const commentatorsData = await commentatorsResponse.json();
           setAllCommentators(commentatorsData.commentators || []);
+        } else if (commentatorsResponse.status === 302 || commentatorsResponse.redirected) {
+          window.location.href = commentatorsResponse.url;
+          return;
         }
 
         // Fetch tournament commentators
@@ -95,6 +59,9 @@ export default function CommentatorsPage({ params }: CommentatorsPageProps): Rea
         if (tournamentCommentatorsResponse.ok) {
           const tournamentCommentatorsData = await tournamentCommentatorsResponse.json();
           setTournamentCommentators(tournamentCommentatorsData.commentators || []);
+        } else if (tournamentCommentatorsResponse.status === 302 || tournamentCommentatorsResponse.redirected) {
+          window.location.href = tournamentCommentatorsResponse.url;
+          return;
         }
 
         // Fetch tournament matches
@@ -102,6 +69,9 @@ export default function CommentatorsPage({ params }: CommentatorsPageProps): Rea
         if (matchesResponse.ok) {
           const matchesData = await matchesResponse.json();
           setMatches(matchesData.matches || []);
+        } else if (matchesResponse.status === 302 || matchesResponse.redirected) {
+          window.location.href = matchesResponse.url;
+          return;
         }
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -129,10 +99,21 @@ export default function CommentatorsPage({ params }: CommentatorsPageProps): Rea
           setTournamentCommentators(tournamentCommentatorsData.commentators || []);
         }
         setSuccessMsg("Commentator assigned to tournament!");
+      } else if (response.status === 302 || response.redirected) {
+        // Handle redirect to login page
+        window.location.href = response.url;
+        return;
       } else {
-        const error = await response.json();
-        console.error("Error assigning commentator to tournament:", error);
-        setSuccessMsg(`Error: ${error.error}`);
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          const error = await response.json();
+          console.error("Error assigning commentator to tournament:", error);
+          setSuccessMsg(`Error: ${error.error}`);
+        } else {
+          console.error("Error assigning commentator to tournament: Non-JSON response");
+          setSuccessMsg("Authentication required. Redirecting to login...");
+          window.location.href = "/login";
+        }
       }
     } catch (error) {
       console.error("Error assigning commentator to tournament:", error);
@@ -157,9 +138,19 @@ export default function CommentatorsPage({ params }: CommentatorsPageProps): Rea
           setTournamentCommentators(tournamentCommentatorsData.commentators || []);
         }
         setSuccessMsg("Commentator removed from tournament!");
+      } else if (response.status === 302 || response.redirected) {
+        // Handle redirect to login page
+        window.location.href = response.url;
+        return;
       } else {
-        const error = await response.json();
-        setSuccessMsg(`Error: ${error.error}`);
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          const error = await response.json();
+          setSuccessMsg(`Error: ${error.error}`);
+        } else {
+          setSuccessMsg("Authentication required. Redirecting to login...");
+          window.location.href = "/login";
+        }
       }
     } catch (error) {
       console.error("Error removing commentator from tournament:", error);
@@ -184,9 +175,19 @@ export default function CommentatorsPage({ params }: CommentatorsPageProps): Rea
           setMatches(matchesData.matches || []);
         }
         setSuccessMsg("Commentator assigned to match!");
+      } else if (response.status === 302 || response.redirected) {
+        // Handle redirect to login page
+        window.location.href = response.url;
+        return;
       } else {
-        const error = await response.json();
-        setSuccessMsg(`Error: ${error.error}`);
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          const error = await response.json();
+          setSuccessMsg(`Error: ${error.error}`);
+        } else {
+          setSuccessMsg("Authentication required. Redirecting to login...");
+          window.location.href = "/login";
+        }
       }
     } catch (error) {
       console.error("Error assigning commentator:", error);
@@ -211,9 +212,19 @@ export default function CommentatorsPage({ params }: CommentatorsPageProps): Rea
           setMatches(matchesData.matches || []);
         }
         setSuccessMsg("Commentator removed from match!");
+      } else if (response.status === 302 || response.redirected) {
+        // Handle redirect to login page
+        window.location.href = response.url;
+        return;
       } else {
-        const error = await response.json();
-        setSuccessMsg(`Error: ${error.error}`);
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          const error = await response.json();
+          setSuccessMsg(`Error: ${error.error}`);
+        } else {
+          setSuccessMsg("Authentication required. Redirecting to login...");
+          window.location.href = "/login";
+        }
       }
     } catch (error) {
       console.error("Error removing commentator:", error);
@@ -249,6 +260,11 @@ export default function CommentatorsPage({ params }: CommentatorsPageProps): Rea
   return (
     <PageWrapper
       title="Assign Commentators"
+      breadcrumbs={[
+        { label: "Tournaments", href: "/modules/tournaments" },
+        { label: tournament.name, href: `/modules/tournaments/${tournamentId}` },
+        { label: "Commentators", href: `/modules/tournaments/${tournamentId}/commentators`, isActive: true }
+      ]}
       subtitle={`${tournament.name} (${tournament.abbreviation})`}
       contentClassName="max-w-6xl mx-auto"
     >
@@ -271,7 +287,7 @@ export default function CommentatorsPage({ params }: CommentatorsPageProps): Rea
         <div className="bg-gray-800 rounded-lg p-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {allCommentators
-              .filter(commentator => !tournamentCommentators.some(tc => tc.id === (commentator._id || commentator.id)))
+              .filter(commentator => !tournamentCommentators.some(tc => (tc._id || tc.id) === (commentator._id || commentator.id)))
               .map((commentator) => (
                 <div key={commentator._id || commentator.id || 'unknown'} className="bg-gray-700 rounded-lg p-4 border border-gray-600">
                 <div className="text-white font-medium">{commentator.name}</div>
@@ -300,7 +316,7 @@ export default function CommentatorsPage({ params }: CommentatorsPageProps): Rea
                 </div>
               </div>
             ))}
-            {allCommentators.filter(commentator => !tournamentCommentators.some(tc => tc.id === (commentator._id || commentator.id))).length === 0 && (
+            {allCommentators.filter(commentator => !tournamentCommentators.some(tc => (tc._id || tc.id) === (commentator._id || commentator.id))).length === 0 && (
               <div className="col-span-full text-gray-400 text-center py-8">
                 All  commentators are already assigned to this tournament.
               </div>
@@ -383,7 +399,11 @@ export default function CommentatorsPage({ params }: CommentatorsPageProps): Rea
                           <div key={commentator._id} className="bg-gray-700 rounded-lg px-3 py-2 flex items-center gap-2">
                             <span className="text-white text-sm">{commentator.name}</span>
                             <button
-                              onClick={() => removeCommentatorFromMatch(match._id, commentator._id)}
+                              onClick={() => {
+                                const id = commentator._id;
+                                if (!id) return;
+                                removeCommentatorFromMatch(match._id, id);
+                              }}
                               className="text-red-400 hover:text-red-300 text-sm"
                             >
                               ×
@@ -398,7 +418,7 @@ export default function CommentatorsPage({ params }: CommentatorsPageProps): Rea
                     <h5 className="text-sm font-medium text-gray-300 mb-2">Assign Tournament Commentator</h5>
                     <div className="flex flex-wrap gap-2">
                         {tournamentCommentators
-                        .filter(c => !match.commentators.some(mc => mc._id === (c._id || c.id)))
+                        .filter(c => !match.commentators.some(mc => (mc._id || mc.id) === (c._id || c.id)))
                         .map((commentator) => (
                           <button
                             key={commentator._id || commentator.id || 'unknown'}

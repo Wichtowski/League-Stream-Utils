@@ -4,7 +4,7 @@ import { createContext, useContext, useState, useCallback, ReactNode, useMemo } 
 import { useAuthenticatedFetch } from "@lib/hooks/useAuthenticatedFetch";
 import { useElectron } from "@libElectron/contexts/ElectronContext";
 import { storage } from "@lib/services/common/UniversalStorage";
-import type { Match } from "@lib/types/match";
+import type { Match } from "@libTournament/types/matches";
 
 interface CurrentMatchContextType {
   // Current match data
@@ -23,7 +23,6 @@ interface CurrentMatchContextType {
 const CurrentMatchContext = createContext<CurrentMatchContextType | undefined>(undefined);
 
 const CURRENT_MATCH_KEY = "current-match";
-const CURRENT_TOURNAMENT_KEY = "current-tournament";
 
 export function CurrentMatchProvider({ children }: { children: ReactNode }) {
   const { isElectron, useLocalData } = useElectron();
@@ -89,14 +88,8 @@ export function CurrentMatchProvider({ children }: { children: ReactNode }) {
           // Store in storage
           if (isLocalDataMode) {
             await electronStorage.set(CURRENT_MATCH_KEY, match);
-            if (match.tournamentId) {
-              await electronStorage.set(CURRENT_TOURNAMENT_KEY, match.tournamentId);
-            }
           } else {
             await storage.set(CURRENT_MATCH_KEY, match);
-            if (match.tournamentId) {
-              await storage.set(CURRENT_TOURNAMENT_KEY, match.tournamentId);
-            }
           }
 
           // Also persist via API so web app sees it
@@ -121,10 +114,8 @@ export function CurrentMatchProvider({ children }: { children: ReactNode }) {
           // Clear from storage
           if (isLocalDataMode) {
             await electronStorage.remove(CURRENT_MATCH_KEY);
-            await electronStorage.remove(CURRENT_TOURNAMENT_KEY);
           } else {
             await storage.remove(CURRENT_MATCH_KEY);
-            await storage.remove(CURRENT_TOURNAMENT_KEY);
           }
 
           // Clear server-side value as well
@@ -160,23 +151,17 @@ export function CurrentMatchProvider({ children }: { children: ReactNode }) {
     try {
       if (isLocalDataMode) {
         const match = await electronStorage.get<Match>(CURRENT_MATCH_KEY);
-        const tournamentId = await electronStorage.get<string>(CURRENT_TOURNAMENT_KEY);
-
         if (match) {
           setCurrentMatchState(match);
-          setCurrentTournamentIdState(tournamentId);
+          setCurrentTournamentIdState(match.tournamentId || null);
         }
-
         return match;
       } else {
         const match = await storage.get<Match>(CURRENT_MATCH_KEY);
-        const tournamentId = await storage.get<string>(CURRENT_TOURNAMENT_KEY);
-
         if (match) {
           setCurrentMatchState(match);
-          setCurrentTournamentIdState(tournamentId);
+          setCurrentTournamentIdState(match.tournamentId || null);
         }
-
         return match;
       }
     } catch (err) {

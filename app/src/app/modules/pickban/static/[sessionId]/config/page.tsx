@@ -5,8 +5,9 @@ import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { useAuth } from "@lib/contexts/AuthContext";
 import { useAuthenticatedFetch } from "@lib/hooks/useAuthenticatedFetch";
-import type { GameConfig, Team } from "@lib/types";
-import type { Tournament } from "@lib/types/tournament";
+import type { Team } from "@libTeam/types";
+import type { GameConfig } from "@lib/types";
+import type { Tournament } from "@libTournament/types";
 import { PageWrapper } from "@lib/layout/PageWrapper";
 import { getTeamLogoUrl, getTournamentLogoUrl } from "@lib/services/common/image";
 

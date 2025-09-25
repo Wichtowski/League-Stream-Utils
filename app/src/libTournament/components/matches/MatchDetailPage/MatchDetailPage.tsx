@@ -2,47 +2,37 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { getChampions } from "@lib/champions";
 import { getTeamWins } from "@libLeagueClient/utils/teamWins";
-import type { Champion } from "@lib/types/game";
-import type { Match, Tournament } from "@lib/types";
-import type { MatchStatus } from "@lib/types/match";
-import { useMatchEditing } from "@libTournament/hooks/useMatchEditing";
-import { useMatchGames } from "@libTournament/hooks/useMatchGames";
-import { useMatchTeams } from "@libTournament/hooks/useMatchTeams";
-import { useMatchCommentators } from "@libTournament/hooks/useMatchCommentators";
-import { useMatchPredictions } from "@libTournament/hooks/useMatchPredictions";
-import { usePlayerStats } from "@libTournament/hooks/usePlayerStats";
-import { usePlayerStatsData } from "@libTournament/hooks/usePlayerStatsData";
-import { MatchHeader } from "./MatchHeader";
-import { MatchInfoCard } from "./MatchInfoCard";
-import { GameResultsCard } from "./GameResultsCard";
-import { PlayerStatsCard } from "./PlayerStatsCard";
-import { MatchSidebar } from "./MatchSidebar";
-import { DeleteMatchModal } from "./DeleteMatchModal";
+import { Champion } from "@lib/types/game";
+import { Match, Tournament, MatchStatus } from "@libTournament/types";
+import {
+  usePlayerStatsData,
+  usePlayerStats,
+  useMatchPredictions,
+  useMatchCommentators,
+  useMatchTeams,
+  useMatchEditing,
+  useMatchGames
+} from "@libTournament/hooks";
+import { 
+  MatchHeader,
+  MatchInfoCard,
+  GameResultsCard,
+  PlayerStatsCard,
+  MatchSidebar,
+  DeleteMatchModal, 
+} from "./";
 
 interface MatchDetailPageProps {
-  params: Promise<{
-    tournamentId: string;
-    matchID: string;
-    matchId?: string;
-  }>;
   match: Match;
   tournament: Tournament;
 }
 
-export const MatchDetailPage: React.FC<MatchDetailPageProps> = ({ params, match, tournament }) => {
+export const MatchDetailPage: React.FC<MatchDetailPageProps> = ({ match, tournament }) => {
   const router = useRouter();
-  const [matchId, setMatchId] = useState<string>("");
   const [champions, setChampions] = useState<Champion[]>([]);
   const [currentMatch, setCurrentMatch] = useState<Match>(match);
 
-  // Resolve params
-  useEffect(() => {
-    const resolveParams = async () => {
-      const resolvedParams = await params;
-      setMatchId(resolvedParams.matchId ?? resolvedParams.matchID);
-    };
-    resolveParams();
-  }, [params]);
+  const matchId = match._id;
 
   // Load champions
   useEffect(() => {
@@ -129,7 +119,7 @@ export const MatchDetailPage: React.FC<MatchDetailPageProps> = ({ params, match,
   const handleDeleteWithRedirect = async () => {
     const success = await handleDeleteMatch();
     if (success && currentMatch) {
-      router.push(`/modules/tournaments/${currentMatch.tournamentId}/matches`);
+      router.push(`/modules/tournaments/${tournament._id}/matches`);
     }
   };
 

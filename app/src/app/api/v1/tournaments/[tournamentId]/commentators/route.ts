@@ -3,39 +3,30 @@ import { withAuth } from "@lib/auth";
 import { getMatchesByTournament } from "@libTournament/database/match";
 import { connectToDatabase } from "@lib/database/connection";
 import { MatchModel, CommentatorModel, type CommentatorDoc } from "@libTournament/database/models";
-import type { MatchCommentator } from "@lib/types/match";
+import { Commentator } from "@libTournament/types";
+import { JWTPayload } from "@lib/types/auth";
 
 // GET: get all commentators for a tournament
-export const GET = withAuth(async (req: NextRequest) => {
+export const GET = withAuth(async (req: NextRequest, user: JWTPayload, params: Promise<Record<string, string>>) => {
   try {
-    const tournamentId = req.nextUrl.pathname.split("/")[4];
+    const { tournamentId } = await params;
     const matches = await getMatchesByTournament(tournamentId);
 
     // Extract all unique commentators from matches
-    const allCommentators: Array<{
-      id: string;
-      name: string;
-      xHandle?: string;
-      instagramHandle?: string;
-      twitchHandle?: string;
-      assignedAt: Date;
-      assignedBy: string;
-    }> = [];
+    const allCommentators: Commentator[] = [];
     const commentatorIds = new Set<string>();
 
     matches.forEach((match) => {
       if (match.commentators && Array.isArray(match.commentators)) {
-        match.commentators.forEach((commentator: MatchCommentator) => {
-          if (!commentatorIds.has(commentator._id)) {
+        match.commentators.forEach((commentator: Commentator) => {
+          if (commentator._id && !commentatorIds.has(commentator._id)) {
             commentatorIds.add(commentator._id);
             allCommentators.push({
-              id: commentator._id,
+              _id: commentator._id,
               name: commentator.name,
               xHandle: commentator.xHandle,
               instagramHandle: commentator.instagramHandle,
               twitchHandle: commentator.twitchHandle,
-              assignedAt: new Date(commentator.assignedAt),
-              assignedBy: commentator.assignedBy
             });
           }
         });
@@ -50,26 +41,16 @@ export const GET = withAuth(async (req: NextRequest) => {
 });
 
 // POST: assign a global commentator to all matches in a tournament
-export const POST = withAuth(async (req: NextRequest, user) => {
+export const POST = withAuth(async (req: NextRequest, user: JWTPayload, params: Promise<Record<string, string>>) => {
   try {
-    const tournamentId = req.nextUrl.pathname.split("/")[4];
+    const { tournamentId } = await params;
     const { commentatorId } = await req.json();
 
-    console.log("Assigning commentator to tournament:", {
-      tournamentId,
-      commentatorId,
-      user: user.username,
-      pathname: req.nextUrl.pathname,
-      pathParts: req.nextUrl.pathname.split("/")
-    });
-
     if (!commentatorId) {
-      console.log("Missing commentatorId in request body");
       return NextResponse.json({ error: "Commentator ID is required" }, { status: 400 });
     }
 
     if (!tournamentId) {
-      console.log("Missing tournamentId in URL path");
       return NextResponse.json({ error: "Tournament ID is required" }, { status: 400 });
     }
 
@@ -83,7 +64,6 @@ export const POST = withAuth(async (req: NextRequest, user) => {
 
     // Get all matches for this tournament
     const matches = await MatchModel.find({ tournamentId });
-    console.log("Found matches:", matches.length);
 
     if (matches.length === 0) {
       return NextResponse.json({
@@ -97,11 +77,9 @@ export const POST = withAuth(async (req: NextRequest, user) => {
       xHandle: commentator.xHandle,
       instagramHandle: commentator.instagramHandle,
       twitchHandle: commentator.twitchHandle,
-      assignedAt: new Date(),
-      assignedBy: user.username
+      createdBy: user.userId,
+      createdAt: new Date()
     };
-
-    console.log("Adding commentator to matches:", commentatorData);
 
     // Add commentator to all matches in the tournament
     const result = await MatchModel.updateMany(
@@ -112,8 +90,6 @@ export const POST = withAuth(async (req: NextRequest, user) => {
       }
     );
 
-    console.log("Update result:", result);
-
     return NextResponse.json({
       success: true,
       commentator: {
@@ -122,8 +98,8 @@ export const POST = withAuth(async (req: NextRequest, user) => {
         xHandle: commentator.xHandle,
         instagramHandle: commentator.instagramHandle,
         twitchHandle: commentator.twitchHandle,
-        assignedAt: commentatorData.assignedAt,
-        assignedBy: commentatorData.assignedBy
+        createdBy: commentatorData.createdBy,
+        createdAt: commentatorData.createdAt
       },
       matchesUpdated: result.modifiedCount
     });
@@ -137,12 +113,10 @@ export const POST = withAuth(async (req: NextRequest, user) => {
 });
 
 // PUT: update a commentator in all matches in a tournament
-export const PUT = withAuth(async (req: NextRequest, user) => {
+export const PUT = withAuth(async (req: NextRequest, user: JWTPayload, params: Promise<Record<string, string>>) => {
   try {
-    const tournamentId = req.nextUrl.pathname.split("/")[4];
+    const { tournamentId } = await params;
     const { commentatorId, name, xHandle, instagramHandle, twitchHandle } = await req.json();
-
-    console.log("Updating commentator:", { tournamentId, commentatorId, name, xHandle, instagramHandle, twitchHandle, user: user.username });
 
     if (!commentatorId || !name) {
       return NextResponse.json({ error: "Commentator ID and name are required" }, { status: 400 });
@@ -152,7 +126,6 @@ export const PUT = withAuth(async (req: NextRequest, user) => {
 
     // Get all matches for this tournament
     const matches = await MatchModel.find({ tournamentId });
-    console.log("Found matches:", matches.length);
 
     if (matches.length === 0) {
       return NextResponse.json({
@@ -205,9 +178,9 @@ export const PUT = withAuth(async (req: NextRequest, user) => {
 });
 
 // DELETE: remove a commentator from all matches in a tournament
-export const DELETE = withAuth(async (req: NextRequest, _user) => {
+export const DELETE = withAuth(async (req: NextRequest, _user: JWTPayload, params: Promise<Record<string, string>>) => {
   try {
-    const tournamentId = req.nextUrl.pathname.split("/")[4];
+    const { tournamentId } = await params;
     const { commentatorId } = await req.json();
 
     if (!commentatorId) {

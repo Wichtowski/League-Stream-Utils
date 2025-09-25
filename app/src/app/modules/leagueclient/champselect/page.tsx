@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import type { EnhancedChampSelectSession, Match, Tournament } from "@lib/types";
+import type { EnhancedChampSelectSession } from "@lib/types";
+import type { Match, Tournament } from "@libTournament/types";
 import { useNavigation } from "@lib/contexts/NavigationContext";
 import { useDownload } from "@lib/contexts/DownloadContext";
 import { ChampSelectDisplay } from "@libLeagueClient/components/champselect/ChampSelectDisplay";

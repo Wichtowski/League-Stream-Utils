@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useNavigation } from "@lib/contexts/NavigationContext";
 import { useCameras } from "@libCamera/context/CamerasContext";
-import { CameraTeam } from "@libCamera/types/camera";
+import { CameraTeam } from "@libCamera/types";
 import { Accordion, AccordionItem } from "@lib/components/common/Accordion";
 import { PageWrapper } from "@lib/layout/PageWrapper";
 import { LoadingSpinner } from "@lib/components/common";

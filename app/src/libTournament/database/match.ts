@@ -7,9 +7,9 @@ import type {
   CreateMatchRequest,
   UpdateMatchRequest,
   AssignCommentatorRequest,
-  SubmitPredictionRequest,
-  MatchCommentator
-} from "@lib/types/match";
+  SubmitPredictionRequest
+} from "@libTournament/types/matches";
+import type { Commentator } from "@libTournament/types/commentator";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const transformToMatch = (doc: any): Match => {
@@ -193,7 +193,7 @@ export async function submitPrediction(
 
   // Check if commentator is assigned to this match
   const matchData = transformToMatch(match);
-  const commentator = matchData.commentators.find((c: MatchCommentator) => c._id === commentatorId);
+  const commentator = matchData.commentators.find((c: Commentator) => c._id === commentatorId);
   if (!commentator) {
     throw new Error("Forbidden: Only assigned commentators can submit predictions");
   }

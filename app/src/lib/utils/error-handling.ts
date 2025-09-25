@@ -3,9 +3,9 @@
  */
 
 export interface ApiError {
-  message: string;
+  message: string | Error | undefined | null;
   status: number;
-  code?: string;
+  code?: string | undefined | null;
   details?: Record<string, unknown>;
 }
 
@@ -39,11 +39,27 @@ export const createApiError = async (response: Response): Promise<ApiError> => {
     errorData = { message: 'Unknown error occurred' };
   }
 
+  const errorField = (errorData as Record<string, unknown>)['error'];
+  const messageField = (errorData as Record<string, unknown>)['message'];
+  const codeField = (errorData as Record<string, unknown>)['code'];
+  const detailsField = (errorData as Record<string, unknown>)['details'];
+
+  const message =
+    (typeof errorField === 'string' && errorField) ||
+    (typeof messageField === 'string' && messageField) ||
+    `HTTP ${response.status}`;
+
+  const code = typeof codeField === 'string' ? codeField : undefined;
+  const details =
+    detailsField && typeof detailsField === 'object' && !Array.isArray(detailsField)
+      ? (detailsField as Record<string, unknown>)
+      : undefined;
+
   return {
-    message: errorData.error || errorData.message || `HTTP ${response.status}`,
+    message,
     status: response.status,
-    code: errorData.code,
-    details: errorData.details
+    code,
+    details
   };
 };
 
@@ -95,25 +111,30 @@ export const withRetry = async <T>(
 /**
  * Validates form data and returns validation errors
  */
-export const validateFormData = <T extends Record<string, unknown>>(
+export const validateFormData = <T, V extends { [K in keyof T]?: (value: T[K]) => string | null }>(
   data: T,
-  validators: Record<keyof T, (value: unknown) => string | null>
+  validators: V
 ): ValidationError[] => {
   const errors: ValidationError[] = [];
-  
-  for (const [field, validator] of Object.entries(validators)) {
-    const value = data[field];
+
+  (Object.keys(validators) as Array<keyof T>).forEach((field) => {
+    const validator = validators[field] as
+      | ((value: T[typeof field]) => string | null)
+      | undefined;
+    if (!validator) return;
+
+    const value = data[field] as T[typeof field];
     const error = validator(value);
-    
+
     if (error) {
       errors.push({
-        field,
+        field: String(field),
         message: error,
         code: 'VALIDATION_ERROR'
       });
     }
-  }
-  
+  });
+
   return errors;
 };
 
@@ -182,7 +203,7 @@ export const formatErrorMessage = (error: Error | ApiError | string): string => 
   if ('status' in error) {
     switch (error.status) {
       case 400:
-        return error.message || 'Invalid request. Please check your input.';
+        return (error.message instanceof Error ? error.message.message : (typeof error.message === 'string' ? error.message : undefined)) || 'Invalid request. Please check your input.';
       case 401:
         return 'You are not authorized to perform this action.';
       case 403:
@@ -196,7 +217,7 @@ export const formatErrorMessage = (error: Error | ApiError | string): string => 
       case 500:
         return 'A server error occurred. Please try again.';
       default:
-        return error.message || 'An unexpected error occurred.';
+        return (error.message instanceof Error ? error.message.message : (typeof error.message === 'string' ? error.message : undefined)) || 'An unexpected error occurred.';
     }
   }
   
@@ -208,7 +229,11 @@ export const formatErrorMessage = (error: Error | ApiError | string): string => 
  */
 export const logError = (error: Error | ApiError, context?: Record<string, unknown>): void => {
   const errorInfo = {
-    message: 'message' in error ? error.message : error.toString(),
+    message: 'status' in error
+      ? (error.message instanceof Error
+          ? error.message.message
+          : (typeof error.message === 'string' ? error.message : String(error.message ?? '')))
+      : error.message,
     stack: 'stack' in error ? error.stack : undefined,
     status: 'status' in error ? error.status : undefined,
     context,

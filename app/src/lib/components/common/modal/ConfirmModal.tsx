@@ -1,5 +1,5 @@
 import { Modal } from "./Modal";
-import type { ConfirmModalProps } from "@lib/types";
+import { ConfirmModalProps } from "@lib/types";
 
 export function ConfirmModal({
   isOpen,

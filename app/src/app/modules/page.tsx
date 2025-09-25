@@ -6,14 +6,11 @@ import { useNavigation } from "@lib/contexts/NavigationContext";
 import { useUser } from "@lib/contexts/AuthContext";
 import { useElectron } from "@libElectron/contexts/ElectronContext";
 import { useDownload } from "@lib/contexts/DownloadContext";
-import { useAuthenticatedFetch } from "@lib/hooks/useAuthenticatedFetch";
 import { getVisibleModules, ModuleCard } from "@lib/navigation";
-import { tournamentStorage, LastSelectedTournament } from "@lib/services/tournament";
+import { useCurrentMatch, useCurrentTournament } from "@lib/contexts";
 import { PageWrapper } from "@lib/layout/PageWrapper";
 import { SpotlightCard } from "@lib/components/modules/SpotlightCard";
 import { Button } from "@lib/components/common/button/Button";
-import { matchStorage } from "@lib/services/match/match-storage";
-import { LastSelectedMatch } from "@lib/services/match/match-storage";
 import { LoadingSpinner } from "@lib/components/common";
 
 export default function ModulesPage() {
@@ -22,73 +19,13 @@ export default function ModulesPage() {
   const user = useUser();
   const { isElectron, useLocalData } = useElectron();
   const { downloadState: downloadState } = useDownload();
-  const { authenticatedFetch } = useAuthenticatedFetch();
-  const [hasLastSelectedTournament, setHasLastSelectedTournament] = useState(false);
-  const [lastSelectedTournament, setLastSelectedTournament] = useState<LastSelectedTournament | null>(null);
-  const [lastSelectedTournamentName, setLastSelectedTournamentName] = useState<string | null>(null);
-  const [loading, setIsLoading] = useState(true);
-  const [hasLastSelectedMatch, setHasLastSelectedMatch] = useState(false);
-  const [lastSelectedMatch, setLastSelectedMatch] = useState<LastSelectedMatch | null>(null);
+  const { clearCurrentTournament, currentTournament } = useCurrentTournament();
+  const { currentMatch } = useCurrentMatch();
+  const [loading] = useState(false);
 
   useEffect(() => {
     setActiveModule("modules");
   }, [setActiveModule]);
-
-  useEffect(() => {
-    const checkLastSelectedTournament = async () => {
-      try {
-        const lastSelectedTournament = await tournamentStorage.getLastSelectedTournament();
-        const isValid = lastSelectedTournament !== null;
-        setHasLastSelectedTournament(isValid);
-        setLastSelectedTournament(lastSelectedTournament);
-
-        const lastSelectedMatch = await matchStorage.getLastSelectedMatch();
-        const isValidMatch = lastSelectedMatch !== null;
-        setHasLastSelectedMatch(isValidMatch);
-        setLastSelectedMatch(lastSelectedMatch);
-      } catch (error) {
-        console.error("Failed to check last selected tournament:", error);
-        setHasLastSelectedTournament(false);
-        setLastSelectedTournament(null);
-        setHasLastSelectedMatch(false);
-        setLastSelectedMatch(null);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkLastSelectedTournament();
-
-    // Listen for storage changes
-    const handleStorageChange = () => {
-      checkLastSelectedTournament();
-    };
-
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
-  }, []);
-
-  useEffect(() => {
-    const loadTournamentName = async () => {
-      try {
-        const id = lastSelectedTournament?.tournamentId;
-        if (!id) {
-          setLastSelectedTournamentName(null);
-          return;
-        }
-        const res = await authenticatedFetch(`/api/v1/tournaments/${id}`);
-        if (!res.ok) {
-          setLastSelectedTournamentName(null);
-          return;
-        }
-        const data = await res.json();
-        setLastSelectedTournamentName(data?.tournament?.name ?? null);
-      } catch {
-        setLastSelectedTournamentName(null);
-      }
-    };
-    loadTournamentName();
-  }, [lastSelectedTournament, authenticatedFetch]);
 
   // Memoize the visible modules to prevent unnecessary recalculations
   const visibleModules = useMemo(() => {
@@ -100,12 +37,12 @@ export default function ModulesPage() {
       useLocalData,
       isAuthenticated,
       isAdmin,
-      hasLastSelectedTournament,
-      hasLastSelectedMatch
+      needsTournamentSelected: currentTournament !== null,
+      needsMatchSelected: currentMatch !== null
     });
 
     return modules;
-  }, [user, isElectron, useLocalData, hasLastSelectedTournament, hasLastSelectedMatch]);
+  }, [user, isElectron, useLocalData, currentTournament, currentMatch]);
 
   useEffect(() => {
     if (
@@ -135,10 +72,10 @@ export default function ModulesPage() {
         return;
       }
       if (isHiddenBehindTournament(module)) {
-        if (!lastSelectedTournament) {
+        if (!currentTournament) {
           return;
         } else {
-          router.push(`/modules/tournaments/${lastSelectedTournament.tournamentId}/${module.id}`);
+          router.push(`/modules/tournaments/${currentTournament._id}/${module.id}`);
           return;
         }
       } else {
@@ -150,13 +87,11 @@ export default function ModulesPage() {
   };
 
   const handleRemoveLastSelectedTournament = () => {
-    tournamentStorage.clearLastSelectedTournament();
-    setLastSelectedTournament(null);
+    clearCurrentTournament();
   }
 
   const handleRemoveLastSelectedMatch = () => {
-    matchStorage.clearLastSelectedMatch();
-    setLastSelectedMatch(null);
+    // Use context action if needed; for now, match context is authoritative
   }
 
   const isHiddenBehindTournament = (module: ModuleCard) =>
@@ -177,15 +112,15 @@ export default function ModulesPage() {
       subtitle={`Welcome back, ${user?.username ? user.username.charAt(0).toUpperCase() + user.username.slice(1) : "User"}! Choose a module to get started.`}
       contentClassName="max-w-7xl mx-auto"
       actions={
-        lastSelectedTournament || lastSelectedMatch ? (
+        currentTournament || currentMatch ? (
           <>
             <span>Remove Last Selected:</span>
-            {lastSelectedTournament ? (
+            {currentTournament ? (
               <Button onClick={() => handleRemoveLastSelectedTournament()}>
                 Tournament
               </Button>
             ) : null}
-            {lastSelectedMatch ? (
+            {currentMatch ? (
               <Button onClick={() => handleRemoveLastSelectedMatch()}>
                 Match
               </Button>
@@ -203,7 +138,7 @@ export default function ModulesPage() {
             spotlightColor={module.spotlightColor}
             module={module}
             isHiddenBehindTournament={isHiddenBehindTournament(module)}
-            tournamentName={lastSelectedTournamentName || undefined}
+            tournamentName={currentTournament?.name || undefined}
           />
         ))}
       </div>

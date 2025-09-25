@@ -4,25 +4,14 @@ import { getTournamentById } from "@libTournament/database/tournament";
 import { BracketGenerator } from "@lib/services/tournament";
 import { connectToDatabase } from "@lib/database/connection";
 import { BracketModel } from "@lib/database/models";
-import type { JWTPayload } from "@lib/types/auth";
-import type { BracketStructure, UpdateMatchResultRequest } from "@lib/types/tournament";
+import { JWTPayload } from "@lib/types/auth";
+import { BracketStructure, UpdateMatchResultRequest, BracketNode } from "@libTournament/types";
 
-async function saveBracket(bracket: BracketStructure): Promise<void> {
-  await connectToDatabase();
-  await BracketModel.findOneAndUpdate({ tournamentId: bracket.tournamentId }, bracket, { upsert: true, new: true });
-}
 
-async function getBracket(tournamentId: string): Promise<BracketStructure | null> {
-  await connectToDatabase();
-  const bracket = await BracketModel.findOne({ tournamentId }).lean();
-  return bracket as BracketStructure | null;
-}
-
-export const GET = withAuth(async (req: NextRequest, user: JWTPayload) => {
+// GET /api/v1/tournaments/:tournamentId/bracket - Get bracket
+export const GET = withAuth(async (req: NextRequest, user: JWTPayload, params: Promise<Record<string, string>>) => {
   try {
-    const url = new URL(req.url);
-    const tournamentId = url.pathname.split("/")[5]; // v1/tournaments/[id]/bracket
-
+    const { tournamentId } = await params;
     const tournament = await getTournamentById(tournamentId);
     if (!tournament) {
       return NextResponse.json({ error: "Tournament not found" }, { status: 404 });
@@ -32,7 +21,7 @@ export const GET = withAuth(async (req: NextRequest, user: JWTPayload) => {
       return NextResponse.json({ error: "Tournament not found" }, { status: 404 });
     }
 
-    const bracket = await getBracket(tournamentId);
+    const bracket = await BracketModel.findOne({ tournamentId }).lean() as BracketStructure | null;
 
     if (!bracket) {
       return NextResponse.json(
@@ -59,10 +48,10 @@ export const GET = withAuth(async (req: NextRequest, user: JWTPayload) => {
   }
 });
 
-export const POST = withAuth(async (req: NextRequest, user: JWTPayload) => {
+// POST /api/v1/tournaments/:tournamentId/bracket - Generate bracket
+export const POST = withAuth(async (req: NextRequest, user: JWTPayload, params: Promise<Record<string, string>>) => {
   try {
-    const url = new URL(req.url);
-    const tournamentId = url.pathname.split("/")[5];
+    const { tournamentId } = await params;
     const requestBody = await req.json();
 
     const tournament = await getTournamentById(tournamentId);
@@ -98,7 +87,8 @@ export const POST = withAuth(async (req: NextRequest, user: JWTPayload) => {
 
     const bracket = BracketGenerator.generateBracket(tournamentId, teams, bracketSettings);
 
-    await saveBracket(bracket);
+    await BracketModel.findOneAndUpdate({ tournamentId: bracket.tournamentId }, bracket, { upsert: true, new: true });
+
 
     const readyMatches = BracketGenerator.getReadyMatches(bracket);
 
@@ -116,10 +106,10 @@ export const POST = withAuth(async (req: NextRequest, user: JWTPayload) => {
   }
 });
 
-export const PUT = withAuth(async (req: NextRequest, user: JWTPayload) => {
+// PUT /api/v1/tournaments/:tournamentId/bracket - Update match result
+export const PUT = withAuth(async (req: NextRequest, user: JWTPayload, params: Promise<Record<string, string>>) => {
   try {
-    const url = new URL(req.url);
-    const tournamentId = url.pathname.split("/")[5];
+    const { tournamentId } = await params;
     const updateData: UpdateMatchResultRequest = await req.json();
 
     const tournament = await getTournamentById(tournamentId);
@@ -131,7 +121,8 @@ export const PUT = withAuth(async (req: NextRequest, user: JWTPayload) => {
       return NextResponse.json({ error: "Forbidden: Only tournament organizer can update matches" }, { status: 403 });
     }
 
-    const bracket = await getBracket(tournamentId);
+    const bracket = await BracketModel.findOne({ tournamentId }).lean() as BracketStructure | null;
+
     if (!bracket) {
       return NextResponse.json({ error: "Bracket not found" }, { status: 404 });
     }
@@ -160,14 +151,15 @@ export const PUT = withAuth(async (req: NextRequest, user: JWTPayload) => {
     const updatedBracket = BracketGenerator.advanceTeam(bracket, updateData.matchId, updateData.winner, loser);
 
     // Update the match with scores and additional info
-    const updatedMatch = updatedBracket.nodes.find((n) => n._id === updateData.matchId);
+    const updatedMatch = updatedBracket.nodes.find((n: BracketNode) => n._id === updateData.matchId);
     if (updatedMatch) {
       updatedMatch.score1 = updateData.score.blue;
       updatedMatch.score2 = updateData.score.red;
       updatedMatch.completedAt = new Date();
     }
 
-    await saveBracket(updatedBracket);
+    await BracketModel.findOneAndUpdate({ tournamentId: bracket.tournamentId }, updatedBracket, { upsert: true, new: true });
+
 
     const readyMatches = BracketGenerator.getReadyMatches(updatedBracket);
     const isComplete = BracketGenerator.isBracketComplete(updatedBracket);
@@ -185,10 +177,9 @@ export const PUT = withAuth(async (req: NextRequest, user: JWTPayload) => {
   }
 });
 
-export const DELETE = withAuth(async (req: NextRequest, user: JWTPayload) => {
+export const DELETE = withAuth(async (req: NextRequest, user: JWTPayload, params: Promise<Record<string, string>>) => {
   try {
-    const url = new URL(req.url);
-    const tournamentId = url.pathname.split("/")[5];
+    const { tournamentId } = await params;
 
     const tournament = await getTournamentById(tournamentId);
     if (!tournament) {

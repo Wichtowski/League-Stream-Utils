@@ -6,22 +6,19 @@ import { useNavigation } from "@lib/contexts/NavigationContext";
 import { useModal } from "@lib/contexts/ModalContext";
 import { LoadingSpinner } from "@lib/components/common";
 import { PageWrapper } from "@lib/layout";
-import { Tournament, Team, CreateTeamRequest } from "@lib/types";
+import { Tournament } from "@libTournament/types";
+import { Team, CreateTeamRequest  } from "@libTeam/types";
 import { TeamCreationForm } from "@libTeam/components/TeamCreationForm";
+import { useParams } from "next/navigation";
 
-interface TournamentStandaloneTeamsPageProps {
-  params: Promise<{
-    tournamentId: string;
-  }>;
-}
-
-export default function TournamentStandaloneTeamsPage({ params }: TournamentStandaloneTeamsPageProps) {
+export default function TournamentStandaloneTeamsPage() {
   const { tournaments, loading: tournamentsLoading, error, refreshTournaments } = useTournaments();
   const { setActiveModule } = useNavigation();
   const { showAlert, showConfirm } = useModal();
   const [tournament, setTournament] = useState<Tournament>();
   const [loading, setLoading] = useState(true);
-  const [tournamentId, setTournamentId] = useState<string>("");
+  const params = useParams();
+  const tournamentId = params.tournamentId as string;
 
   // Team management state
   const [teams, setTeams] = useState<Team[]>([]);
@@ -34,14 +31,6 @@ export default function TournamentStandaloneTeamsPage({ params }: TournamentStan
   useEffect(() => {
     setActiveModule("tournaments");
   }, [setActiveModule]);
-
-  useEffect(() => {
-    const resolveParams = async () => {
-      const resolvedParams = await params;
-      setTournamentId(resolvedParams.tournamentId);
-    };
-    resolveParams();
-  }, [params]);
 
   useEffect(() => {
     if (!tournamentsLoading && tournaments.length > 0 && tournamentId) {

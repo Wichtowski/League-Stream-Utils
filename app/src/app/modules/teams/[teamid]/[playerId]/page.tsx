@@ -6,7 +6,8 @@ import { useModal } from "@lib/contexts";
 import { useAuthenticatedFetch } from "@lib/hooks/useAuthenticatedFetch";
 import { PageWrapper } from "@lib/layout/PageWrapper";
 import { Button } from "@lib/components/common";
-import type { Team, Player } from "@lib/types";
+import { Player } from "@lib/types";
+import { Team } from "@libTeam/types";
 
 interface PlayerCareerStats {
   totalGames: number;

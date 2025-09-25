@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@lib/auth";
 import { createMatch, getStandaloneMatches } from "@libTournament/database/match";
-import type { CreateMatchRequest } from "@lib/types/match";
+import type { CreateMatchRequest } from "@libTournament/types/matches";
 
 // GET: get all standalone matches
 export const GET = withAuth(async (_req: NextRequest, _user) => {

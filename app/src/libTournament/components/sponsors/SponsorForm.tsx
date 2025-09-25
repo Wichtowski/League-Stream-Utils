@@ -1,7 +1,6 @@
 "use client";
 
-import type { Sponsorship } from "@lib/types";
-import type { SponsorFormData } from "@lib/types/forms";
+import { SponsorFormData, Sponsorship } from "@libTournament/types";
 import { SponsorWindow } from "./SponsorWindow";
 
 interface SponsorFormProps {

@@ -1,6 +1,6 @@
 import React from "react";
 import { Button } from "@lib/components/common";
-import type { Match, GameResult, MatchFormat } from "@lib/types/match";
+import type { Match, GameResult, MatchFormat } from "@libTournament/types/matches";
 import type { Team } from "@lib/types/team";
 import type { Champion } from "@lib/types/game";
 

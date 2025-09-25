@@ -1,24 +1,4 @@
 
-// Ticker API Request/Response Types
-export interface CreateTickerRequest {
-  title: string;
-  titleBackgroundColor?: string;
-  titleTextColor?: string;
-  carouselItems: Omit<CarouselItem, "_id">[];
-  carouselSpeed: number;
-  carouselBackgroundColor?: string;
-}
-
-export interface UpdateTickerRequest extends Partial<CreateTickerRequest> {
-  _id: string;
-}
-
-export interface TickerAPIResponse {
-    success: boolean;
-    Ticker?: Ticker;
-    error?: string;
-}
-
 export interface CarouselItem {
   _id?: string; // MongoDB auto-generated ID
   text: string;
@@ -40,3 +20,6 @@ export interface Ticker {
 }
 
 export type EmbeddedTicker = Omit<Ticker, '_id'>;
+
+export type { CarouselItemFormData, TickerFormData } from "./forms";
+export type { CreateTickerRequest, UpdateTickerRequest, TickerAPIResponse } from "./requests";

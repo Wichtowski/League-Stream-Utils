@@ -14,7 +14,8 @@ import {
   SettingsProvider,
   DownloadProvider,
   PredictionsProvider,
-  CurrentMatchProvider
+  CurrentMatchProvider,
+  CurrentTournamentProvider
 } from "@lib/contexts";
 import { NavigationGuard } from "@lib/components/navigation/NavigationGuard";
 import { ContextWrapper } from "@lib/components/navigation/ContextErrorBoundary";
@@ -60,6 +61,7 @@ export default function RootLayout({
             { name: "TournamentStats", provider: TournamentStatsProvider },
             { name: "Tournaments", provider: TournamentsProvider },
             { name: "Pickban", provider: PickbanProvider },
+            { name: "CurrentTournament", provider: CurrentTournamentProvider },
             { name: "CurrentMatch", provider: CurrentMatchProvider },
             { name: "Navigation", provider: NavigationProvider },
             { name: "Modal", provider: ModalProvider }

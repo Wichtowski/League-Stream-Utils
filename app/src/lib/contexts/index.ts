@@ -13,11 +13,13 @@ import { SettingsProvider } from "./SettingsContext";
 import { DownloadProvider } from "./DownloadContext";
 import { PredictionsProvider } from "@libTournament/contexts/PredictionsContext";
 import { CurrentMatchProvider } from "@libTournament/contexts/CurrentMatchContext";
+import { CurrentTournamentProvider } from "@libTournament/contexts/CurrentTournamentContext";
 import { useUser } from "./AuthContext";
 
 import { useModal } from "./ModalContext";
 import { useNavigation } from "./NavigationContext";
 import { useCurrentMatch } from "@libTournament/contexts/CurrentMatchContext";
+import { useCurrentTournament } from "@libTournament/contexts/CurrentTournamentContext";
 
 export {
   NavigationProvider,
@@ -34,8 +36,10 @@ export {
   DownloadProvider,
   PredictionsProvider,
   CurrentMatchProvider,
+  CurrentTournamentProvider,
   useUser,
   useModal,
   useNavigation,
-  useCurrentMatch
+  useCurrentMatch,
+  useCurrentTournament
 };

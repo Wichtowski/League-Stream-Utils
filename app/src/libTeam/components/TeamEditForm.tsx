@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import type { Team, CreateTeamRequest, TeamTier } from "@lib/types";
+import type { Team, CreateTeamRequest, TeamTier } from "@libTeam/types";
 
 interface TeamEditFormProps {
   team: Team;

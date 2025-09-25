@@ -1,21 +1,14 @@
 "use client";
 
 import { TickerDisplay } from "@libTournament/components/ticker";
-import { use } from "react";
+import { useParams, useSearchParams  } from "next/navigation";
 
-interface PageProps {
-  params: Promise<{
-    tournamentId: string;
-  }>;
-  searchParams: Promise<{
-    refresh?: string;
-    displayInfo?: string;
-  }>;
-}
 
-export default function OBSTickerPage({ params, searchParams }: PageProps) {
-  const { tournamentId } = use(params);
-  const { refresh, displayInfo } = use(searchParams);
+export default function OBSTickerPage() {
+  const params = useParams();
+  const tournamentId = params.tournamentId as string;
+  const refresh = useSearchParams().get("refresh");
+  const displayInfo = useSearchParams().get("displayInfo");
 
   // Parse query parameters with defaults
   const refreshInterval = refresh ? parseInt(refresh) * 1000 : 60000; // Default 60 seconds

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@lib/auth";
 import { getTeamById, updateTeam, deleteTeam, checkTeamAvailability } from "@libTeam/database";
-import type { CreateTeamRequest, PlayerRole } from "@lib/types";
+import { PlayerRole } from "@lib/types";
+import { CreateTeamRequest } from "@libTeam/types";
 import type { JWTPayload } from "@lib/types/auth";
 
 // GET /api/v1/teams/[teamId] - Get specific team

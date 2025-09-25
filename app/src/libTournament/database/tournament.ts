@@ -1,7 +1,7 @@
 import { connectToDatabase } from "@lib/database";
 import { TournamentModel } from "@libTournament/database/models";
 
-import type { Tournament as TournamentType, CreateTournamentRequest } from "@lib/types";
+import { Tournament as TournamentType, CreateTournamentRequest } from "@libTournament/types";
 import { Document } from "mongoose";
 
 // Clean MongoDB document converter
@@ -168,9 +168,13 @@ export const updateTournament = async (
     return convertMongoDoc(updatedTournament);
   } catch (error: unknown) {
     console.error("MongoDB update error:", error);
-    console.error("Error details:", error?.message);
-    if (error?.errors) {
-      console.error("Validation errors:", error?.errors);
+    if (error && typeof error === "object") {
+      if ("message" in error) {
+        console.error("Error details:", (error as { message?: unknown }).message);
+      }
+      if ("errors" in error) {
+        console.error("Validation errors:", (error as { errors?: unknown }).errors);
+      }
     }
     throw error;
   }

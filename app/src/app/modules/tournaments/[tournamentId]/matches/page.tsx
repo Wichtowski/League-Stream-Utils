@@ -1,42 +1,28 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import type { Match } from "@lib/types/match";
-import type { Tournament } from "@lib/types/tournament";
+import { useParams, useRouter } from "next/navigation";
 import { useUser } from "@lib/contexts";
 import { PageWrapper } from "@lib/layout";
-import { CurrentMatchStatus } from "@libTournament/components";
-import { LoadingSpinner, Button } from "@lib/components/common";
-import { useCurrentMatch } from "@libTournament/contexts/CurrentMatchContext";
-import { matchStorage } from "@lib/services/match/match-storage";
 import { useAuthenticatedFetch } from "@lib/hooks/useAuthenticatedFetch";
+import { useCurrentMatch } from "@libTournament/contexts/CurrentMatchContext";
+import { Match } from "@libTournament/types";
+import { LoadingSpinner, Button } from "@lib/components/common";
+import { CurrentMatchStatus } from "@libTournament/components";
+import { useCurrentTournament } from "@/libTournament/contexts/CurrentTournamentContext";
 
-interface TournamentMatchesPageProps {
-  params: Promise<{
-    tournamentId: string;
-  }>;
-}
-
-export default function TournamentMatchesPage({ params }: TournamentMatchesPageProps): React.ReactElement {
+export default function TournamentMatchesPage(): React.ReactElement {
+  const params = useParams();
   const user = useUser();
   const router = useRouter();
   const { setCurrentMatch } = useCurrentMatch();
   const { authenticatedFetch } = useAuthenticatedFetch();
+  const { setCurrentTournament, currentTournament } = useCurrentTournament();
 
   const [matches, setMatches] = useState<Match[]>([]);
-  const [tournament, setTournament] = useState<Tournament | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [tournamentId, setTournamentId] = useState<string>("");
-
-  useEffect(() => {
-    const resolveParams = async () => {
-      const resolvedParams = await params;
-      setTournamentId(resolvedParams.tournamentId);
-    };
-    resolveParams();
-  }, [params]);
+  const tournamentId = params.tournamentId as string;
 
   useEffect(() => {
     if (!tournamentId || !user) return;
@@ -45,15 +31,15 @@ export default function TournamentMatchesPage({ params }: TournamentMatchesPageP
       try {
         setLoading(true);
 
-        // Fetch tournament data
-        const tournamentResponse = await authenticatedFetch(`/api/v1/tournaments/${tournamentId}`);
-        if (!tournamentResponse.ok) {
-          throw new Error("Failed to fetch tournament");
+        if (!currentTournament || currentTournament._id !== tournamentId) {
+          const tournamentResponse = await authenticatedFetch(`/api/v1/tournaments/${tournamentId}`);
+          if (!tournamentResponse.ok) {
+            throw new Error("Failed to fetch tournament");
+          }
+          const tournamentData = await tournamentResponse.json();
+          setCurrentTournament(tournamentData.tournament);
         }
-        const tournamentData = await tournamentResponse.json();
-        setTournament(tournamentData.tournament);
 
-        // Fetch matches
         const matchesResponse = await authenticatedFetch(`/api/v1/tournaments/${tournamentId}/matches`);
         if (!matchesResponse.ok) {
           throw new Error("Failed to fetch matches");
@@ -68,7 +54,7 @@ export default function TournamentMatchesPage({ params }: TournamentMatchesPageP
     };
 
     fetchData();
-  }, [tournamentId, user, authenticatedFetch]);
+  }, [tournamentId, user, authenticatedFetch, currentTournament, setCurrentTournament]);
 
   if (!user) {
     return <PageWrapper requireAuth={true}>{null}</PageWrapper>;
@@ -109,7 +95,7 @@ export default function TournamentMatchesPage({ params }: TournamentMatchesPageP
     );
   }
 
-  if (!tournament) {
+  if (!currentTournament) {
     return (
       <PageWrapper
         breadcrumbs={[
@@ -126,14 +112,13 @@ export default function TournamentMatchesPage({ params }: TournamentMatchesPageP
     );
   }
 
-  const canCreateMatches = user._id === tournament.userId || user.isAdmin;
+  const canCreateMatches = user._id === currentTournament.userId || user.isAdmin;
 
   const handleSetCurrentMatch = async (matchId: string): Promise<void> => {
     try {
       const match = matches.find(m => m._id === matchId);
       if (!match) return;
 
-      await matchStorage.setLastSelectedMatch(match._id);
       await setCurrentMatch(match);
     } catch (error) {
       console.error("Failed to save last selected match:", error);
@@ -143,10 +128,10 @@ export default function TournamentMatchesPage({ params }: TournamentMatchesPageP
   return (
     <PageWrapper
       title="Matches"
-      subtitle={tournament.abbreviation}
+      subtitle={currentTournament.abbreviation}
       breadcrumbs={[
         { label: "Tournaments", href: "/modules/tournaments" },
-        { label: tournament.name, href: `/modules/tournaments/${tournamentId}` },
+        { label: currentTournament.name, href: `/modules/tournaments/${tournamentId}` },
         { label: "Matches", href: `/modules/tournaments/${tournamentId}/matches`, isActive: true }
       ]}
     >

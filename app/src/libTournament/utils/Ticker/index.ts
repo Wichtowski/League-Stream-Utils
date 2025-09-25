@@ -1,5 +1,4 @@
-import { TickerFormData, CarouselItemFormData } from "@lib/types/forms";
-import { CreateTickerRequest, UpdateTickerRequest, Ticker } from "@libTournament/types";
+import { CreateTickerRequest, UpdateTickerRequest, Ticker, TickerFormData, CarouselItemFormData } from "@libTournament/types";
 
 /**
  * Converts form data to API request format for creating a new Ticker

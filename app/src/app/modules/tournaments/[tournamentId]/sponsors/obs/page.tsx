@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import type { Sponsorship } from "@lib/types";
+import type { Sponsorship } from "@libTournament/types";
 import { SponsorWindow } from "@libTournament/components/sponsors";
+import { useParams } from "next/navigation";
 
 interface TournamentInfo {
   id: string;
@@ -15,27 +16,14 @@ interface SponsorsDisplayData {
   sponsors: Sponsorship[];
 }
 
-interface SponsorsDisplayPageProps {
-  params: Promise<{
-    tournamentId: string;
-  }>;
-}
-
-export default function SponsorsDisplayPage({ params }: SponsorsDisplayPageProps) {
+export default function SponsorsDisplayPage() {
   const [data, setData] = useState<SponsorsDisplayData | null>(null);
   const [currentSponsorIndex, setCurrentSponsorIndex] = useState(0);
   const [isVisible, setIsVisible] = useState(true);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [tournamentId, setTournamentId] = useState<string>("");
-
-  useEffect(() => {
-    const resolveParams = async () => {
-      const resolvedParams = await params;
-      setTournamentId(resolvedParams.tournamentId);
-    };
-    resolveParams();
-  }, [params]);
+  const params = useParams();
+  const tournamentId = params.tournamentId as string;
 
   const fetchSponsors = useCallback(async (): Promise<void> => {
     if (!tournamentId) return;

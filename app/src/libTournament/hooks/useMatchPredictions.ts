@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import type { Match } from "@lib/types/match";
+import type { Match } from "@libTournament/types/matches";
 
 interface Prediction {
   username: string;

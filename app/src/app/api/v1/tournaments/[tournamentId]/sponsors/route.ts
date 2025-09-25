@@ -4,15 +4,11 @@ import { getTournament, updateTournamentFields } from "@libTournament/database/t
 import type { Sponsorship } from "@libTournament/types";
 import { Types } from "mongoose";
 
-// Utility function to extract tournament ID from URL
-const extractTournamentId = (req: NextRequest): string => {
-  return req.nextUrl.pathname.split("/")[4];
-};
 
 // GET /api/v1/tournaments/[tournamentId]/sponsors - Get tournament sponsors
-export const GET = withAuth(async (req: NextRequest, user) => {
+export const GET = withAuth(async (_req: NextRequest, user, params: Promise<Record<string, string>>) => {
   try {
-    const tournamentId = extractTournamentId(req);
+    const { tournamentId } = await params;
 
     if (!tournamentId) {
       return NextResponse.json({ error: "Tournament ID is required" }, { status: 400 });
@@ -36,9 +32,9 @@ export const GET = withAuth(async (req: NextRequest, user) => {
 });
 
 // POST /api/v1/tournaments/[tournamentId]/sponsors - Add sponsor to tournament
-export const POST = withAuth(async (req: NextRequest, user) => {
+export const POST = withAuth(async (req: NextRequest, user, params: Promise<Record<string, string>>) => {
   try {
-    const tournamentId = extractTournamentId(req);
+    const { tournamentId } = await params;
 
     if (!tournamentId) {
       return NextResponse.json({ error: "Tournament ID is required" }, { status: 400 });

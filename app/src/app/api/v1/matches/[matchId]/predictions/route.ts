@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@lib/auth";
 import { getMatchById, submitPrediction } from "@libTournament/database/match";
-import type { SubmitPredictionRequest } from "@lib/types/match";
+import type { SubmitPredictionRequest } from "@libTournament/types/matches";
 
 // GET: get predictions for a match
 export const GET = withAuth(async (req: NextRequest) => {

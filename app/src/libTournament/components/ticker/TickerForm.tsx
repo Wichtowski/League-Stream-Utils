@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import type { Ticker } from "@lib/types";
-import type { TickerFormData, CarouselItemFormData } from "@lib/types/forms";
-import { createDefaultCarouselItemForm } from "@lib/types/forms";
+import type { Ticker, TickerFormData, CarouselItemFormData } from "@libTournament/types";
+import { createDefaultCarouselItemForm } from "@libTournament/utils/ticker/defaultValues";
 import { TickerPreview } from "./TickerPreview";
 import { ErrorBoundary } from "@lib/components/common/ErrorBoundary";
 import { 
@@ -11,7 +10,7 @@ import {
   validateCarouselItem,
   formatValidationErrors,
   hasUnsavedChanges 
-} from "@lib/utils/stream-banner-validation";
+} from "@libTournament/utils/ticker/validators";
 import { useErrorHandling } from "@lib/hooks/useErrorHandling";
 
 interface TickerFormProps {

@@ -4,7 +4,7 @@ import { createContext, useContext, ReactNode } from "react";
 import { useTournamentData } from "./TournamentDataContext";
 import { useTournamentBracket } from "./TournamentBracketContext";
 import { useTournamentStats } from "./TournamentStatsContext";
-import type { Tournament, CreateTournamentRequest, TournamentStats, Bracket } from "@lib/types";
+import type { Tournament, CreateTournamentRequest, TournamentStats, Bracket } from "@libTournament/types";
 
 interface TournamentsContextType {
   // Data

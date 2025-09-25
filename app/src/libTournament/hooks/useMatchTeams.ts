@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import type { Team } from "@lib/types/team";
-import type { Match, GameResult } from "@lib/types/match";
+import type { Team } from "@libTeam/types";
+import type { Match, GameResult } from "@libTournament/types/matches";
 
 export const useMatchTeams = (match: Match | null): {
   blueTeam: Team | null;

@@ -6,7 +6,7 @@ import { useModal, useUser } from "@lib/contexts";
 import { useAuthenticatedFetch } from "@lib/hooks/useAuthenticatedFetch";
 import { PageWrapper } from "@lib/layout/PageWrapper";
 import { TeamCard, TeamEditForm } from "@libTeam/components";
-import type { CreateTeamRequest, Team } from "@lib/types";
+import { CreateTeamRequest, Team } from "@libTeam/types";
 import { Button, LoadingSpinner } from "@lib/components/common";
 
 const TeamEditPage: React.FC = () => {

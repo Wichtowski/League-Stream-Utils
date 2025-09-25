@@ -5,7 +5,7 @@ import { useAuthenticatedFetch } from "@lib/hooks/useAuthenticatedFetch";
 import { useAuth } from "@lib/contexts/AuthContext";
 import { useElectron } from "@libElectron/contexts/ElectronContext";
 import { storage } from "@lib/services/common/UniversalStorage";
-import type { Tournament, CreateTournamentRequest } from "@lib/types";
+import type { Tournament, CreateTournamentRequest } from "@libTournament/types";
 
 interface TournamentDataContextType {
   // Data
@@ -295,6 +295,7 @@ export function TournamentDataProvider({ children }: { children: ReactNode }) {
         setError(null);
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, authLoading]); // Removed loadCachedData from dependencies to prevent infinite loop
 
   useEffect(() => {

@@ -1,10 +1,6 @@
 import { useState, useEffect } from "react";
-import type { Match } from "@lib/types/match";
-
-interface Commentator {
-  id: string;
-  name: string;
-}
+import { Match } from "@libTournament/types";
+import { Commentator } from "@libTournament/types";
 
 export const useMatchCommentators = (match: Match | null) => {
   const [commentators, setCommentators] = useState<Commentator[]>([]);

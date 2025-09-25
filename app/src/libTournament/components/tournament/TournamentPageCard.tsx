@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import type { Tournament } from "@lib/types";
-import { tournamentStorage } from "@lib/services/tournament";
+import { Tournament } from "@libTournament/types";
+import { useCurrentTournament } from "@lib/contexts";
 
 interface TournamentPageCardProps {
   tournament: Tournament;
@@ -12,10 +12,11 @@ interface TournamentPageCardProps {
 
 export const TournamentPageCard = ({ tournament, loading = false }: TournamentPageCardProps): React.ReactElement => {
   const router = useRouter();
+  const { setCurrentTournament } = useCurrentTournament();
 
   const handleCardClick = async (): Promise<void> => {
     try {
-      await tournamentStorage.setLastSelectedTournament(tournament._id);
+      await setCurrentTournament(tournament);
     } catch (error) {
       console.error("Failed to save last selected tournament:", error);
     }
@@ -25,7 +26,7 @@ export const TournamentPageCard = ({ tournament, loading = false }: TournamentPa
     e.preventDefault();
     e.stopPropagation();
     try {
-      await tournamentStorage.setLastSelectedTournament(tournament._id);
+      await setCurrentTournament(tournament);
       router.push("/modules");
     } catch (error) {
       console.error("Failed to save last selected tournament:", error);

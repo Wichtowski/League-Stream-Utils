@@ -1,6 +1,6 @@
 import React from "react";
 import { Button } from "@lib/components/common";
-import type { Match, Tournament } from "@lib/types";
+import { Match, Tournament } from "@libTournament/types";
 
 interface MatchHeaderProps {
   match: Match;

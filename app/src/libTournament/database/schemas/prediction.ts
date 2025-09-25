@@ -1,8 +1,8 @@
 import { Schema } from "mongoose";
 
 export const MatchPredictionSchema = new Schema({
-    userId: { type: String, required: true },
-    username: { type: String, required: true },
+    commentatorId: { type: String, required: true },
+    commentatorUsername: { type: String, required: true },
     prediction: { type: String, enum: ["blue", "red"], required: true },
     confidence: { type: Number, min: 1, max: 10, required: false },
     submittedAt: { type: Date, default: Date.now }

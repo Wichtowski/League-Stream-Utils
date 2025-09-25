@@ -4,16 +4,11 @@ import React, { useEffect, useRef, useState } from "react";
 import { useNavigation } from "@lib/contexts/NavigationContext";
 import { GameDataDisplay } from "@libLeagueClient/components/game/GameDataDisplay";
 import { useGameData } from "@lib/hooks/useGameData";
-import { Tournament, Match, Team } from "@lib/types";
+import { Tournament, Match } from "@libTournament/types";
+import { Team } from "@libTeam/types";
+import { useParams } from "next/navigation";
 
-interface GamePageProps {
-  params: Promise<{
-    tournamentId: string;
-    matchId: string;
-  }>;
-}
-
-const LiveGamePage: React.FC<GamePageProps> = ({ params }) => {
+const LiveGamePage: React.FC = () => {
   const { setActiveModule } = useNavigation();
   const { gameData, isConnected, isLoading: useGameDataLoading } = useGameData();
   const [loading, setLoading] = useState(true);
@@ -21,22 +16,14 @@ const LiveGamePage: React.FC<GamePageProps> = ({ params }) => {
   const [currentTournament, setCurrentTournament] = useState<Tournament | null>(null);
   const [blueTeamData, setBlueTeamData] = useState<Team | undefined>(undefined);
   const [redTeamData, setRedTeamData] = useState<Team | undefined>(undefined);
-  const [tournamentId, setTournamentId] = useState<string>("");
-  const [matchId, setMatchId] = useState<string>("");
+  const params = useParams();
+  const tournamentId = params.tournamentId as string;
+  const matchId = params.matchId as string;
   const processedMatchRef = useRef<string | null>(null);
 
   useEffect(() => {
     setActiveModule(null);
   }, [setActiveModule]);
-
-  useEffect(() => {
-    const resolveParams = async () => {
-      const resolvedParams = await params;
-      setTournamentId(resolvedParams.tournamentId);
-      setMatchId(resolvedParams.matchId);
-    };
-    resolveParams();
-  }, [params]);
 
   useEffect(() => {
     const init = async (): Promise<void> => {

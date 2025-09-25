@@ -5,29 +5,24 @@ import { useTournaments } from "@libTournament/contexts/TournamentsContext";
 import { useNavigation } from "@lib/contexts/NavigationContext";
 import { useModal } from "@lib/contexts/ModalContext";
 import { LoadingSpinner } from "@lib/components/common";
-import { Tournament } from "@lib/types/tournament";
-import { Ticker } from "@libTournament/types";
-import { TickerFormData } from "@lib/types/forms";
+import { Tournament } from "@libTournament/types";
+import { TickerFormData, Ticker } from "@libTournament/types";
 import {
   OBSDisplayInfo,
   TickerManager,
   TickerPreview
 } from "@libTournament/components/ticker";
 import { PageWrapper } from "@lib/layout";
+import { useParams } from "next/navigation";
 
-interface TournamentTickerPageProps {
-  params: Promise<{
-    tournamentId: string;
-  }>;
-}
-
-export default function TournamentTickerPage({ params }: TournamentTickerPageProps) {
+export default function TournamentTickerPage() {
   const { tournaments, loading: tournamentsLoading, error, refreshTournaments } = useTournaments();
   const { setActiveModule } = useNavigation();
   const { showAlert } = useModal();
   const [tournament, setTournament] = useState<Tournament>();
   const [loading, setLoading] = useState(true);
-  const [tournamentId, setTournamentId] = useState<string>("");
+  const params = useParams();
+  const tournamentId = params.tournamentId as string;
 
   // Ticker management state
   const [Ticker, setTicker] = useState<Ticker | null>(null);
@@ -37,14 +32,6 @@ export default function TournamentTickerPage({ params }: TournamentTickerPagePro
   useEffect(() => {
     setActiveModule("tournaments");
   }, [setActiveModule]);
-
-  useEffect(() => {
-    const resolveParams = async () => {
-      const resolvedParams = await params;
-      setTournamentId(resolvedParams.tournamentId);
-    };
-    resolveParams();
-  }, [params]);
 
   useEffect(() => {
     if (!tournamentsLoading && tournaments.length > 0 && tournamentId) {

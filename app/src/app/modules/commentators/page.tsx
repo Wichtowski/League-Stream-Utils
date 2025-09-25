@@ -3,17 +3,9 @@
 import React, { useState, useEffect } from "react";
 import { useNavigation } from "@lib/contexts/NavigationContext";
 import { LoadingSpinner } from "@lib/components/common";
+import { ConfirmModal } from "@lib/components/common/modal";
 import { PageWrapper } from "@lib/layout";
-
-interface Commentator {
-  id: string;
-  name: string;
-  xHandle?: string;
-  instagramHandle?: string;
-  twitchHandle?: string;
-  createdBy: string;
-  createdAt: Date;
-}
+import { Commentator } from "@libTournament/types";
 
 export default function CommentatorsPage(): React.ReactElement {
   const { setActiveModule } = useNavigation();
@@ -25,6 +17,10 @@ export default function CommentatorsPage(): React.ReactElement {
   const [loading, setLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
   const [editingCommentator, setEditingCommentator] = useState<Commentator | null>(null);
+  const [deleteModal, setDeleteModal] = useState<{
+    isOpen: boolean;
+    commentator: Commentator | null;
+  }>({ isOpen: false, commentator: null });
 
   useEffect(() => {
     setActiveModule("commentators");
@@ -39,6 +35,10 @@ export default function CommentatorsPage(): React.ReactElement {
         if (response.ok) {
           const data = await response.json();
           setCommentators(data.commentators || []);
+        } else if (response.status === 302 || response.redirected) {
+          // Handle redirect to login page
+          window.location.href = response.url;
+          return;
         } else {
           console.error("Failed to fetch commentators");
         }
@@ -61,11 +61,17 @@ export default function CommentatorsPage(): React.ReactElement {
     try {
       if (editingCommentator) {
         // Update existing commentator
+        const commentatorId = editingCommentator._id || editingCommentator.id;
+        if (!commentatorId) {
+          setSuccessMsg("Error: Commentator ID not found");
+          return;
+        }
+
         const response = await fetch("/api/v1/commentators", {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            id: editingCommentator.id,
+            id: commentatorId,
             name,
             xHandle: xHandle || undefined,
             instagramHandle: instagramHandle || undefined,
@@ -76,12 +82,22 @@ export default function CommentatorsPage(): React.ReactElement {
         if (response.ok) {
           const data = await response.json();
           setCommentators(prev => prev.map(c => 
-            c.id === editingCommentator.id ? data.commentator : c
+            (c._id || c.id) === commentatorId ? data.commentator : c
           ));
           setSuccessMsg("Commentator updated successfully!");
+        } else if (response.status === 302 || response.redirected) {
+          // Handle redirect to login page
+          window.location.href = response.url;
+          return;
         } else {
-          const error = await response.json();
-          setSuccessMsg(`Error: ${error.error}`);
+          const contentType = response.headers.get("content-type");
+          if (contentType && contentType.includes("application/json")) {
+            const error = await response.json();
+            setSuccessMsg(`Error: ${error.error}`);
+          } else {
+            setSuccessMsg("Authentication required. Redirecting to login...");
+            window.location.href = "/login";
+          }
         }
       } else {
         // Add new commentator
@@ -100,9 +116,19 @@ export default function CommentatorsPage(): React.ReactElement {
           const data = await response.json();
           setCommentators(prev => [...prev, data.commentator]);
           setSuccessMsg("Commentator added successfully!");
+        } else if (response.status === 302 || response.redirected) {
+          // Handle redirect to login page
+          window.location.href = response.url;
+          return;
         } else {
-          const error = await response.json();
-          setSuccessMsg(`Error: ${error.error}`);
+          const contentType = response.headers.get("content-type");
+          if (contentType && contentType.includes("application/json")) {
+            const error = await response.json();
+            setSuccessMsg(`Error: ${error.error}`);
+          } else {
+            setSuccessMsg("Authentication required. Redirecting to login...");
+            window.location.href = "/login";
+          }
         }
       }
       
@@ -137,27 +163,49 @@ export default function CommentatorsPage(): React.ReactElement {
     setTwitchHandle("");
   };
 
-  const handleDelete = async (commentator: Commentator) => {
-    if (!confirm(`Are you sure you want to delete ${commentator.name}?`)) return;
+  const showDeleteModal = (commentator: Commentator) => {
+    setDeleteModal({ isOpen: true, commentator });
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteModal.commentator) return;
     
     try {
+      const commentatorId = deleteModal.commentator._id || deleteModal.commentator.id;
+      if (!commentatorId) {
+        setSuccessMsg("Error: Commentator ID not found");
+        return;
+      }
+
       const response = await fetch("/api/v1/commentators", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: commentator.id })
+        body: JSON.stringify({ id: commentatorId })
       });
       
       if (response.ok) {
-        setCommentators(prev => prev.filter(c => c.id !== commentator.id));
+        setCommentators(prev => prev.filter(c => (c._id || c.id) !== commentatorId));
         setSuccessMsg("Commentator deleted successfully!");
+      } else if (response.status === 302 || response.redirected) {
+        // Handle redirect to login page
+        window.location.href = response.url;
+        return;
       } else {
-        const error = await response.json();
-        setSuccessMsg(`Error: ${error.error}`);
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          const error = await response.json();
+          setSuccessMsg(`Error: ${error.error}`);
+        } else {
+          setSuccessMsg("Authentication required. Redirecting to login...");
+          window.location.href = "/login";
+        }
       }
     } catch (error) {
       console.error("Error deleting commentator:", error);
       setSuccessMsg("Error deleting commentator");
     }
+    
+    setDeleteModal({ isOpen: false, commentator: null });
     setTimeout(() => setSuccessMsg(""), 3000);
   };
 
@@ -292,7 +340,7 @@ export default function CommentatorsPage(): React.ReactElement {
               </div>
               
               <div className="text-xs text-gray-500">
-                Created by {c.createdBy} • {new Date(c.createdAt).toLocaleDateString()}
+                Created by {c.createdBy} • {c.createdAt ? new Date(c.createdAt).toLocaleDateString() : 'Unknown date'}
               </div>
               <div className="flex gap-2 mt-auto">
                 <button
@@ -302,7 +350,7 @@ export default function CommentatorsPage(): React.ReactElement {
                   Edit
                 </button>
                 <button
-                  onClick={() => handleDelete(c)}
+                  onClick={() => showDeleteModal(c)}
                   className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
                 >
                   Delete
@@ -312,6 +360,17 @@ export default function CommentatorsPage(): React.ReactElement {
           ))}
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={deleteModal.isOpen}
+        onClose={() => setDeleteModal({ isOpen: false, commentator: null })}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Commentator"
+        message={`Are you sure you want to delete ${deleteModal.commentator?.name}? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        type="danger"
+      />
     </PageWrapper>
   );
 }

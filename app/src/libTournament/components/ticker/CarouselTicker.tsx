@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { CarouselItem } from "@lib/types";
+import { CarouselItem } from "@libTournament/types";
 
 interface CarouselTickerProps {
   items: CarouselItem[];

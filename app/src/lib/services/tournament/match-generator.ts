@@ -1,5 +1,5 @@
-import type { CreateMatchRequest } from "@lib/types/match";
-import type { Tournament } from "@lib/types/tournament";
+import type { CreateMatchRequest } from "@libTournament/types/matches";
+import type { Tournament } from "@lib/types/championStats";
 
 export class MatchGenerator {
   /**

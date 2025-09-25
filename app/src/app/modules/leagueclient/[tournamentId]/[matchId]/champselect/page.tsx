@@ -1,24 +1,19 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import type { EnhancedChampSelectSession, Match, Tournament } from "@lib/types";
-import type { Team } from "@lib/types/team";
-import type { GameResult } from "@lib/types/match";
+import type { EnhancedChampSelectSession } from "@lib/types";
+import type { Match, Tournament, GameResult } from "@libTournament/types";
+import type { Team } from "@libTeam/types";
 import type { PlayerRole } from "@lib/types/common";
 import type { PickbanPlayer } from "@lib/types/game";
 import { useNavigation } from "@lib/contexts/NavigationContext";
 import { useDownload } from "@lib/contexts/DownloadContext";
 import { ChampSelectDisplay } from "@libLeagueClient/components/champselect/ChampSelectDisplay";
 import { useLCU, useChampSelectAssets } from "@lib/services";
+import { useParams } from "next/navigation";
 
-interface ChampSelectPageProps {
-  params: Promise<{
-    tournamentId: string;
-    matchId: string;
-  }>;
-}
 
-const ChampSelectOverlayPage: React.FC<ChampSelectPageProps> = ({ params }) => {
+const ChampSelectOverlayPage: React.FC = () => {
   const { setActiveModule } = useNavigation();
   const { downloadState } = useDownload();
 
@@ -29,21 +24,13 @@ const ChampSelectOverlayPage: React.FC<ChampSelectPageProps> = ({ params }) => {
   // State for match and tournament data
   const [match, setMatch] = useState<Match | null>(null);
   const [tournament, setTournament] = useState<Tournament | null>(null);
-  const [tournamentId, setTournamentId] = useState<string>("");
-  const [matchId, setMatchId] = useState<string>("");
+  const params = useParams();
+  const tournamentId = params.tournamentId as string;
+  const matchId = params.matchId as string;
 
   useEffect(() => {
     setActiveModule(null);
   }, [setActiveModule]);
-
-  useEffect(() => {
-    const resolveParams = async () => {
-      const resolvedParams = await params;
-      setTournamentId(resolvedParams.tournamentId);
-      setMatchId(resolvedParams.matchId);
-    };
-    resolveParams();
-  }, [params]);
 
   // Load match and tournament from API using URL parameters
   useEffect(() => {
@@ -170,12 +157,12 @@ const ChampSelectOverlayPage: React.FC<ChampSelectPageProps> = ({ params }) => {
 
   // Determine current sides based on latest pending game in the series
   const games: GameResult[] = (match as MatchWithTeams).games || [];
-  const pendingGame = [...games].reverse().find((g) => !g.winner || g.winner === "ongoing");
+  const pendingGame = [...games].reverse().find((g) => !g.blueTeam.won && !g.redTeam.won);
   let currentBlueTeamPlayers: TeamPlayerLite[] = (match as MatchWithTeams).blueTeam?.players || [];
   let currentRedTeamPlayers: TeamPlayerLite[] = (match as MatchWithTeams).redTeam?.players || [];
   if (pendingGame) {
-    const blueName = pendingGame.blueTeam;
-    const redName = pendingGame.redTeam;
+    const blueName = pendingGame.blueTeam.teamName;
+    const redName = pendingGame.redTeam.teamName;
     const blueTeamName = (match as MatchWithTeams).blueTeamName;
     const redTeamName = (match as MatchWithTeams).redTeamName;
     if (blueTeamName && redTeamName) {

@@ -1,5 +1,5 @@
 import React from "react";
-import type { Match, MatchFormat, MatchStatus } from "@lib/types/match";
+import type { Match, MatchFormat, MatchStatus } from "@libTournament/types/matches";
 
 interface MatchInfoCardProps {
   match: Match;

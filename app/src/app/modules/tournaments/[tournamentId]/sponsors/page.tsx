@@ -5,9 +5,11 @@ import { useTournaments } from "@libTournament/contexts/TournamentsContext";
 import { useNavigation } from "@lib/contexts/NavigationContext";
 import { useModal } from "@lib/contexts/ModalContext";
 import { LoadingSpinner } from "@lib/components/common";
-import { Tournament } from "@lib/types/tournament";
-import { Sponsorship } from "@libTournament/types";
-import { SponsorFormData } from "@lib/types/forms";
+import { 
+  Tournament,
+  Sponsorship,
+  SponsorFormData,
+} from "@libTournament/types";
 import {
   OBSDisplayInfo,
   SponsorWindow,
@@ -16,30 +18,18 @@ import {
   SponsorList
 } from "@libTournament/components/sponsors";
 import { PageWrapper } from "@lib/layout";
+import { useParams } from "next/navigation";
+import { createDefaultSponsorForm } from "@libTournament/utils/sponsors/defaultValues";
 
-interface TournamentSponsorsPageProps {
-  params: Promise<{
-    tournamentId: string;
-  }>;
-}
 
-const createDefaultSponsorForm = (): SponsorFormData => ({
-  name: "",
-  logo: null,
-  website: "",
-  tier: "bronze",
-  startDate: new Date(),
-  endDate: new Date(),
-  isActive: true
-});
-
-export default function TournamentSponsorsPage({ params }: TournamentSponsorsPageProps) {
+export default function TournamentSponsorsPage() {
   const { tournaments, loading: tournamentsLoading, error, refreshTournaments } = useTournaments();
   const { setActiveModule } = useNavigation();
   const { showAlert, showConfirm } = useModal();
   const [tournament, setTournament] = useState<Tournament>();
   const [loading, setLoading] = useState(true);
-  const [tournamentId, setTournamentId] = useState<string>("");
+  const params = useParams();
+  const tournamentId = params.tournamentId as string;
 
   // Sponsor management state
   const [sponsors, setSponsors] = useState<Sponsorship[]>([]);
@@ -55,14 +45,6 @@ export default function TournamentSponsorsPage({ params }: TournamentSponsorsPag
   useEffect(() => {
     setActiveModule("tournaments");
   }, [setActiveModule]);
-
-  useEffect(() => {
-    const resolveParams = async () => {
-      const resolvedParams = await params;
-      setTournamentId(resolvedParams.tournamentId);
-    };
-    resolveParams();
-  }, [params]);
 
   useEffect(() => {
     if (!tournamentsLoading && tournaments.length > 0 && tournamentId) {

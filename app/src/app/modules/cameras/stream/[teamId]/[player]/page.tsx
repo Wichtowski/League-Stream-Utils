@@ -7,7 +7,7 @@ import { useNavigation } from "@lib/contexts/NavigationContext";
 import { AuthGuard } from "@lib/auth/components";
 import { useAuthenticatedFetch } from "@lib/hooks/useAuthenticatedFetch";
 import { CameraFeed, CameraNavigation, PlayerInfoHeader, CameraLayout } from "@libCamera/components";
-import { CameraPlayer, CameraTeam } from "@libCamera/types/camera";
+import { CameraPlayer, CameraTeam } from "@libCamera/types";
 
 export default function PlayerCameraStreamPage() {
   const router = useRouter();

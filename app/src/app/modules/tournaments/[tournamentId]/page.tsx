@@ -1,40 +1,27 @@
 "use client";
 
 import { useEffect, useState, Suspense } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { useTournaments } from "@libTournament/contexts/TournamentsContext";
 import { useNavigation } from "@lib/contexts/NavigationContext";
 import { useModal } from "@lib/contexts/ModalContext";
 import { LoadingSpinner } from "@lib/components/common";
 import { PageWrapper } from "@lib/layout";
-import { Tournament, TournamentStatus } from "@lib/types";
+import { Tournament, TournamentStatus } from "@libTournament/types";
 import { TournamentEditor } from "@libTournament/components/tournament/TournamentEditor";
 
-interface TournamentDetailPageProps {
-  params: Promise<{
-    tournamentId: string;
-  }>;
-}
-
-export default function TournamentDetailPage({ params }: TournamentDetailPageProps) {
+export default function TournamentDetailPage() {
   const router = useRouter();
   const { tournaments, loading: tournamentsLoading, error, refreshTournaments, updateTournament } = useTournaments();
   const { setActiveModule } = useNavigation();
   const { showAlert } = useModal();
   const [tournament, setTournament] = useState<Tournament | null>(null);
-  const [tournamentId, setTournamentId] = useState<string>("");
+  const params = useParams();
+  const tournamentId = params.tournamentId as string;
 
   useEffect(() => {
     setActiveModule("tournaments");
   }, [setActiveModule]);
-
-  useEffect(() => {
-    const resolveParams = async () => {
-      const resolvedParams = await params;
-      setTournamentId(resolvedParams.tournamentId);
-    };
-    resolveParams();
-  }, [params]);
 
   useEffect(() => {
     if (tournaments.length > 0 && tournamentId) {

@@ -4,7 +4,7 @@ import React, { useEffect, useState, Suspense, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useNavigation } from "@lib/contexts/NavigationContext";
 import { useAuthenticatedFetch } from "@lib/hooks/useAuthenticatedFetch";
-import { CameraPlayer, CameraTeam } from "@lib/types";
+import { CameraPlayer, CameraTeam } from "@libCamera/types";
 import { PageWrapper } from "@lib/layout/PageWrapper";
 import { useCameras } from "@libCamera/context/CamerasContext";
 import { SafeImage } from "@lib/components/common/SafeImage";

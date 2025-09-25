@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import type { Match, Tournament } from "@lib/types";
+import type { Match, Tournament } from "@libTournament/types";
 import type { PlayerStatsDoc } from "@lib/database/models";
 
 export const useMatchData = (tournamentId: string, matchId: string) => {

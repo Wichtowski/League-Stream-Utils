@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@lib/auth";
 import { CameraSettingsModel } from "@lib/database/models";
-import { getUserTeams } from "@libTeam/database";
 import { JWTPayload } from "@lib/types/auth";
-import type { Player, Team } from "@lib/types";
+import type { Player } from "@lib/types";
+import { getUserTeams } from "@libTeam/database";
+import type { Team } from "@libTeam/types";
 
 interface CameraTeam {
   teamId: string;

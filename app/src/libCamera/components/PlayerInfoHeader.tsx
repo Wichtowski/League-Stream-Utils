@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { CameraPlayer } from "@libCamera/types/camera";
+import { CameraPlayer } from "@libCamera/types";
 
 interface PlayerInfoHeaderProps {
   player: CameraPlayer;

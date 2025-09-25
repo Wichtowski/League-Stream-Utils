@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@lib/auth";
 import { createTeam, getUserTeams, checkTeamAvailability } from "@libTeam/database";
-import type { CreateTeamRequest, PlayerRole } from "@lib/types";
+import { PlayerRole } from "@lib/types";
+import { CreateTeamRequest } from "@libTeam/types";
 
 // Server-side sanitization functions
 const sanitizeText = (text: string): string => {

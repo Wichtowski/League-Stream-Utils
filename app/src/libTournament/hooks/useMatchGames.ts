@@ -1,6 +1,6 @@
 import { useState } from "react";
-import type { Match, GameResult, MatchFormat } from "@lib/types/match";
-import type { Team } from "@lib/types/team";
+import type { Match, GameResult, MatchFormat } from "@libTournament/types/matches";
+import type { Team } from "@libTeam/types";
 
 export const useMatchGames = (match: Match | null, blueTeam: Team | null, redTeam: Team | null) => {
   const [newGame, setNewGame] = useState<Partial<GameResult>>({
@@ -62,7 +62,7 @@ export const useMatchGames = (match: Match | null, blueTeam: Team | null, redTea
 
   const handleAddGame = async (
     winnerOverride?: "blue" | "red",
-    onUpdate: (updatedMatch: Match) => void
+    onUpdate?: (updatedMatch: Match) => void
   ): Promise<void> => {
     if (!match) return;
     const maxGames = getMaxGamesByFormat(match.format);
@@ -96,7 +96,7 @@ export const useMatchGames = (match: Match | null, blueTeam: Team | null, redTea
       { blue: 0, red: 0 }
     );
 
-    onUpdate({
+    onUpdate?.({
       ...match,
       games: updatedGames,
       score: newScore,
