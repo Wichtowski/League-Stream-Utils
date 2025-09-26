@@ -36,9 +36,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   const redirectUri = config.auth.google.callbackUrl;
 
   if (!clientId || !clientSecret || !redirectUri) {
-    return setSecurityHeaders(
-      NextResponse.json({ error: "Google OAuth not configured" }, { status: 500 })
-    );
+    return setSecurityHeaders(NextResponse.json({ error: "Google OAuth not configured" }, { status: 500 }));
   }
 
   // 1) Exchange code for tokens
@@ -68,7 +66,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
   if (!userInfoRes.ok) {
     const errText = await userInfoRes.text();
-    return setSecurityHeaders(NextResponse.json({ error: "Failed to fetch user info", details: errText }, { status: 400 }));
+    return setSecurityHeaders(
+      NextResponse.json({ error: "Failed to fetch user info", details: errText }, { status: 400 })
+    );
   }
 
   const profile = (await userInfoRes.json()) as GoogleUserInfo;
@@ -143,5 +143,3 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   // Do not apply strict CSP here to allow inline script to close the popup
   return response;
 }
-
-

@@ -238,7 +238,6 @@ class SummonerSpellCacheService extends BaseCacheService<SummonerSpell> {
       const allSpellKeys = Object.keys(summonerData.data);
       const totalExpected = allSpellKeys.length;
 
-
       const missingSpells: string[] = [];
       for (const spellKey of allSpellKeys) {
         const spell = summonerData.data[spellKey]!;
@@ -247,7 +246,6 @@ class SummonerSpellCacheService extends BaseCacheService<SummonerSpell> {
         const exists = await this.checkFileExists(cachedFullPath);
         if (!exists) missingSpells.push(spellKey);
       }
-
 
       return { missingSpells, totalExpected, allSpellKeys };
     } catch (error) {
@@ -270,7 +268,7 @@ class SummonerSpellCacheService extends BaseCacheService<SummonerSpell> {
     try {
       const version = await this.getLatestVersion();
       const communitySpells = await CommunityDragonSpellsService.getAvailableSpells(version);
-      const allSpellKeys = communitySpells.map(spell => spell.filename);
+      const allSpellKeys = communitySpells.map((spell) => spell.filename);
       const totalExpected = allSpellKeys.length;
 
       console.log(`Checking cache completeness for ${totalExpected} CommunityDragon spells...`);
@@ -283,7 +281,9 @@ class SummonerSpellCacheService extends BaseCacheService<SummonerSpell> {
         if (!exists) missingSpells.push(spell.filename);
       }
 
-      console.log(`CommunityDragon cache completeness check: ${missingSpells.length} missing out of ${totalExpected} total spells`);
+      console.log(
+        `CommunityDragon cache completeness check: ${missingSpells.length} missing out of ${totalExpected} total spells`
+      );
 
       return { missingSpells, totalExpected, allSpellKeys };
     } catch (error) {
@@ -312,14 +312,15 @@ class SummonerSpellCacheService extends BaseCacheService<SummonerSpell> {
       const version = await this.getLatestVersion();
       this.version = version;
 
-
       // Check CommunityDragon spells completeness first
       const communityDragonCompleteness = await this.checkCommunityDragonSpellsCompleteness();
-      console.log(`CommunityDragon spells: ${communityDragonCompleteness.missingSpells.length === 0 ? 'complete' : `missing ${communityDragonCompleteness.missingSpells.length}`}`);
+      console.log(
+        `CommunityDragon spells: ${communityDragonCompleteness.missingSpells.length === 0 ? "complete" : `missing ${communityDragonCompleteness.missingSpells.length}`}`
+      );
 
       // Download regular DataDragon summoner spells first
       const dataDragonResult = await this.downloadDataDragonSpells(version);
-      
+
       // Then download additional CommunityDragon spells if needed
       let communityDragonResult = { success: true, totalSpells: 0, errors: [] as string[] };
       if (communityDragonCompleteness.missingSpells.length > 0) {
@@ -330,7 +331,6 @@ class SummonerSpellCacheService extends BaseCacheService<SummonerSpell> {
 
       const totalSpells = dataDragonResult.totalSpells + communityDragonResult.totalSpells;
       const allErrors = [...dataDragonResult.errors, ...communityDragonResult.errors];
-
 
       this.updateProgress({
         current: totalSpells,
@@ -414,7 +414,7 @@ class SummonerSpellCacheService extends BaseCacheService<SummonerSpell> {
 
     for (let chunkIndex = 0; chunkIndex < chunks.length; chunkIndex++) {
       const chunk = chunks[chunkIndex]!;
-      
+
       const promises = chunk.map(async (spellKey) => {
         try {
           await this.downloadSummonerSpellData(spellKey, version);
@@ -488,12 +488,12 @@ class SummonerSpellCacheService extends BaseCacheService<SummonerSpell> {
 
       for (let chunkIndex = 0; chunkIndex < chunks.length; chunkIndex++) {
         const chunk = chunks[chunkIndex]!;
-        
+
         const promises = chunk.map(async (spell) => {
           try {
             const imagePath = await CommunityDragonSpellsService.downloadSpellImage(spell, version);
             const success = await this.downloadCommunityDragonImage(spell.url, imagePath);
-            
+
             if (success) {
               downloadedCount++;
               completedSpells.push(spell.filename);
@@ -555,10 +555,9 @@ class SummonerSpellCacheService extends BaseCacheService<SummonerSpell> {
     }
 
     try {
-      
       // Try the standard downloadAsset method
       const result = await window.electronAPI.downloadAsset(url, "assets", destPath);
-      
+
       if (result.success) {
         return true;
       } else {

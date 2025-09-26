@@ -90,7 +90,7 @@ export default function CommentatorsPage(): React.ReactElement {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ commentatorId })
       });
-      
+
       if (response.ok) {
         // Refresh tournament commentators
         const tournamentCommentatorsResponse = await fetch(`/api/v1/tournaments/${tournamentId}/commentators`);
@@ -129,7 +129,7 @@ export default function CommentatorsPage(): React.ReactElement {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ commentatorId })
       });
-      
+
       if (response.ok) {
         // Refresh tournament commentators
         const tournamentCommentatorsResponse = await fetch(`/api/v1/tournaments/${tournamentId}/commentators`);
@@ -166,7 +166,7 @@ export default function CommentatorsPage(): React.ReactElement {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ commentatorId })
       });
-      
+
       if (response.ok) {
         // Refresh matches
         const matchesResponse = await fetch(`/api/v1/tournaments/${tournamentId}/matches`);
@@ -203,7 +203,7 @@ export default function CommentatorsPage(): React.ReactElement {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ commentatorId })
       });
-      
+
       if (response.ok) {
         // Refresh matches
         const matchesResponse = await fetch(`/api/v1/tournaments/${tournamentId}/matches`);
@@ -287,38 +287,53 @@ export default function CommentatorsPage(): React.ReactElement {
         <div className="bg-gray-800 rounded-lg p-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {allCommentators
-              .filter(commentator => !tournamentCommentators.some(tc => (tc._id || tc.id) === (commentator._id || commentator.id)))
+              .filter(
+                (commentator) =>
+                  !tournamentCommentators.some((tc) => (tc._id || tc.id) === (commentator._id || commentator.id))
+              )
               .map((commentator) => (
-                <div key={commentator._id || commentator.id || 'unknown'} className="bg-gray-700 rounded-lg p-4 border border-gray-600">
-                <div className="text-white font-medium">{commentator.name}</div>
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {commentator.xHandle && (
-                    <span key="x" className="text-blue-400 text-sm">𝕏 {commentator.xHandle}</span>
-                  )}
-                  {commentator.instagramHandle && (
-                    <span key="instagram" className="text-pink-400 text-sm">📷 {commentator.instagramHandle}</span>
-                  )}
-                  {commentator.twitchHandle && (
-                    <span key="twitch" className="text-purple-400 text-sm">📺 {commentator.twitchHandle}</span>
-                  )}
+                <div
+                  key={commentator._id || commentator.id || "unknown"}
+                  className="bg-gray-700 rounded-lg p-4 border border-gray-600"
+                >
+                  <div className="text-white font-medium">{commentator.name}</div>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {commentator.xHandle && (
+                      <span key="x" className="text-blue-400 text-sm">
+                        𝕏 {commentator.xHandle}
+                      </span>
+                    )}
+                    {commentator.instagramHandle && (
+                      <span key="instagram" className="text-pink-400 text-sm">
+                        📷 {commentator.instagramHandle}
+                      </span>
+                    )}
+                    {commentator.twitchHandle && (
+                      <span key="twitch" className="text-purple-400 text-sm">
+                        📺 {commentator.twitchHandle}
+                      </span>
+                    )}
+                  </div>
+                  <div className="mt-3">
+                    <button
+                      onClick={() => {
+                        console.log("Button clicked for commentator:", commentator);
+                        const id = commentator._id || commentator.id;
+                        if (id) assignCommentatorToTournament(id);
+                      }}
+                      className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm"
+                    >
+                      Assign to Tournament
+                    </button>
+                  </div>
                 </div>
-                <div className="mt-3">
-                  <button
-                    onClick={() => {
-                      console.log("Button clicked for commentator:", commentator);
-                      const id = commentator._id || commentator.id;
-                      if (id) assignCommentatorToTournament(id);
-                    }}
-                    className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm"
-                  >
-                    Assign to Tournament
-                  </button>
-                </div>
-              </div>
-            ))}
-            {allCommentators.filter(commentator => !tournamentCommentators.some(tc => (tc._id || tc.id) === (commentator._id || commentator.id))).length === 0 && (
+              ))}
+            {allCommentators.filter(
+              (commentator) =>
+                !tournamentCommentators.some((tc) => (tc._id || tc.id) === (commentator._id || commentator.id))
+            ).length === 0 && (
               <div className="col-span-full text-gray-400 text-center py-8">
-                All  commentators are already assigned to this tournament.
+                All commentators are already assigned to this tournament.
               </div>
             )}
           </div>
@@ -331,38 +346,48 @@ export default function CommentatorsPage(): React.ReactElement {
         </h3>
         {tournamentCommentators.length === 0 ? (
           <div className="text-gray-400 bg-gray-800 rounded-lg p-6 text-center">
-            No commentators assigned to this tournament yet. Assign commentators from the &quot;Available Commentators&quot; section above.
+            No commentators assigned to this tournament yet. Assign commentators from the &quot;Available
+            Commentators&quot; section above.
           </div>
         ) : (
           <div className="bg-gray-800 rounded-lg p-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {tournamentCommentators.map((commentator) => (
-                <div key={commentator._id || commentator.id || 'unknown'} className="bg-gray-700 rounded-lg p-4 border border-gray-600">
-                <div className="text-white font-medium">{commentator.name}</div>
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {commentator.xHandle && (
-                    <span key="x" className="text-blue-400 text-sm">𝕏 {commentator.xHandle}</span>
-                  )}
-                  {commentator.instagramHandle && (
-                    <span key="instagram" className="text-pink-400 text-sm">📷 {commentator.instagramHandle}</span>
-                  )}
-                  {commentator.twitchHandle && (
-                    <span key="twitch" className="text-purple-400 text-sm">📺 {commentator.twitchHandle}</span>
-                  )}
+                <div
+                  key={commentator._id || commentator.id || "unknown"}
+                  className="bg-gray-700 rounded-lg p-4 border border-gray-600"
+                >
+                  <div className="text-white font-medium">{commentator.name}</div>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {commentator.xHandle && (
+                      <span key="x" className="text-blue-400 text-sm">
+                        𝕏 {commentator.xHandle}
+                      </span>
+                    )}
+                    {commentator.instagramHandle && (
+                      <span key="instagram" className="text-pink-400 text-sm">
+                        📷 {commentator.instagramHandle}
+                      </span>
+                    )}
+                    {commentator.twitchHandle && (
+                      <span key="twitch" className="text-purple-400 text-sm">
+                        📺 {commentator.twitchHandle}
+                      </span>
+                    )}
+                  </div>
+                  <div className="mt-3">
+                    <button
+                      onClick={() => {
+                        const id = commentator._id || commentator.id;
+                        if (id) removeCommentatorFromTournament(id);
+                      }}
+                      className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
+                    >
+                      Remove from Tournament
+                    </button>
+                  </div>
                 </div>
-                <div className="mt-3">
-                  <button
-                    onClick={() => {
-                      const id = commentator._id || commentator.id;
-                      if (id) removeCommentatorFromTournament(id);
-                    }}
-                    className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
-                  >
-                    Remove from Tournament
-                  </button>
-                </div>
-              </div>
-            ))}
+              ))}
             </div>
           </div>
         )}
@@ -383,9 +408,7 @@ export default function CommentatorsPage(): React.ReactElement {
                       {match.blueTeamId} vs {match.redTeamId}
                     </div>
                   </div>
-                  <div className="text-sm text-gray-500">
-                    {match.commentators.length} commentator(s) assigned
-                  </div>
+                  <div className="text-sm text-gray-500">{match.commentators.length} commentator(s) assigned</div>
                 </div>
 
                 <div className="space-y-3">
@@ -396,7 +419,10 @@ export default function CommentatorsPage(): React.ReactElement {
                     ) : (
                       <div className="flex flex-wrap gap-2">
                         {match.commentators.map((commentator) => (
-                          <div key={commentator._id} className="bg-gray-700 rounded-lg px-3 py-2 flex items-center gap-2">
+                          <div
+                            key={commentator._id}
+                            className="bg-gray-700 rounded-lg px-3 py-2 flex items-center gap-2"
+                          >
                             <span className="text-white text-sm">{commentator.name}</span>
                             <button
                               onClick={() => {
@@ -417,11 +443,11 @@ export default function CommentatorsPage(): React.ReactElement {
                   <div>
                     <h5 className="text-sm font-medium text-gray-300 mb-2">Assign Tournament Commentator</h5>
                     <div className="flex flex-wrap gap-2">
-                        {tournamentCommentators
-                        .filter(c => !match.commentators.some(mc => (mc._id || mc.id) === (c._id || c.id)))
+                      {tournamentCommentators
+                        .filter((c) => !match.commentators.some((mc) => (mc._id || mc.id) === (c._id || c.id)))
                         .map((commentator) => (
                           <button
-                            key={commentator._id || commentator.id || 'unknown'}
+                            key={commentator._id || commentator.id || "unknown"}
                             onClick={() => {
                               const id = commentator._id || commentator.id;
                               if (id) assignCommentatorToMatch(match._id, id);
@@ -433,7 +459,9 @@ export default function CommentatorsPage(): React.ReactElement {
                         ))}
                     </div>
                     {tournamentCommentators.length === 0 && (
-                      <div className="text-gray-500 text-sm">No tournament commentators available. Assign commentators to the tournament first.</div>
+                      <div className="text-gray-500 text-sm">
+                        No tournament commentators available. Assign commentators to the tournament first.
+                      </div>
                     )}
                   </div>
                 </div>

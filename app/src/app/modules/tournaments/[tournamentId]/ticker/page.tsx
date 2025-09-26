@@ -7,11 +7,7 @@ import { useModal } from "@lib/contexts/ModalContext";
 import { LoadingSpinner } from "@lib/components/common";
 import { Tournament } from "@libTournament/types";
 import { TickerFormData, Ticker } from "@libTournament/types";
-import {
-  OBSDisplayInfo,
-  TickerManager,
-  TickerPreview
-} from "@libTournament/components/ticker";
+import { OBSDisplayInfo, TickerManager, TickerPreview } from "@libTournament/components/ticker";
 import { PageWrapper } from "@lib/layout";
 import { useParams } from "next/navigation";
 
@@ -125,14 +121,14 @@ export default function TournamentTickerPage() {
                         title: Ticker.title,
                         titleBackgroundColor: Ticker.titleBackgroundColor || "#1f2937",
                         titleTextColor: Ticker.titleTextColor || "#ffffff",
-                        carouselItems: (Ticker.carouselItems || []).map(item => ({
+                        carouselItems: (Ticker.carouselItems || []).map((item) => ({
                           text: item.text,
                           backgroundColor: item.backgroundColor || "#1f2937",
                           textColor: item.textColor || "#ffffff",
                           order: item.order
                         })),
                         carouselSpeed: Ticker.carouselSpeed,
-                        carouselBackgroundColor: Ticker.carouselBackgroundColor || "#1f2937",
+                        carouselBackgroundColor: Ticker.carouselBackgroundColor || "#1f2937"
                       }}
                     />
                   </div>
@@ -140,11 +136,11 @@ export default function TournamentTickerPage() {
               ) : (
                 <div className="text-center text-gray-400">
                   <div className="text-6xl mb-4">📺</div>
-                  <p className="text-lg font-medium">
-                    {Ticker ? "Ticker is inactive" : "No Ticker"}
-                  </p>
+                  <p className="text-lg font-medium">{Ticker ? "Ticker is inactive" : "No Ticker"}</p>
                   <p className="text-sm">
-                    {Ticker ? "Activate your Ticker to see the live preview" : "Create a Ticker to see the live preview"}
+                    {Ticker
+                      ? "Activate your Ticker to see the live preview"
+                      : "Create a Ticker to see the live preview"}
                   </p>
                 </div>
               )}

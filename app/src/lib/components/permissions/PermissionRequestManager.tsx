@@ -10,7 +10,7 @@ interface PermissionRequest {
   requestedRole: Role;
   tournamentId?: string;
   reason: string;
-  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  status: "PENDING" | "APPROVED" | "REJECTED";
   requestedAt: Date;
   createdAt: Date;
   reviewedAt?: Date;
@@ -26,7 +26,10 @@ interface PermissionRequestManagerProps {
   onRequestChange?: () => void;
 }
 
-export const PermissionRequestManager = ({ tournamentId, onRequestChange }: PermissionRequestManagerProps): React.ReactElement => {
+export const PermissionRequestManager = ({
+  tournamentId,
+  onRequestChange
+}: PermissionRequestManagerProps): React.ReactElement => {
   const { showAlert } = useModal();
   const [requests, setRequests] = useState<PermissionRequest[]>([]);
   const [loading, setLoading] = useState(true);
@@ -37,15 +40,15 @@ export const PermissionRequestManager = ({ tournamentId, onRequestChange }: Perm
   const loadRequests = useCallback(async (): Promise<void> => {
     try {
       setLoading(true);
-      const url = tournamentId 
+      const url = tournamentId
         ? `/api/v1/permissions/requests?tournamentId=${tournamentId}`
-        : '/api/v1/permissions/requests';
-      
+        : "/api/v1/permissions/requests";
+
       const response = await fetch(url);
       if (!response.ok) {
-        throw new Error('Failed to fetch permission requests');
+        throw new Error("Failed to fetch permission requests");
       }
-      
+
       const result = await response.json();
       setRequests(result.requests);
     } catch (_error) {
@@ -62,19 +65,19 @@ export const PermissionRequestManager = ({ tournamentId, onRequestChange }: Perm
   const handleApproveRequest = async (requestId: string): Promise<void> => {
     try {
       const response = await fetch(`/api/v1/permissions/requests/${requestId}`, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          action: 'approve'
+          action: "approve"
         })
       });
-      
+
       if (!response.ok) {
-        throw new Error('Failed to approve request');
+        throw new Error("Failed to approve request");
       }
-      
+
       await showAlert({ type: "success", message: "Permission request approved" });
       await loadRequests();
       onRequestChange?.();
@@ -86,19 +89,19 @@ export const PermissionRequestManager = ({ tournamentId, onRequestChange }: Perm
   const handleRejectRequest = async (requestId: string): Promise<void> => {
     try {
       const response = await fetch(`/api/v1/permissions/requests/${requestId}`, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          action: 'reject'
+          action: "reject"
         })
       });
-      
+
       if (!response.ok) {
-        throw new Error('Failed to reject request');
+        throw new Error("Failed to reject request");
       }
-      
+
       await showAlert({ type: "success", message: "Permission request rejected" });
       await loadRequests();
       onRequestChange?.();
@@ -131,10 +134,7 @@ export const PermissionRequestManager = ({ tournamentId, onRequestChange }: Perm
         <h3 className="text-lg font-semibold text-white">
           {isGlobal ? "Global Permission Requests" : "Tournament Permission Requests"}
         </h3>
-        <Button
-          onClick={() => setShowRequestModal(true)}
-          className="bg-green-600 hover:bg-green-700"
-        >
+        <Button onClick={() => setShowRequestModal(true)} className="bg-green-600 hover:bg-green-700">
           Request Permission
         </Button>
       </div>
@@ -146,27 +146,20 @@ export const PermissionRequestManager = ({ tournamentId, onRequestChange }: Perm
       ) : (
         <div className="space-y-2">
           {requests.map((request) => (
-            <div
-              key={request._id}
-              className="bg-gray-700 rounded-lg p-4"
-            >
+            <div key={request._id} className="bg-gray-700 rounded-lg p-4">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center space-x-3">
-                  <span className={`px-2 py-1 rounded text-xs font-medium text-white ${getStatusColor(request.status)}`}>
+                  <span
+                    className={`px-2 py-1 rounded text-xs font-medium text-white ${getStatusColor(request.status)}`}
+                  >
                     {request.status}
                   </span>
-                  <span className="text-white font-medium">
-                    {request.requestedRole.replace(/_/g, ' ')}
-                  </span>
+                  <span className="text-white font-medium">{request.requestedRole.replace(/_/g, " ")}</span>
                   {request.tournamentId && (
-                    <span className="text-gray-400 text-sm">
-                      Tournament: {request.tournamentId}
-                    </span>
+                    <span className="text-gray-400 text-sm">Tournament: {request.tournamentId}</span>
                   )}
                 </div>
-                <span className="text-xs text-gray-400">
-                  {formatDate(request.createdAt)}
-                </span>
+                <span className="text-xs text-gray-400">{formatDate(request.createdAt)}</span>
               </div>
 
               <div className="mb-3">
@@ -233,20 +226,23 @@ interface PermissionRequestModalProps {
   onRequestSubmitted: () => void;
 }
 
-const PermissionRequestModal = ({ tournamentId, onClose, onRequestSubmitted }: PermissionRequestModalProps): React.ReactElement => {
+const PermissionRequestModal = ({
+  tournamentId,
+  onClose,
+  onRequestSubmitted
+}: PermissionRequestModalProps): React.ReactElement => {
   const { showAlert } = useModal();
   const [requestedRole, setRequestedRole] = useState<Role>(Role.USER);
   const [reason, setReason] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const availableRoles = Object.values(Role).filter(role => 
-    role !== Role.SUPER_ADMIN && 
-    (tournamentId ? !role.includes('GLOBAL') : !role.includes('TOURNAMENT'))
+  const availableRoles = Object.values(Role).filter(
+    (role) => role !== Role.SUPER_ADMIN && (tournamentId ? !role.includes("GLOBAL") : !role.includes("TOURNAMENT"))
   );
 
   const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
-    
+
     if (!reason.trim()) {
       await showAlert({ type: "error", message: "Reason is required" });
       return;
@@ -254,10 +250,10 @@ const PermissionRequestModal = ({ tournamentId, onClose, onRequestSubmitted }: P
 
     setLoading(true);
     try {
-      const response = await fetch('/api/v1/permissions/requests', {
-        method: 'POST',
+      const response = await fetch("/api/v1/permissions/requests", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json"
         },
         body: JSON.stringify({
           requestedRole: requestedRole,
@@ -265,9 +261,9 @@ const PermissionRequestModal = ({ tournamentId, onClose, onRequestSubmitted }: P
           reason: reason.trim()
         })
       });
-      
+
       if (!response.ok) {
-        throw new Error('Failed to submit permission request');
+        throw new Error("Failed to submit permission request");
       }
 
       await showAlert({ type: "success", message: "Permission request submitted successfully" });
@@ -286,12 +282,10 @@ const PermissionRequestModal = ({ tournamentId, onClose, onRequestSubmitted }: P
         <div className="p-6 border-b border-gray-700">
           <h3 className="text-lg font-semibold text-white">Request Permission</h3>
         </div>
-        
+
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Requested Role
-            </label>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Requested Role</label>
             <select
               value={requestedRole}
               onChange={(e) => setRequestedRole(e.target.value as Role)}
@@ -299,16 +293,14 @@ const PermissionRequestModal = ({ tournamentId, onClose, onRequestSubmitted }: P
             >
               {availableRoles.map((role) => (
                 <option key={role} value={role}>
-                  {role.replace(/_/g, ' ')}
+                  {role.replace(/_/g, " ")}
                 </option>
               ))}
             </select>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Reason
-            </label>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Reason</label>
             <textarea
               value={reason}
               onChange={(e) => setReason(e.target.value)}
@@ -320,18 +312,10 @@ const PermissionRequestModal = ({ tournamentId, onClose, onRequestSubmitted }: P
           </div>
 
           <div className="flex justify-end space-x-3 pt-4">
-            <Button
-              type="button"
-              onClick={onClose}
-              className="bg-gray-600 hover:bg-gray-700"
-            >
+            <Button type="button" onClick={onClose} className="bg-gray-600 hover:bg-gray-700">
               Cancel
             </Button>
-            <Button
-              type="submit"
-              disabled={loading}
-              className="bg-green-600 hover:bg-green-700 disabled:bg-gray-600"
-            >
+            <Button type="submit" disabled={loading} className="bg-green-600 hover:bg-green-700 disabled:bg-gray-600">
               {loading ? "Submitting..." : "Submit Request"}
             </Button>
           </div>

@@ -37,8 +37,8 @@ export const withPermission = (options: PermissionMiddlewareOptions) => {
 
     if (!result.allowed) {
       return NextResponse.json(
-        { 
-          error: "Insufficient permissions", 
+        {
+          error: "Insufficient permissions",
           message: result.reason,
           requiredRole: result.requiredRole,
           userRoles: result.userRoles
@@ -101,19 +101,12 @@ export const checkPermission = async (
 };
 
 // Utility function to get user roles for a resource
-export const getUserRoles = async (
-  userId: string,
-  resourceId?: string
-): Promise<Role[]> => {
+export const getUserRoles = async (userId: string, resourceId?: string): Promise<Role[]> => {
   return await PermissionService.getUserRoles(userId, resourceId);
 };
 
 // Utility function to check if user can grant a specific role
-export const canGrantRole = async (
-  granterUserId: string,
-  role: Role,
-  tournamentId?: string
-): Promise<boolean> => {
+export const canGrantRole = async (granterUserId: string, role: Role, tournamentId?: string): Promise<boolean> => {
   const grantableRoles = await PermissionService.getGrantableRoles(granterUserId, tournamentId);
   return grantableRoles.includes(role);
 };

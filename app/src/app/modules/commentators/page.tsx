@@ -78,12 +78,10 @@ export default function CommentatorsPage(): React.ReactElement {
             twitchHandle: twitchHandle || undefined
           })
         });
-        
+
         if (response.ok) {
           const data = await response.json();
-          setCommentators(prev => prev.map(c => 
-            (c._id || c.id) === commentatorId ? data.commentator : c
-          ));
+          setCommentators((prev) => prev.map((c) => ((c._id || c.id) === commentatorId ? data.commentator : c)));
           setSuccessMsg("Commentator updated successfully!");
         } else if (response.status === 302 || response.redirected) {
           // Handle redirect to login page
@@ -111,10 +109,10 @@ export default function CommentatorsPage(): React.ReactElement {
             twitchHandle: twitchHandle || undefined
           })
         });
-        
+
         if (response.ok) {
           const data = await response.json();
-          setCommentators(prev => [...prev, data.commentator]);
+          setCommentators((prev) => [...prev, data.commentator]);
           setSuccessMsg("Commentator added successfully!");
         } else if (response.status === 302 || response.redirected) {
           // Handle redirect to login page
@@ -131,7 +129,7 @@ export default function CommentatorsPage(): React.ReactElement {
           }
         }
       }
-      
+
       // Clear form
       setName("");
       setXHandle("");
@@ -169,7 +167,7 @@ export default function CommentatorsPage(): React.ReactElement {
 
   const handleDeleteConfirm = async () => {
     if (!deleteModal.commentator) return;
-    
+
     try {
       const commentatorId = deleteModal.commentator._id || deleteModal.commentator.id;
       if (!commentatorId) {
@@ -182,9 +180,9 @@ export default function CommentatorsPage(): React.ReactElement {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: commentatorId })
       });
-      
+
       if (response.ok) {
-        setCommentators(prev => prev.filter(c => (c._id || c.id) !== commentatorId));
+        setCommentators((prev) => prev.filter((c) => (c._id || c.id) !== commentatorId));
         setSuccessMsg("Commentator deleted successfully!");
       } else if (response.status === 302 || response.redirected) {
         // Handle redirect to login page
@@ -204,7 +202,7 @@ export default function CommentatorsPage(): React.ReactElement {
       console.error("Error deleting commentator:", error);
       setSuccessMsg("Error deleting commentator");
     }
-    
+
     setDeleteModal({ isOpen: false, commentator: null });
     setTimeout(() => setSuccessMsg(""), 3000);
   };
@@ -221,9 +219,7 @@ export default function CommentatorsPage(): React.ReactElement {
     <PageWrapper
       title="Commentators Management"
       subtitle="Manage commentators for tournaments"
-      breadcrumbs={[
-        { label: "Commentators", href: "/modules/commentators", isActive: true }
-      ]}
+      breadcrumbs={[{ label: "Commentators", href: "/modules/commentators", isActive: true }]}
     >
       <div className="bg-gray-900 rounded-xl p-6 mb-10 shadow-lg">
         <h3 className="text-xl font-semibold text-white mb-4">
@@ -298,7 +294,7 @@ export default function CommentatorsPage(): React.ReactElement {
           {commentators.map((c) => (
             <div key={c.id} className="bg-gray-800 rounded-xl p-5 border border-gray-700 shadow flex flex-col gap-3">
               <div className="text-lg font-bold text-white">{c.name}</div>
-              
+
               {/* Social Media Handles */}
               <div className="flex flex-wrap gap-3">
                 {c.xHandle && (
@@ -338,9 +334,9 @@ export default function CommentatorsPage(): React.ReactElement {
                   </a>
                 )}
               </div>
-              
+
               <div className="text-xs text-gray-500">
-                Created by {c.createdBy} • {c.createdAt ? new Date(c.createdAt).toLocaleDateString() : 'Unknown date'}
+                Created by {c.createdBy} • {c.createdAt ? new Date(c.createdAt).toLocaleDateString() : "Unknown date"}
               </div>
               <div className="flex gap-2 mt-auto">
                 <button
@@ -374,4 +370,3 @@ export default function CommentatorsPage(): React.ReactElement {
     </PageWrapper>
   );
 }
-

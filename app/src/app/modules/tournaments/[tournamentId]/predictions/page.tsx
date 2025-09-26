@@ -10,7 +10,6 @@ import { PageWrapper } from "@lib/layout";
 import { useParams } from "next/navigation";
 import { useModal } from "@/lib/contexts/ModalContext";
 
-
 export default function PredictionsPage(): React.ReactElement {
   const { tournaments, loading: tournamentsLoading } = useTournaments();
   const { setActiveModule } = useNavigation();
@@ -19,7 +18,9 @@ export default function PredictionsPage(): React.ReactElement {
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
-  const [submittingPrediction, setSubmittingPrediction] = useState<{ matchId: string; side: "blue" | "red" } | null>(null);
+  const [submittingPrediction, setSubmittingPrediction] = useState<{ matchId: string; side: "blue" | "red" } | null>(
+    null
+  );
   const [scoreInputs, setScoreInputs] = useState<{ [matchId: string]: { blue: number; red: number } }>({});
   const [teams, setTeams] = useState<{ [teamId: string]: { name: string; tag: string } }>({});
   const [commentators, setCommentators] = useState<Array<Commentator>>([]);
@@ -43,21 +44,21 @@ export default function PredictionsPage(): React.ReactElement {
   useEffect(() => {
     const fetchMatches = async () => {
       if (!tournamentId) return;
-      
+
       try {
         setLoading(true);
         const response = await fetch(`/api/v1/tournaments/${tournamentId}/matches`);
         if (response.ok) {
           const data = await response.json();
           setMatches(data.matches || []);
-          
+
           // Fetch team data for all matches
           const teamIds = new Set<string>();
           data.matches?.forEach((match: Match) => {
             teamIds.add(match.blueTeamId);
             teamIds.add(match.redTeamId);
           });
-          
+
           // Fetch team details
           const teamPromises = Array.from(teamIds).map(async (teamId) => {
             try {
@@ -71,10 +72,10 @@ export default function PredictionsPage(): React.ReactElement {
             }
             return null;
           });
-          
+
           const teamResults = await Promise.all(teamPromises);
           const teamMap: { [teamId: string]: { name: string; tag: string } } = {};
-          teamResults.forEach(result => {
+          teamResults.forEach((result) => {
             if (result) {
               teamMap[result.teamId] = {
                 name: result.team.name,
@@ -98,7 +99,7 @@ export default function PredictionsPage(): React.ReactElement {
   useEffect(() => {
     const fetchCommentators = async () => {
       if (!tournamentId) return;
-      
+
       try {
         const response = await fetch(`/api/v1/tournaments/${tournamentId}/commentators`);
         if (response.ok) {
@@ -146,12 +147,16 @@ export default function PredictionsPage(): React.ReactElement {
 
   const submitPrediction = async (matchId: string, blueScore: number, redScore: number) => {
     if (!selectedCommentator) {
-      showAlert({ type: "error", title: "Please select a commentator first", message: "Please select a commentator first" });
+      showAlert({
+        type: "error",
+        title: "Please select a commentator first",
+        message: "Please select a commentator first"
+      });
       setSubmittingPrediction(null);
       return;
     }
 
-    const commentator = commentators.find(c => c.id === selectedCommentator);
+    const commentator = commentators.find((c) => c.id === selectedCommentator);
     if (!commentator) {
       showAlert({ type: "error", title: "Selected commentator not found", message: "Selected commentator not found" });
       setSubmittingPrediction(null);
@@ -163,7 +168,7 @@ export default function PredictionsPage(): React.ReactElement {
       const res = await fetch(`/api/v1/matches/${matchId}/predictions`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           userId: commentator.id,
           username: commentator.name,
           prediction: blueScore > redScore ? "blue" : "red",
@@ -211,11 +216,15 @@ export default function PredictionsPage(): React.ReactElement {
                   <h3 className="text-xl font-semibold text-white">{match.name}</h3>
                   <div className="flex items-center space-x-4">
                     <span className="text-sm text-gray-400">{match.format}</span>
-                    <span className={`px-2 py-1 rounded text-xs font-medium ${
-                      match.status === "completed" ? "bg-green-600 text-green-100" :
-                      match.status === "in-progress" ? "bg-yellow-600 text-yellow-100" :
-                      "bg-gray-600 text-gray-200"
-                    }`}>
+                    <span
+                      className={`px-2 py-1 rounded text-xs font-medium ${
+                        match.status === "completed"
+                          ? "bg-green-600 text-green-100"
+                          : match.status === "in-progress"
+                            ? "bg-yellow-600 text-yellow-100"
+                            : "bg-gray-600 text-gray-200"
+                      }`}
+                    >
                       {match.status}
                     </span>
                   </div>
@@ -235,7 +244,7 @@ export default function PredictionsPage(): React.ReactElement {
                   {/* Predictions */}
                   <div className="space-y-2">
                     <h4 className="text-lg font-medium text-white mb-3">Commentator Predictions</h4>
-                    
+
                     {/* Commentator Selection */}
                     <div className="space-y-3 mb-3">
                       <h5 className="text-sm font-medium text-gray-300">Select Commentator</h5>
@@ -264,13 +273,15 @@ export default function PredictionsPage(): React.ReactElement {
                             min="0"
                             max="5"
                             value={scoreInputs[match._id]?.blue || 0}
-                            onChange={(e) => setScoreInputs(prev => ({
-                              ...prev,
-                              [match._id]: { 
-                                ...prev[match._id], 
-                                blue: parseInt(e.target.value) || 0 
-                              }
-                            }))}
+                            onChange={(e) =>
+                              setScoreInputs((prev) => ({
+                                ...prev,
+                                [match._id]: {
+                                  ...prev[match._id],
+                                  blue: parseInt(e.target.value) || 0
+                                }
+                              }))
+                            }
                             className="w-16 px-2 py-1 bg-gray-700 border border-gray-600 rounded text-white text-center"
                           />
                         </div>
@@ -282,13 +293,15 @@ export default function PredictionsPage(): React.ReactElement {
                             min="0"
                             max="5"
                             value={scoreInputs[match._id]?.red || 0}
-                            onChange={(e) => setScoreInputs(prev => ({
-                              ...prev,
-                              [match._id]: { 
-                                ...prev[match._id], 
-                                red: parseInt(e.target.value) || 0 
-                              }
-                            }))}
+                            onChange={(e) =>
+                              setScoreInputs((prev) => ({
+                                ...prev,
+                                [match._id]: {
+                                  ...prev[match._id],
+                                  red: parseInt(e.target.value) || 0
+                                }
+                              }))
+                            }
                             className="w-16 px-2 py-1 bg-gray-700 border border-gray-600 rounded text-white text-center"
                           />
                         </div>
@@ -299,17 +312,20 @@ export default function PredictionsPage(): React.ReactElement {
                               submitPrediction(match._id, scores.blue, scores.red);
                             }
                           }}
-                          disabled={submittingPrediction?.matchId === match._id || !scoreInputs[match._id] || !selectedCommentator}
+                          disabled={
+                            submittingPrediction?.matchId === match._id ||
+                            !scoreInputs[match._id] ||
+                            !selectedCommentator
+                          }
                           className={`px-4 py-2 rounded text-sm font-medium ${
-                            submittingPrediction?.matchId === match._id || !scoreInputs[match._id] || !selectedCommentator
+                            submittingPrediction?.matchId === match._id ||
+                            !scoreInputs[match._id] ||
+                            !selectedCommentator
                               ? "bg-gray-600 text-gray-400 cursor-not-allowed"
                               : "bg-green-600 hover:bg-green-700 text-white"
                           }`}
                         >
-                          {submittingPrediction?.matchId === match._id 
-                            ? "Submitting..." 
-                            : "Submit Prediction"
-                          }
+                          {submittingPrediction?.matchId === match._id ? "Submitting..." : "Submit Prediction"}
                         </button>
                       </div>
                     </div>
@@ -324,7 +340,9 @@ export default function PredictionsPage(): React.ReactElement {
                               <span className="text-sm text-gray-300">
                                 {prediction.blueScore || 0} - {prediction.redScore || 0}
                               </span>
-                              <div className={`px-3 py-1 rounded text-sm font-medium ${getPredictionColor(prediction.prediction)}`}>
+                              <div
+                                className={`px-3 py-1 rounded text-sm font-medium ${getPredictionColor(prediction.prediction)}`}
+                              >
                                 {prediction.prediction.toUpperCase()}
                               </div>
                             </div>

@@ -199,10 +199,10 @@ export function TournamentDataProvider({ children }: { children: ReactNode }) {
       const response = await authenticatedFetch("/api/v1/tournaments", {
         method: "HEAD"
       });
-      
+
       // If we get 401, just return without error - user is logged out
       if (response.status === 401) return;
-      
+
       const lastModified = response.headers.get("Last-Modified");
 
       if (lastModified) {
@@ -295,7 +295,7 @@ export function TournamentDataProvider({ children }: { children: ReactNode }) {
         setError(null);
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, authLoading]); // Removed loadCachedData from dependencies to prevent infinite loop
 
   useEffect(() => {

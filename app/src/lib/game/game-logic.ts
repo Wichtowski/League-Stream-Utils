@@ -603,7 +603,9 @@ export async function getAvailableChampions(session: GameSession): Promise<Champ
   }
 
   const usedChampions = await getUsedChampionsInSeries(session._id);
-  return allChampions.filter((champion: Champion) => !usedChampions.some((used: Champion) => used._id === champion._id));
+  return allChampions.filter(
+    (champion: Champion) => !usedChampions.some((used: Champion) => used._id === champion._id)
+  );
 }
 
 export function generateTeamUrl(sessionId: string, teamSide: "blue" | "red", baseUrl: string): string {

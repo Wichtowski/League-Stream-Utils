@@ -15,10 +15,7 @@ export const POST = withAuth(async (req: NextRequest, user: JWTPayload, params: 
     }
 
     if (tournament.userId !== user.userId && !user.isAdmin) {
-      return NextResponse.json(
-        { error: "Forbidden: Only tournament organizer can generate matches" },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: "Forbidden: Only tournament organizer can generate matches" }, { status: 403 });
     }
 
     if (tournament.status !== "draft" && tournament.status !== "ongoing") {
@@ -30,15 +27,12 @@ export const POST = withAuth(async (req: NextRequest, user: JWTPayload, params: 
 
     const teams = tournament.selectedTeams.length > 0 ? tournament.selectedTeams : tournament.registeredTeams;
     if (teams.length < 2) {
-      return NextResponse.json(
-        { error: "Tournament must have at least 2 teams to generate matches" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Tournament must have at least 2 teams to generate matches" }, { status: 400 });
     }
 
     // Generate matches based on tournament format
     const matchRequests = MatchGenerator.generateTournamentMatches(tournament);
-    
+
     // Create matches in database
     const createdMatches = [];
     for (const matchRequest of matchRequests) {

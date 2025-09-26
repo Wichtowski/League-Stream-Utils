@@ -225,5 +225,3 @@ export function useCurrentTournament(): CurrentTournamentContextType {
   }
   return context;
 }
-
-

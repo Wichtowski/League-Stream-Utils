@@ -187,7 +187,7 @@ function transformRiotToLiveGameData(riot: import("@lib/types/live-client").Riot
   }
 
   // Estimate gold for other players based on items and level
-  allPlayers.forEach(player => {
+  allPlayers.forEach((player) => {
     if (player.gold === 0 && player.summonerName !== activeName) {
       // Simple estimation: base gold + level bonus + item value estimation
       const baseGold = 500; // Starting gold
@@ -200,7 +200,7 @@ function transformRiotToLiveGameData(riot: import("@lib/types/live-client").Riot
         if (item.itemID < 4000) return sum + 1500; // Advanced items
         return sum + 2500; // Legendary items
       }, 0);
-      
+
       player.gold = baseGold + levelGold + itemGold;
     }
   });

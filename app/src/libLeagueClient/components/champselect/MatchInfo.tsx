@@ -49,7 +49,6 @@ const MatchInfoComponent: React.FC<MatchInfoProps> = ({
 
   const maxWins = getMaxWins();
 
-
   // Calculate team wins using the same logic as match detail page
   const teamWins = getTeamWins(games || []);
 
@@ -184,14 +183,7 @@ const MatchInfoComponent: React.FC<MatchInfoProps> = ({
         {/* Tournament Logo */}
         <div className="w-64 h-64 rounded-lg mb-3 h-[128px] w-[128px] flex items-center justify-center">
           {tournamentLogo && tournamentLogo.trim() ? (
-            <SafeImage
-              src={tournamentLogo}
-              alt="Tournament"
-              priority
-              width={100}
-              height={100}
-              className=""
-            />
+            <SafeImage src={tournamentLogo} alt="Tournament" priority width={100} height={100} className="" />
           ) : (
             <div className="w-full h-full bg-gray-600 flex items-center justify-center">
               <span className="text-white text-xs font-bold">Tournament</span>

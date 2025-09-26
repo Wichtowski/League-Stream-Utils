@@ -44,9 +44,7 @@ export default function SettingsPage() {
       title="Tournament Management Settings"
       subtitle="Configure Riot API integration, tournament templates for professional esports production."
       className="max-w-6xl mx-auto"
-      breadcrumbs={[
-        { label: "Settings", href: "/settings", isActive: true }
-      ]}
+      breadcrumbs={[{ label: "Settings", href: "/settings", isActive: true }]}
     >
       <ElectronSettings />
     </PageWrapper>

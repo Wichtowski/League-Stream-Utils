@@ -88,15 +88,14 @@ export default function ModulesPage() {
 
   const handleRemoveLastSelectedTournament = () => {
     clearCurrentTournament();
-  }
+  };
 
   const handleRemoveLastSelectedMatch = () => {
     // Use context action if needed; for now, match context is authoritative
-  }
+  };
 
   const isHiddenBehindTournament = (module: ModuleCard) =>
     module.name === "Matches" || module.name === "Commentators" || module.name === "Sponsors";
-
 
   if (loading) {
     return (
@@ -116,15 +115,9 @@ export default function ModulesPage() {
           <>
             <span>Remove Last Selected:</span>
             {currentTournament ? (
-              <Button onClick={() => handleRemoveLastSelectedTournament()}>
-                Tournament
-              </Button>
+              <Button onClick={() => handleRemoveLastSelectedTournament()}>Tournament</Button>
             ) : null}
-            {currentMatch ? (
-              <Button onClick={() => handleRemoveLastSelectedMatch()}>
-                Match
-              </Button>
-            ) : null}
+            {currentMatch ? <Button onClick={() => handleRemoveLastSelectedMatch()}>Match</Button> : null}
           </>
         ) : null
       }

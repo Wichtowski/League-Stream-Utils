@@ -178,7 +178,6 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       try {
         // In cloud mode, fetch from API
 
-
         const [appResponse, userResponse] = await Promise.all([
           authenticatedFetch("/api/v1/settings/app"),
           authenticatedFetch("/api/v1/settings/user")
@@ -218,22 +217,25 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let intervalId: NodeJS.Timeout | null = null;
     if (user) {
-      intervalId = setInterval(async () => {
-        // Check if cache is expired before making API calls
-        const [appTimestamp, userTimestamp] = await Promise.all([
-          storage.getTimestamp(APP_SETTINGS_CACHE_KEY),
-          storage.getTimestamp(USER_PREFERENCES_CACHE_KEY)
-        ]);
-        
-        const now = Date.now();
-        const appCacheExpired = !appTimestamp || (now - appTimestamp) > CACHE_TTL;
-        const userCacheExpired = !userTimestamp || (now - userTimestamp) > CACHE_TTL;
-        
-        // Only fetch if cache is expired
-        if (appCacheExpired || userCacheExpired) {
-          fetchSettingsFromAPI(false);
-        }
-      }, 5 * 60 * 1000); // 5 minutes
+      intervalId = setInterval(
+        async () => {
+          // Check if cache is expired before making API calls
+          const [appTimestamp, userTimestamp] = await Promise.all([
+            storage.getTimestamp(APP_SETTINGS_CACHE_KEY),
+            storage.getTimestamp(USER_PREFERENCES_CACHE_KEY)
+          ]);
+
+          const now = Date.now();
+          const appCacheExpired = !appTimestamp || now - appTimestamp > CACHE_TTL;
+          const userCacheExpired = !userTimestamp || now - userTimestamp > CACHE_TTL;
+
+          // Only fetch if cache is expired
+          if (appCacheExpired || userCacheExpired) {
+            fetchSettingsFromAPI(false);
+          }
+        },
+        5 * 60 * 1000
+      ); // 5 minutes
     }
     return () => {
       if (intervalId) clearInterval(intervalId);
@@ -425,7 +427,6 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     },
     [updateUserPreferences]
   );
-  
 
   const updateNotificationSettings = useCallback(
     async (notifications: Partial<AppSettings["notifications"]>): Promise<void> => {

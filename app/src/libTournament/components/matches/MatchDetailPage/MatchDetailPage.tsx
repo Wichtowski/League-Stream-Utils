@@ -13,14 +13,7 @@ import {
   useMatchEditing,
   useMatchGames
 } from "@libTournament/hooks";
-import { 
-  MatchHeader,
-  MatchInfoCard,
-  GameResultsCard,
-  PlayerStatsCard,
-  MatchSidebar,
-  DeleteMatchModal, 
-} from "./";
+import { MatchHeader, MatchInfoCard, GameResultsCard, PlayerStatsCard, MatchSidebar, DeleteMatchModal } from "./";
 
 interface MatchDetailPageProps {
   match: Match;
@@ -37,17 +30,18 @@ export const MatchDetailPage: React.FC<MatchDetailPageProps> = ({ match, tournam
   // Load champions
   useEffect(() => {
     let mounted = true;
-    getChampions().then((list) => {
-      if (mounted) setChampions(list);
-    }).catch(() => setChampions([]));
-    return () => { mounted = false; };
+    getChampions()
+      .then((list) => {
+        if (mounted) setChampions(list);
+      })
+      .catch(() => setChampions([]));
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   // Custom hooks - only fetch player stats since match and tournament are already loaded in page
-  const {
-    playerStats,
-    setPlayerStats
-  } = usePlayerStatsData(matchId);
+  const { playerStats, setPlayerStats } = usePlayerStatsData(matchId);
 
   const {
     editing,
@@ -78,19 +72,10 @@ export const MatchDetailPage: React.FC<MatchDetailPageProps> = ({ match, tournam
     handleDeleteGame
   } = useMatchGames(currentMatch, blueTeam, redTeam);
 
-  const {
-    commentators,
-    newCommentatorId,
-    setNewCommentatorId,
-    assigningCommentator,
-    handleAssignCommentator
-  } = useMatchCommentators(currentMatch);
+  const { commentators, newCommentatorId, setNewCommentatorId, assigningCommentator, handleAssignCommentator } =
+    useMatchCommentators(currentMatch);
 
-  const {
-    predictions,
-    submittingPrediction,
-    submitPrediction
-  } = useMatchPredictions(currentMatch);
+  const { predictions, submittingPrediction, submitPrediction } = useMatchPredictions(currentMatch);
 
   const { updatePlayerStat } = usePlayerStats(playerStats, setPlayerStats);
 
@@ -128,12 +113,7 @@ export const MatchDetailPage: React.FC<MatchDetailPageProps> = ({ match, tournam
     setEditData(updatedMatch);
   };
 
-  const handleChampionChange = (
-    gameNumber: number,
-    side: "blue" | "red",
-    playerId: string,
-    championId: number
-  ) => {
+  const handleChampionChange = (gameNumber: number, side: "blue" | "red", playerId: string, championId: number) => {
     handleChampionPlayedChange(gameNumber, side, playerId, championId, handleGameUpdate);
   };
 
@@ -157,7 +137,6 @@ export const MatchDetailPage: React.FC<MatchDetailPageProps> = ({ match, tournam
     handleSwapTeams(handleGameUpdate);
   };
 
-
   return (
     <>
       <MatchHeader
@@ -174,12 +153,7 @@ export const MatchDetailPage: React.FC<MatchDetailPageProps> = ({ match, tournam
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Match Info */}
         <div className="lg:col-span-2 space-y-6">
-          <MatchInfoCard
-            match={currentMatch}
-            editing={editing}
-            editData={editData}
-            onEditDataChange={setEditData}
-          />
+          <MatchInfoCard match={currentMatch} editing={editing} editData={editData} onEditDataChange={setEditData} />
 
           <GameResultsCard
             match={currentMatch}
@@ -201,11 +175,7 @@ export const MatchDetailPage: React.FC<MatchDetailPageProps> = ({ match, tournam
             teamWins={teamWins}
           />
 
-          <PlayerStatsCard
-            playerStats={playerStats}
-            editing={editing}
-            updatePlayerStat={updatePlayerStat}
-          />
+          <PlayerStatsCard playerStats={playerStats} editing={editing} updatePlayerStat={updatePlayerStat} />
         </div>
 
         {/* Sidebar */}

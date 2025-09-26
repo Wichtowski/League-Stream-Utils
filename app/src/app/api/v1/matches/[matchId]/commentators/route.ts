@@ -11,7 +11,7 @@ export const GET = withAuth(async (req: NextRequest) => {
     const matchId = req.nextUrl.pathname.split("/")[4];
     await connectToDatabase();
 
-    const match = await MatchModel.findById(matchId) as MatchDoc | null;
+    const match = (await MatchModel.findById(matchId)) as MatchDoc | null;
     if (!match) {
       return NextResponse.json({ error: "Match not found" }, { status: 404 });
     }
@@ -36,13 +36,13 @@ export const POST = withAuth(async (req: NextRequest, user) => {
     await connectToDatabase();
 
     // Get the commentator details from global commentators
-    const commentator = await CommentatorModel.findById(commentatorId) as CommentatorDoc | null;
+    const commentator = (await CommentatorModel.findById(commentatorId)) as CommentatorDoc | null;
     if (!commentator) {
       return NextResponse.json({ error: "Commentator not found" }, { status: 404 });
     }
 
     // Get the match
-    const match = await MatchModel.findById(matchId) as MatchDoc | null;
+    const match = (await MatchModel.findById(matchId)) as MatchDoc | null;
     if (!match) {
       return NextResponse.json({ error: "Match not found" }, { status: 404 });
     }
@@ -64,14 +64,14 @@ export const POST = withAuth(async (req: NextRequest, user) => {
       assignedBy: user.username
     };
 
-    const updatedMatch = await MatchModel.findByIdAndUpdate(
+    const updatedMatch = (await MatchModel.findByIdAndUpdate(
       matchId,
       {
         $push: { commentators: newCommentator },
         $set: { updatedAt: new Date() }
       },
       { new: true }
-    ) as MatchDoc | null;
+    )) as MatchDoc | null;
 
     return NextResponse.json({
       success: true,
@@ -95,14 +95,14 @@ export const DELETE = withAuth(async (req: NextRequest) => {
 
     await connectToDatabase();
 
-    const updatedMatch = await MatchModel.findByIdAndUpdate(
+    const updatedMatch = (await MatchModel.findByIdAndUpdate(
       matchId,
       {
         $pull: { commentators: { _id: commentatorId } },
         $set: { updatedAt: new Date() }
       },
       { new: true }
-    ) as MatchDoc | null;
+    )) as MatchDoc | null;
 
     if (!updatedMatch) {
       return NextResponse.json({ error: "Match not found" }, { status: 404 });

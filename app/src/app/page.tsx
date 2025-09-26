@@ -9,11 +9,11 @@ export const dynamic = "force-dynamic";
 
 export default function HomePage() {
   const { setActiveModule } = useNavigation();
-  
+
   useEffect(() => {
     setActiveModule(null);
   }, [setActiveModule]);
- 
+
   return (
     <PageWrapper>
       {/* Navigation */}

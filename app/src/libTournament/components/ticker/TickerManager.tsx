@@ -41,14 +41,16 @@ export const TickerManager = ({
         title: ticker.title,
         titleBackgroundColor: ticker.titleBackgroundColor || "#1f2937",
         titleTextColor: ticker.titleTextColor || "#ffffff",
-        carouselItems: (ticker.carouselItems || []).map((item: { text: string; backgroundColor?: string; textColor?: string; order: number; }) => ({
-          text: item.text,
-          backgroundColor: item.backgroundColor || "#1f2937",
-          textColor: item.textColor || "#ffffff",
-          order: item.order
-        })),
+        carouselItems: (ticker.carouselItems || []).map(
+          (item: { text: string; backgroundColor?: string; textColor?: string; order: number }) => ({
+            text: item.text,
+            backgroundColor: item.backgroundColor || "#1f2937",
+            textColor: item.textColor || "#ffffff",
+            order: item.order
+          })
+        ),
         carouselSpeed: ticker.carouselSpeed,
-        carouselBackgroundColor: ticker.carouselBackgroundColor || "#1f2937",
+        carouselBackgroundColor: ticker.carouselBackgroundColor || "#1f2937"
       });
     } else {
       setFormData(createDefaultTickerForm());
@@ -69,14 +71,14 @@ export const TickerManager = ({
           title: sanitizedData.title,
           titleBackgroundColor: sanitizedData.titleBackgroundColor,
           titleTextColor: sanitizedData.titleTextColor,
-          carouselItems: sanitizedData.carouselItems.map(item => ({
+          carouselItems: sanitizedData.carouselItems.map((item) => ({
             text: item.text,
             backgroundColor: item.backgroundColor,
             textColor: item.textColor,
             order: item.order
           })),
           carouselSpeed: sanitizedData.carouselSpeed,
-          carouselBackgroundColor: sanitizedData.carouselBackgroundColor,
+          carouselBackgroundColor: sanitizedData.carouselBackgroundColor
         })
       },
       { maxAttempts: 2, delay: 1000 } // Retry once with 1 second delay
@@ -133,14 +135,16 @@ export const TickerManager = ({
         title: ticker.title,
         titleBackgroundColor: ticker.titleBackgroundColor || "#1f2937",
         titleTextColor: ticker.titleTextColor || "#ffffff",
-        carouselItems: (ticker.carouselItems || []).map((item: { text: string; backgroundColor?: string; textColor?: string; order: number; }) => ({
-          text: item.text,
-          backgroundColor: item.backgroundColor || "#1f2937",
-          textColor: item.textColor || "#ffffff",
-          order: item.order
-        })),
+        carouselItems: (ticker.carouselItems || []).map(
+          (item: { text: string; backgroundColor?: string; textColor?: string; order: number }) => ({
+            text: item.text,
+            backgroundColor: item.backgroundColor || "#1f2937",
+            textColor: item.textColor || "#ffffff",
+            order: item.order
+          })
+        ),
         carouselSpeed: ticker.carouselSpeed,
-        carouselBackgroundColor: ticker.carouselBackgroundColor || "#1f2937",
+        carouselBackgroundColor: ticker.carouselBackgroundColor || "#1f2937"
       });
     } else {
       setFormData(createDefaultTickerForm());
@@ -149,8 +153,6 @@ export const TickerManager = ({
     setIsEditing(false);
     onPreviewChange(null);
   };
-
-
 
   // Update preview when form data changes
   const updatePreview = useCallback(() => {
@@ -170,7 +172,7 @@ export const TickerManager = ({
   }
 
   return (
-    <ErrorBoundary context="TickerManager" showDetails={process.env.NODE_ENV === 'development'}>
+    <ErrorBoundary context="TickerManager" showDetails={process.env.NODE_ENV === "development"}>
       <div className="space-y-6">
         {/* Error display */}
         {error && (
@@ -178,14 +180,17 @@ export const TickerManager = ({
             <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <svg className="h-5 w-5 text-red-400 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                    clipRule="evenodd"
+                  />
                 </svg>
-                <span className="text-red-800 dark:text-red-200">{error.message instanceof Error ? error.message.message : error.message}</span>
+                <span className="text-red-800 dark:text-red-200">
+                  {error.message instanceof Error ? error.message.message : error.message}
+                </span>
               </div>
-              <button
-                onClick={clearError}
-                className="text-red-400 hover:text-red-600"
-              >
+              <button onClick={clearError} className="text-red-400 hover:text-red-600">
                 ×
               </button>
             </div>
@@ -194,9 +199,7 @@ export const TickerManager = ({
 
         {/* ticker Management Header */}
         <div className="flex justify-between items-center">
-          <h2 className="text-xl font-semibold">
-            {ticker ? "Ticker" : "Create Ticker"}
-          </h2>
+          <h2 className="text-xl font-semibold">{ticker ? "Ticker" : "Create Ticker"}</h2>
           <div className="flex gap-2">
             {ticker && !showForm && (
               <>
@@ -251,12 +254,9 @@ export const TickerManager = ({
                 <h4 className="text-sm font-medium text-gray-300">Carousel Items:</h4>
                 <div className="grid gap-2">
                   {(ticker.carouselItems || [])
-                    .sort((a: { order: number; }, b: { order: number; }) => a.order - b.order)
-                    .map((item: { order: number; text: string; backgroundColor?: string; }, index: number) => (
-                      <div
-                        key={index}
-                        className="flex items-center gap-3 p-2 bg-gray-700 rounded text-sm"
-                      >
+                    .sort((a: { order: number }, b: { order: number }) => a.order - b.order)
+                    .map((item: { order: number; text: string; backgroundColor?: string }, index: number) => (
+                      <div key={index} className="flex items-center gap-3 p-2 bg-gray-700 rounded text-sm">
                         <span className="text-gray-400 w-6">{item.order}.</span>
                         <span className="flex-1">{item.text}</span>
                         <div

@@ -6,7 +6,6 @@ import { useCameras } from "@libCamera/context/CamerasContext";
 import { CameraPlayer, CameraTeam } from "@libCamera/types";
 import { Team } from "@libTeam/types";
 
-
 export type MergedPlayer = Team["players"]["main"][number] & {
   inGameName: string;
   cameraUrl: string | null;

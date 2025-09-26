@@ -4,7 +4,6 @@ import { getTournament, updateTournamentFields } from "@libTournament/database/t
 import type { Sponsorship } from "@libTournament/types";
 import { Types } from "mongoose";
 
-
 // GET /api/v1/tournaments/[tournamentId]/sponsors - Get tournament sponsors
 export const GET = withAuth(async (_req: NextRequest, user, params: Promise<Record<string, string>>) => {
   try {

@@ -30,8 +30,7 @@ export const Button = ({
 
   const baseClasses = "rounded-lg font-medium transition-all duration-200 hover:scale-105 active:scale-95";
 
-  return (
-    href && href !== "" ? (
+  return href && href !== "" ? (
     <Link href={href} target={target}>
       <button
         className={`${baseClasses} ${sizeClasses[size]} ${className}`}
@@ -52,21 +51,20 @@ export const Button = ({
     </Link>
   ) : (
     <button
-    className={`${baseClasses} ${sizeClasses[size]} ${className}`}
-    style={{
-      backgroundColor: buttonColors.bg,
-      color: buttonColors.text
-    }}
-    onMouseEnter={(e) => {
-      e.currentTarget.style.backgroundColor = buttonColors.hover;
-    }}
-    onMouseLeave={(e) => {
-      e.currentTarget.style.backgroundColor = buttonColors.bg;
-    }}
-    {...props}
+      className={`${baseClasses} ${sizeClasses[size]} ${className}`}
+      style={{
+        backgroundColor: buttonColors.bg,
+        color: buttonColors.text
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.backgroundColor = buttonColors.hover;
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.backgroundColor = buttonColors.bg;
+      }}
+      {...props}
     >
       {children}
     </button>
-  )
   );
 };

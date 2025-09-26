@@ -28,14 +28,20 @@ const ChampSelectOverlayPage: React.FC = () => {
       const lastSelectedMatch = localStorage.getItem("lastSelectedMatch");
       const lastSelectedTournament = localStorage.getItem("lastSelectedTournament");
 
-      if (lastSelectedMatch && lastSelectedTournament && 
-          lastSelectedMatch.trim() !== "" && lastSelectedTournament.trim() !== "") {
+      if (
+        lastSelectedMatch &&
+        lastSelectedTournament &&
+        lastSelectedMatch.trim() !== "" &&
+        lastSelectedTournament.trim() !== ""
+      ) {
         try {
           const parsedMatch = JSON.parse(lastSelectedMatch);
           const parsedTournament = JSON.parse(lastSelectedTournament);
-          
+
           // Redirect to the new URL parameter-based route
-          router.push(`/modules/leagueclient/${parsedTournament.tournamentId || parsedTournament.id}/${parsedMatch.matchId || parsedMatch.id}/champselect`);
+          router.push(
+            `/modules/leagueclient/${parsedTournament.tournamentId || parsedTournament.id}/${parsedMatch.matchId || parsedMatch.id}/champselect`
+          );
           return;
         } catch (parseError) {
           console.error("Failed to parse match/tournament from localStorage:", parseError);

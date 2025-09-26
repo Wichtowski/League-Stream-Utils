@@ -87,15 +87,16 @@ export const getUserTournaments = async (userId: string): Promise<TournamentType
     const { PermissionService } = await import("@lib/services/permissions");
     const userPermissions = await PermissionService.getUserTournamentPermissions(userId);
 
-    const tournamentIds = userPermissions.map(p => p.tournamentId);
-    const permissionTournaments = tournamentIds.length > 0
-      ? await TournamentModel.find({ _id: { $in: tournamentIds } }).sort({ createdAt: -1 })
-      : [];
+    const tournamentIds = userPermissions.map((p) => p.tournamentId);
+    const permissionTournaments =
+      tournamentIds.length > 0
+        ? await TournamentModel.find({ _id: { $in: tournamentIds } }).sort({ createdAt: -1 })
+        : [];
 
     // Combine and deduplicate tournaments
     const allTournaments = [...ownedTournaments, ...permissionTournaments];
-    const uniqueTournaments = allTournaments.filter((tournament, index, self) =>
-      index === self.findIndex(t => t._id.toString() === tournament._id.toString())
+    const uniqueTournaments = allTournaments.filter(
+      (tournament, index, self) => index === self.findIndex((t) => t._id.toString() === tournament._id.toString())
     );
 
     return uniqueTournaments.map(convertMongoDoc);
@@ -109,7 +110,6 @@ export const getUserTournaments = async (userId: string): Promise<TournamentType
 
 // Get all tournaments (admin function)
 export const getAllTournaments = async (): Promise<TournamentType[]> => {
-
   const tournaments = await TournamentModel.find({}).sort({ createdAt: -1 });
 
   const convertedTournaments = tournaments.map(convertMongoDoc);

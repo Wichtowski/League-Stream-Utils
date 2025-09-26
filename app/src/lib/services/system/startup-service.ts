@@ -212,17 +212,21 @@ class StartupService {
 
       // Check champions
       const championCompleteness = await championCacheService.checkCacheCompleteness();
-      console.log(`Champions: ${championCompleteness.isComplete ? 'complete' : `missing ${championCompleteness.missingChampions.length}`}`);
+      console.log(
+        `Champions: ${championCompleteness.isComplete ? "complete" : `missing ${championCompleteness.missingChampions.length}`}`
+      );
 
       // Check all summoner spells (DataDragon + CommunityDragon)
       const spellCompleteness = await summonerSpellCacheService.checkCacheCompleteness();
       const communityDragonCompleteness = await summonerSpellCacheService.checkCommunityDragonSpellsCompleteness();
-      
+
       const missingDataDragonSpells = spellCompleteness.missingSpells.length;
       const missingCommunityDragonSpells = communityDragonCompleteness.missingSpells.length;
       const totalMissingSpells = missingDataDragonSpells + missingCommunityDragonSpells;
-      
-      console.log(`Spells: ${totalMissingSpells === 0 ? 'complete' : `missing ${totalMissingSpells} (${missingDataDragonSpells} DataDragon, ${missingCommunityDragonSpells} CommunityDragon)`}`);
+
+      console.log(
+        `Spells: ${totalMissingSpells === 0 ? "complete" : `missing ${totalMissingSpells} (${missingDataDragonSpells} DataDragon, ${missingCommunityDragonSpells} CommunityDragon)`}`
+      );
 
       const missingChampions = championCompleteness.isComplete ? 0 : championCompleteness.missingChampions.length;
       const totalMissing = missingChampions + totalMissingSpells;

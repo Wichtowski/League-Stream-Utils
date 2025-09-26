@@ -41,7 +41,7 @@ export const LogoutButton: React.FC<LogoutButtonProps> = ({
 
   // Helper function to classify and handle different types of errors
   const classifyError = (error: unknown): LogoutError => {
-    if (error instanceof TypeError && error.message.includes('fetch')) {
+    if (error instanceof TypeError && error.message.includes("fetch")) {
       return {
         type: LogoutErrorType.NETWORK_ERROR,
         message: "Unable to connect to the server. Please check your internet connection and try again.",
@@ -51,7 +51,7 @@ export const LogoutButton: React.FC<LogoutButtonProps> = ({
 
     if (error instanceof Error) {
       // Check for specific error patterns
-      if (error.message.includes('401') || error.message.includes('unauthorized')) {
+      if (error.message.includes("401") || error.message.includes("unauthorized")) {
         return {
           type: LogoutErrorType.SESSION_EXPIRED,
           message: "Your session has already expired. You will be redirected to the login page.",
@@ -59,7 +59,7 @@ export const LogoutButton: React.FC<LogoutButtonProps> = ({
         };
       }
 
-      if (error.message.includes('500') || error.message.includes('server')) {
+      if (error.message.includes("500") || error.message.includes("server")) {
         return {
           type: LogoutErrorType.SERVER_ERROR,
           message: "Server error occurred during logout. Your local session will be cleared.",
@@ -87,13 +87,13 @@ export const LogoutButton: React.FC<LogoutButtonProps> = ({
       message: error.message,
       context,
       timestamp: new Date().toISOString(),
-      userAgent: typeof window !== 'undefined' ? window.navigator.userAgent : 'unknown',
+      userAgent: typeof window !== "undefined" ? window.navigator.userAgent : "unknown",
       // Only log error name and basic info, not full stack traces or sensitive data
       originalErrorName: error.originalError?.name,
       originalErrorMessage: error.originalError?.message?.substring(0, 100) // Limit message length
     };
 
-    console.error('LogoutButton Error:', sanitizedError);
+    console.error("LogoutButton Error:", sanitizedError);
   };
 
   // Helper function to show error messages to users
@@ -107,7 +107,7 @@ export const LogoutButton: React.FC<LogoutButtonProps> = ({
       });
     } catch (alertError) {
       // Fallback if modal system fails
-      console.error('Failed to show error alert:', alertError);
+      console.error("Failed to show error alert:", alertError);
       // Could implement a toast notification or other fallback here
     }
   };
@@ -141,7 +141,7 @@ export const LogoutButton: React.FC<LogoutButtonProps> = ({
           message: "Error showing confirmation dialog. Please try again.",
           originalError: confirmError as Error
         };
-        
+
         setError(error);
         logError(error, "confirmation_dialog");
         await showErrorMessage(error);
@@ -154,7 +154,7 @@ export const LogoutButton: React.FC<LogoutButtonProps> = ({
 
     // Proceed with logout
     setIsLoggingOut(true);
-    
+
     try {
       await logout();
       // If we reach here, logout was successful
@@ -180,21 +180,21 @@ export const LogoutButton: React.FC<LogoutButtonProps> = ({
       // but we can add additional cleanup if needed
       try {
         // Additional local cleanup if needed
-        if (typeof window !== 'undefined') {
+        if (typeof window !== "undefined") {
           // Clear any additional app-specific data that might not be handled by AuthContext
           // This is a safety net in case the AuthContext cleanup fails
           const keysToRemove = [];
           for (let i = 0; i < localStorage.length; i++) {
             const key = localStorage.key(i);
-            if (key && (key.startsWith('auth-') || key.startsWith('user-') || key.startsWith('session-'))) {
+            if (key && (key.startsWith("auth-") || key.startsWith("user-") || key.startsWith("session-"))) {
               keysToRemove.push(key);
             }
           }
-          keysToRemove.forEach(key => {
+          keysToRemove.forEach((key) => {
             try {
               localStorage.removeItem(key);
             } catch (cleanupError) {
-              console.warn('Failed to remove localStorage key:', key, cleanupError);
+              console.warn("Failed to remove localStorage key:", key, cleanupError);
             }
           });
 
@@ -202,11 +202,11 @@ export const LogoutButton: React.FC<LogoutButtonProps> = ({
           try {
             sessionStorage.clear();
           } catch (sessionError) {
-            console.warn('Failed to clear sessionStorage:', sessionError);
+            console.warn("Failed to clear sessionStorage:", sessionError);
           }
         }
       } catch (cleanupError) {
-        console.error('Additional cleanup failed:', cleanupError);
+        console.error("Additional cleanup failed:", cleanupError);
         // Don't throw here, as we don't want to prevent the error handling flow
       }
     } finally {
@@ -227,14 +227,7 @@ export const LogoutButton: React.FC<LogoutButtonProps> = ({
           role="img"
           aria-label="Loading authentication state"
         >
-          <circle
-            className="opacity-25"
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="currentColor"
-            strokeWidth="4"
-          />
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
           <path
             className="opacity-75"
             fill="currentColor"
@@ -250,9 +243,7 @@ export const LogoutButton: React.FC<LogoutButtonProps> = ({
   if (!user) {
     return (
       <div className="text-center py-4">
-        <p className="text-sm text-gray-400">
-          You are not currently logged in.
-        </p>
+        <p className="text-sm text-gray-400">You are not currently logged in.</p>
       </div>
     );
   }
@@ -264,14 +255,14 @@ export const LogoutButton: React.FC<LogoutButtonProps> = ({
         disabled={isLoggingOut || showConfirmDialog}
         variant={variant}
         size={size}
-        className={`${className} ${(isLoggingOut || showConfirmDialog) ? 'opacity-75 cursor-not-allowed' : ''} transition-opacity duration-200`}
+        className={`${className} ${isLoggingOut || showConfirmDialog ? "opacity-75 cursor-not-allowed" : ""} transition-opacity duration-200`}
         aria-busy={isLoggingOut || showConfirmDialog}
-        aria-describedby={(isLoggingOut || showConfirmDialog || error) ? "logout-status" : undefined}
+        aria-describedby={isLoggingOut || showConfirmDialog || error ? "logout-status" : undefined}
         aria-label={
-          isLoggingOut 
-            ? "Logging out, please wait" 
-            : showConfirmDialog 
-              ? "Confirmation dialog is open" 
+          isLoggingOut
+            ? "Logging out, please wait"
+            : showConfirmDialog
+              ? "Confirmation dialog is open"
               : error
                 ? "Logout failed, click to retry"
                 : "Log out of your account"
@@ -288,14 +279,7 @@ export const LogoutButton: React.FC<LogoutButtonProps> = ({
               role="img"
               aria-label="Loading spinner"
             >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              />
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
               <path
                 className="opacity-75"
                 fill="currentColor"
@@ -305,22 +289,17 @@ export const LogoutButton: React.FC<LogoutButtonProps> = ({
             <span className="transition-opacity duration-200">Logging out...</span>
           </div>
         ) : showConfirmDialog ? (
-          <span className="transition-opacity duration-200" id="logout-status">Confirm logout...</span>
-        ) : (
-          <span className="transition-opacity duration-200">
-            {error ? "Retry Logout" : "Logout"}
+          <span className="transition-opacity duration-200" id="logout-status">
+            Confirm logout...
           </span>
+        ) : (
+          <span className="transition-opacity duration-200">{error ? "Retry Logout" : "Logout"}</span>
         )}
       </Button>
-      
+
       {/* Error status indicator - only visible to screen readers */}
       {error && (
-        <div 
-          id="logout-status" 
-          className="sr-only" 
-          role="status" 
-          aria-live="polite"
-        >
+        <div id="logout-status" className="sr-only" role="status" aria-live="polite">
           Logout failed: {error.message}. Click the button to retry.
         </div>
       )}

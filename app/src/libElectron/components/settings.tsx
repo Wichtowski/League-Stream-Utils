@@ -416,7 +416,7 @@ export const ElectronSettings = () => {
         <div className="space-y-6">
           <div className="bg-gray-800 shadow rounded-lg p-6">
             <h3 className="text-lg font-medium text-gray-100">User Information</h3>
-            
+
             {/* Loading state */}
             {authLoading && (
               <div className="text-center py-12">
@@ -430,14 +430,7 @@ export const ElectronSettings = () => {
                     role="img"
                     aria-label="Loading user information"
                   >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    />
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path
                       className="opacity-75"
                       fill="currentColor"
@@ -471,11 +464,13 @@ export const ElectronSettings = () => {
                     <div className="flex justify-between items-center mb-2">
                       <dt className="text-sm font-medium text-gray-300">Role</dt>
                       <dd className="text-sm text-gray-100">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          user.isAdmin 
-                            ? 'bg-blue-900 text-blue-200 border border-blue-700' 
-                            : 'bg-gray-900 text-gray-200 border border-gray-600'
-                        }`}>
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            user.isAdmin
+                              ? "bg-blue-900 text-blue-200 border border-blue-700"
+                              : "bg-gray-900 text-gray-200 border border-gray-600"
+                          }`}
+                        >
                           {user.isAdmin ? "Administrator" : "User"}
                         </span>
                       </dd>
@@ -491,21 +486,22 @@ export const ElectronSettings = () => {
                       <div className="flex-shrink-0">
                         <div className="w-10 h-10 bg-red-900 rounded-full flex items-center justify-center">
                           <svg className="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                            />
                           </svg>
                         </div>
                       </div>
                       <div className="flex-1 min-w-0">
                         <h5 className="text-sm font-medium text-gray-200 mb-1">Sign Out</h5>
                         <p className="text-sm text-gray-400 mb-3">
-                          End your current session and return to the login page. You&apos;ll need to sign in again to access your account.
+                          End your current session and return to the login page. You&apos;ll need to sign in again to
+                          access your account.
                         </p>
-                        <LogoutButton 
-                          showConfirmation={true} 
-                          variant="destructive"
-                          size="md"
-                          className="inline-flex"
-                        />
+                        <LogoutButton showConfirmation={true} variant="destructive" size="md" className="inline-flex" />
                       </div>
                     </div>
                   </div>
@@ -703,9 +699,7 @@ export const ElectronSettings = () => {
                       {integrityCheckResult.isValid ? "Integrity Check Passed" : "Integrity Issues Found"}
                     </h4>
                     <p
-                      className={`text-sm mt-1 ${
-                        integrityCheckResult.isValid ? "text-green-300" : "text-yellow-300"
-                      }`}
+                      className={`text-sm mt-1 ${integrityCheckResult.isValid ? "text-green-300" : "text-yellow-300"}`}
                     >
                       {integrityCheckResult.message}
                     </p>

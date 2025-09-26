@@ -26,7 +26,7 @@ export const GET = withAuth(async (req: NextRequest, user: JWTPayload, params: P
               name: commentator.name,
               xHandle: commentator.xHandle,
               instagramHandle: commentator.instagramHandle,
-              twitchHandle: commentator.twitchHandle,
+              twitchHandle: commentator.twitchHandle
             });
           }
         });
@@ -57,7 +57,7 @@ export const POST = withAuth(async (req: NextRequest, user: JWTPayload, params: 
     await connectToDatabase();
 
     // Get the commentator details from the global commentators collection
-    const commentator = await CommentatorModel.findById(commentatorId) as CommentatorDoc | null;
+    const commentator = (await CommentatorModel.findById(commentatorId)) as CommentatorDoc | null;
     if (!commentator) {
       return NextResponse.json({ error: "Commentator not found" }, { status: 404 });
     }
@@ -66,9 +66,12 @@ export const POST = withAuth(async (req: NextRequest, user: JWTPayload, params: 
     const matches = await MatchModel.find({ tournamentId });
 
     if (matches.length === 0) {
-      return NextResponse.json({
-        error: "No matches found for this tournament. Please create matches first."
-      }, { status: 404 });
+      return NextResponse.json(
+        {
+          error: "No matches found for this tournament. Please create matches first."
+        },
+        { status: 404 }
+      );
     }
 
     const commentatorData = {
@@ -105,10 +108,13 @@ export const POST = withAuth(async (req: NextRequest, user: JWTPayload, params: 
     });
   } catch (error) {
     console.error("Error assigning tournament commentator:", error);
-    return NextResponse.json({
-      error: "Failed to assign commentator",
-      details: error instanceof Error ? error.message : "Unknown error"
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: "Failed to assign commentator",
+        details: error instanceof Error ? error.message : "Unknown error"
+      },
+      { status: 500 }
+    );
   }
 });
 
@@ -128,9 +134,12 @@ export const PUT = withAuth(async (req: NextRequest, user: JWTPayload, params: P
     const matches = await MatchModel.find({ tournamentId });
 
     if (matches.length === 0) {
-      return NextResponse.json({
-        error: "No matches found for this tournament"
-      }, { status: 404 });
+      return NextResponse.json(
+        {
+          error: "No matches found for this tournament"
+        },
+        { status: 404 }
+      );
     }
 
     const updatedCommentator = {
@@ -170,10 +179,13 @@ export const PUT = withAuth(async (req: NextRequest, user: JWTPayload, params: P
     });
   } catch (error) {
     console.error("Error updating tournament commentator:", error);
-    return NextResponse.json({
-      error: "Failed to update commentator",
-      details: error instanceof Error ? error.message : "Unknown error"
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: "Failed to update commentator",
+        details: error instanceof Error ? error.message : "Unknown error"
+      },
+      { status: 500 }
+    );
   }
 });
 

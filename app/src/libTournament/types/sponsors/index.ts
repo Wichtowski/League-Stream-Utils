@@ -1,6 +1,5 @@
 import { ImageStorage } from "@lib/types/common";
 
-
 export interface Sponsorship {
   _id: string;
   name: string;

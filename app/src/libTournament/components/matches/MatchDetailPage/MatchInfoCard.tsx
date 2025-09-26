@@ -8,12 +8,7 @@ interface MatchInfoCardProps {
   onEditDataChange: (data: Partial<Match>) => void;
 }
 
-export const MatchInfoCard: React.FC<MatchInfoCardProps> = ({
-  match,
-  editing,
-  editData,
-  onEditDataChange
-}) => {
+export const MatchInfoCard: React.FC<MatchInfoCardProps> = ({ match, editing, editData, onEditDataChange }) => {
   return (
     <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
       <h3 className="text-xl font-semibold text-white mb-4">Match Information</h3>
@@ -53,9 +48,7 @@ export const MatchInfoCard: React.FC<MatchInfoCardProps> = ({
               <label className="block text-sm font-medium text-gray-300 mb-2">Scheduled Time</label>
               <input
                 type="datetime-local"
-                value={
-                  editData.scheduledTime ? new Date(editData.scheduledTime).toISOString().slice(0, 16) : ""
-                }
+                value={editData.scheduledTime ? new Date(editData.scheduledTime).toISOString().slice(0, 16) : ""}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   onEditDataChange({ ...editData, scheduledTime: new Date(e.target.value) })
                 }

@@ -223,23 +223,28 @@ const PlayerStatsPage: React.FC = () => {
             <h3 className="text-lg font-semibold mb-4">Top Champions</h3>
             {championMastery && championMastery.length > 0 ? (
               <div className="space-y-3">
-                {championMastery.slice(0, 5).map((champion: {
-                  championId: number;
-                  championName: string;
-                  gamesPlayed: number;
-                  winRate?: number;
-                }, index: number) => (
-                  <div key={champion.championId} className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <span className="text-gray-400 text-sm">#{index + 1}</span>
-                      <span className="text-white font-medium">{champion.championName}</span>
+                {championMastery.slice(0, 5).map(
+                  (
+                    champion: {
+                      championId: number;
+                      championName: string;
+                      gamesPlayed: number;
+                      winRate?: number;
+                    },
+                    index: number
+                  ) => (
+                    <div key={champion.championId} className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <span className="text-gray-400 text-sm">#{index + 1}</span>
+                        <span className="text-white font-medium">{champion.championName}</span>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-white text-sm">{champion.gamesPlayed} games</div>
+                        <div className="text-gray-400 text-xs">{champion.winRate?.toFixed(1)}% WR</div>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <div className="text-white text-sm">{champion.gamesPlayed} games</div>
-                      <div className="text-gray-400 text-xs">{champion.winRate?.toFixed(1)}% WR</div>
-                    </div>
-                  </div>
-                ))}
+                  )
+                )}
               </div>
             ) : (
               <p className="text-gray-400">No champion mastery data available</p>
@@ -251,28 +256,33 @@ const PlayerStatsPage: React.FC = () => {
             <h3 className="text-lg font-semibold mb-4">Recent Matches</h3>
             {stats && stats.length > 0 ? (
               <div className="space-y-3">
-                {stats.slice(0, 5).map((match: {
-                  result: "win" | "loss";
-                  championName: string;
-                  duration: number;
-                }, index: number) => (
-                  <div key={index} className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <span
-                        className={`w-2 h-2 rounded-full ${match.result === "win" ? "bg-green-500" : "bg-red-500"}`}
-                      ></span>
-                      <span className="text-white font-medium">{match.championName}</span>
-                    </div>
-                    <div className="text-right">
-                      <div className={`text-sm ${match.result === "win" ? "text-green-400" : "text-red-400"}`}>
-                        {match.result === "win" ? "W" : "L"}
+                {stats.slice(0, 5).map(
+                  (
+                    match: {
+                      result: "win" | "loss";
+                      championName: string;
+                      duration: number;
+                    },
+                    index: number
+                  ) => (
+                    <div key={index} className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <span
+                          className={`w-2 h-2 rounded-full ${match.result === "win" ? "bg-green-500" : "bg-red-500"}`}
+                        ></span>
+                        <span className="text-white font-medium">{match.championName}</span>
                       </div>
-                      <div className="text-gray-400 text-xs">
-                        {Math.floor(match.duration / 60)}:{(match.duration % 60).toString().padStart(2, "0")}
+                      <div className="text-right">
+                        <div className={`text-sm ${match.result === "win" ? "text-green-400" : "text-red-400"}`}>
+                          {match.result === "win" ? "W" : "L"}
+                        </div>
+                        <div className="text-gray-400 text-xs">
+                          {Math.floor(match.duration / 60)}:{(match.duration % 60).toString().padStart(2, "0")}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  )
+                )}
               </div>
             ) : (
               <p className="text-gray-400">No recent match data available</p>

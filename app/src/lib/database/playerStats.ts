@@ -154,7 +154,10 @@ export const getPlayerStats = async (query: PlayerStatsQuery): Promise<Record<st
   return stats.map(convertMongoDoc);
 };
 
-export const getPlayerStatsByPlayer = async (playerId: string, limit: number = 50): Promise<Record<string, unknown>[]> => {
+export const getPlayerStatsByPlayer = async (
+  playerId: string,
+  limit: number = 50
+): Promise<Record<string, unknown>[]> => {
   return getPlayerStats({ playerId, limit });
 };
 
@@ -162,7 +165,10 @@ export const getPlayerStatsByTeam = async (teamId: string, limit: number = 50): 
   return getPlayerStats({ teamId, limit });
 };
 
-export const getPlayerStatsByTournament = async (tournamentId: string, limit: number = 100): Promise<Record<string, unknown>[]> => {
+export const getPlayerStatsByTournament = async (
+  tournamentId: string,
+  limit: number = 100
+): Promise<Record<string, unknown>[]> => {
   return getPlayerStats({ tournamentId, limit });
 };
 
@@ -292,7 +298,9 @@ export const getPlayerChampionMastery = async (playerId: string): Promise<Record
   return result;
 };
 
-export const bulkCreatePlayerStats = async (statsArray: CreatePlayerStatsRequest[]): Promise<Record<string, unknown>[]> => {
+export const bulkCreatePlayerStats = async (
+  statsArray: CreatePlayerStatsRequest[]
+): Promise<Record<string, unknown>[]> => {
   await connectToDatabase();
 
   const statsWithTimestamps = statsArray.map((stats) => ({

@@ -1,4 +1,3 @@
-
 export interface SwissRound {
   roundNumber: number;
   pairings: SwissPairing[];

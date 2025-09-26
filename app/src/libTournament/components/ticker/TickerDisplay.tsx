@@ -41,22 +41,17 @@ export const TickerDisplay = ({
 }: TickerDisplayProps) => {
   const [displayData, setDisplayData] = useState<DisplayData | null>(null);
   const [lastFetchTime, setLastFetchTime] = useState<number>(0);
-  const [connectionStatus, setConnectionStatus] = useState<'connected' | 'disconnected' | 'reconnecting'>('connected');
+  const [connectionStatus, setConnectionStatus] = useState<"connected" | "disconnected" | "reconnecting">("connected");
   const [retryCount, setRetryCount] = useState(0);
   const [maxRetries] = useState(3);
-  
-  const { 
-    error, 
-    isLoading, 
-    executeWithRetry, 
-    clearError 
-  } = useErrorHandling({ 
+
+  const { error, isLoading, executeWithRetry, clearError } = useErrorHandling({
     showUserErrors: false, // Don't show user alerts in OBS overlay
     logErrors: true,
-    context: { component: 'TickerDisplay', tournamentId }
+    context: { component: "TickerDisplay", tournamentId }
   });
 
-  const ticker = displayData?.ticker || null
+  const ticker = displayData?.ticker || null;
 
   // Fetch ticker data from API (only when using tournamentId mode)
   const fetchTickerData = useCallback(async () => {
@@ -76,12 +71,12 @@ export const TickerDisplay = ({
     }
 
     const fetchData = async (): Promise<DisplayData> => {
-      setConnectionStatus('reconnecting');
-      
+      setConnectionStatus("reconnecting");
+
       const response = await fetch(`/api/v1/tournaments/${tournamentId}/ticker/display`, {
         headers: {
-          'Cache-Control': 'no-cache',
-          'Accept': 'application/json'
+          "Cache-Control": "no-cache",
+          Accept: "application/json"
         },
         // Add timeout to prevent hanging requests
         signal: AbortSignal.timeout(10000) // 10 second timeout
@@ -95,36 +90,33 @@ export const TickerDisplay = ({
       return data;
     };
 
-    const result = await executeWithRetry(
-      fetchData,
-      {
-        maxAttempts: maxRetries,
-        delay: 2000,
-        backoff: 'exponential',
-        shouldRetry: (error) => {
-          // Retry on network errors and server errors, but not on 404 (tournament not found)
-          if ('status' in error && error.status === 404) {
-            return false;
-          }
-          return true;
+    const result = await executeWithRetry(fetchData, {
+      maxAttempts: maxRetries,
+      delay: 2000,
+      backoff: "exponential",
+      shouldRetry: (error) => {
+        // Retry on network errors and server errors, but not on 404 (tournament not found)
+        if ("status" in error && error.status === 404) {
+          return false;
         }
+        return true;
       }
-    );
+    });
 
     if (result) {
       // Only update state if data has actually changed
-      setDisplayData(prevData => {
+      setDisplayData((prevData) => {
         const dataChanged = JSON.stringify(prevData) !== JSON.stringify(result);
         return dataChanged ? result : prevData;
       });
 
       setLastFetchTime(Date.now());
-      setConnectionStatus('connected');
+      setConnectionStatus("connected");
       setRetryCount(0);
       clearError();
     } else {
-      setConnectionStatus('disconnected');
-      setRetryCount(prev => Math.min(prev + 1, maxRetries));
+      setConnectionStatus("disconnected");
+      setRetryCount((prev) => Math.min(prev + 1, maxRetries));
     }
   }, [tournamentId, tournament, executeWithRetry, maxRetries, clearError]);
 
@@ -142,16 +134,18 @@ export const TickerDisplay = ({
   // Get the single ticker (first active ticker)
 
   // Error state - only show in development or when debug is enabled
-  if (error && (showDebugInfo || process.env.NODE_ENV === 'development')) {
+  if (error && (showDebugInfo || process.env.NODE_ENV === "development")) {
     return (
       <div className={`w-full h-screen bg-transparent flex items-center justify-center ${className}`}>
         <div className="bg-red-900/20 backdrop-blur-sm border border-red-500/30 rounded-lg p-6 text-center max-w-md">
           <div className="text-red-400 text-lg font-semibold mb-2">Ticker Connection Error</div>
-          <div className="text-red-300 text-sm mb-4">{
-            typeof error.message === 'string'
+          <div className="text-red-300 text-sm mb-4">
+            {typeof error.message === "string"
               ? error.message
-              : (error.message instanceof Error ? error.message.message : String(error.message ?? ''))
-          }</div>
+              : error.message instanceof Error
+                ? error.message.message
+                : String(error.message ?? "")}
+          </div>
           <div className="text-red-400 text-xs mb-4">
             Retry {retryCount}/{maxRetries} • Last attempt: {new Date(lastFetchTime).toLocaleTimeString()}
           </div>
@@ -160,7 +154,7 @@ export const TickerDisplay = ({
             disabled={isLoading}
             className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded text-sm transition-colors disabled:opacity-50"
           >
-            {isLoading ? 'Retrying...' : 'Retry Now'}
+            {isLoading ? "Retrying..." : "Retry Now"}
           </button>
         </div>
       </div>
@@ -168,7 +162,7 @@ export const TickerDisplay = ({
   }
 
   // In production, gracefully degrade to empty state on error
-  if (error && !showDebugInfo && process.env.NODE_ENV === 'production') {
+  if (error && !showDebugInfo && process.env.NODE_ENV === "production") {
     return (
       <div className={`w-full h-screen bg-transparent ${className}`}>
         {/* Empty state - completely transparent for OBS */}
@@ -178,9 +172,7 @@ export const TickerDisplay = ({
 
   // Loading state
   if (isLoading) {
-    return (
-      <></>
-    );
+    return <></>;
   }
 
   // No tickers state
@@ -193,9 +185,9 @@ export const TickerDisplay = ({
   }
 
   return (
-    <ErrorBoundary 
-      context="TickerDisplay" 
-      showDetails={showDebugInfo || process.env.NODE_ENV === 'development'}
+    <ErrorBoundary
+      context="TickerDisplay"
+      showDetails={showDebugInfo || process.env.NODE_ENV === "development"}
       fallback={
         <div className={`w-full h-screen bg-transparent ${className}`}>
           {/* Fallback to empty state on component error */}
@@ -224,11 +216,11 @@ export const TickerDisplay = ({
                         <div className="flex items-center">
                           <Image
                             src={
-                              team1.logo.type === 'url'
+                              team1.logo.type === "url"
                                 ? team1.logo.url
-                                : team1.logo.type === 'upload'
+                                : team1.logo.type === "upload"
                                   ? `data:image/${team1.logo.format};base64,${team1.logo.data}`
-                                  : '/default-team-logo.svg'
+                                  : "/default-team-logo.svg"
                             }
                             alt={team1.name}
                             width={48}
@@ -253,11 +245,11 @@ export const TickerDisplay = ({
                         <div className="flex items-center">
                           <Image
                             src={
-                              team2.logo.type === 'url'
+                              team2.logo.type === "url"
                                 ? team2.logo.url
-                                : team2.logo.type === 'upload'
+                                : team2.logo.type === "upload"
                                   ? `data:image/${team2.logo.format};base64,${team2.logo.data}`
-                                  : '/default-team-logo.svg'
+                                  : "/default-team-logo.svg"
                             }
                             alt={team2.name}
                             width={48}
@@ -294,23 +286,27 @@ export const TickerDisplay = ({
         )}
 
         {/* Debug info (visible when showDebugInfo is true or in development) */}
-        {(showDebugInfo || process.env.NODE_ENV === 'development') && (
+        {(showDebugInfo || process.env.NODE_ENV === "development") && (
           <div className="absolute top-4 right-4 bg-black/70 backdrop-blur-sm rounded px-3 py-2 text-xs text-gray-300 font-mono">
             <div className="flex items-center gap-2 mb-1">
-              <div className={`w-2 h-2 rounded-full ${connectionStatus === 'connected' ? 'bg-green-500' :
-                connectionStatus === 'reconnecting' ? 'bg-yellow-500 animate-pulse' :
-                  'bg-red-500'
-                }`}></div>
+              <div
+                className={`w-2 h-2 rounded-full ${
+                  connectionStatus === "connected"
+                    ? "bg-green-500"
+                    : connectionStatus === "reconnecting"
+                      ? "bg-yellow-500 animate-pulse"
+                      : "bg-red-500"
+                }`}
+              ></div>
               <span className="capitalize">{connectionStatus}</span>
             </div>
             <div>Tournament: {displayData.tournament.abbreviation}</div>
-            <div>ticker: {ticker ? 'Active' : 'None'}</div>
+            <div>ticker: {ticker ? "Active" : "None"}</div>
             <div>Speed: {ticker?.carouselSpeed || 50}px/s</div>
             <div>Items: {ticker?.carouselItems.length || 0}</div>
             <div>Last Update: {new Date(lastFetchTime).toLocaleTimeString()}</div>
           </div>
         )}
-
       </div>
     </ErrorBoundary>
   );

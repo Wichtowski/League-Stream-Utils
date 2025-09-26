@@ -8,19 +8,25 @@ import { PermissionRequestModel } from "@lib/database/models";
 // PUT /api/v1/permissions/requests/[requestId] - Approve or reject a permission request
 export const PUT = withAuth(async (req: NextRequest, user: JWTPayload) => {
   try {
-    const requestId = req.nextUrl.pathname.split('/')[6];
+    const requestId = req.nextUrl.pathname.split("/")[6];
     const { action, reviewNotes } = await req.json();
 
     if (!requestId || !action) {
-      return NextResponse.json({ 
-        error: "Request ID and action are required" 
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          error: "Request ID and action are required"
+        },
+        { status: 400 }
+      );
     }
 
-    if (!['approve', 'reject'].includes(action)) {
-      return NextResponse.json({ 
-        error: "Action must be 'approve' or 'reject'" 
-      }, { status: 400 });
+    if (!["approve", "reject"].includes(action)) {
+      return NextResponse.json(
+        {
+          error: "Action must be 'approve' or 'reject'"
+        },
+        { status: 400 }
+      );
     }
 
     // Get the request to check permissions
@@ -49,23 +55,15 @@ export const PUT = withAuth(async (req: NextRequest, user: JWTPayload) => {
     }
 
     let success = false;
-    if (action === 'approve') {
-      success = await PermissionService.approvePermissionRequest(
-        requestId,
-        user.userId,
-        reviewNotes
-      );
+    if (action === "approve") {
+      success = await PermissionService.approvePermissionRequest(requestId, user.userId, reviewNotes);
     } else {
-      success = await PermissionService.rejectPermissionRequest(
-        requestId,
-        user.userId,
-        reviewNotes
-      );
+      success = await PermissionService.rejectPermissionRequest(requestId, user.userId, reviewNotes);
     }
 
     if (success) {
-      return NextResponse.json({ 
-        message: `Permission request ${action}d successfully` 
+      return NextResponse.json({
+        message: `Permission request ${action}d successfully`
       });
     } else {
       return NextResponse.json({ error: "Failed to process request" }, { status: 500 });

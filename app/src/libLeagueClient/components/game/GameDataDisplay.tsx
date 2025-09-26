@@ -32,7 +32,13 @@ interface GameDataDisplayProps {
   redTeamData?: Team;
 }
 
-export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({ gameData, match, tournament, blueTeamData, redTeamData }) => {
+export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({
+  gameData,
+  match,
+  tournament,
+  blueTeamData,
+  redTeamData
+}) => {
   const [championsLoaded, setChampionsLoaded] = useState(false);
   const [summonerSpellsLoaded, setSummonerSpellsLoaded] = useState(false);
   const [itemsLoaded, setItemsLoaded] = useState(false);
@@ -64,25 +70,29 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({ gameData, matc
 
       try {
         setupDoneRef.current = true;
-        
-        const resolvedVersion = await getLatestVersion() ?? tournament.apiVersion;
+
+        const resolvedVersion = (await getLatestVersion()) ?? tournament.apiVersion;
         setGameVersion(resolvedVersion);
 
         setTournamentLogo(
           tournament.logo?.data || tournament.logo?.url || getDefaultAsset(resolvedVersion, "tournament.png")
         );
-        
+
         await Promise.all([getChampions(), getSummonerSpells(), getItems()]);
 
-        const ongoingGame = match.games?.find(game => game.winner === "ongoing");
+        const ongoingGame = match.games?.find((game) => game.winner === "ongoing");
         setCurrentGame(ongoingGame || null);
         setOrderTeam(blueTeamData || null);
         setChaosTeam(redTeamData || null);
         setChampionsLoaded(true);
         setSummonerSpellsLoaded(true);
         setItemsLoaded(true);
-        setOrderLogo(blueTeamData?.logo?.data || blueTeamData?.logo?.url || getDefaultAsset(resolvedVersion, "order.png"));
-        setChaosLogo(redTeamData?.logo?.data || redTeamData?.logo?.url || getDefaultAsset(resolvedVersion, "chaos.png"));
+        setOrderLogo(
+          blueTeamData?.logo?.data || blueTeamData?.logo?.url || getDefaultAsset(resolvedVersion, "order.png")
+        );
+        setChaosLogo(
+          redTeamData?.logo?.data || redTeamData?.logo?.url || getDefaultAsset(resolvedVersion, "chaos.png")
+        );
         setGoldIcon(getScoreboardAsset(resolvedVersion, "gold.png"));
         setTowerIcon(getScoreboardAsset(resolvedVersion, "tower.png"));
         setBaronIcon(getBaronPitAsset(resolvedVersion, "baron.png"));

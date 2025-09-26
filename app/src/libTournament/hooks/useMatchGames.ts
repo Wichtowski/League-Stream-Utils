@@ -81,12 +81,12 @@ export const useMatchGames = (match: Match | null, blueTeam: Team | null, redTea
       completedAt: new Date(),
       blueScore: decidedWinner === "blue" ? 1 : 0,
       redScore: decidedWinner === "red" ? 1 : 0,
-      blueTeam: teamsSwapped ? (redTeam?.name || "") : (blueTeam?.name || ""),
-      redTeam: teamsSwapped ? (blueTeam?.name || "") : (redTeam?.name || "")
+      blueTeam: teamsSwapped ? redTeam?.name || "" : blueTeam?.name || "",
+      redTeam: teamsSwapped ? blueTeam?.name || "" : redTeam?.name || ""
     };
 
     const updatedGames = [...(match.games || []), gameData as GameResult];
-    
+
     const newScore = updatedGames.reduce(
       (acc, g) => {
         if (g.winner === "blue") acc.blue += 1;
@@ -102,18 +102,18 @@ export const useMatchGames = (match: Match | null, blueTeam: Team | null, redTea
       score: newScore,
       status: "ongoing"
     });
-    
+
     const next = Math.min(currentGames + 2, getMaxGamesByFormat(match.format));
     setNewGame({ gameNumber: next, winner: undefined, blueScore: 0, redScore: 0, blueTeam: "", redTeam: "" });
   };
 
   const handleUpdateGameWinner = (
-    gameNumber: number, 
+    gameNumber: number,
     winner: "blue" | "red" | "ongoing",
     onUpdate: (updatedMatch: Match) => void
   ): void => {
     if (!match) return;
-    
+
     const updatedGames: GameResult[] = (match.games || []).map((g) =>
       g.gameNumber === gameNumber
         ? {
@@ -122,11 +122,11 @@ export const useMatchGames = (match: Match | null, blueTeam: Team | null, redTea
             blueScore: winner === "blue" ? 1 : 0,
             redScore: winner === "red" ? 1 : 0
           }
-        : { ...g, winner: (g.winner as "blue" | "red" | "ongoing") }
+        : { ...g, winner: g.winner as "blue" | "red" | "ongoing" }
     );
-    
+
     const finalGames = removeUnnecessaryGames(updatedGames, match);
-    
+
     const newScore = finalGames.reduce(
       (acc, g) => {
         if (g.winner === "blue") acc.blue += 1;
@@ -144,14 +144,11 @@ export const useMatchGames = (match: Match | null, blueTeam: Team | null, redTea
     });
   };
 
-  const handleSwapGameSides = (
-    gameNumber: number,
-    onUpdate: (updatedMatch: Match) => void
-  ): void => {
+  const handleSwapGameSides = (gameNumber: number, onUpdate: (updatedMatch: Match) => void): void => {
     if (!match) return;
-    
+
     const updatedGames: GameResult[] = (match.games || []).map((g) => {
-      if (g.gameNumber !== gameNumber) return { ...g, winner: (g.winner as "blue" | "red" | "ongoing") };
+      if (g.gameNumber !== gameNumber) return { ...g, winner: g.winner as "blue" | "red" | "ongoing" };
       const newWinner = g.winner === "blue" ? "red" : "blue";
       return {
         ...g,
@@ -159,12 +156,12 @@ export const useMatchGames = (match: Match | null, blueTeam: Team | null, redTea
         blueScore: newWinner === "blue" ? 1 : 0,
         redScore: newWinner === "red" ? 1 : 0,
         blueTeam: g.redTeam,
-        redTeam: g.blueTeam,
+        redTeam: g.blueTeam
       } as GameResult;
     });
-    
+
     const finalGames = removeUnnecessaryGames(updatedGames, match);
-    
+
     const newScore = finalGames.reduce(
       (acc, g) => {
         if (g.winner === "blue") acc.blue += 1;
@@ -182,13 +179,10 @@ export const useMatchGames = (match: Match | null, blueTeam: Team | null, redTea
     });
   };
 
-  const handleDeleteGame = (
-    gameNumber: number,
-    onUpdate: (updatedMatch: Match) => void
-  ): void => {
+  const handleDeleteGame = (gameNumber: number, onUpdate: (updatedMatch: Match) => void): void => {
     if (!match) return;
-    
-    const updatedGames = (match.games || []).filter(g => g.gameNumber !== gameNumber);
+
+    const updatedGames = (match.games || []).filter((g) => g.gameNumber !== gameNumber);
     const newScore = updatedGames.reduce(
       (acc, g) => {
         if (g.winner === "blue") acc.blue += 1;
@@ -218,9 +212,11 @@ export const useMatchGames = (match: Match | null, blueTeam: Team | null, redTea
     const tally = games.reduce(
       (acc, g) => {
         if (g.winner === "blue") {
-          if (g.blueTeam === team1) acc.team1 += 1; else acc.team2 += 1;
+          if (g.blueTeam === team1) acc.team1 += 1;
+          else acc.team2 += 1;
         } else if (g.winner === "red") {
-          if (g.redTeam === team1) acc.team1 += 1; else acc.team2 += 1;
+          if (g.redTeam === team1) acc.team1 += 1;
+          else acc.team2 += 1;
         }
         return acc;
       },
@@ -229,7 +225,7 @@ export const useMatchGames = (match: Match | null, blueTeam: Team | null, redTea
 
     const requiredWins = Math.ceil(maxGames / 2);
     if (tally.team1 >= requiredWins || tally.team2 >= requiredWins) {
-      return games.filter(g => g.gameNumber <= minGames);
+      return games.filter((g) => g.gameNumber <= minGames);
     }
 
     return games;

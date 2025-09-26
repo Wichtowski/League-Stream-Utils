@@ -54,7 +54,7 @@ export default function AdminPermissionsPage(): React.ReactElement {
   }
 
   const handlePermissionChange = (): void => {
-    setRefreshKey(prev => prev + 1);
+    setRefreshKey((prev) => prev + 1);
   };
 
   return (
@@ -95,17 +95,11 @@ export default function AdminPermissionsPage(): React.ReactElement {
 
         {/* Tab Content */}
         {activeTab === "permissions" && (
-          <PermissionManager
-            key={`global-permissions-${refreshKey}`}
-            onPermissionChange={handlePermissionChange}
-          />
+          <PermissionManager key={`global-permissions-${refreshKey}`} onPermissionChange={handlePermissionChange} />
         )}
 
         {activeTab === "requests" && (
-          <PermissionRequestManager
-            key={`global-requests-${refreshKey}`}
-            onRequestChange={handlePermissionChange}
-          />
+          <PermissionRequestManager key={`global-requests-${refreshKey}`} onRequestChange={handlePermissionChange} />
         )}
 
         {/* Admin Info */}
@@ -115,9 +109,8 @@ export default function AdminPermissionsPage(): React.ReactElement {
             <div>
               <h4 className="font-medium text-red-400 mb-1">Admin Warning</h4>
               <p className="text-sm text-red-200">
-                You are managing global permissions. Changes here affect the entire system.
-                Be careful when granting or revoking permissions as this can impact user access
-                across all tournaments and features.
+                You are managing global permissions. Changes here affect the entire system. Be careful when granting or
+                revoking permissions as this can impact user access across all tournaments and features.
               </p>
             </div>
           </div>

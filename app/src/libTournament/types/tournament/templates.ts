@@ -1,7 +1,6 @@
 import { MatchFormat } from "@libTournament/types/matches";
 import { TournamentFormat } from "./";
 
-
 export interface TournamentTemplate {
   _id: string;
   name: string;

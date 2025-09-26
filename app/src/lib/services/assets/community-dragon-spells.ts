@@ -22,7 +22,7 @@ export class CommunityDragonSpellsService {
     try {
       // Convert full version (15.18.1) to major version (15.18) for CommunityDragon
       const majorVersion = this.getMajorVersion(version);
-      
+
       // Since we can't directly scrape HTML in the browser, we'll use the predefined list
       // from rawDDragonGameSpells.ts and construct the URLs
       const spells = await this.getSpellsFromPredefinedList(majorVersion);
@@ -40,7 +40,7 @@ export class CommunityDragonSpellsService {
    */
   private static getMajorVersion(version: string): string {
     // Split by dots and take only the first two parts (major.minor)
-    const parts = version.split('.');
+    const parts = version.split(".");
     if (parts.length >= 2) {
       return `${parts[0]}.${parts[1]}`;
     }
@@ -54,9 +54,9 @@ export class CommunityDragonSpellsService {
   private static async getSpellsFromPredefinedList(version: string): Promise<CommunityDragonSpell[]> {
     // Import the spells list dynamically to avoid circular dependencies
     const { spells } = await import("./rawDDragonGameSpells");
-    
-    const result = spells.map(filename => ({
-      name: filename.replace('.png', '').replace(/_/g, ' '),
+
+    const result = spells.map((filename) => ({
+      name: filename.replace(".png", "").replace(/_/g, " "),
       filename,
       url: `${this.COMMUNITY_DRAGON_BASE_URL}/${version}${this.SPELLS_PATH}${filename}`
     }));
@@ -75,7 +75,7 @@ export class CommunityDragonSpellsService {
   static async downloadSpellImage(spell: CommunityDragonSpell, version: string): Promise<string> {
     // Use the full version for the local path, but major version for the URL
     const imagePath = `${version}/summoner-spells/${spell.filename}`;
-    
+
     // This will be handled by the summoner spell service's downloadImage method
     return imagePath;
   }

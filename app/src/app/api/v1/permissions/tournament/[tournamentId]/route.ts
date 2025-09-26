@@ -7,8 +7,8 @@ import { JWTPayload } from "@lib/types/auth";
 // GET /api/v1/permissions/tournament/[tournamentId] - Get all permissions for a tournament
 export const GET = withAuth(async (req: NextRequest, user: JWTPayload) => {
   try {
-    const tournamentId = req.nextUrl.pathname.split('/')[5];
-    
+    const tournamentId = req.nextUrl.pathname.split("/")[5];
+
     if (!tournamentId) {
       return NextResponse.json({ error: "Tournament ID is required" }, { status: 400 });
     }
@@ -25,7 +25,7 @@ export const GET = withAuth(async (req: NextRequest, user: JWTPayload) => {
     }
 
     const permissions = await PermissionService.getTournamentPermissions(tournamentId);
-    
+
     return NextResponse.json({ permissions });
   } catch (error) {
     console.error("Error fetching tournament permissions:", error);
@@ -36,21 +36,27 @@ export const GET = withAuth(async (req: NextRequest, user: JWTPayload) => {
 // POST /api/v1/permissions/tournament/[tournamentId] - Grant permission to a user
 export const POST = withAuth(async (req: NextRequest, user: JWTPayload) => {
   try {
-    const tournamentId = req.nextUrl.pathname.split('/')[5];
+    const tournamentId = req.nextUrl.pathname.split("/")[5];
     const { userId, role, expiresAt } = await req.json();
 
     if (!tournamentId || !userId || !role) {
-      return NextResponse.json({ 
-        error: "Tournament ID, user ID, and role are required" 
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          error: "Tournament ID, user ID, and role are required"
+        },
+        { status: 400 }
+      );
     }
 
     // Check if user can grant this role
     const canGrant = await PermissionService.getGrantableRoles(user.userId, tournamentId);
     if (!canGrant.includes(role as Role)) {
-      return NextResponse.json({ 
-        error: "You don't have permission to grant this role" 
-      }, { status: 403 });
+      return NextResponse.json(
+        {
+          error: "You don't have permission to grant this role"
+        },
+        { status: 403 }
+      );
     }
 
     const permission = await PermissionService.grantTournamentRole(
@@ -61,9 +67,9 @@ export const POST = withAuth(async (req: NextRequest, user: JWTPayload) => {
       expiresAt ? new Date(expiresAt) : undefined
     );
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       message: "Permission granted successfully",
-      permission 
+      permission
     });
   } catch (error) {
     console.error("Error granting tournament permission:", error);
@@ -74,13 +80,16 @@ export const POST = withAuth(async (req: NextRequest, user: JWTPayload) => {
 // DELETE /api/v1/permissions/tournament/[tournamentId] - Revoke permission from a user
 export const DELETE = withAuth(async (req: NextRequest, user: JWTPayload) => {
   try {
-    const tournamentId = req.nextUrl.pathname.split('/')[5];
+    const tournamentId = req.nextUrl.pathname.split("/")[5];
     const { userId } = await req.json();
 
     if (!tournamentId || !userId) {
-      return NextResponse.json({ 
-        error: "Tournament ID and user ID are required" 
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          error: "Tournament ID and user ID are required"
+        },
+        { status: 400 }
+      );
     }
 
     // Check if user can revoke permissions for this tournament
@@ -94,11 +103,7 @@ export const DELETE = withAuth(async (req: NextRequest, user: JWTPayload) => {
       return NextResponse.json({ error: "Insufficient permissions" }, { status: 403 });
     }
 
-    const success = await PermissionService.revokeTournamentRole(
-      tournamentId,
-      userId,
-      user.userId
-    );
+    const success = await PermissionService.revokeTournamentRole(tournamentId, userId, user.userId);
 
     if (success) {
       return NextResponse.json({ message: "Permission revoked successfully" });

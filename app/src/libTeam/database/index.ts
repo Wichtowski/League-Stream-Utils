@@ -79,7 +79,6 @@ export const getTeamLogoByTeamId = async (
   teamId: string
 ): Promise<{ type: "url"; url: string } | { type: "upload"; data: string } | null> => {
   try {
-
     const team = await TeamModel.findOne({ _id: teamId }).select({ logo: 1 }).lean().exec();
 
     if (!team) return null;

@@ -16,24 +16,24 @@ export const CurrentMatchStatus = (): React.ReactElement => {
     if (currentMatch?.tournamentId) {
       // Fetch tournament name
       fetch(`/api/v1/tournaments/${currentMatch.tournamentId}`)
-        .then(res => res.json())
-        .then(data => setTournamentName(data.tournament?.name || ""))
+        .then((res) => res.json())
+        .then((data) => setTournamentName(data.tournament?.name || ""))
         .catch(() => setTournamentName(""));
     }
-    
+
     if (currentMatch?.blueTeamId) {
       // Fetch blue team name
       fetch(`/api/v1/teams/${currentMatch.blueTeamId}`)
-        .then(res => res.json())
-        .then(data => setBlueTeamName(data.team?.name || ""))
+        .then((res) => res.json())
+        .then((data) => setBlueTeamName(data.team?.name || ""))
         .catch(() => setBlueTeamName(""));
     }
-    
+
     if (currentMatch?.redTeamId) {
       // Fetch red team name
       fetch(`/api/v1/teams/${currentMatch.redTeamId}`)
-        .then(res => res.json())
-        .then(data => setRedTeamName(data.team?.name || ""))
+        .then((res) => res.json())
+        .then((data) => setRedTeamName(data.team?.name || ""))
         .catch(() => setRedTeamName(""));
     }
   }, [currentMatch?.tournamentId, currentMatch?.blueTeamId, currentMatch?.redTeamId]);
@@ -87,15 +87,15 @@ export const CurrentMatchStatus = (): React.ReactElement => {
         <div className="flex items-center justify-between">
           <span className="text-gray-400">Teams:</span>
           <div className="text-right">
-            <div className="text-blue-400">{blueTeamName || ''}</div>
-            <div className="text-red-400">{redTeamName || ''}</div>
+            <div className="text-blue-400">{blueTeamName || ""}</div>
+            <div className="text-red-400">{redTeamName || ""}</div>
           </div>
         </div>
 
         {currentMatch.tournamentId && (
           <div className="flex items-center justify-between">
             <span className="text-gray-400">Tournament:</span>
-            <span className="text-white">{tournamentName || ''}</span>
+            <span className="text-white">{tournamentName || ""}</span>
           </div>
         )}
 

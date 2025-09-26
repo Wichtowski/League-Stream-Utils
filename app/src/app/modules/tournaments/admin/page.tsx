@@ -41,9 +41,7 @@ export default function AdminTournamentsPage(): React.ReactElement {
           <div className="text-center">
             <h2 className="text-2xl text-red-400 mb-4">Access Denied</h2>
             <p className="text-gray-400 mb-4">Admin privileges required</p>
-            <Button onClick={() => router.push("/modules/tournaments")}>
-              Go to Tournaments
-            </Button>
+            <Button onClick={() => router.push("/modules/tournaments")}>Go to Tournaments</Button>
           </div>
         </div>
       </PageWrapper>
@@ -59,10 +57,7 @@ export default function AdminTournamentsPage(): React.ReactElement {
         { label: "Admin", href: "/modules/tournaments/admin", isActive: true }
       ]}
       actions={
-        <Button
-          onClick={() => setShowAdminManager(true)}
-          className="bg-purple-600 hover:bg-purple-700"
-        >
+        <Button onClick={() => setShowAdminManager(true)} className="bg-purple-600 hover:bg-purple-700">
           Open Admin Manager
         </Button>
       }
@@ -73,7 +68,7 @@ export default function AdminTournamentsPage(): React.ReactElement {
           <p className="text-gray-400 mb-4">
             Use the admin tournament manager to register any team to any tournament, bypassing normal restrictions.
           </p>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <div className="bg-gray-700 rounded-lg p-4">
               <h4 className="font-medium text-white mb-2">🔧 Admin Bypass Features</h4>
@@ -84,7 +79,7 @@ export default function AdminTournamentsPage(): React.ReactElement {
                 <li>• Override roster completeness checks</li>
               </ul>
             </div>
-            
+
             <div className="bg-gray-700 rounded-lg p-4">
               <h4 className="font-medium text-white mb-2">⚠️ Important Notes</h4>
               <ul className="text-sm text-gray-300 space-y-1">
@@ -96,10 +91,7 @@ export default function AdminTournamentsPage(): React.ReactElement {
             </div>
           </div>
 
-          <Button
-            onClick={() => setShowAdminManager(true)}
-            className="w-full bg-purple-600 hover:bg-purple-700"
-          >
+          <Button onClick={() => setShowAdminManager(true)} className="w-full bg-purple-600 hover:bg-purple-700">
             Open Admin Tournament Manager
           </Button>
         </div>
@@ -110,17 +102,15 @@ export default function AdminTournamentsPage(): React.ReactElement {
             <div>
               <h4 className="font-medium text-yellow-400 mb-1">Admin Warning</h4>
               <p className="text-sm text-yellow-200">
-                This tool bypasses all normal tournament registration validations. 
-                Only use when absolutely necessary and ensure you understand the implications.
+                This tool bypasses all normal tournament registration validations. Only use when absolutely necessary
+                and ensure you understand the implications.
               </p>
             </div>
           </div>
         </div>
       </div>
 
-      {showAdminManager && (
-        <AdminTournamentManager onClose={() => setShowAdminManager(false)} />
-      )}
+      {showAdminManager && <AdminTournamentManager onClose={() => setShowAdminManager(false)} />}
     </PageWrapper>
   );
 }

@@ -27,13 +27,13 @@ const LiveGamePage: React.FC = () => {
       const lastSelectedTournament = current ? { tournamentId: current._id } : null;
       const match = await getCurrentMatch();
       const lastSelectedMatch = match ? { matchId: match._id } : null;
-      
+
       if (lastSelectedTournament?.tournamentId && lastSelectedMatch?.matchId) {
         // Redirect to the new URL parameter-based route
         router.push(`/modules/leagueclient/${lastSelectedTournament.tournamentId}/${lastSelectedMatch.matchId}/game`);
         return;
       }
-      
+
       // Fallback to old behavior if no stored data
       if (lastSelectedTournament?.tournamentId) {
         const tournament = await fetch(`/api/v1/tournaments/${lastSelectedTournament.tournamentId}`);
@@ -50,7 +50,15 @@ const LiveGamePage: React.FC = () => {
       }
     };
     init();
-  }, [setActiveModule, router, currentMatch, currentTournament, useGameDataLoading, getCurrentTournament, getCurrentMatch]);
+  }, [
+    setActiveModule,
+    router,
+    currentMatch,
+    currentTournament,
+    useGameDataLoading,
+    getCurrentTournament,
+    getCurrentMatch
+  ]);
 
   console.log(loading, isConnected, gameData, currentMatch, currentTournament);
   if (loading || !isConnected || !gameData || !currentMatch || !currentTournament) {

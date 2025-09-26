@@ -229,7 +229,7 @@ class AssetCounterService {
   private async countSpellAssets(): Promise<number> {
     try {
       const version = await DataDragonClient.getLatestVersion();
-      
+
       // Count DataDragon summoner spells
       const summonerData = await DataDragonClient.getSummonerSpells(version);
       const dataDragonSpellCount = Object.keys(summonerData.data).length;
@@ -240,7 +240,9 @@ class AssetCounterService {
       // Total spells = DataDragon spells + CommunityDragon spells
       const totalSpellCount = dataDragonSpellCount + communityDragonSpellCount;
 
-      console.log(`Spell counts - DataDragon: ${dataDragonSpellCount}, CommunityDragon: ${communityDragonSpellCount}, Total: ${totalSpellCount}`);
+      console.log(
+        `Spell counts - DataDragon: ${dataDragonSpellCount}, CommunityDragon: ${communityDragonSpellCount}, Total: ${totalSpellCount}`
+      );
 
       return totalSpellCount;
     } catch (error) {

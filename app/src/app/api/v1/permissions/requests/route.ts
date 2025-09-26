@@ -8,7 +8,7 @@ import { JWTPayload } from "@lib/types/auth";
 export const GET = withAuth(async (req: NextRequest, user: JWTPayload) => {
   try {
     const { searchParams } = new URL(req.url);
-    const tournamentId = searchParams.get('tournamentId');
+    const tournamentId = searchParams.get("tournamentId");
 
     // Check if user can view permission requests
     if (tournamentId) {
@@ -26,7 +26,7 @@ export const GET = withAuth(async (req: NextRequest, user: JWTPayload) => {
     }
 
     const requests = await PermissionService.getPendingRequests(tournamentId || undefined);
-    
+
     return NextResponse.json({ requests });
   } catch (error) {
     console.error("Error fetching permission requests:", error);
@@ -40,21 +40,19 @@ export const POST = withAuth(async (req: NextRequest, user: JWTPayload) => {
     const { requestedRole, tournamentId, reason } = await req.json();
 
     if (!requestedRole || !reason) {
-      return NextResponse.json({ 
-        error: "Requested role and reason are required" 
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          error: "Requested role and reason are required"
+        },
+        { status: 400 }
+      );
     }
 
-    const request = await PermissionService.requestPermission(
-      user.userId,
-      requestedRole as Role,
-      tournamentId,
-      reason
-    );
+    const request = await PermissionService.requestPermission(user.userId, requestedRole as Role, tournamentId, reason);
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       message: "Permission request submitted successfully",
-      request 
+      request
     });
   } catch (error) {
     console.error("Error creating permission request:", error);

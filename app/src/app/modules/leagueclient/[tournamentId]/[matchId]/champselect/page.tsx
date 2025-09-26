@@ -12,7 +12,6 @@ import { ChampSelectDisplay } from "@libLeagueClient/components/champselect/Cham
 import { useLCU, useChampSelectAssets } from "@lib/services";
 import { useParams } from "next/navigation";
 
-
 const ChampSelectOverlayPage: React.FC = () => {
   const { setActiveModule } = useNavigation();
   const { downloadState } = useDownload();
@@ -52,17 +51,19 @@ const ChampSelectOverlayPage: React.FC = () => {
         const matchResponse = await fetch(`/api/public/matches/${matchId}`);
         if (matchResponse.ok) {
           const matchData = await matchResponse.json();
-          
+
           // Handle MongoDB document format - extract data from _doc if present
           let match = matchData.match;
           if (match && match._doc) {
             match = match._doc;
           }
-          
-          
+
           // Check if team IDs exist before fetching
           if (!match.blueTeamId || !match.redTeamId) {
-            console.warn("Missing team IDs in match data:", { blueTeamId: match.blueTeamId, redTeamId: match.redTeamId });
+            console.warn("Missing team IDs in match data:", {
+              blueTeamId: match.blueTeamId,
+              redTeamId: match.redTeamId
+            });
             // Set match without team data as fallback
             const matchWithEmptyTeams = {
               ...match,
@@ -72,7 +73,7 @@ const ChampSelectOverlayPage: React.FC = () => {
             setMatch(matchWithEmptyTeams as Match);
             return;
           }
-          
+
           // Fetch team data for both teams to get player information
           const [blueTeamResponse, redTeamResponse] = await Promise.all([
             fetch(`/api/public/teams/${match.blueTeamId}`),
@@ -182,22 +183,24 @@ const ChampSelectOverlayPage: React.FC = () => {
       // Try to find player by summoner name first, then by index
       let teamPlayer = null;
       const blueTeamPlayers: TeamPlayerLite[] = currentBlueTeamPlayers;
-      
+
       if (player.summonerName && player.summonerName !== `Player ${index + 1}`) {
         // Try exact match first
         teamPlayer = blueTeamPlayers.find((p: TeamPlayerLite) => p.inGameName === player.summonerName);
-        
+
         // If no exact match, try partial match (in case names are truncated)
         if (!teamPlayer) {
-          teamPlayer = blueTeamPlayers.find((p: TeamPlayerLite) => p.inGameName && p.inGameName.includes(player.summonerName));
+          teamPlayer = blueTeamPlayers.find(
+            (p: TeamPlayerLite) => p.inGameName && p.inGameName.includes(player.summonerName)
+          );
         }
       }
-      
+
       // Fallback to index-based matching if no name match found
       if (!teamPlayer && blueTeamPlayers[index]) {
         teamPlayer = blueTeamPlayers[index];
       }
-      
+
       const hasPlayerInfo = !!(teamPlayer && teamPlayer.inGameName && teamPlayer.role);
       const playerInfo: PickbanPlayer | undefined = hasPlayerInfo
         ? {
@@ -219,22 +222,24 @@ const ChampSelectOverlayPage: React.FC = () => {
       // Try to find player by summoner name first, then by index
       let teamPlayer = null;
       const redTeamPlayers: TeamPlayerLite[] = currentRedTeamPlayers;
-      
+
       if (player.summonerName && player.summonerName !== `Player ${index + 1}`) {
         // Try exact match first
         teamPlayer = redTeamPlayers.find((p: TeamPlayerLite) => p.inGameName === player.summonerName);
-        
+
         // If no exact match, try partial match (in case names are truncated)
         if (!teamPlayer) {
-          teamPlayer = redTeamPlayers.find((p: TeamPlayerLite) => p.inGameName && p.inGameName.includes(player.summonerName));
+          teamPlayer = redTeamPlayers.find(
+            (p: TeamPlayerLite) => p.inGameName && p.inGameName.includes(player.summonerName)
+          );
         }
       }
-      
+
       // Fallback to index-based matching if no name match found
       if (!teamPlayer && redTeamPlayers[index]) {
         teamPlayer = redTeamPlayers[index];
       }
-      
+
       const hasPlayerInfo = !!(teamPlayer && teamPlayer.inGameName && teamPlayer.role);
       const playerInfo: PickbanPlayer | undefined = hasPlayerInfo
         ? {
@@ -294,14 +299,14 @@ const ChampSelectOverlayPage: React.FC = () => {
               ...(m?.blueTeam || {}),
               _id: m?.blueTeamId,
               name: m?.blueTeamName || "",
-              logo: getLogoUrl((m?.blueTeamData as Record<string, unknown>)?.logo),
+              logo: getLogoUrl((m?.blueTeamData as Record<string, unknown>)?.logo)
             },
             {
               ...(m?.redTeamData || {}),
               ...(m?.redTeam || {}),
               _id: m?.redTeamId,
               name: m?.redTeamName || "",
-              logo: getLogoUrl((m?.redTeamData as Record<string, unknown>)?.logo),
+              logo: getLogoUrl((m?.redTeamData as Record<string, unknown>)?.logo)
             }
           ] as unknown as Team[];
         }

@@ -234,9 +234,9 @@ export const PlayerSlotComponent: React.FC<PlayerSlotProps> = ({
           <div className="flex items-end mb-3 w-full">
             <div
               className="text-2xl font-semibold text-white rotate-270 origin-bottom-left transform-gpu whitespace-nowrap"
-              style={{ 
-                position: "absolute", 
-                bottom: "10px", 
+              style={{
+                position: "absolute",
+                bottom: "10px",
                 left: "40px",
                 maxHeight: "200px",
                 overflow: "visible"

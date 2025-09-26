@@ -134,7 +134,9 @@ const ChampSelectDisplayComponent: React.FC<ChampSelectDisplayProps> = ({
       return;
     }
 
-    const anyChampionsPlayed = m.games.some((g) => g && g.championsPlayed && Object.keys(g.championsPlayed || {}).length > 0);
+    const anyChampionsPlayed = m.games.some(
+      (g) => g && g.championsPlayed && Object.keys(g.championsPlayed || {}).length > 0
+    );
     setFearlessActive(anyChampionsPlayed);
 
     if (!anyChampionsPlayed) {
@@ -459,43 +461,46 @@ const ChampSelectDisplayComponent: React.FC<ChampSelectDisplayProps> = ({
         above={
           <>
             {/* Only show bans if champion select is not finalized */}
-            {data.phase !== "FINALIZATION" && data.phase !== "GAME_STARTING" && data.phase !== "completed" && data.phase !== "finalization" && (
-              <div className="flex justify-between items-center items-end">
-                <TeamBans
-                  bans={bans.myTeamBans}
-                  banPlaceholder={banPlaceholder}
-                  teamColor={getTeamColor(effectiveTournamentData?.blueTeam, blueColor)}
-                  isFearlessDraft={fearlessActive}
-                  usedChampions={data.usedChampions}
-                  hoverState={hoverState}
-                  onRegisterImages={registerChildImages}
-                  bansAnimated={bansAnimated}
-                  teamSide="left"
-                />
-                {fearlessActive && (
-                  <FearlessDraftBans
-                    bans={fearlessBansComputed}
-                    customTeamColors={{
-                      blueTeam: getTeamColor(effectiveTournamentData?.blueTeam, blueColor),
-                      redTeam: getTeamColor(effectiveTournamentData?.redTeam, redColor)
-                    }}
+            {data.phase !== "FINALIZATION" &&
+              data.phase !== "GAME_STARTING" &&
+              data.phase !== "completed" &&
+              data.phase !== "finalization" && (
+                <div className="flex justify-between items-center items-end">
+                  <TeamBans
+                    bans={bans.myTeamBans}
+                    banPlaceholder={banPlaceholder}
+                    teamColor={getTeamColor(effectiveTournamentData?.blueTeam, blueColor)}
+                    isFearlessDraft={fearlessActive}
+                    usedChampions={data.usedChampions}
+                    hoverState={hoverState}
                     onRegisterImages={registerChildImages}
-                    showFearlessBans={showFearlessBans}
+                    bansAnimated={bansAnimated}
+                    teamSide="left"
                   />
-                )}
-                <TeamBans
-                  bans={bans.theirTeamBans}
-                  teamColor={getTeamColor(effectiveTournamentData?.redTeam, redColor)}
-                  isFearlessDraft={fearlessActive}
-                  usedChampions={data.usedChampions}
-                  hoverState={hoverState}
-                  banPlaceholder={banPlaceholder}
-                  onRegisterImages={registerChildImages}
-                  bansAnimated={bansAnimated}
-                  teamSide="right"
-                />
-              </div>
-            )}
+                  {fearlessActive && (
+                    <FearlessDraftBans
+                      bans={fearlessBansComputed}
+                      customTeamColors={{
+                        blueTeam: getTeamColor(effectiveTournamentData?.blueTeam, blueColor),
+                        redTeam: getTeamColor(effectiveTournamentData?.redTeam, redColor)
+                      }}
+                      onRegisterImages={registerChildImages}
+                      showFearlessBans={showFearlessBans}
+                    />
+                  )}
+                  <TeamBans
+                    bans={bans.theirTeamBans}
+                    teamColor={getTeamColor(effectiveTournamentData?.redTeam, redColor)}
+                    isFearlessDraft={fearlessActive}
+                    usedChampions={data.usedChampions}
+                    hoverState={hoverState}
+                    banPlaceholder={banPlaceholder}
+                    onRegisterImages={registerChildImages}
+                    bansAnimated={bansAnimated}
+                    teamSide="right"
+                  />
+                </div>
+              )}
             <TimeBar
               timer={timer}
               tournamentData={effectiveTournamentData}

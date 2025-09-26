@@ -32,7 +32,7 @@ export interface CreateTournamentRequest {
   patchVersion?: string;
   sponsors?: Sponsorship[];
   ticker?: Ticker;
-  }
+}
 
 export type UpdateTeamRequest = Partial<CreateTeamRequest> & {
   _id: string;

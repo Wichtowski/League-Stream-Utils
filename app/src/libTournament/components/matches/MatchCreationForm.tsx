@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Team } from "@libTeam/types";
 import { useModal, useCurrentMatch, useUser } from "@lib/contexts";
 import { Button, LoadingSpinner } from "@lib/components/common";
-import { Match, CreateMatchRequest, BracketNode, Tournament  } from "@libTournament/types";
+import { Match, CreateMatchRequest, BracketNode, Tournament } from "@libTournament/types";
 
 interface MatchCreationFormProps {
   tournament: Tournament;

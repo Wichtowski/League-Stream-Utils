@@ -40,9 +40,6 @@ export const UserModel = getModel("User", UserSchema);
 
 export const CameraTeamModel = getModel("CameraTeam", CameraTeamSchema);
 
-
-
-
 export const BracketModel = getModel("Bracket", BracketSchema);
 
 export const CameraSettingsModel = getModel("CameraSettings", CameraSettingsSchema);
@@ -65,7 +62,10 @@ export const PlayerStatsModel = getModel<PlayerStatsDoc>("PlayerStats", PlayerSt
 
 // Permission models
 export type TournamentPermissionDoc = InferSchemaType<typeof TournamentPermissionSchema>;
-export const TournamentPermissionModel = getModel<TournamentPermissionDoc>("TournamentPermission", TournamentPermissionSchema);
+export const TournamentPermissionModel = getModel<TournamentPermissionDoc>(
+  "TournamentPermission",
+  TournamentPermissionSchema
+);
 
 export type UserPermissionDoc = InferSchemaType<typeof UserPermissionSchema>;
 export const UserPermissionModel = getModel<UserPermissionDoc>("UserPermission", UserPermissionSchema);

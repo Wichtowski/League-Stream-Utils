@@ -14,13 +14,13 @@ interface PermissionGuardProps {
   permissions?: Permission[]; // Multiple permissions to check
 }
 
-export const PermissionGuard = ({ 
-  permission, 
-  resourceId, 
-  fallback, 
-  children, 
+export const PermissionGuard = ({
+  permission,
+  resourceId,
+  fallback,
+  children,
   requireAll = false,
-  permissions 
+  permissions
 }: PermissionGuardProps): React.ReactElement => {
   const [hasAccess, setHasAccess] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
@@ -91,7 +91,7 @@ export const withPermission = <P extends object>(
       </PermissionGuard>
     );
   };
-  
+
   WrappedComponent.displayName = `withPermission(${Component.displayName || Component.name})`;
   return WrappedComponent;
 };
@@ -105,12 +105,12 @@ interface ConditionalPermissionProps {
   loading?: React.ReactNode;
 }
 
-export const ConditionalPermission = ({ 
-  permission, 
-  resourceId, 
-  hasPermission, 
-  noPermission, 
-  loading 
+export const ConditionalPermission = ({
+  permission,
+  resourceId,
+  hasPermission,
+  noPermission,
+  loading
 }: ConditionalPermissionProps): React.ReactElement => {
   const { hasAccess, isLoading } = usePermissionCheck(permission, resourceId);
 

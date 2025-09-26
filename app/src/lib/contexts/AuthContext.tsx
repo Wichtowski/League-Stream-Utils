@@ -113,7 +113,7 @@ export function AuthProvider({ children }: { children: ReactNode }): React.React
     if (!user || isLoggingOut.current) {
       return false;
     }
-    
+
     try {
       const response = await fetch("/api/v1/auth/validate", {
         method: "GET",
@@ -137,12 +137,12 @@ export function AuthProvider({ children }: { children: ReactNode }): React.React
     if (isLoggingOut.current) {
       return;
     }
-    
+
     isLoggingOut.current = true;
-    
+
     // Immediately clear user to prevent further API calls
     setUser(null);
-    
+
     try {
       await fetch("/api/v1/auth/logout", {
         method: "POST",

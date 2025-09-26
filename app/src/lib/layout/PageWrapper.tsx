@@ -12,7 +12,7 @@ export const PageWrapper: React.FC<PageLayoutProps> = ({
   className,
   contentClassName,
   requireAuth = true,
-  loading = false,
+  loading = false
 }) => {
   const content = (
     <PageLayout

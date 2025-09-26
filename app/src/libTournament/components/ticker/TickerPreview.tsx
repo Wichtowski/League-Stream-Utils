@@ -9,15 +9,12 @@ interface TickerPreviewProps {
   className?: string;
 }
 
-export const TickerPreview = ({
-  formData,
-  className = "",
-}: TickerPreviewProps) => {
+export const TickerPreview = ({ formData, className = "" }: TickerPreviewProps) => {
   const [previewKey, setPreviewKey] = useState(0);
 
   // Reset preview when form data changes significantly
   useEffect(() => {
-    setPreviewKey(prev => prev + 1);
+    setPreviewKey((prev) => prev + 1);
   }, [formData.title, formData.titleBackgroundColor, formData.titleTextColor, formData.carouselBackgroundColor]);
 
   return (
@@ -87,7 +84,7 @@ export const TickerPreview = ({
         <div className="absolute top-2 right-2 bg-black/50 backdrop-blur-sm rounded px-2 py-1 text-xs text-gray-300">
           <div>Speed: {formData.carouselSpeed}px/s</div>
           <div>Items: {formData.carouselItems?.length || 0}</div>
-          {process.env.NODE_ENV === 'development' && (
+          {process.env.NODE_ENV === "development" && (
             <>
               <div>Title BG: {formData.titleBackgroundColor}</div>
               <div>Title Text: {formData.titleTextColor}</div>
@@ -103,9 +100,7 @@ export const TickerPreview = ({
           <div className="flex items-center gap-4">
             <span>Speed: {formData.carouselSpeed}px/s</span>
           </div>
-          <div className="text-xs text-gray-400">
-            Title always visible
-          </div>
+          <div className="text-xs text-gray-400">Title always visible</div>
         </div>
       </div>
     </div>

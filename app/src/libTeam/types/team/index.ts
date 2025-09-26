@@ -24,7 +24,7 @@ export interface Team {
   region: string;
   tier: TeamTier;
   founded: Date;
-  
+
   socialMedia?: {
     twitter?: string;
     discord?: string;
@@ -33,11 +33,11 @@ export interface Team {
   teamOwnerId?: string;
   createdAt: Date;
   updatedAt: Date;
-  
+
   // Standalone team fields
   isStandalone?: boolean;
   tournamentId?: string;
-  
+
   // In-game draft fields (optional so tournament objects remain valid)
   side?: "blue" | "red";
   bans?: Champion[];
@@ -64,7 +64,6 @@ export interface Coach {
   name: string;
   _id?: string;
 }
-
 
 export type TeamTier = "amateur" | "semi-pro" | "professional";
 

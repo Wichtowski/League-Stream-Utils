@@ -5,7 +5,7 @@ export enum Permission {
   ADMIN_ALL = "ADMIN_ALL",
   USER_MANAGEMENT = "USER_MANAGEMENT",
   SYSTEM_SETTINGS = "SYSTEM_SETTINGS",
-  
+
   // Tournament permissions
   TOURNAMENT_CREATE = "TOURNAMENT_CREATE",
   TOURNAMENT_VIEW = "TOURNAMENT_VIEW",
@@ -13,25 +13,25 @@ export enum Permission {
   TOURNAMENT_DELETE = "TOURNAMENT_DELETE",
   TOURNAMENT_PUBLISH = "TOURNAMENT_PUBLISH",
   TOURNAMENT_ADMIN = "TOURNAMENT_ADMIN",
-  
+
   // Team management permissions
   TEAM_REGISTER = "TEAM_REGISTER",
   TEAM_UNREGISTER = "TEAM_UNREGISTER",
   TEAM_APPROVE = "TEAM_APPROVE",
   TEAM_REJECT = "TEAM_REJECT",
-  
+
   // Match management permissions
   MATCH_CREATE = "MATCH_CREATE",
   MATCH_EDIT = "MATCH_EDIT",
   MATCH_DELETE = "MATCH_DELETE",
   MATCH_RESULT_EDIT = "MATCH_RESULT_EDIT",
   MATCH_SCHEDULE = "MATCH_SCHEDULE",
-  
+
   // Broadcasting permissions
   STREAM_MANAGE = "STREAM_MANAGE",
   COMMENTATOR_ASSIGN = "COMMENTATOR_ASSIGN",
   CAMERA_MANAGE = "CAMERA_MANAGE",
-  
+
   // Data permissions
   DATA_EXPORT = "DATA_EXPORT",
   STATS_VIEW = "STATS_VIEW",
@@ -43,13 +43,13 @@ export enum Role {
   SUPER_ADMIN = "SUPER_ADMIN",
   ADMIN = "ADMIN",
   USER = "USER",
-  
+
   // Tournament-specific roles
   TOURNAMENT_OWNER = "TOURNAMENT_OWNER",
   TOURNAMENT_ADMIN = "TOURNAMENT_ADMIN",
   TOURNAMENT_MODERATOR = "TOURNAMENT_MODERATOR",
   TOURNAMENT_VIEWER = "TOURNAMENT_VIEWER",
-  
+
   // Specialized roles
   COMMENTATOR = "COMMENTATOR",
   STREAM_MANAGER = "STREAM_MANAGER",
@@ -201,20 +201,13 @@ export const ROLE_PERMISSIONS: RolePermission[] = [
   },
   {
     role: Role.TOURNAMENT_VIEWER,
-    permissions: [
-      Permission.TOURNAMENT_VIEW,
-      Permission.STATS_VIEW
-    ],
+    permissions: [Permission.TOURNAMENT_VIEW, Permission.STATS_VIEW],
     description: "Read-only access to a specific tournament",
     isGlobal: false
   },
   {
     role: Role.COMMENTATOR,
-    permissions: [
-      Permission.TOURNAMENT_VIEW,
-      Permission.STATS_VIEW,
-      Permission.CAMERA_MANAGE
-    ],
+    permissions: [Permission.TOURNAMENT_VIEW, Permission.STATS_VIEW, Permission.CAMERA_MANAGE],
     description: "Commentator access with camera control",
     isGlobal: false
   },
@@ -231,20 +224,13 @@ export const ROLE_PERMISSIONS: RolePermission[] = [
   },
   {
     role: Role.DATA_ANALYST,
-    permissions: [
-      Permission.TOURNAMENT_VIEW,
-      Permission.STATS_VIEW,
-      Permission.STATS_EDIT,
-      Permission.DATA_EXPORT
-    ],
+    permissions: [Permission.TOURNAMENT_VIEW, Permission.STATS_VIEW, Permission.STATS_EDIT, Permission.DATA_EXPORT],
     description: "Data analysis and statistics management",
     isGlobal: false
   },
   {
     role: Role.USER,
-    permissions: [
-      Permission.TOURNAMENT_VIEW
-    ],
+    permissions: [Permission.TOURNAMENT_VIEW],
     description: "Basic user with minimal permissions",
     isGlobal: true
   }
@@ -252,7 +238,7 @@ export const ROLE_PERMISSIONS: RolePermission[] = [
 
 // Helper function to get permissions for a role
 export const getPermissionsForRole = (role: Role): Permission[] => {
-  const rolePermission = ROLE_PERMISSIONS.find(rp => rp.role === role);
+  const rolePermission = ROLE_PERMISSIONS.find((rp) => rp.role === role);
   return rolePermission?.permissions || [];
 };
 
@@ -264,7 +250,7 @@ export const roleHasPermission = (role: Role, permission: Permission): boolean =
 
 // Helper function to get all roles that have a specific permission
 export const getRolesWithPermission = (permission: Permission): Role[] => {
-  return ROLE_PERMISSIONS
-    .filter(rp => rp.permissions.includes(permission) || rp.permissions.includes(Permission.ADMIN_ALL))
-    .map(rp => rp.role);
+  return ROLE_PERMISSIONS.filter(
+    (rp) => rp.permissions.includes(permission) || rp.permissions.includes(Permission.ADMIN_ALL)
+  ).map((rp) => rp.role);
 };

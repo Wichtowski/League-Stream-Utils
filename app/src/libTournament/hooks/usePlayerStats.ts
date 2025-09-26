@@ -24,10 +24,7 @@ export const usePlayerStats = (playerStats: PlayerStatsDoc[], setPlayerStats: (s
     }
   });
 
-  const updatePlayerStat = (
-    target: PlayerStatsDoc,
-    apply: (ns: NormalizedStats) => NormalizedStats
-  ): void => {
+  const updatePlayerStat = (target: PlayerStatsDoc, apply: (ns: NormalizedStats) => NormalizedStats): void => {
     const updatedStats = playerStats.map((row: PlayerStatsDoc) =>
       row.playerId === target.playerId && row.gameId === target.gameId && row.championId === target.championId
         ? { ...row, stats: apply(normalizeStats(row)) }

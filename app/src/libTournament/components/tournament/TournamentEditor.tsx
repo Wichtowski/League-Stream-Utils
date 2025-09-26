@@ -36,8 +36,8 @@ export const TournamentEditor = ({
       const response = await fetch(`/api/v1/tournaments/${tournament._id}/matches/generate`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
-        },
+          "Content-Type": "application/json"
+        }
       });
 
       if (!response.ok) {
@@ -65,7 +65,8 @@ export const TournamentEditor = ({
           </div>
           <div className="flex items-center space-x-2">
             <span
-              className={`px-3 py-1 rounded text-sm ${tournament.status === "draft"
+              className={`px-3 py-1 rounded text-sm ${
+                tournament.status === "draft"
                   ? "bg-yellow-600"
                   : tournament.status === "registration"
                     ? "bg-blue-600"
@@ -74,7 +75,7 @@ export const TournamentEditor = ({
                       : tournament.status === "completed"
                         ? "bg-gray-600"
                         : "bg-red-600"
-                }`}
+              }`}
             >
               {tournament.status.charAt(0).toUpperCase() + tournament.status.slice(1)}
             </span>
@@ -157,10 +158,7 @@ export const TournamentEditor = ({
             Standalone Teams
           </button>
 
-          <PermissionGuard
-            permission={Permission.TOURNAMENT_ADMIN}
-            resourceId={tournament._id}
-          >
+          <PermissionGuard permission={Permission.TOURNAMENT_ADMIN} resourceId={tournament._id}>
             <button
               onClick={() => router.push(`/modules/tournaments/${tournament._id}/permissions`)}
               className={`${buttonStyle} bg-purple-600 hover:bg-purple-700`}

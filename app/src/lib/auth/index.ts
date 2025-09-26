@@ -79,11 +79,7 @@ export function setSecurityHeaders(response: NextResponse): NextResponse {
 }
 
 export function withAuth(
-  handler: (
-    request: NextRequest,
-    user: DecodedToken,
-    params: Promise<Record<string, string>>
-  ) => Promise<NextResponse>
+  handler: (request: NextRequest, user: DecodedToken, params: Promise<Record<string, string>>) => Promise<NextResponse>
 ): (request: NextRequest, context: { params: Record<string, string> }) => Promise<NextResponse> {
   return async (request: NextRequest, { params }: { params: Record<string, string> }) => {
     const ip = getClientIP(request);
@@ -203,9 +199,7 @@ export function withAuth(
 
 export async function withSessionLimit(
   handler: (request: NextRequest, user: JWTPayload) => Promise<NextResponse>
-): Promise<
-  (request: NextRequest, context: { params: Record<string, string> }) => Promise<NextResponse>
-> {
+): Promise<(request: NextRequest, context: { params: Record<string, string> }) => Promise<NextResponse>> {
   return withAuth(async (request: NextRequest, user: JWTPayload) => {
     if (user.isAdmin) {
       return handler(request, user);

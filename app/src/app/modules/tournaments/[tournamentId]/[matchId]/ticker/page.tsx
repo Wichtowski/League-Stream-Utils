@@ -94,12 +94,7 @@ export default function MatchTickerPage() {
 
   return (
     <div className="min-h-screen bg-gray-900">
-      <TickerDisplay
-        tournament={tournament}
-        match={match}
-        team1={team1}
-        team2={team2}
-      />
+      <TickerDisplay tournament={tournament} match={match} team1={team1} team2={team2} />
     </div>
   );
 }

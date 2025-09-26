@@ -45,18 +45,21 @@ const LiveGamePage: React.FC = () => {
         const matchResponse = await fetch(`/api/public/matches/${matchId}`);
         if (matchResponse.ok) {
           const matchData = await matchResponse.json();
-          
+
           // Handle MongoDB document format - extract data from _doc if present
           let match = matchData.match;
           if (match && match._doc) {
             match = match._doc;
           }
-          
+
           console.log("Match data received:", match);
-          
+
           // Check if team IDs exist before fetching
           if (!match.blueTeamId || !match.redTeamId) {
-            console.error("Missing team IDs in match data:", { blueTeamId: match.blueTeamId, redTeamId: match.redTeamId });
+            console.error("Missing team IDs in match data:", {
+              blueTeamId: match.blueTeamId,
+              redTeamId: match.redTeamId
+            });
             // Set match without team data as fallback
             const matchWithEmptyTeams = {
               ...match,
@@ -66,7 +69,7 @@ const LiveGamePage: React.FC = () => {
             setCurrentMatch(matchWithEmptyTeams as Match);
             return;
           }
-          
+
           // Fetch team data for both teams to get player information
           const [blueTeamResponse, redTeamResponse] = await Promise.all([
             fetch(`/api/public/teams/${match.blueTeamId}`),
@@ -126,7 +129,15 @@ const LiveGamePage: React.FC = () => {
     return <></>;
   }
 
-  return <GameDataDisplay gameData={gameData} match={currentMatch} tournament={currentTournament} blueTeamData={blueTeamData} redTeamData={redTeamData} />;
+  return (
+    <GameDataDisplay
+      gameData={gameData}
+      match={currentMatch}
+      tournament={currentTournament}
+      blueTeamData={blueTeamData}
+      redTeamData={redTeamData}
+    />
+  );
 };
 
 export default LiveGamePage;

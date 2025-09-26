@@ -28,8 +28,8 @@ export const CarouselTicker = ({ items, speed, backgroundColor, className = "" }
     };
 
     updateDimensions();
-    window.addEventListener('resize', updateDimensions);
-    
+    window.addEventListener("resize", updateDimensions);
+
     // Use ResizeObserver for more accurate dimension tracking
     const resizeObserver = new ResizeObserver(updateDimensions);
     if (containerRef.current) {
@@ -40,14 +40,14 @@ export const CarouselTicker = ({ items, speed, backgroundColor, className = "" }
     }
 
     return () => {
-      window.removeEventListener('resize', updateDimensions);
+      window.removeEventListener("resize", updateDimensions);
       resizeObserver.disconnect();
     };
   }, [items]);
 
   if (!sortedItems.length) {
     return (
-      <div 
+      <div
         className={`h-12 backdrop-blur-sm border-t border-gray-600/50 ${className}`}
         style={{ backgroundColor: backgroundColor || "#1f2937" }}
       >
@@ -73,37 +73,37 @@ export const CarouselTicker = ({ items, speed, backgroundColor, className = "" }
           }
         }
       `}</style>
-      <div 
+      <div
         ref={containerRef}
         className={`h-12 backdrop-blur-sm border-t border-gray-600/50 overflow-hidden relative ${className}`}
         style={{ backgroundColor: backgroundColor || "#1f2937" }}
       >
-      <div 
-        ref={contentRef}
-        className="flex items-center h-full whitespace-nowrap"
-        style={{
-          animationName: 'scrollLeft',
-          animationDuration: `${animationDuration}s`,
-          animationTimingFunction: 'linear',
-          animationIterationCount: 'infinite',
-          animationPlayState: contentWidth > containerWidth ? 'running' : 'paused'
-        }}
-      >
-        {/* Render items twice for seamless loop */}
-        {[...sortedItems, ...sortedItems].map((item, index) => (
-          <div
-            key={`${item._id || item.text}-${index}`}
-            className="flex-shrink-0 px-4 py-2 mx-2 rounded text-sm font-medium shadow-sm"
-            style={{
-              backgroundColor: item.backgroundColor || "#1f2937",
-              color: item.textColor || "#ffffff"
-            }}
-          >
-            {item.text}
-          </div>
-        ))}
+        <div
+          ref={contentRef}
+          className="flex items-center h-full whitespace-nowrap"
+          style={{
+            animationName: "scrollLeft",
+            animationDuration: `${animationDuration}s`,
+            animationTimingFunction: "linear",
+            animationIterationCount: "infinite",
+            animationPlayState: contentWidth > containerWidth ? "running" : "paused"
+          }}
+        >
+          {/* Render items twice for seamless loop */}
+          {[...sortedItems, ...sortedItems].map((item, index) => (
+            <div
+              key={`${item._id || item.text}-${index}`}
+              className="flex-shrink-0 px-4 py-2 mx-2 rounded text-sm font-medium shadow-sm"
+              style={{
+                backgroundColor: item.backgroundColor || "#1f2937",
+                color: item.textColor || "#ffffff"
+              }}
+            >
+              {item.text}
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
     </>
   );
 };

@@ -7,7 +7,7 @@ import { useModal } from "@lib/contexts/ModalContext";
 import { LoadingSpinner } from "@lib/components/common";
 import { PageWrapper } from "@lib/layout";
 import { Tournament } from "@libTournament/types";
-import { Team, CreateTeamRequest  } from "@libTeam/types";
+import { Team, CreateTeamRequest } from "@libTeam/types";
 import { TeamCreationForm } from "@libTeam/components/TeamCreationForm";
 import { useParams } from "next/navigation";
 

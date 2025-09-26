@@ -70,12 +70,14 @@ export const TournamentSchema = new Schema({
     title: { type: String },
     titleBackgroundColor: { type: String, default: "#1f2937" },
     titleTextColor: { type: String, default: "#ffffff" },
-    carouselItems: [{
-      text: { type: String },
-      backgroundColor: { type: String, default: "#1f2937" },
-      textColor: { type: String, default: "#ffffff" },
-      order: { type: Number, default: 0 }
-    }],
+    carouselItems: [
+      {
+        text: { type: String },
+        backgroundColor: { type: String, default: "#1f2937" },
+        textColor: { type: String, default: "#ffffff" },
+        order: { type: Number, default: 0 }
+      }
+    ],
     carouselSpeed: { type: Number, default: 50 },
     carouselBackgroundColor: { type: String, default: "#1f2937" },
     createdAt: { type: Date },

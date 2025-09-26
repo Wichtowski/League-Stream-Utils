@@ -24,12 +24,12 @@ export const PermissionManager = ({ tournamentId, onPermissionChange }: Permissi
     try {
       setLoading(true);
       let data: (TournamentPermission | UserPermission)[];
-      
+
       if (isGlobal) {
         // Use API call for global permissions
-        const response = await fetch('/api/v1/permissions/global');
+        const response = await fetch("/api/v1/permissions/global");
         if (!response.ok) {
-          throw new Error('Failed to fetch global permissions');
+          throw new Error("Failed to fetch global permissions");
         }
         const result = await response.json();
         data = result.roles.map((role: Role) => ({
@@ -44,11 +44,11 @@ export const PermissionManager = ({ tournamentId, onPermissionChange }: Permissi
         // Use API call for tournament permissions
         const response = await fetch(`/api/v1/permissions/tournament/${tournamentId}`);
         if (!response.ok) {
-          throw new Error('Failed to fetch tournament permissions');
+          throw new Error("Failed to fetch tournament permissions");
         }
         const result = await response.json();
         data = result.permissions.map((p: Record<string, unknown>) => ({
-          _id: p._id?.toString() || '',
+          _id: p._id?.toString() || "",
           tournamentId: p.tournamentId,
           userId: p.userId,
           role: p.role as Role,
@@ -58,7 +58,7 @@ export const PermissionManager = ({ tournamentId, onPermissionChange }: Permissi
           isActive: p.isActive
         }));
       }
-      
+
       setPermissions(data);
     } catch (_error) {
       await showAlert({ type: "error", message: "Failed to load permissions" });
@@ -74,33 +74,36 @@ export const PermissionManager = ({ tournamentId, onPermissionChange }: Permissi
   const handleRevokePermission = async (permission: TournamentPermission | UserPermission): Promise<void> => {
     try {
       if (isGlobal) {
-        const response = await fetch('/api/v1/permissions/global', {
-          method: 'DELETE',
+        const response = await fetch("/api/v1/permissions/global", {
+          method: "DELETE",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json"
           },
           body: JSON.stringify({
             userId: permission.userId,
             role: permission.role
           })
         });
-        
+
         if (!response.ok) {
-          throw new Error('Failed to revoke global role');
+          throw new Error("Failed to revoke global role");
         }
       } else {
-        const response = await fetch('/api/v1/permissions/tournament/' + (permission as TournamentPermission).tournamentId, {
-          method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            userId: permission.userId
-          })
-        });
-        
+        const response = await fetch(
+          "/api/v1/permissions/tournament/" + (permission as TournamentPermission).tournamentId,
+          {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              userId: permission.userId
+            })
+          }
+        );
+
         if (!response.ok) {
-          throw new Error('Failed to revoke tournament role');
+          throw new Error("Failed to revoke tournament role");
         }
       }
 
@@ -142,10 +145,7 @@ export const PermissionManager = ({ tournamentId, onPermissionChange }: Permissi
         <h3 className="text-lg font-semibold text-white">
           {isGlobal ? "Global Permissions" : "Tournament Permissions"}
         </h3>
-        <Button
-          onClick={() => setShowAddModal(true)}
-          className="bg-blue-600 hover:bg-blue-700"
-        >
+        <Button onClick={() => setShowAddModal(true)} className="bg-blue-600 hover:bg-blue-700">
           Add Permission
         </Button>
       </div>
@@ -163,18 +163,16 @@ export const PermissionManager = ({ tournamentId, onPermissionChange }: Permissi
             >
               <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-2">
-                  <span className={`px-2 py-1 rounded text-xs font-medium text-white ${getRoleColor(permission.role as Role)}`}>
+                  <span
+                    className={`px-2 py-1 rounded text-xs font-medium text-white ${getRoleColor(permission.role as Role)}`}
+                  >
                     {permission.role}
                   </span>
-                  <span className="text-gray-300 text-sm">
-                    User: {permission.userId}
-                  </span>
+                  <span className="text-gray-300 text-sm">User: {permission.userId}</span>
                 </div>
                 <div className="text-xs text-gray-400">
                   <p>Granted: {formatDate(permission.grantedAt)}</p>
-                  {permission.expiresAt && (
-                    <p>Expires: {formatDate(permission.expiresAt)}</p>
-                  )}
+                  {permission.expiresAt && <p>Expires: {formatDate(permission.expiresAt)}</p>}
                 </div>
               </div>
               <div className="flex items-center space-x-2">
@@ -228,7 +226,11 @@ interface AddPermissionModalProps {
   onPermissionAdded: () => void;
 }
 
-const AddPermissionModal = ({ tournamentId, onClose, onPermissionAdded }: AddPermissionModalProps): React.ReactElement => {
+const AddPermissionModal = ({
+  tournamentId,
+  onClose,
+  onPermissionAdded
+}: AddPermissionModalProps): React.ReactElement => {
   const { showAlert } = useModal();
   const [userId, setUserId] = useState("");
   const [role, setRole] = useState<Role>(Role.USER);
@@ -253,7 +255,7 @@ const AddPermissionModal = ({ tournamentId, onClose, onPermissionAdded }: AddPer
 
   const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
-    
+
     if (!userId.trim()) {
       await showAlert({ type: "error", message: "User ID is required" });
       return;
@@ -263,9 +265,9 @@ const AddPermissionModal = ({ tournamentId, onClose, onPermissionAdded }: AddPer
     try {
       if (tournamentId) {
         const response = await fetch(`/api/v1/permissions/tournament/${tournamentId}`, {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json"
           },
           body: JSON.stringify({
             userId: userId.trim(),
@@ -273,15 +275,15 @@ const AddPermissionModal = ({ tournamentId, onClose, onPermissionAdded }: AddPer
             expiresAt: expiresAt ? new Date(expiresAt).toISOString() : undefined
           })
         });
-        
+
         if (!response.ok) {
-          throw new Error('Failed to grant tournament role');
+          throw new Error("Failed to grant tournament role");
         }
       } else {
-        const response = await fetch('/api/v1/permissions/global', {
-          method: 'POST',
+        const response = await fetch("/api/v1/permissions/global", {
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json"
           },
           body: JSON.stringify({
             userId: userId.trim(),
@@ -289,9 +291,9 @@ const AddPermissionModal = ({ tournamentId, onClose, onPermissionAdded }: AddPer
             expiresAt: expiresAt ? new Date(expiresAt).toISOString() : undefined
           })
         });
-        
+
         if (!response.ok) {
-          throw new Error('Failed to grant global role');
+          throw new Error("Failed to grant global role");
         }
       }
 
@@ -311,12 +313,10 @@ const AddPermissionModal = ({ tournamentId, onClose, onPermissionAdded }: AddPer
         <div className="p-6 border-b border-gray-700">
           <h3 className="text-lg font-semibold text-white">Add Permission</h3>
         </div>
-        
+
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              User ID
-            </label>
+            <label className="block text-sm font-medium text-gray-300 mb-2">User ID</label>
             <input
               type="text"
               value={userId}
@@ -328,9 +328,7 @@ const AddPermissionModal = ({ tournamentId, onClose, onPermissionAdded }: AddPer
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Role
-            </label>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Role</label>
             <select
               value={role}
               onChange={(e) => setRole(e.target.value as Role)}
@@ -338,16 +336,14 @@ const AddPermissionModal = ({ tournamentId, onClose, onPermissionAdded }: AddPer
             >
               {availableRoles.map((r) => (
                 <option key={r} value={r}>
-                  {r.replace(/_/g, ' ')}
+                  {r.replace(/_/g, " ")}
                 </option>
               ))}
             </select>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Expires At (Optional)
-            </label>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Expires At (Optional)</label>
             <input
               type="datetime-local"
               value={expiresAt}
@@ -357,18 +353,10 @@ const AddPermissionModal = ({ tournamentId, onClose, onPermissionAdded }: AddPer
           </div>
 
           <div className="flex justify-end space-x-3 pt-4">
-            <Button
-              type="button"
-              onClick={onClose}
-              className="bg-gray-600 hover:bg-gray-700"
-            >
+            <Button type="button" onClick={onClose} className="bg-gray-600 hover:bg-gray-700">
               Cancel
             </Button>
-            <Button
-              type="submit"
-              disabled={loading}
-              className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600"
-            >
+            <Button type="submit" disabled={loading} className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600">
               {loading ? "Granting..." : "Grant Permission"}
             </Button>
           </div>
@@ -385,41 +373,45 @@ interface PermissionDetailsModalProps {
   onPermissionRevoked: () => void;
 }
 
-const PermissionDetailsModal = ({ permission, onClose, onPermissionRevoked }: PermissionDetailsModalProps): React.ReactElement => {
+const PermissionDetailsModal = ({
+  permission,
+  onClose,
+  onPermissionRevoked
+}: PermissionDetailsModalProps): React.ReactElement => {
   const { showAlert } = useModal();
   const [loading, setLoading] = useState(false);
 
   const handleRevoke = async (): Promise<void> => {
     setLoading(true);
     try {
-      if ('tournamentId' in permission) {
-        const response = await fetch('/api/v1/permissions/tournament/' + permission.tournamentId, {
-          method: 'DELETE',
+      if ("tournamentId" in permission) {
+        const response = await fetch("/api/v1/permissions/tournament/" + permission.tournamentId, {
+          method: "DELETE",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json"
           },
           body: JSON.stringify({
             userId: permission.userId
           })
         });
-        
+
         if (!response.ok) {
-          throw new Error('Failed to revoke tournament role');
+          throw new Error("Failed to revoke tournament role");
         }
       } else {
-        const response = await fetch('/api/v1/permissions/global', {
-          method: 'DELETE',
+        const response = await fetch("/api/v1/permissions/global", {
+          method: "DELETE",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json"
           },
           body: JSON.stringify({
             userId: permission.userId,
             role: permission.role
           })
         });
-        
+
         if (!response.ok) {
-          throw new Error('Failed to revoke global role');
+          throw new Error("Failed to revoke global role");
         }
       }
 
@@ -455,11 +447,11 @@ const PermissionDetailsModal = ({ permission, onClose, onPermissionRevoked }: Pe
         <div className="p-6 border-b border-gray-700">
           <h3 className="text-lg font-semibold text-white">Permission Details</h3>
         </div>
-        
+
         <div className="p-6 space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-1">Role</label>
-            <p className="text-white">{permission.role.replace(/_/g, ' ')}</p>
+            <p className="text-white">{permission.role.replace(/_/g, " ")}</p>
             <p className="text-sm text-gray-400">{getRoleDescription(permission.role as Role)}</p>
           </div>
 
@@ -485,7 +477,7 @@ const PermissionDetailsModal = ({ permission, onClose, onPermissionRevoked }: Pe
             </div>
           )}
 
-          {'tournamentId' in permission && (
+          {"tournamentId" in permission && (
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-1">Tournament ID</label>
               <p className="text-white">{permission.tournamentId}</p>
@@ -493,10 +485,7 @@ const PermissionDetailsModal = ({ permission, onClose, onPermissionRevoked }: Pe
           )}
 
           <div className="flex justify-end space-x-3 pt-4">
-            <Button
-              onClick={onClose}
-              className="bg-gray-600 hover:bg-gray-700"
-            >
+            <Button onClick={onClose} className="bg-gray-600 hover:bg-gray-700">
               Close
             </Button>
             <Button

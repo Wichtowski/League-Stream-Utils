@@ -7,7 +7,7 @@ export class MatchGenerator {
    */
   static generateTournamentMatches(tournament: Tournament): CreateMatchRequest[] {
     const teams = tournament.selectedTeams.length > 0 ? tournament.selectedTeams : tournament.registeredTeams;
-    
+
     if (teams.length < 2) {
       throw new Error("Tournament must have at least 2 teams to generate matches");
     }
@@ -32,7 +32,7 @@ export class MatchGenerator {
   private static generateLadderMatches(tournament: Tournament, teams: string[]): CreateMatchRequest[] {
     const matches: CreateMatchRequest[] = [];
     const bracketSize = this.getNextPowerOfTwo(teams.length);
-    
+
     // Generate first round matches
     for (let i = 0; i < bracketSize / 2; i++) {
       const team1 = i * 2 < teams.length ? teams[i * 2] : undefined;
@@ -62,7 +62,7 @@ export class MatchGenerator {
   private static generateSwissMatches(tournament: Tournament, teams: string[]): CreateMatchRequest[] {
     const matches: CreateMatchRequest[] = [];
     const rounds = Math.ceil(Math.log2(teams.length));
-    
+
     for (let round = 1; round <= rounds; round++) {
       // For Swiss, we'll pair teams based on their current standings
       // This is a simplified version - in practice, you'd need to track standings
@@ -91,7 +91,7 @@ export class MatchGenerator {
    */
   private static generateRoundRobinMatches(tournament: Tournament, teams: string[]): CreateMatchRequest[] {
     const matches: CreateMatchRequest[] = [];
-    
+
     // Generate all possible team pairings
     for (let i = 0; i < teams.length; i++) {
       for (let j = i + 1; j < teams.length; j++) {
@@ -119,13 +119,13 @@ export class MatchGenerator {
     const matches: CreateMatchRequest[] = [];
     const groupSize = Math.ceil(Math.sqrt(teams.length));
     const numGroups = Math.ceil(teams.length / groupSize);
-    
+
     // Split teams into groups
     const groups: string[][] = [];
     for (let i = 0; i < numGroups; i++) {
       groups.push([]);
     }
-    
+
     teams.forEach((team, index) => {
       const groupIndex = index % numGroups;
       groups[groupIndex].push(team);
@@ -170,18 +170,18 @@ export class MatchGenerator {
   private static calculateMatchTime(tournament: Tournament, matchIndex: number): Date {
     const baseDate = new Date(tournament.startDate);
     const matchDay = tournament.matchDays[matchIndex % tournament.matchDays.length];
-    const [hours, minutes] = tournament.defaultMatchTime.split(':').map(Number);
-    
+    const [hours, minutes] = tournament.defaultMatchTime.split(":").map(Number);
+
     // Find the next occurrence of the match day
     const targetDay = this.getDayOfWeek(matchDay);
     const currentDay = baseDate.getDay();
     let daysToAdd = (targetDay - currentDay + 7) % 7;
     if (daysToAdd === 0) daysToAdd = 7;
-    
+
     const matchDate = new Date(baseDate);
     matchDate.setDate(baseDate.getDate() + daysToAdd + Math.floor(matchIndex / tournament.matchDays.length) * 7);
     matchDate.setHours(hours, minutes, 0, 0);
-    
+
     return matchDate;
   }
 
@@ -190,8 +190,13 @@ export class MatchGenerator {
    */
   private static getDayOfWeek(dayName: string): number {
     const days: Record<string, number> = {
-      'sunday': 0, 'monday': 1, 'tuesday': 2, 'wednesday': 3,
-      'thursday': 4, 'friday': 5, 'saturday': 6
+      sunday: 0,
+      monday: 1,
+      tuesday: 2,
+      wednesday: 3,
+      thursday: 4,
+      friday: 5,
+      saturday: 6
     };
     return days[dayName.toLowerCase()] || 0;
   }

@@ -1,10 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@lib/auth";
-import {
-  createPlayerStats,
-  getPlayerStats,
-  bulkCreatePlayerStats,
-} from "@lib/database/playerStats";
+import { createPlayerStats, getPlayerStats, bulkCreatePlayerStats } from "@lib/database/playerStats";
 import type { JWTPayload } from "@lib/types/auth";
 
 // GET /api/v1/player-stats - Get player statistics with filters

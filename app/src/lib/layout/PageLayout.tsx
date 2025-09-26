@@ -23,7 +23,7 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
   actions,
   className = "",
   contentClassName = "",
-  loading = false,
+  loading = false
 }) => {
   const { isElectron } = useElectron();
 

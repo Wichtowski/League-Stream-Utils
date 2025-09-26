@@ -116,7 +116,7 @@ export default function TournamentMatchesPage(): React.ReactElement {
 
   const handleSetCurrentMatch = async (matchId: string): Promise<void> => {
     try {
-      const match = matches.find(m => m._id === matchId);
+      const match = matches.find((m) => m._id === matchId);
       if (!match) return;
 
       await setCurrentMatch(match);
@@ -183,11 +183,7 @@ export default function TournamentMatchesPage(): React.ReactElement {
                         >
                           Edit
                         </Button>
-                        <Button
-                          onClick={() => handleSetCurrentMatch(match._id)}
-                          size="sm"
-                          variant="secondary"
-                        >
+                        <Button onClick={() => handleSetCurrentMatch(match._id)} size="sm" variant="secondary">
                           Set as Current
                         </Button>
                       </div>

@@ -34,7 +34,6 @@ export const SpotlightCard: React.FC<SpotlightCardProps> = ({
   const background = useMotionTemplate`radial-gradient(650px circle at ${mouseX}px ${mouseY}px, ${module.spotlightColor}, transparent 80%)`;
   const reversedColor = module.color.split(" ").reverse().join(" ");
 
-
   if (loading) {
     return (
       <div

@@ -7,9 +7,7 @@ export async function GET(_request: NextRequest): Promise<NextResponse> {
   const callbackUrl = encodeURIComponent(config.auth.google.callbackUrl);
 
   if (!clientId || !config.auth.google.callbackUrl) {
-    return setSecurityHeaders(
-      NextResponse.json({ error: "Google OAuth not configured" }, { status: 500 })
-    );
+    return setSecurityHeaders(NextResponse.json({ error: "Google OAuth not configured" }, { status: 500 }));
   }
 
   const scope = encodeURIComponent("openid email profile");
@@ -17,6 +15,3 @@ export async function GET(_request: NextRequest): Promise<NextResponse> {
 
   return setSecurityHeaders(NextResponse.redirect(redirectUrl, { status: 302 }));
 }
-
-
-

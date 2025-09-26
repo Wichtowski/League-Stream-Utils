@@ -16,14 +16,11 @@ export default function TournamentPermissionsPage(): React.ReactElement {
   const { setActiveModule } = useNavigation();
   const { user } = useAuth();
   const tournamentId = params.tournamentId as string;
-  
+
   const [activeTab, setActiveTab] = useState<"permissions" | "requests">("permissions");
   const [refreshKey, setRefreshKey] = useState(0);
 
-  const { hasAccess: canManagePermissions, isLoading } = usePermissionCheck(
-    Permission.TOURNAMENT_ADMIN,
-    tournamentId
-  );
+  const { hasAccess: canManagePermissions, isLoading } = usePermissionCheck(Permission.TOURNAMENT_ADMIN, tournamentId);
 
   useEffect(() => {
     setActiveModule("tournaments");
@@ -76,7 +73,7 @@ export default function TournamentPermissionsPage(): React.ReactElement {
   }
 
   const handlePermissionChange = (): void => {
-    setRefreshKey(prev => prev + 1);
+    setRefreshKey((prev) => prev + 1);
   };
 
   return (
@@ -140,8 +137,8 @@ export default function TournamentPermissionsPage(): React.ReactElement {
             <div>
               <h4 className="font-medium text-blue-400 mb-1">Permission Management</h4>
               <p className="text-sm text-blue-200">
-                Manage who can access and modify this tournament. Tournament owners have full control,
-                while other roles have limited access based on their assigned permissions.
+                Manage who can access and modify this tournament. Tournament owners have full control, while other roles
+                have limited access based on their assigned permissions.
               </p>
             </div>
           </div>

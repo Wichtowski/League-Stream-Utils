@@ -234,82 +234,82 @@ export default function DownloadAssetsPage() {
   return (
     <AuthGuard>
       <div className="min-h-screen flex flex-col items-center justify-center text-white space-y-8 p-6">
-      <h1 className="text-3xl font-bold">Downloading Game Assets</h1>
-      {/* Overall Progress */}
-      <div className="w-full max-w-2xl space-y-4">
-        <div className="bg-gray-800 rounded-lg p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold">Overall Progress</h2>
-            <span className="text-lg font-mono">{overallProgress.percentage}%</span>
+        <h1 className="text-3xl font-bold">Downloading Game Assets</h1>
+        {/* Overall Progress */}
+        <div className="w-full max-w-2xl space-y-4">
+          <div className="bg-gray-800 rounded-lg p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold">Overall Progress</h2>
+              <span className="text-lg font-mono">{overallProgress.percentage}%</span>
+            </div>
+            <div className="w-full bg-gray-700 rounded-full h-3 overflow-hidden">
+              <div
+                className="bg-blue-500 h-3 transition-all duration-300"
+                style={{ width: `${overallProgress.percentage}%` }}
+              />
+            </div>
+            <div className="flex justify-between text-sm text-gray-400 mt-2">
+              <span>
+                {overallProgress.current} / {overallProgress.total}
+              </span>
+              <span>
+                {overallProgress.percentage >= 100 && overallProgress.total > 0
+                  ? "Complete!"
+                  : overallProgress.percentage === 0
+                    ? "Initializing..."
+                    : overallProgress.percentage > 0 && overallProgress.total === 0
+                      ? "Checking..."
+                      : "Downloading..."}
+              </span>
+            </div>
           </div>
-          <div className="w-full bg-gray-700 rounded-full h-3 overflow-hidden">
-            <div
-              className="bg-blue-500 h-3 transition-all duration-300"
-              style={{ width: `${overallProgress.percentage}%` }}
-            />
-          </div>
-          <div className="flex justify-between text-sm text-gray-400 mt-2">
-            <span>
-              {overallProgress.current} / {overallProgress.total}
-            </span>
-            <span>
-              {overallProgress.percentage >= 100 && overallProgress.total > 0
-                ? "Complete!"
-                : overallProgress.percentage === 0
-                  ? "Initializing..."
-                  : overallProgress.percentage > 0 && overallProgress.total === 0
-                    ? "Checking..."
-                    : "Downloading..."}
-            </span>
+
+          {/* Individual Category Progress */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {categories.map((category) => {
+              const progress = categoryProgress.get(category);
+              if (!progress) return null;
+
+              return (
+                <div key={category} className="bg-gray-800 rounded-lg p-4 min-h-[120px]">
+                  <div className="flex justify-between items-center mb-3">
+                    <h3 className="font-semibold">{getCategoryDisplayName(category)}</h3>
+                    <span className={`text-sm ${getStageColor(progress.stage)}`}>{progress.stage}</span>
+                  </div>
+
+                  <div className="w-full bg-gray-700 rounded-full h-2 overflow-hidden mb-2">
+                    <div
+                      className={`h-2 transition-all duration-300 ${getProgressColor(progress.stage)}`}
+                      style={{
+                        width: progress.total > 0 ? `${progress.percentage}%` : "50%"
+                      }}
+                    />
+                  </div>
+
+                  <div className="text-xs text-gray-400 mb-2">
+                    {progress.total > 0 ? `${progress.current} / ${progress.total}` : "Initializing..."}
+                  </div>
+
+                  <div className="text-xs text-gray-300 truncate" title={progress.currentAsset}>
+                    {progress.total > 0 ? getProgressMessage(progress) : "Initializing..."}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
-
-        {/* Individual Category Progress */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {categories.map((category) => {
-            const progress = categoryProgress.get(category);
-            if (!progress) return null;
-
-            return (
-              <div key={category} className="bg-gray-800 rounded-lg p-4 min-h-[120px]">
-                <div className="flex justify-between items-center mb-3">
-                  <h3 className="font-semibold">{getCategoryDisplayName(category)}</h3>
-                  <span className={`text-sm ${getStageColor(progress.stage)}`}>{progress.stage}</span>
-                </div>
-
-                <div className="w-full bg-gray-700 rounded-full h-2 overflow-hidden mb-2">
-                  <div
-                    className={`h-2 transition-all duration-300 ${getProgressColor(progress.stage)}`}
-                    style={{
-                      width: progress.total > 0 ? `${progress.percentage}%` : "50%"
-                    }}
-                  />
-                </div>
-
-                <div className="text-xs text-gray-400 mb-2">
-                  {progress.total > 0 ? `${progress.current} / ${progress.total}` : "Initializing..."}
-                </div>
-
-                <div className="text-xs text-gray-300 truncate" title={progress.currentAsset}>
-                  {progress.total > 0 ? getProgressMessage(progress) : "Initializing..."}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-      {/* Show Go to Modules button if 100% and substantial downloads and all categories complete */}
-      {overallProgress.percentage >= 100 && overallProgress.total > 100 && isElectron && allCategoriesComplete && (
-        <button
-          className="mt-8 px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg text-lg font-semibold shadow transition"
-          onClick={() => {
-            resetDownloadState();
-            router.push("/modules");
-          }}
-        >
-          Go to Modules
-        </button>
-      )}
+        {/* Show Go to Modules button if 100% and substantial downloads and all categories complete */}
+        {overallProgress.percentage >= 100 && overallProgress.total > 100 && isElectron && allCategoriesComplete && (
+          <button
+            className="mt-8 px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg text-lg font-semibold shadow transition"
+            onClick={() => {
+              resetDownloadState();
+              router.push("/modules");
+            }}
+          >
+            Go to Modules
+          </button>
+        )}
       </div>
     </AuthGuard>
   );

@@ -39,7 +39,7 @@ export default function TournamentsPage() {
         title="My Tournaments"
         breadcrumbs={[{ label: "Tournaments", href: "/modules/tournaments" }]}
       >
-        <LoadingSpinner fullscreen >Loading Tournaments...</LoadingSpinner>
+        <LoadingSpinner fullscreen>Loading Tournaments...</LoadingSpinner>
       </PageWrapper>
     );
   }

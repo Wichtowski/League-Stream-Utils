@@ -46,14 +46,12 @@ export const GameResultsCard: React.FC<GameResultsCardProps> = ({
   const maxGames = getMaxGamesByFormat(match.format);
   const minGames = getMinGamesByFormat(match.format);
   const existing = match.games || [];
-  
+
   const requiredWins = Math.ceil(maxGames / 2);
   const seriesDecided = teamWins.team1Wins >= requiredWins || teamWins.team2Wins >= requiredWins;
-  const displayCount = seriesDecided 
-    ? existing.length 
-    : Math.min(maxGames, Math.max(minGames, existing.length + 1));
+  const displayCount = seriesDecided ? existing.length : Math.min(maxGames, Math.max(minGames, existing.length + 1));
   const slots = Array.from({ length: displayCount }, (_, i) => i + 1);
-  const firstPending = slots.find(num => !existing.find(g => g.gameNumber === num));
+  const firstPending = slots.find((num) => !existing.find((g) => g.gameNumber === num));
 
   if (slots.length === 0) {
     return (
@@ -72,12 +70,12 @@ export const GameResultsCard: React.FC<GameResultsCardProps> = ({
             onClick={() => onAddGame()}
             size="sm"
             variant="primary"
-            disabled={(
-              (teamWins.team1Wins >= Math.ceil(getMaxGamesByFormat(match.format) / 2)) ||
-              (teamWins.team2Wins >= Math.ceil(getMaxGamesByFormat(match.format) / 2)) ||
-              (teamWins.team1Wins + teamWins.team2Wins >= getMaxGamesByFormat(match.format)) || 
+            disabled={
+              teamWins.team1Wins >= Math.ceil(getMaxGamesByFormat(match.format) / 2) ||
+              teamWins.team2Wins >= Math.ceil(getMaxGamesByFormat(match.format) / 2) ||
+              teamWins.team1Wins + teamWins.team2Wins >= getMaxGamesByFormat(match.format) ||
               saving
-            )}
+            }
           >
             Add Series Game
           </Button>
@@ -86,7 +84,7 @@ export const GameResultsCard: React.FC<GameResultsCardProps> = ({
 
       <div className="space-y-3">
         {slots.map((num) => {
-          const game = existing.find(g => g.gameNumber === num);
+          const game = existing.find((g) => g.gameNumber === num);
           if (!game) {
             if (editing && firstPending === num) {
               return (
@@ -104,7 +102,9 @@ export const GameResultsCard: React.FC<GameResultsCardProps> = ({
                       <div className="text-gray-400 text-xs text-right">Red Side</div>
                     </div>
                     <div className="grid grid-cols-3 items-center gap-2">
-                      <div className="text-white text-sm truncate text-left">{teamsSwapped ? redTeam?.name : blueTeam?.name}</div>
+                      <div className="text-white text-sm truncate text-left">
+                        {teamsSwapped ? redTeam?.name : blueTeam?.name}
+                      </div>
                       <div className="flex items-center justify-center">
                         <button
                           type="button"
@@ -116,7 +116,9 @@ export const GameResultsCard: React.FC<GameResultsCardProps> = ({
                           ⇄
                         </button>
                       </div>
-                      <div className="text-white text-sm truncate text-right">{teamsSwapped ? blueTeam?.name : redTeam?.name}</div>
+                      <div className="text-white text-sm truncate text-right">
+                        {teamsSwapped ? blueTeam?.name : redTeam?.name}
+                      </div>
                     </div>
                     <div className="grid grid-cols-3 items-center gap-2">
                       <div className="flex items-center justify-start">
@@ -162,14 +164,14 @@ export const GameResultsCard: React.FC<GameResultsCardProps> = ({
                   <span className="text-sm font-medium text-gray-300">Game {game.gameNumber}</span>
                   <span
                     className={`px-2 py-1 rounded text-xs font-medium ${
-                          game.winner === "blue" 
-                            ? "bg-blue-600 text-blue-100" 
-                            : game.winner === "red" 
-                            ? "bg-red-600 text-red-100"
-                            : "bg-gray-600 text-gray-200"
-                        }`}
-                    >
-                      {game.winner === "blue" ? "Blue Win" : game.winner === "red" ? "Red Win" : "Ongoing"}
+                      game.winner === "blue"
+                        ? "bg-blue-600 text-blue-100"
+                        : game.winner === "red"
+                          ? "bg-red-600 text-red-100"
+                          : "bg-gray-600 text-gray-200"
+                    }`}
+                  >
+                    {game.winner === "blue" ? "Blue Win" : game.winner === "red" ? "Red Win" : "Ongoing"}
                   </span>
                 </div>
                 <div className="text-sm text-gray-300">
@@ -233,20 +235,27 @@ export const GameResultsCard: React.FC<GameResultsCardProps> = ({
                     <div>
                       <div className="text-xs text-gray-400 mb-2">Blue side champions</div>
                       <div className="space-y-2">
-                        {(blueTeam?.players?.main || []).slice(0,5).map((p) => {
+                        {(blueTeam?.players?.main || []).slice(0, 5).map((p) => {
                           const teamId = getTeamIdForSide(game, "blue");
                           const current = game.championsPlayed?.[teamId]?.[p._id];
                           return (
-                            <div key={`blue_${game.gameNumber}_${p._id}`} className="flex items-center justify-between gap-2">
+                            <div
+                              key={`blue_${game.gameNumber}_${p._id}`}
+                              className="flex items-center justify-between gap-2"
+                            >
                               <span className="text-sm text-gray-300 truncate">{p.inGameName || p.tag}</span>
                               <select
                                 className="w-40 px-2 py-1 bg-gray-700 border border-gray-600 rounded-md text-white"
                                 value={current ?? ""}
-                                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => onChampionPlayedChange(game.gameNumber, "blue", p._id, parseInt(e.target.value))}
+                                onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                                  onChampionPlayedChange(game.gameNumber, "blue", p._id, parseInt(e.target.value))
+                                }
                               >
                                 <option value="">Select champion</option>
                                 {champions.map((c) => (
-                                  <option key={c._id} value={c._id}>{c.name}</option>
+                                  <option key={c._id} value={c._id}>
+                                    {c.name}
+                                  </option>
                                 ))}
                               </select>
                             </div>
@@ -257,20 +266,27 @@ export const GameResultsCard: React.FC<GameResultsCardProps> = ({
                     <div>
                       <div className="text-xs text-gray-400 mb-2 text-right">Red side champions</div>
                       <div className="space-y-2">
-                        {(redTeam?.players?.main || []).slice(0,5).map((p) => {
+                        {(redTeam?.players?.main || []).slice(0, 5).map((p) => {
                           const teamId = getTeamIdForSide(game, "red");
                           const current = game.championsPlayed?.[teamId]?.[p._id];
                           return (
-                            <div key={`red_${game.gameNumber}_${p._id}`} className="flex items-center justify-between gap-2">
+                            <div
+                              key={`red_${game.gameNumber}_${p._id}`}
+                              className="flex items-center justify-between gap-2"
+                            >
                               <span className="text-sm text-gray-300 truncate">{p.inGameName || p.tag}</span>
                               <select
                                 className="w-40 px-2 py-1 bg-gray-700 border border-gray-600 rounded-md text-white"
                                 value={current ?? ""}
-                                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => onChampionPlayedChange(game.gameNumber, "red", p._id, parseInt(e.target.value))}
+                                onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                                  onChampionPlayedChange(game.gameNumber, "red", p._id, parseInt(e.target.value))
+                                }
                               >
                                 <option value="">Select champion</option>
                                 {champions.map((c) => (
-                                  <option key={c._id} value={c._id}>{c.name}</option>
+                                  <option key={c._id} value={c._id}>
+                                    {c.name}
+                                  </option>
                                 ))}
                               </select>
                             </div>
@@ -283,12 +299,7 @@ export const GameResultsCard: React.FC<GameResultsCardProps> = ({
               )}
               {editing && num > getMinGamesByFormat(match.format) && (
                 <div className="mt-3 flex justify-end">
-                  <Button
-                    onClick={() => onDeleteGame(num)}
-                    size="sm"
-                    variant="destructive"
-                    className="text-xs"
-                  >
+                  <Button onClick={() => onDeleteGame(num)} size="sm" variant="destructive" className="text-xs">
                     Delete Game
                   </Button>
                 </div>

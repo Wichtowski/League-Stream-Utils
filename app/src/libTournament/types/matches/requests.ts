@@ -39,7 +39,7 @@ export interface SubmitPredictionRequest {
   redScore?: number;
   confidence?: number;
 }
-  
+
 export interface UpdateMatchResultRequest {
   matchId: string;
   winner: string;

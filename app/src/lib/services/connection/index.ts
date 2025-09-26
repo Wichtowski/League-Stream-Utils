@@ -25,7 +25,7 @@ class ConnectionService implements ConnectionManager {
     this.connector = new LCUConnector({
       autoReconnect: true,
       maxReconnectAttempts: 5,
-      pollInterval: 1000,
+      pollInterval: 1000
     });
 
     this.setupEventHandlers();

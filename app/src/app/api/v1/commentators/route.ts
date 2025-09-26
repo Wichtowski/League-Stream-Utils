@@ -5,7 +5,7 @@ import { CommentatorModel, type CommentatorDoc } from "@libTournament/database/m
 // GET: get all commentators
 export const GET = withAuth(async (_req: NextRequest) => {
   try {
-    const commentators = await CommentatorModel.find().sort({ name: 1 }) as CommentatorDoc[];
+    const commentators = (await CommentatorModel.find().sort({ name: 1 })) as CommentatorDoc[];
 
     // Transform the commentators to have consistent ID field
     const transformedCommentators = commentators.map((commentator) => ({
@@ -73,7 +73,7 @@ export const PUT = withAuth(async (req: NextRequest, _user) => {
       return NextResponse.json({ error: "ID and name are required" }, { status: 400 });
     }
 
-    const commentator = await CommentatorModel.findByIdAndUpdate(
+    const commentator = (await CommentatorModel.findByIdAndUpdate(
       id,
       {
         name,
@@ -83,7 +83,7 @@ export const PUT = withAuth(async (req: NextRequest, _user) => {
         updatedAt: new Date()
       },
       { new: true }
-    ) as CommentatorDoc | null;
+    )) as CommentatorDoc | null;
 
     if (!commentator) {
       return NextResponse.json({ error: "Commentator not found" }, { status: 404 });

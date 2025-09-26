@@ -116,7 +116,6 @@ export default function ChampAbilityPage() {
     loadCacheStats();
   }, [setActiveModule, isElectron, setIsElectron, loadChampions, loadCacheStats]);
 
-
   const handleCancelDownload = useCallback(() => {
     setShowProgressModal(false);
     setIsDownloading(false);
@@ -209,7 +208,6 @@ export default function ChampAbilityPage() {
           </select>
         </div>
 
-       
         <div className="flex justify-center mb-4 w-full mb-4 mt-2 mx-2">
           <button
             className="px-4 py-2 rounded bg-gray-700 text-white font-semibold hover:bg-gray-600 transition mr-2"

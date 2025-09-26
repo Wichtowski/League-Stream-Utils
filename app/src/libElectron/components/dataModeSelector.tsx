@@ -93,11 +93,7 @@ export const ElectronDataModeSelector = () => {
         <div
           className={`
             p-4 rounded-lg border-2 cursor-pointer transition-all duration-200
-            ${
-              !useLocalData
-                ? "border-blue-500 bg-blue-500/10"
-                : "border-gray-600 bg-gray-700/30 hover:border-gray-500"
-            }
+            ${!useLocalData ? "border-blue-500 bg-blue-500/10" : "border-gray-600 bg-gray-700/30 hover:border-gray-500"}
           `}
           onClick={() => handleModeChange(false)}
         >

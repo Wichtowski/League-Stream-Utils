@@ -18,68 +18,77 @@ export const usePermissions = (): UsePermissionsReturn => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const hasPermission = useCallback(async (permission: Permission, resourceId?: string): Promise<boolean> => {
-    if (!user) return false;
+  const hasPermission = useCallback(
+    async (permission: Permission, resourceId?: string): Promise<boolean> => {
+      if (!user) return false;
 
-    try {
-      setIsLoading(true);
-      setError(null);
-      const response = await fetch("/api/v1/permissions/check", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: user._id, permission, resourceId })
-      });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const result = await response.json();
-      return Boolean(result.allowed);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Permission check failed");
-      return false;
-    } finally {
-      setIsLoading(false);
-    }
-  }, [user]);
+      try {
+        setIsLoading(true);
+        setError(null);
+        const response = await fetch("/api/v1/permissions/check", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId: user._id, permission, resourceId })
+        });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const result = await response.json();
+        return Boolean(result.allowed);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Permission check failed");
+        return false;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [user]
+  );
 
-  const getUserRoles = useCallback(async (resourceId?: string): Promise<Role[]> => {
-    if (!user) return [];
+  const getUserRoles = useCallback(
+    async (resourceId?: string): Promise<Role[]> => {
+      if (!user) return [];
 
-    try {
-      setIsLoading(true);
-      setError(null);
-      const params = new URLSearchParams({ userId: user._id });
-      if (resourceId) params.set("resourceId", resourceId);
-      const response = await fetch(`/api/v1/permissions/roles?${params.toString()}`);
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const data = await response.json();
-      return Array.isArray(data.roles) ? (data.roles as Role[]) : [];
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to get user roles");
-      return [];
-    } finally {
-      setIsLoading(false);
-    }
-  }, [user]);
+      try {
+        setIsLoading(true);
+        setError(null);
+        const params = new URLSearchParams({ userId: user._id });
+        if (resourceId) params.set("resourceId", resourceId);
+        const response = await fetch(`/api/v1/permissions/roles?${params.toString()}`);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        return Array.isArray(data.roles) ? (data.roles as Role[]) : [];
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to get user roles");
+        return [];
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [user]
+  );
 
-  const canGrantRole = useCallback(async (role: Role, resourceId?: string): Promise<boolean> => {
-    if (!user) return false;
+  const canGrantRole = useCallback(
+    async (role: Role, resourceId?: string): Promise<boolean> => {
+      if (!user) return false;
 
-    try {
-      setIsLoading(true);
-      setError(null);
-      const params = new URLSearchParams();
-      if (resourceId) params.set("resourceId", resourceId);
-      const response = await fetch(`/api/v1/permissions/grantable?${params.toString()}`);
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const data = await response.json();
-      const roles: Role[] = Array.isArray(data.roles) ? data.roles : [];
-      return roles.includes(role);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to check grantable roles");
-      return false;
-    } finally {
-      setIsLoading(false);
-    }
-  }, [user]);
+      try {
+        setIsLoading(true);
+        setError(null);
+        const params = new URLSearchParams();
+        if (resourceId) params.set("resourceId", resourceId);
+        const response = await fetch(`/api/v1/permissions/grantable?${params.toString()}`);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        const roles: Role[] = Array.isArray(data.roles) ? data.roles : [];
+        return roles.includes(role);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to check grantable roles");
+        return false;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [user]
+  );
 
   return {
     hasPermission,

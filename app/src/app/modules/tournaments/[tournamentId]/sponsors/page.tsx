@@ -5,11 +5,7 @@ import { useTournaments } from "@libTournament/contexts/TournamentsContext";
 import { useNavigation } from "@lib/contexts/NavigationContext";
 import { useModal } from "@lib/contexts/ModalContext";
 import { LoadingSpinner } from "@lib/components/common";
-import { 
-  Tournament,
-  Sponsorship,
-  SponsorFormData,
-} from "@libTournament/types";
+import { Tournament, Sponsorship, SponsorFormData } from "@libTournament/types";
 import {
   OBSDisplayInfo,
   SponsorWindow,
@@ -20,7 +16,6 @@ import {
 import { PageWrapper } from "@lib/layout";
 import { useParams } from "next/navigation";
 import { createDefaultSponsorForm } from "@libTournament/utils/sponsors/defaultValues";
-
 
 export default function TournamentSponsorsPage() {
   const { tournaments, loading: tournamentsLoading, error, refreshTournaments } = useTournaments();

@@ -34,16 +34,17 @@ export const TournamentCard = ({
         </div>
         <div className="flex items-center space-x-2">
           <span
-            className={`px-3 py-1 rounded text-sm ${tournament.status === "draft"
-              ? "bg-yellow-600"
-              : tournament.status === "registration"
-                ? "bg-blue-600"
-                : tournament.status === "ongoing"
-                  ? "bg-green-600"
-                  : tournament.status === "completed"
-                    ? "bg-gray-600"
-                    : "bg-red-600"
-              }`}
+            className={`px-3 py-1 rounded text-sm ${
+              tournament.status === "draft"
+                ? "bg-yellow-600"
+                : tournament.status === "registration"
+                  ? "bg-blue-600"
+                  : tournament.status === "ongoing"
+                    ? "bg-green-600"
+                    : tournament.status === "completed"
+                      ? "bg-gray-600"
+                      : "bg-red-600"
+            }`}
           >
             {tournament.status.charAt(0).toUpperCase() + tournament.status.slice(1)}
           </span>

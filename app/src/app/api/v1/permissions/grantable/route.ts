@@ -16,5 +16,3 @@ export const GET = withAuth(async (req: NextRequest, user: JWTPayload) => {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 });
-
-

@@ -8,7 +8,7 @@ import { JWTPayload } from "@lib/types/auth";
 export const GET = withAuth(async (req: NextRequest, user: JWTPayload) => {
   try {
     const { searchParams } = new URL(req.url);
-    const targetUserId = searchParams.get('userId') || user.userId;
+    const targetUserId = searchParams.get("userId") || user.userId;
 
     // Only allow users to view their own permissions unless they're admin
     if (targetUserId !== user.userId && !user.isAdmin) {
@@ -16,7 +16,7 @@ export const GET = withAuth(async (req: NextRequest, user: JWTPayload) => {
     }
 
     const roles = await PermissionService.getUserGlobalRoles(targetUserId);
-    
+
     return NextResponse.json({ roles });
   } catch (error) {
     console.error("Error fetching global permissions:", error);
@@ -30,9 +30,12 @@ export const POST = withAuth(async (req: NextRequest, user: JWTPayload) => {
     const { userId, role, expiresAt } = await req.json();
 
     if (!userId || !role) {
-      return NextResponse.json({ 
-        error: "User ID and role are required" 
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          error: "User ID and role are required"
+        },
+        { status: 400 }
+      );
     }
 
     // Only admins can grant global permissions
@@ -48,13 +51,16 @@ export const POST = withAuth(async (req: NextRequest, user: JWTPayload) => {
     );
 
     if (success) {
-      return NextResponse.json({ 
+      return NextResponse.json({
         message: "Global role granted successfully"
       });
     } else {
-      return NextResponse.json({ 
-        error: "Failed to grant global role" 
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          error: "Failed to grant global role"
+        },
+        { status: 400 }
+      );
     }
   } catch (error) {
     console.error("Error granting global permission:", error);
@@ -68,9 +74,12 @@ export const DELETE = withAuth(async (req: NextRequest, user: JWTPayload) => {
     const { userId, role } = await req.json();
 
     if (!userId || !role) {
-      return NextResponse.json({ 
-        error: "User ID and role are required" 
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          error: "User ID and role are required"
+        },
+        { status: 400 }
+      );
     }
 
     // Only admins can revoke global permissions
@@ -78,11 +87,7 @@ export const DELETE = withAuth(async (req: NextRequest, user: JWTPayload) => {
       return NextResponse.json({ error: "Admin access required" }, { status: 403 });
     }
 
-    const success = await PermissionService.revokeGlobalRole(
-      userId,
-      role as Role,
-      user.userId
-    );
+    const success = await PermissionService.revokeGlobalRole(userId, role as Role, user.userId);
 
     if (success) {
       return NextResponse.json({ message: "Global permission revoked successfully" });

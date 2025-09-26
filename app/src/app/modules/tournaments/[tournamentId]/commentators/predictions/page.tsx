@@ -52,7 +52,7 @@ export default function CommentatorPredictionsPage(): React.ReactElement {
                 createdBy: selectedTournament.userId,
                 createdAt: selectedTournament.createdAt,
                 updatedAt: selectedTournament.updatedAt,
-                type: "tournament",
+                type: "tournament"
               }));
             setMatches(matchList);
           } else {

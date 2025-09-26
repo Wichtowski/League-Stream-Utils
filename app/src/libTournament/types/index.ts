@@ -1,7 +1,4 @@
-export type {
-  Sponsorship,
-  SponsorFormData
-} from "./sponsors";
+export type { Sponsorship, SponsorFormData } from "./sponsors";
 
 export type {
   Ticker,
@@ -13,7 +10,7 @@ export type {
   CarouselItem
 } from "./ticker";
 
-export type { 
+export type {
   Tournament,
   TournamentForm,
   TournamentStatus,
@@ -21,12 +18,7 @@ export type {
   CreateTournamentRequest
 } from "./tournament";
 
-export type {
-  GameResult,
-  TournamentStats,
-  TournamentChampionStats,
-  TournamentAnalytics
-} from "./stats";
+export type { GameResult, TournamentStats, TournamentChampionStats, TournamentAnalytics } from "./stats";
 
 export type {
   Bracket,
@@ -50,7 +42,4 @@ export type {
   UpdateMatchRequest
 } from "./matches";
 
-export type {
-  Commentator,
-  MatchPrediction
-} from "./commentator";
+export type { Commentator, MatchPrediction } from "./commentator";

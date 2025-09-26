@@ -3,8 +3,6 @@ import { withAuth } from "@lib/auth";
 import { getTournament, updateTournamentFields } from "@libTournament/database/tournament";
 import { Sponsorship } from "@libTournament/types";
 
-
-
 // PUT /api/v1/tournaments/[tournamentId]/sponsors/[sponsorId] - Update sponsor
 export const PUT = withAuth(async (req: NextRequest, user, params: Promise<Record<string, string>>) => {
   try {
@@ -83,7 +81,7 @@ export const DELETE = withAuth(async (_req: NextRequest, user, params: Promise<R
     });
 
     if (!result?._id) {
-      return NextResponse.json({ error: "Failed to delete sponsor" }, { status: 500 });;
+      return NextResponse.json({ error: "Failed to delete sponsor" }, { status: 500 });
     }
 
     return NextResponse.json({ message: "Sponsor deleted successfully" });

@@ -48,38 +48,22 @@ export const MatchSidebar: React.FC<MatchSidebarProps> = ({
         <h3 className="text-lg font-semibold text-white mb-4">Change Match Status</h3>
         <div className="space-y-3">
           {match.status !== "scheduled" && (
-            <Button
-              onClick={() => onStatusChange("scheduled")}
-              variant="secondary"
-              className="w-full"
-            >
+            <Button onClick={() => onStatusChange("scheduled")} variant="secondary" className="w-full">
               Schedule Match
             </Button>
           )}
           {match.status !== "in-progress" && (
-            <Button
-              onClick={() => onStatusChange("in-progress")}
-              variant="secondary"
-              className="w-full"
-            >
+            <Button onClick={() => onStatusChange("in-progress")} variant="secondary" className="w-full">
               Start Match
             </Button>
           )}
           {match.status !== "completed" && (
-            <Button
-              onClick={() => onStatusChange("completed")}
-              variant="secondary"
-              className="w-full"
-            >
+            <Button onClick={() => onStatusChange("completed")} variant="secondary" className="w-full">
               Complete Match
             </Button>
           )}
           {match.status !== "cancelled" && (
-            <Button
-              onClick={() => onStatusChange("cancelled")}
-              variant="secondary"
-              className="w-full"
-            >
+            <Button onClick={() => onStatusChange("cancelled")} variant="secondary" className="w-full">
               Cancel Match
             </Button>
           )}
@@ -108,7 +92,9 @@ export const MatchSidebar: React.FC<MatchSidebarProps> = ({
           </div>
           <div className="flex justify-between">
             <span className="text-gray-400">Score:</span>
-            <span className="text-white font-mono">{teamWins.team1Wins} - {teamWins.team2Wins}</span>
+            <span className="text-white font-mono">
+              {teamWins.team1Wins} - {teamWins.team2Wins}
+            </span>
           </div>
         </div>
       </div>
@@ -141,7 +127,9 @@ export const MatchSidebar: React.FC<MatchSidebarProps> = ({
           ) : (
             <ul className="space-y-2">
               {commentators.map((c) => (
-                <li key={c._id} className="text-sm text-gray-200">{c.name}</li>
+                <li key={c._id} className="text-sm text-gray-200">
+                  {c.name}
+                </li>
               ))}
             </ul>
           )}
@@ -153,7 +141,12 @@ export const MatchSidebar: React.FC<MatchSidebarProps> = ({
                 value={newCommentatorId}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => onNewCommentatorIdChange(e.target.value)}
               />
-              <Button onClick={onAssignCommentator} disabled={assigningCommentator || !newCommentatorId} size="sm" variant="secondary">
+              <Button
+                onClick={onAssignCommentator}
+                disabled={assigningCommentator || !newCommentatorId}
+                size="sm"
+                variant="secondary"
+              >
                 {assigningCommentator ? "Assigning..." : "Add"}
               </Button>
             </div>
@@ -163,10 +156,20 @@ export const MatchSidebar: React.FC<MatchSidebarProps> = ({
         <h3 className="text-lg font-semibold text-white mt-6 mb-3">Predictions</h3>
         <div className="space-y-3">
           <div className="flex gap-2">
-            <Button onClick={() => onSubmitPrediction("blue")} size="sm" disabled={submittingPrediction !== null} variant="secondary">
+            <Button
+              onClick={() => onSubmitPrediction("blue")}
+              size="sm"
+              disabled={submittingPrediction !== null}
+              variant="secondary"
+            >
               {submittingPrediction === "blue" ? "Submitting..." : "Predict Blue"}
             </Button>
-            <Button onClick={() => onSubmitPrediction("red")} size="sm" disabled={submittingPrediction !== null} variant="secondary">
+            <Button
+              onClick={() => onSubmitPrediction("red")}
+              size="sm"
+              disabled={submittingPrediction !== null}
+              variant="secondary"
+            >
               {submittingPrediction === "red" ? "Submitting..." : "Predict Red"}
             </Button>
           </div>
@@ -177,7 +180,9 @@ export const MatchSidebar: React.FC<MatchSidebarProps> = ({
               {predictions.map((p, idx) => (
                 <li key={idx} className="flex items-center justify-between text-sm">
                   <span className="text-gray-300">{p.commentatorUsername}</span>
-                  <span className={`px-2 py-0.5 rounded ${p.prediction === "blue" ? "bg-blue-600 text-blue-100" : "bg-red-600 text-red-100"}`}>
+                  <span
+                    className={`px-2 py-0.5 rounded ${p.prediction === "blue" ? "bg-blue-600 text-blue-100" : "bg-red-600 text-red-100"}`}
+                  >
                     {p.prediction.toUpperCase()}
                   </span>
                 </li>

@@ -19,11 +19,13 @@ export const useMatchPredictions = (match: Match | null) => {
         if (res.ok) {
           const data = await res.json();
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          setPredictions((data.predictions || []).map((p: any) => ({ 
-            username: p.username || p.commentatorName, 
-            prediction: p.prediction, 
-            submittedAt: p.submittedAt || p.timestamp 
-          })));
+          setPredictions(
+            (data.predictions || []).map((p: any) => ({
+              username: p.username || p.commentatorName,
+              prediction: p.prediction,
+              submittedAt: p.submittedAt || p.timestamp
+            }))
+          );
         }
       } catch (_e) {
         // noop
@@ -43,13 +45,15 @@ export const useMatchPredictions = (match: Match | null) => {
       });
       if (res.ok) {
         const data = await res.json();
-        
+
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        setPredictions((data.predictions || []).map((p: any) => ({ 
-          username: p.username || p.commentatorName, 
-          prediction: p.prediction, 
-          submittedAt: p.submittedAt || p.timestamp 
-        })));
+        setPredictions(
+          (data.predictions || []).map((p: any) => ({
+            username: p.username || p.commentatorName,
+            prediction: p.prediction,
+            submittedAt: p.submittedAt || p.timestamp
+          }))
+        );
         return true;
       }
       return false;

@@ -1,4 +1,3 @@
-
 export interface CarouselItem {
   _id?: string; // MongoDB auto-generated ID
   text: string;
@@ -19,7 +18,7 @@ export interface Ticker {
   updatedAt: Date;
 }
 
-export type EmbeddedTicker = Omit<Ticker, '_id'>;
+export type EmbeddedTicker = Omit<Ticker, "_id">;
 
 export type { CarouselItemFormData, TickerFormData } from "./forms";
 export type { CreateTickerRequest, UpdateTickerRequest, TickerAPIResponse } from "./requests";

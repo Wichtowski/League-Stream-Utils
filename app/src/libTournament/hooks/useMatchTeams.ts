@@ -2,7 +2,9 @@ import { useState, useEffect } from "react";
 import type { Team } from "@libTeam/types";
 import type { Match, GameResult } from "@libTournament/types/matches";
 
-export const useMatchTeams = (match: Match | null): {
+export const useMatchTeams = (
+  match: Match | null
+): {
   blueTeam: Team | null;
   setBlueTeam: (team: Team | null) => void;
   redTeam: Team | null;
@@ -15,8 +17,8 @@ export const useMatchTeams = (match: Match | null): {
   useEffect(() => {
     if (match?.blueTeamId) {
       fetch(`/api/v1/teams/${match.blueTeamId}`)
-        .then(res => res.json())
-        .then(data => setBlueTeam(data.team))
+        .then((res) => res.json())
+        .then((data) => setBlueTeam(data.team))
         .catch(() => setBlueTeam(null));
     }
   }, [match?.blueTeamId]);
@@ -24,8 +26,8 @@ export const useMatchTeams = (match: Match | null): {
   useEffect(() => {
     if (match?.redTeamId) {
       fetch(`/api/v1/teams/${match.redTeamId}`)
-        .then(res => res.json())
-        .then(data => setRedTeam(data.team))
+        .then((res) => res.json())
+        .then((data) => setRedTeam(data.team))
         .catch(() => setRedTeam(null));
     }
   }, [match?.redTeamId]);

@@ -3,7 +3,6 @@ import { MatchSchema } from "./schemas/match";
 import { TournamentSchema } from "./schemas/tournament";
 import { CommentatorSchema } from "./schemas/commentator";
 
-
 const getModel = <T>(name: string, schema: Schema): Model<T> => {
   try {
     if (typeof window !== "undefined" && !models) {
@@ -23,8 +22,6 @@ export const MatchModel = getModel<MatchDoc>("Match", MatchSchema);
 export const TournamentModel = getModel<TournamentDoc>("Tournament", TournamentSchema);
 export const CommentatorModel = getModel<CommentatorDoc>("Commentator", CommentatorSchema);
 
-
 export type MatchDoc = InferSchemaType<typeof MatchSchema>;
 export type TournamentDoc = InferSchemaType<typeof TournamentSchema>;
 export type CommentatorDoc = InferSchemaType<typeof CommentatorSchema>;
-
