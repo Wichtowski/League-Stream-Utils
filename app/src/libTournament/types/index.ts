@@ -24,6 +24,7 @@ export type {
   Bracket,
   BracketNode,
   BracketStructure,
+  BracketSettings,
   SwissRound,
   SwissPairing,
   SwissStandings,

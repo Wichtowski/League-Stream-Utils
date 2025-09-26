@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@lib/auth";
 import { getTournament, updateTournamentFields } from "@libTournament/database/tournament";
 import type { EmbeddedTicker, CreateTickerRequest } from "@libTournament/types";
-import { validateStreamBannerForm, sanitizeStreamBannerForm } from "@libTournament/utils/ticker/validators";
+import { validateStreamBannerForm, sanitizeStreamBannerForm } from "@/libTournament/utils/ticker/validators";
 import { logError } from "@lib/utils/error-handling";
 
 // GET /api/v1/tournaments/[tournamentId]/ticker - Get tournament Ticker

@@ -1,5 +1,9 @@
-import { v4 as uuidv4 } from "uuid";
-import type { BracketStructure, BracketNode, BracketSettings } from "@lib/types/championStats";
+const generateId = (): string => {
+  const now = Date.now().toString(36);
+  const rand = Math.random().toString(36).slice(2, 10);
+  return `${now}${rand}`;
+};
+import type { BracketStructure, BracketNode, BracketSettings } from "@libTournament/types";
 
 export class BracketGenerator {
   /**
@@ -37,7 +41,7 @@ export class BracketGenerator {
       const team2 = i * 2 + 1 < teams.length ? teams[i * 2 + 1] : undefined;
 
       const node: BracketNode = {
-        _id: uuidv4(),
+        _id: generateId(),
         round: 1,
         position: i,
         team1,
@@ -61,7 +65,7 @@ export class BracketGenerator {
 
       for (let i = 0; i < matchesInRound; i++) {
         const node: BracketNode = {
-          _id: uuidv4(),
+          _id: generateId(),
           round,
           position: i,
           status: "pending",
@@ -75,7 +79,7 @@ export class BracketGenerator {
     this.setupSingleEliminationPaths(nodes, totalRounds);
 
     return {
-      _id: uuidv4(),
+      _id: generateId(),
       tournamentId,
       format: "single-elimination",
       nodes,
@@ -112,7 +116,7 @@ export class BracketGenerator {
 
     // Generate grand finals
     const grandFinals: BracketNode = {
-      _id: uuidv4(),
+      _id: generateId(),
       round: winnerBracketRounds + 1,
       position: 0,
       status: "pending",
@@ -123,7 +127,7 @@ export class BracketGenerator {
     // Generate grand finals reset match if enabled
     if (settings.grandFinalReset) {
       const grandFinalsReset: BracketNode = {
-        _id: uuidv4(),
+        _id: generateId(),
         round: winnerBracketRounds + 2,
         position: 0,
         status: "pending",
@@ -133,7 +137,7 @@ export class BracketGenerator {
     }
 
     return {
-      _id: uuidv4(),
+      _id: generateId(),
       tournamentId,
       format: "double-elimination",
       nodes,
@@ -161,7 +165,7 @@ export class BracketGenerator {
       const team2 = i * 2 + 1 < teams.length ? teams[i * 2 + 1] : undefined;
 
       const node: BracketNode = {
-        _id: uuidv4(),
+        _id: generateId(),
         round: 1,
         position: i,
         team1,
@@ -184,7 +188,7 @@ export class BracketGenerator {
 
       for (let i = 0; i < matchesInRound; i++) {
         const node: BracketNode = {
-          _id: uuidv4(),
+          _id: generateId(),
           round,
           position: i,
           status: "pending",
@@ -217,7 +221,7 @@ export class BracketGenerator {
 
       for (let i = 0; i < matchesInRound; i++) {
         const node: BracketNode = {
-          _id: uuidv4(),
+          _id: generateId(),
           round,
           position: i,
           status: "pending",
@@ -309,14 +313,14 @@ export class BracketGenerator {
    * Get matches ready to be played
    */
   static getReadyMatches(bracket: BracketStructure): BracketNode[] {
-    return bracket.nodes.filter((node) => node.status === "pending" && node.team1 && node.team2);
+    return bracket.nodes.filter((node: BracketNode) => node.status === "pending" && node.team1 && node.team2);
   }
 
   /**
    * Check if bracket is complete
    */
   static isBracketComplete(bracket: BracketStructure): boolean {
-    const finalMatch = bracket.nodes.find((node) => node.bracketType === "grand-final");
+    const finalMatch = bracket.nodes.find((node: BracketNode) => node.bracketType === "grand-final");
 
     return finalMatch?.status === "completed" && !!finalMatch.winner;
   }

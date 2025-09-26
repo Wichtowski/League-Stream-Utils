@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import type { Ticker, TickerFormData, CarouselItemFormData } from "@libTournament/types";
-import { createDefaultCarouselItemForm } from "@libTournament/utils/ticker/defaultValues";
+import { createDefaultCarouselItemForm } from "@/libTournament/utils/ticker/defaultValues";
 import { TickerPreview } from "./TickerPreview";
 import { ErrorBoundary } from "@lib/components/common/ErrorBoundary";
 import {
@@ -10,7 +10,7 @@ import {
   validateCarouselItem,
   formatValidationErrors,
   hasUnsavedChanges
-} from "@libTournament/utils/ticker/validators";
+} from "@/libTournament/utils/ticker/validators";
 import { useErrorHandling } from "@lib/hooks/useErrorHandling";
 
 interface TickerFormProps {

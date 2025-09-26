@@ -1,14 +1,9 @@
 import { useState, useEffect } from "react";
 import type { Match } from "@libTournament/types/matches";
-
-interface Prediction {
-  username: string;
-  prediction: "blue" | "red";
-  submittedAt?: string;
-}
+import type { MatchPrediction } from "@libTournament/types";
 
 export const useMatchPredictions = (match: Match | null) => {
-  const [predictions, setPredictions] = useState<Prediction[]>([]);
+  const [predictions, setPredictions] = useState<MatchPrediction[]>([]);
   const [submittingPrediction, setSubmittingPrediction] = useState<"blue" | "red" | null>(null);
 
   useEffect(() => {
@@ -18,12 +13,12 @@ export const useMatchPredictions = (match: Match | null) => {
         const res = await fetch(`/api/v1/matches/${match._id}/predictions`);
         if (res.ok) {
           const data = await res.json();
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           setPredictions(
-            (data.predictions || []).map((p: any) => ({
-              username: p.username || p.commentatorName,
+            (data.predictions || []).map((p: MatchPrediction) => ({
+              username: p.commentatorUsername,
               prediction: p.prediction,
-              submittedAt: p.submittedAt || p.timestamp
+              submittedAt: p.submittedAt,
+              confidence: p.confidence
             }))
           );
         }
@@ -46,12 +41,12 @@ export const useMatchPredictions = (match: Match | null) => {
       if (res.ok) {
         const data = await res.json();
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         setPredictions(
-          (data.predictions || []).map((p: any) => ({
-            username: p.username || p.commentatorName,
+          (data.predictions || []).map((p: MatchPrediction) => ({
+            username: p.commentatorUsername,
             prediction: p.prediction,
-            submittedAt: p.submittedAt || p.timestamp
+            submittedAt: p.submittedAt,
+            confidence: p.confidence
           }))
         );
         return true;

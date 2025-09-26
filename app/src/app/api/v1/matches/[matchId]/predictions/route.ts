@@ -37,13 +37,11 @@ export const POST = withAuth(async (req: NextRequest, _user) => {
     }
 
     const commentator = match.commentators.find((c) => c.name === request.username);
-    if (!commentator) {
+    if (!commentator || !commentator._id) {
       return NextResponse.json({ error: "Commentator not assigned to this match" }, { status: 403 });
     }
 
-    const commentatorId = commentator._id;
-
-    const updatedMatch = await submitPrediction(matchId, commentatorId, request);
+    const updatedMatch = await submitPrediction(matchId, commentator._id, request);
 
     if (!updatedMatch) {
       return NextResponse.json({ error: "Match not found" }, { status: 404 });

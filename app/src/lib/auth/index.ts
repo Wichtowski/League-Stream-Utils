@@ -79,9 +79,16 @@ export function setSecurityHeaders(response: NextResponse): NextResponse {
 }
 
 export function withAuth(
+  handler: (
+    request: NextRequest,
+    user: DecodedToken,
+    params: Promise<Record<string, string>>
+  ) => Promise<NextResponse>
+): (request: NextRequest, context: { params: Promise<Record<string, string>> }) => Promise<NextResponse>;
+export function withAuth(
   handler: (request: NextRequest, user: DecodedToken, params: Promise<Record<string, string>>) => Promise<NextResponse>
-): (request: NextRequest, context: { params: Record<string, string> }) => Promise<NextResponse> {
-  return async (request: NextRequest, { params }: { params: Record<string, string> }) => {
+): (request: NextRequest, context: { params: Promise<Record<string, string>> }) => Promise<NextResponse> {
+  return async (request: NextRequest, { params }: { params: Promise<Record<string, string>> }) => {
     const ip = getClientIP(request);
     const userAgent = request.headers.get("user-agent") || "unknown";
 
@@ -137,7 +144,7 @@ export function withAuth(
             session.lastUsedAt = new Date();
           }
         }
-        const response = await handler(request, decoded, Promise.resolve(params));
+        const response = await handler(request, decoded, params);
         return setSecurityHeaders(response);
       }
 
@@ -171,7 +178,7 @@ export function withAuth(
           }
         }
 
-        const response = await handler(request, decoded, Promise.resolve(params));
+        const response = await handler(request, decoded, params);
         return setSecurityHeaders(response);
       } else {
         const loginUrl = new URL("/login", request.url);
@@ -198,11 +205,11 @@ export function withAuth(
 }
 
 export async function withSessionLimit(
-  handler: (request: NextRequest, user: JWTPayload) => Promise<NextResponse>
-): Promise<(request: NextRequest, context: { params: Record<string, string> }) => Promise<NextResponse>> {
-  return withAuth(async (request: NextRequest, user: JWTPayload) => {
+  handler: (request: NextRequest, user: JWTPayload, params: Promise<Record<string, string>>) => Promise<NextResponse>
+): Promise<(request: NextRequest, context: { params: Promise<Record<string, string>> }) => Promise<NextResponse>> {
+  return withAuth(async (request: NextRequest, user: JWTPayload, params: Promise<Record<string, string>>) => {
     if (user.isAdmin) {
-      return handler(request, user);
+      return handler(request, user, params);
     }
 
     const canCreate = await canUserCreateSession(user.userId);
@@ -214,7 +221,7 @@ export async function withSessionLimit(
       await updateUserSessionCount(user.userId);
     }
 
-    return handler(request, user);
+    return handler(request, user, params);
   });
 }
 

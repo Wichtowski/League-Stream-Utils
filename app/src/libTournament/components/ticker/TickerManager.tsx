@@ -6,10 +6,10 @@ import { LoadingSpinner } from "@lib/components/common";
 import { ErrorBoundary } from "@lib/components/common/ErrorBoundary";
 import type { Ticker, TickerFormData } from "@libTournament/types";
 import type { Tournament } from "@lib/types/championStats";
-import { createDefaultTickerForm } from "@libTournament/utils/ticker/defaultValues";
+import { createDefaultTickerForm } from "@/libTournament/utils/ticker/defaultValues";
 import { TickerForm } from "./TickerForm";
 import { useApiCall } from "@lib/hooks/useErrorHandling";
-import { sanitizeStreamBannerForm } from "@libTournament/utils/ticker/validators";
+import { sanitizeStreamBannerForm } from "@/libTournament/utils/ticker/validators";
 
 interface TickerManagerProps {
   tournamentId: string;

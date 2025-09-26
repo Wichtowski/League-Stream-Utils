@@ -11,7 +11,7 @@ import {
   recordGameResult
 } from "@lib/database";
 
-import type { Team } from "@lib/types";
+import type { Team } from "@libTeam/types";
 
 // Pick and ban phase configuration - 22 turns total
 const PICK_BAN_ORDER = [
