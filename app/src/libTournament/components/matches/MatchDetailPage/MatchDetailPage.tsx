@@ -1,9 +1,8 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { getChampions } from "@lib/champions";
 import { getTeamWins } from "@libLeagueClient/utils/teamWins";
-import { Champion } from "@lib/types/game";
 import { Match, Tournament, MatchStatus } from "@libTournament/types";
+import { useChampions } from "@lib/contexts/ChampionContext";
 import {
   usePlayerStatsData,
   usePlayerStats,
@@ -22,23 +21,10 @@ interface MatchDetailPageProps {
 
 export const MatchDetailPage: React.FC<MatchDetailPageProps> = ({ match, tournament }) => {
   const router = useRouter();
-  const [champions, setChampions] = useState<Champion[]>([]);
   const [currentMatch, setCurrentMatch] = useState<Match>(match);
+  const { champions } = useChampions();
 
   const matchId = match._id;
-
-  // Load champions
-  useEffect(() => {
-    let mounted = true;
-    getChampions()
-      .then((list) => {
-        if (mounted) setChampions(list);
-      })
-      .catch(() => setChampions([]));
-    return () => {
-      mounted = false;
-    };
-  }, []);
 
   // Custom hooks - only fetch player stats since match and tournament are already loaded in page
   const { playerStats, setPlayerStats } = usePlayerStatsData(matchId);
@@ -61,7 +47,6 @@ export const MatchDetailPage: React.FC<MatchDetailPageProps> = ({ match, tournam
 
   const {
     teamsSwapped,
-    setTeamsSwapped,
     getMaxGamesByFormat,
     getMinGamesByFormat,
     getTeamIdForSide,
@@ -70,7 +55,7 @@ export const MatchDetailPage: React.FC<MatchDetailPageProps> = ({ match, tournam
     handleUpdateGameWinner,
     handleSwapGameSides,
     handleDeleteGame
-  } = useMatchGames(currentMatch, blueTeam, redTeam);
+  } = useMatchGames(currentMatch, blueTeam, redTeam, match);
 
   const { commentators, newCommentatorId, setNewCommentatorId, assigningCommentator, handleAssignCommentator } =
     useMatchCommentators(currentMatch);
@@ -84,6 +69,7 @@ export const MatchDetailPage: React.FC<MatchDetailPageProps> = ({ match, tournam
     if (!currentMatch?.games || currentMatch.games.length === 0) return { team1Wins: 0, team2Wins: 0 };
     return getTeamWins(currentMatch.games);
   }, [currentMatch?.games]);
+
 
   // Handlers
   const handleSaveWithUpdate = async () => {
@@ -135,13 +121,13 @@ export const MatchDetailPage: React.FC<MatchDetailPageProps> = ({ match, tournam
 
   const handleSwapTeamsWithUpdate = () => {
     handleSwapTeams(handleGameUpdate);
+    // The teamsSwapped state will be automatically updated when currentMatch changes
+    // because the team IDs will have swapped, and the UI will reflect this
   };
 
   return (
     <>
       <MatchHeader
-        match={currentMatch}
-        _tournament={tournament}
         editing={editing}
         saving={saving}
         onStartEditing={startEditing}
@@ -163,7 +149,7 @@ export const MatchDetailPage: React.FC<MatchDetailPageProps> = ({ match, tournam
             redTeam={redTeam}
             champions={champions}
             teamsSwapped={teamsSwapped}
-            onTeamsSwappedChange={setTeamsSwapped}
+            onSwapTeams={handleSwapTeamsWithUpdate}
             onAddGame={handleAddGameWithUpdate}
             onUpdateGameWinner={handleUpdateWinnerWithUpdate}
             onSwapGameSides={handleSwapSidesWithUpdate}

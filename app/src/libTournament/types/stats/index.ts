@@ -48,35 +48,3 @@ export interface TournamentStats {
   roi: number;
 }
 
-export interface GameResult {
-  sessionId: string;
-  tournamentId?: string;
-  gameNumber: number;
-  gameDuration?: number;
-  patch: string;
-  completedAt: Date;
-
-  blueTeam: {
-    teamId?: string;
-    teamName: string;
-    won: boolean;
-    picks: {
-      championId: number;
-      role?: "TOP" | "JUNGLE" | "MID" | "BOTTOM" | "SUPPORT";
-      player?: string;
-    }[];
-    bans: number[];
-  };
-
-  redTeam: {
-    teamId?: string;
-    teamName: string;
-    won: boolean;
-    picks: {
-      championId: number;
-      role?: "TOP" | "JUNGLE" | "MID" | "BOTTOM" | "SUPPORT";
-      player?: string;
-    }[];
-    bans: number[];
-  };
-}

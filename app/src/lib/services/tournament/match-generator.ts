@@ -1,5 +1,5 @@
 import type { CreateMatchRequest } from "@libTournament/types/matches";
-import type { Tournament } from "@lib/types/championStats";
+import { Tournament } from "@libTournament/types";
 
 export class MatchGenerator {
   /**
@@ -46,6 +46,7 @@ export class MatchGenerator {
           blueTeamId: team1,
           redTeamId: team2,
           format: tournament.matchFormat,
+          isFearlessDraft: false,
           patchName: tournament.patchVersion || tournament.apiVersion || "Latest",
           scheduledTime: this.calculateMatchTime(tournament, i).toISOString(),
           createdBy: tournament.userId
@@ -75,6 +76,7 @@ export class MatchGenerator {
             blueTeamId: teams[i],
             redTeamId: teams[i + 1],
             format: tournament.phaseMatchFormats?.swiss || tournament.matchFormat,
+            isFearlessDraft: false,
             patchName: tournament.patchVersion || tournament.apiVersion || "Latest",
             scheduledTime: this.calculateMatchTime(tournament, matches.length).toISOString(),
             createdBy: tournament.userId
@@ -102,6 +104,7 @@ export class MatchGenerator {
           blueTeamId: teams[i],
           redTeamId: teams[j],
           format: tournament.phaseMatchFormats?.roundRobin || tournament.matchFormat,
+          isFearlessDraft: false,
           patchName: tournament.patchVersion || tournament.apiVersion || "Latest",
           scheduledTime: this.calculateMatchTime(tournament, matches.length).toISOString(),
           createdBy: tournament.userId
@@ -142,6 +145,7 @@ export class MatchGenerator {
             blueTeamId: group[i],
             redTeamId: group[j],
             format: tournament.phaseMatchFormats?.groups || tournament.matchFormat,
+            isFearlessDraft: false,
             patchName: tournament.patchVersion || tournament.apiVersion || "Latest",
             scheduledTime: this.calculateMatchTime(tournament, matches.length).toISOString(),
             createdBy: tournament.userId

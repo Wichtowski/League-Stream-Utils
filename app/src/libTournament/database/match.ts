@@ -50,6 +50,7 @@ export async function createMatch(userId: string, matchData: CreateMatchRequest)
     redTeamId: redTeam._id?.toString() || "",
     format: matchData.format,
     patchName: matchData.patchName,
+    isFearlessDraft: matchData.isFearlessDraft ?? false,
     scheduledTime: matchData.scheduledTime ? new Date(matchData.scheduledTime) : undefined,
     status: "scheduled",
     games: [],

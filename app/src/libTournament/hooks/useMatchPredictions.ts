@@ -10,7 +10,9 @@ export const useMatchPredictions = (match: Match | null) => {
     const loadPredictions = async () => {
       if (!match) return;
       try {
-        const res = await fetch(`/api/v1/matches/${match._id}/predictions`);
+        const res = await fetch(`/api/v1/matches/${match._id}/predictions`, {
+          credentials: "include"
+        });
         if (res.ok) {
           const data = await res.json();
           setPredictions(
@@ -36,6 +38,7 @@ export const useMatchPredictions = (match: Match | null) => {
       const res = await fetch(`/api/v1/matches/${match._id}/predictions`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ prediction: side })
       });
       if (res.ok) {

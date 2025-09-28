@@ -9,7 +9,7 @@ export interface CreateMatchRequest {
   blueTeamId: string;
   redTeamId: string;
   format: MatchFormat;
-  fearlessDraft: boolean;
+  isFearlessDraft: boolean;
   patchName: string;
   scheduledTime?: string;
   createdBy: string;

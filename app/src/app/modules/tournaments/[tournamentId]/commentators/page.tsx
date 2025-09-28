@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useTournaments } from "@libTournament/contexts/TournamentsContext";
 import { useNavigation } from "@lib/contexts/NavigationContext";
@@ -21,6 +21,17 @@ export default function CommentatorsPage(): React.ReactElement {
   const [successMsg, setSuccessMsg] = useState("");
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const tournamentId = params.tournamentId as string;
+  const pageProps = useMemo(() => {
+    return {
+      title: !tournament ? (tournamentsLoading ? "Assign Commentators" : "Tournament Not Found") : "Assign Commentators",
+      subtitle: `Manage commentators ${tournament?.abbreviation ? "for " + tournament?.abbreviation : ""}`,
+      breadcrumbs: [
+        { label: "Tournaments", href: "/modules/tournaments" },
+        !tournament ? (tournamentsLoading ? { label: "Loading...", href: `/modules/tournaments/${tournamentId}` } : { label: "Tournament Not Found", href: `/modules/tournaments/${tournamentId}` }) : { label: tournament?.name || "Loading...", href: `/modules/tournaments/${tournamentId}` },
+        { label: "Commentators", href: `/modules/tournaments/${tournamentId}/commentators`, isActive: true },
+      ],
+    }
+  }, [tournament, tournamentId, tournamentsLoading]);
 
   useEffect(() => {
     setActiveModule("commentators");
@@ -32,10 +43,10 @@ export default function CommentatorsPage(): React.ReactElement {
       if (foundTournament) {
         setTournament(foundTournament);
       } else {
-        router.push("/modules/tournaments");
+        setTournament(null);
       }
     }
-  }, [tournaments, tournamentsLoading, tournamentId, router]);
+  }, [tournaments, tournamentsLoading, tournamentId, setTournament]);
 
   // Fetch all commentators, tournament commentators, and matches
   useEffect(() => {
@@ -235,7 +246,7 @@ export default function CommentatorsPage(): React.ReactElement {
 
   if (loading || tournamentsLoading) {
     return (
-      <PageWrapper>
+      <PageWrapper {...pageProps}>
         <LoadingSpinner fullscreen text="Loading commentators..." />
       </PageWrapper>
     );
@@ -243,7 +254,7 @@ export default function CommentatorsPage(): React.ReactElement {
 
   if (!tournament) {
     return (
-      <PageWrapper>
+      <PageWrapper {...pageProps}>
         <div className="text-center text-white">
           <h2 className="text-2xl font-bold mb-4">Tournament not found</h2>
           <button
@@ -259,13 +270,7 @@ export default function CommentatorsPage(): React.ReactElement {
 
   return (
     <PageWrapper
-      title="Assign Commentators"
-      breadcrumbs={[
-        { label: "Tournaments", href: "/modules/tournaments" },
-        { label: tournament.name, href: `/modules/tournaments/${tournamentId}` },
-        { label: "Commentators", href: `/modules/tournaments/${tournamentId}/commentators`, isActive: true }
-      ]}
-      subtitle={`${tournament.name} (${tournament.abbreviation})`}
+      {...pageProps}
       contentClassName="max-w-6xl mx-auto"
     >
       <div className="mb-6">

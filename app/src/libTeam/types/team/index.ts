@@ -67,4 +67,4 @@ export interface Coach {
 
 export type TeamTier = "amateur" | "semi-pro" | "professional";
 
-export type { UpdateMatchResultRequest, CreateTeamRequest } from "./requests";
+export type { CreateTeamRequest } from "./requests";

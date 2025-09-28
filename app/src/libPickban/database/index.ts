@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
 import { connectToDatabase } from "@lib/database/connection";
 import { GameSessionModel } from "@lib/database/models";
-import type { GameSession as GameSessionType, Champion } from "@lib/types";
+import { GameSession as GameSessionType, Champion } from "@lib/types";
 
 // Helper function to transform mongoose document to GameSession
 function transformToGameSession(doc: unknown): GameSessionType {

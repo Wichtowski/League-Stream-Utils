@@ -18,7 +18,7 @@ export type {
   CreateTournamentRequest
 } from "./tournament";
 
-export type { GameResult, TournamentStats, TournamentChampionStats, TournamentAnalytics } from "./stats";
+export type { TournamentStats, TournamentChampionStats, TournamentAnalytics } from "./stats";
 
 export type {
   Bracket,
@@ -36,6 +36,7 @@ export type {
   MatchFormat,
   PhaseMatchFormats,
   MatchStatus,
+  GameResult,
   UpdateMatchResultRequest,
   CreateMatchRequest,
   AssignCommentatorRequest,

@@ -30,6 +30,7 @@ export interface Match {
   // Match configuration
   format: MatchFormat;
   patchName: string;
+  isFearlessDraft: boolean;
 
   // Scheduling
   scheduledTime?: Date;
@@ -58,13 +59,37 @@ export interface Match {
 
 export interface GameResult {
   _id: string;
+  sessionId?: string;
+  tournamentId?: string;
   gameNumber: number;
   winner: "blue" | "red" | "ongoing";
   duration?: number;
+  gameDuration?: number;
+  patch?: string;
   blueScore: number;
   redScore: number;
-  blueTeam: string;
-  redTeam: string;
+  blueTeam: string | {
+    teamId?: string;
+    teamName: string;
+    won: boolean;
+    picks: {
+      championId: number;
+      role?: "TOP" | "JUNGLE" | "MID" | "BOTTOM" | "SUPPORT";
+      player?: string;
+    }[];
+    bans: number[];
+  };
+  redTeam: string | {
+    teamId?: string;
+    teamName: string;
+    won: boolean;
+    picks: {
+      championId: number;
+      role?: "TOP" | "JUNGLE" | "MID" | "BOTTOM" | "SUPPORT";
+      player?: string;
+    }[];
+    bans: number[];
+  };
   championsPlayed?: {
     [teamId: string]: { [playerId: string]: number };
   };
@@ -73,7 +98,7 @@ export interface GameResult {
   completedAt?: Date;
 }
 
-export type MatchStatus = "scheduled" | "in-progress" | "ongoing" | "completed" | "cancelled";
+export type MatchStatus = "scheduled" | "in-progress" | "completed" | "cancelled";
 
 export type {
   UpdateMatchResultRequest,

@@ -1,6 +1,6 @@
 "use client";
 
-import { TeamColors } from "@lib/types/championStats";
+import { TeamColors } from "@libTeam/types";
 import { redColor, blueColor } from "@lib/services/common/constants";
 import React, { useEffect, useState, useMemo, useRef } from "react";
 

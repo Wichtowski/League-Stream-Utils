@@ -60,7 +60,6 @@ const LiveGamePage: React.FC = () => {
     getCurrentMatch
   ]);
 
-  console.log(loading, isConnected, gameData, currentMatch, currentTournament);
   if (loading || !isConnected || !gameData || !currentMatch || !currentTournament) {
     return <></>;
   }

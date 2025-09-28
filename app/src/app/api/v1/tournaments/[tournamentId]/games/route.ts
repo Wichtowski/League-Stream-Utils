@@ -3,7 +3,7 @@ import { withAuth } from "@lib/auth";
 import { recordGameResult } from "@lib/database/champion-stats";
 import { getTournamentById } from "@libTournament/database/tournament";
 import type { JWTPayload } from "@lib/types/auth";
-import type { GameResult } from "@libTournament/types";
+import { GameResult } from "@libTournament/types";
 
 // POST /api/v1/tournaments/[tournamentId]/games - Record a game result
 export const POST = withAuth(async (req: NextRequest, user: JWTPayload, params: Promise<Record<string, string>>) => {
@@ -25,6 +25,11 @@ export const POST = withAuth(async (req: NextRequest, user: JWTPayload, params: 
     // Validate game result data
     if (!gameResultData.sessionId || !gameResultData.blueTeam || !gameResultData.redTeam) {
       return NextResponse.json({ error: "Invalid game result data" }, { status: 400 });
+    }
+
+    // Check if team data is objects (not strings)
+    if (typeof gameResultData.blueTeam === 'string' || typeof gameResultData.redTeam === 'string') {
+      return NextResponse.json({ error: "Team data must be objects with picks and bans" }, { status: 400 });
     }
 
     if (!gameResultData.blueTeam.picks || !gameResultData.redTeam.picks) {

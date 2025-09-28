@@ -559,8 +559,12 @@ const ChampSelectDisplayComponent: React.FC<ChampSelectDisplayProps> = ({
                 // Get the most recent game's side assignment
                 const latestGame = match.games[match.games.length - 1];
                 return {
-                  blueTeamId: latestGame.blueTeam,
-                  redTeamId: latestGame.redTeam
+                  blueTeamId: typeof latestGame.blueTeam === 'string' 
+                    ? latestGame.blueTeam 
+                    : latestGame.blueTeam.teamId || '',
+                  redTeamId: typeof latestGame.redTeam === 'string' 
+                    ? latestGame.redTeam 
+                    : latestGame.redTeam.teamId || ''
                 };
               })()}
               onRegisterImages={registerChildImages}

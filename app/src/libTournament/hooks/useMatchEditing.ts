@@ -31,10 +31,13 @@ export const useMatchEditing = (match: Match | null) => {
       const response = await fetch(`/api/v1/matches/${match._id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(editData)
       });
 
-      if (!response.ok) throw new Error("Failed to update match");
+      if (!response.ok) {
+        throw new Error("Failed to update match");
+      }
 
       const updatedMatch = await response.json();
       setEditData(updatedMatch.match);
@@ -56,6 +59,7 @@ export const useMatchEditing = (match: Match | null) => {
       const response = await fetch(`/api/v1/matches/${match._id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ status: newStatus })
       });
 
@@ -78,10 +82,13 @@ export const useMatchEditing = (match: Match | null) => {
     try {
       setSaving(true);
       const response = await fetch(`/api/v1/matches/${match._id}`, {
-        method: "DELETE"
+        method: "DELETE",
+        credentials: "include"
       });
 
-      if (!response.ok) throw new Error("Failed to delete match");
+      if (!response.ok) {
+        throw new Error("Failed to delete match");
+      }
       return true;
     } catch (err) {
       console.error("Failed to delete match:", err);

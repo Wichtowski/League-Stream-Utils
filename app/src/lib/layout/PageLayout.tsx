@@ -6,7 +6,7 @@ import { Footer } from "@lib/components/common/Footer";
 export interface PageLayoutProps {
   children: React.ReactNode;
   requireAuth?: boolean;
-  breadcrumbs?: BreadcrumbItem[];
+  breadcrumbs?: (BreadcrumbItem | null)[];
   title?: string;
   subtitle?: string;
   actions?: React.ReactNode;
@@ -44,9 +44,9 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
     <div className={`min-h-screen text-white ${className}`}>
       <div className="container mx-auto px-6 py-8">
         {/* Breadcrumbs */}
-        {breadcrumbs.length > 0 && (
+        {breadcrumbs && breadcrumbs.length > 0 && (
           <div className="mb-4 flex justify-between items-center">
-            <Breadcrumbs items={breadcrumbs} />
+            <Breadcrumbs items={breadcrumbs.filter(Boolean) as BreadcrumbItem[]} />
           </div>
         )}
 

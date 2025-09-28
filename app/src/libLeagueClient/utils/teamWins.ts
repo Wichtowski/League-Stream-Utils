@@ -1,4 +1,4 @@
-import type { GameResult } from "@libTournament/types/matches";
+import { GameResult } from "@libTournament/types";
 
 export const getTeamWins = (games: GameResult[]): { team1Wins: number; team2Wins: number } => {
   if (!games || games.length === 0) return { team1Wins: 0, team2Wins: 0 };

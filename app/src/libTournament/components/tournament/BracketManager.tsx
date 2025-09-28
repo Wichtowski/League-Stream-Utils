@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { useModal } from "@lib/contexts/ModalContext";
-import type { BracketStructure, BracketNode, UpdateMatchResultRequest, Tournament } from "@lib/types/championStats";
+import { BracketStructure, BracketNode, UpdateMatchResultRequest, Tournament } from "@libTournament/types";
 
 interface BracketManagerProps {
   tournament: Tournament;

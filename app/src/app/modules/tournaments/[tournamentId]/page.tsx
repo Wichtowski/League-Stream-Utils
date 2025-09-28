@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useState, Suspense, useMemo } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useTournaments } from "@libTournament/contexts/TournamentsContext";
 import { useNavigation } from "@lib/contexts/NavigationContext";
@@ -18,7 +18,18 @@ export default function TournamentDetailPage() {
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const params = useParams();
   const tournamentId = params.tournamentId as string;
-
+  const pageProps = useMemo(() => {
+    return {
+      title: !tournament?.name ? (tournamentsLoading ? "Loading Tournament" : "Tournament Not Found") : tournament.name,
+      subtitle: `Tournament details and settings ${tournament?.abbreviation ? "for " + tournament?.abbreviation : ""}`,
+      breadcrumbs: [
+        { label: "Tournaments", href: "/modules/tournaments" },
+        { label: tournament?.name ?? "Loading...", href: `/modules/tournaments/${tournamentId}`, isActive: true }
+      ],
+      actions: <button onClick={() => router.push("/modules/tournaments/create")} className="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-lg transition-colors">Create Tournament</button>
+    }
+  }, [tournament, tournamentId, router, tournamentsLoading]);
+  
   useEffect(() => {
     setActiveModule("tournaments");
   }, [setActiveModule]);
@@ -70,21 +81,14 @@ export default function TournamentDetailPage() {
 
   if (tournamentsLoading || !tournament) {
     return (
-      <PageWrapper>
+      <PageWrapper {...pageProps}>
         <LoadingSpinner fullscreen text="Loading tournament..." />
       </PageWrapper>
     );
   }
 
   return (
-    <PageWrapper
-      breadcrumbs={[
-        { label: "Tournaments", href: `/modules/tournaments` },
-        { label: tournament.name, href: `/modules/tournaments/${tournamentId}`, isActive: true }
-      ]}
-      title={tournament.name}
-      subtitle={tournament.abbreviation}
-    >
+    <PageWrapper {...pageProps} >
       <Suspense fallback={<LoadingSpinner text="Loading tournament editor..." />}>
         <TournamentEditor
           tournament={tournament}

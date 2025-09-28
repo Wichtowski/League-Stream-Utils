@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import { useTournaments } from "@libTournament/contexts/TournamentsContext";
+import { useEffect, useState, useCallback, useMemo } from "react";
+import { useCurrentTournament } from "@libTournament/contexts/CurrentTournamentContext";
 import { useNavigation } from "@lib/contexts/NavigationContext";
 import { useModal } from "@lib/contexts/ModalContext";
 import { LoadingSpinner } from "@lib/components/common";
-import { Tournament, Sponsorship, SponsorFormData } from "@libTournament/types";
+import { Sponsorship, SponsorFormData } from "@libTournament/types";
 import {
   OBSDisplayInfo,
   SponsorWindow,
@@ -18,11 +18,10 @@ import { useParams } from "next/navigation";
 import { createDefaultSponsorForm } from "@libTournament/utils/sponsors/defaultValues";
 
 export default function TournamentSponsorsPage() {
-  const { tournaments, loading: tournamentsLoading, error, refreshTournaments } = useTournaments();
+  const { currentTournament, refreshCurrentTournament, loading: tournamentLoading, error: tournamentError } = useCurrentTournament();
+  
   const { setActiveModule } = useNavigation();
   const { showAlert, showConfirm } = useModal();
-  const [tournament, setTournament] = useState<Tournament>();
-  const [loading, setLoading] = useState(true);
   const params = useParams();
   const tournamentId = params.tournamentId as string;
 
@@ -37,25 +36,26 @@ export default function TournamentSponsorsPage() {
   const [currentSponsorIndex, setCurrentSponsorIndex] = useState(0);
   const [isVisible, setIsVisible] = useState(true);
 
+  const pageProps = useMemo(() => {
+    return {
+      title: !currentTournament ? (tournamentLoading ? "Sponsors" : "Tournament Not Found") : "Sponsors",
+      subtitle: `Manage sponsors ${currentTournament?.abbreviation ? "for " + currentTournament?.abbreviation : ""}`,
+      breadcrumbs: [
+        { label: "Tournaments", href: "/modules/tournaments" }, 
+        currentTournament?.name ?  { label: currentTournament.name , href: `/modules/tournaments/${tournamentId}` } : null,
+        { label: "Sponsors", href: `/modules/tournaments/${tournamentId}/sponsors`, isActive: true }],
+    }
+  }, [currentTournament, tournamentId, tournamentLoading]);
+
   useEffect(() => {
     setActiveModule("tournaments");
   }, [setActiveModule]);
 
   useEffect(() => {
-    if (!tournamentsLoading && tournaments.length > 0 && tournamentId) {
-      const foundTournament = tournaments.find((t) => t._id === tournamentId);
-      if (foundTournament) {
-        setTournament(foundTournament);
-      }
-      setLoading(false);
+    if (tournamentError) {
+      showAlert({ type: "error", message: tournamentError });
     }
-  }, [tournaments, tournamentsLoading, tournamentId]);
-
-  useEffect(() => {
-    if (error) {
-      showAlert({ type: "error", message: error });
-    }
-  }, [error, showAlert]);
+  }, [tournamentError, showAlert]);
 
   const fetchSponsors = useCallback(async (): Promise<void> => {
     try {
@@ -139,7 +139,6 @@ export default function TournamentSponsorsPage() {
       setFormData(createDefaultSponsorForm());
       setShowAddForm(false);
       await fetchSponsors();
-      refreshTournaments();
     } catch (error) {
       await showAlert({
         type: "error",
@@ -177,7 +176,6 @@ export default function TournamentSponsorsPage() {
       setFormData(createDefaultSponsorForm());
       setEditingSponsor(null);
       await fetchSponsors();
-      refreshTournaments();
     } catch (error) {
       await showAlert({
         type: "error",
@@ -212,7 +210,7 @@ export default function TournamentSponsorsPage() {
       });
 
       await fetchSponsors();
-      refreshTournaments();
+      refreshCurrentTournament();
     } catch (error) {
       await showAlert({
         type: "error",
@@ -278,22 +276,18 @@ export default function TournamentSponsorsPage() {
     }));
   };
 
-  if (loading || tournamentsLoading) {
+  if (tournamentLoading) {
     return (
-      <PageWrapper>
+      <PageWrapper {...pageProps}>
         <LoadingSpinner fullscreen text="Loading tournament..." />
       </PageWrapper>
     );
   }
 
-  if (!tournament) {
+  if (!currentTournament || currentTournament._id !== tournamentId) {
     return (
       <PageWrapper
-        title="Tournament Not Found"
-        breadcrumbs={[
-          { label: "Tournaments", href: `/modules/tournaments` },
-          { label: "Sponsors", href: `/modules/tournaments/${tournamentId}/sponsors`, isActive: true }
-        ]}
+        {...pageProps}
       >
         <div className="text-center">
           <p>The tournament you&apos;re looking for doesn&apos;t exist or you don&apos;t have access to it.</p>
@@ -303,15 +297,7 @@ export default function TournamentSponsorsPage() {
   }
 
   return (
-    <PageWrapper
-      breadcrumbs={[
-        { label: "Tournaments", href: `/modules/tournaments` },
-        { label: tournament.name, href: `/modules/tournaments/${tournamentId}` },
-        { label: "Sponsors", href: `/modules/tournaments/${tournamentId}/sponsors`, isActive: true }
-      ]}
-      title="Add Tournament Sponsors"
-      subtitle={`${tournament.name} (${tournament.abbreviation})`}
-    >
+    <PageWrapper {...pageProps}>
       <div className="space-y-6">
         <div className="flex gap-6">
           <div className="flex-1 bg-gray-800 rounded-lg p-6 h-[360px] flex flex-col">

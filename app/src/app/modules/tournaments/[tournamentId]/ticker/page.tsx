@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useTournaments } from "@libTournament/contexts/TournamentsContext";
 import { useNavigation } from "@lib/contexts/NavigationContext";
 import { useModal } from "@lib/contexts/ModalContext";
@@ -15,7 +15,7 @@ export default function TournamentTickerPage() {
   const { tournaments, loading: tournamentsLoading, error, refreshTournaments } = useTournaments();
   const { setActiveModule } = useNavigation();
   const { showAlert } = useModal();
-  const [tournament, setTournament] = useState<Tournament>();
+  const [tournament, setTournament] = useState<Tournament | null>(null);
   const [loading, setLoading] = useState(true);
   const params = useParams();
   const tournamentId = params.tournamentId as string;
@@ -24,7 +24,18 @@ export default function TournamentTickerPage() {
   const [Ticker, setTicker] = useState<Ticker | null>(null);
   const [TickerLoading, setTickerLoading] = useState(true);
   const [, setPreviewTicker] = useState<TickerFormData | null>(null);
-
+  const pageProps = useMemo(() => {
+    return {
+      title: !tournament ? (tournamentsLoading ? "Ticker Management" : "Tournament Not Found") : "Ticker Management",
+      subtitle: `Manage ticker display ${tournament?.abbreviation ?  "for " + tournament?.abbreviation : ""}`,
+      breadcrumbs: [
+        { label: "Tournaments", href: "/modules/tournaments" },
+        !tournament ? (tournamentsLoading ? { label: "Loading...", href: `/modules/tournaments/${tournamentId}` } : { label: "Tournament Not Found", href: `/modules/tournaments/${tournamentId}` }) : { label: tournament?.name || "Loading...", href: `/modules/tournaments/${tournamentId}` },
+        { label: "Ticker", href: `/modules/tournaments/${tournamentId}/ticker` },
+      ],
+    }
+  }, [tournament, tournamentId]);
+  
   useEffect(() => {
     setActiveModule("tournaments");
   }, [setActiveModule]);
@@ -76,7 +87,7 @@ export default function TournamentTickerPage() {
 
   if (loading || tournamentsLoading) {
     return (
-      <PageWrapper>
+      <PageWrapper {...pageProps}>
         <LoadingSpinner fullscreen text="Loading tournament..." />
       </PageWrapper>
     );
@@ -86,9 +97,10 @@ export default function TournamentTickerPage() {
     return (
       <PageWrapper
         title="Tournament Not Found"
+        subtitle="The tournament you're looking for doesn't exist or you don't have access to it."
         breadcrumbs={[
-          { label: "Tournaments", href: `/modules/tournaments` },
-          { label: "Ticker", href: `/modules/tournaments/${tournamentId}/ticker`, isActive: true }
+          { label: "Tournaments", href: "/modules/tournaments" },
+          { label: "Ticker", href: `/modules/tournaments/${tournamentId}/ticker`, isActive: true },
         ]}
       >
         <div className="text-center">
@@ -100,13 +112,7 @@ export default function TournamentTickerPage() {
 
   return (
     <PageWrapper
-      breadcrumbs={[
-        { label: "Tournaments", href: `/modules/tournaments` },
-        { label: tournament.name, href: `/modules/tournaments/${tournamentId}` },
-        { label: "Ticker", href: `/modules/tournaments/${tournamentId}/ticker`, isActive: true }
-      ]}
-      title="Ticker Management"
-      subtitle={`${tournament.name} (${tournament.abbreviation})`}
+      {...pageProps}
     >
       <div className="space-y-6">
         <div className="flex gap-6">

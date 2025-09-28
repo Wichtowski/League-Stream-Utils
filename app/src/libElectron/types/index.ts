@@ -1,4 +1,4 @@
-import { Tournament } from "@lib/types/championStats";
+import { Tournament } from "@libTournament/types";
 import { Champion } from "@lib/types/game";
 
 export interface TournamentData {

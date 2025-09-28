@@ -20,6 +20,8 @@ export const useMatchTeams = (
         .then((res) => res.json())
         .then((data) => setBlueTeam(data.team))
         .catch(() => setBlueTeam(null));
+    } else {
+      setBlueTeam(null);
     }
   }, [match?.blueTeamId]);
 
@@ -29,6 +31,8 @@ export const useMatchTeams = (
         .then((res) => res.json())
         .then((data) => setRedTeam(data.team))
         .catch(() => setRedTeam(null));
+    } else {
+      setRedTeam(null);
     }
   }, [match?.redTeamId]);
 
@@ -37,13 +41,27 @@ export const useMatchTeams = (
 
     const swappedGames: GameResult[] = (match.games || []).map((g) => {
       const newWinner = g.winner === "blue" ? "red" : g.winner === "red" ? "blue" : "ongoing";
+      
+      // Swap champion data when teams are swapped
+      const swappedChampionsPlayed: { [teamId: string]: { [playerId: string]: number } } = {};
+      if (g.championsPlayed) {
+        // Swap the champion data between teams
+        const blueTeamChampions = g.championsPlayed[match.blueTeamId] || {};
+        const redTeamChampions = g.championsPlayed[match.redTeamId] || {};
+        
+        // Map blue team champions to red team ID and vice versa
+        swappedChampionsPlayed[match.redTeamId] = blueTeamChampions;
+        swappedChampionsPlayed[match.blueTeamId] = redTeamChampions;
+      }
+      
       return {
         ...g,
         winner: newWinner,
         blueScore: newWinner === "blue" ? 1 : 0,
         redScore: newWinner === "red" ? 1 : 0,
         blueTeam: g.redTeam,
-        redTeam: g.blueTeam
+        redTeam: g.blueTeam,
+        championsPlayed: swappedChampionsPlayed
       } as GameResult;
     });
 

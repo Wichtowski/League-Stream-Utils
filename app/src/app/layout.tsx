@@ -17,6 +17,7 @@ import {
   CurrentMatchProvider,
   CurrentTournamentProvider
 } from "@lib/contexts";
+import { ChampionProvider } from "@lib/contexts/ChampionContext";
 import { NavigationGuard } from "@lib/components/navigation/NavigationGuard";
 import { ContextWrapper } from "@lib/components/navigation/ContextErrorBoundary";
 import { ChampionCacheInitializer } from "@lib/components/LCU/ChampionCacheInitializer";
@@ -52,6 +53,7 @@ export default function RootLayout({
           contexts={[
             { name: "Electron", provider: ElectronProvider },
             { name: "Auth", provider: AuthProvider },
+            { name: "Champions", provider: ChampionProvider },
             { name: "Predictions", provider: PredictionsProvider },
             { name: "Download", provider: DownloadProvider },
             { name: "Cameras", provider: CamerasProvider },

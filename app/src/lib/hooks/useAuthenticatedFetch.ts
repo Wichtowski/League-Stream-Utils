@@ -37,27 +37,37 @@ export function useAuthenticatedFetch(): {
 
         let response = await fetch(url, defaultOptions);
 
-        // Try to refresh token on 401, but only if we have a user and not already logged out
-        if (response.status === 401 && !skipAuth && user) {
-          console.log("401 Unauthorized - attempting token refresh...");
+        // Handle authentication failures
+        if ((response.status === 401 || response.status === 403) && !skipAuth && user) {
+          console.log("Authentication failed - attempting token refresh...");
           const refreshed = await refreshToken();
 
           if (refreshed) {
             console.log("Token refreshed, retrying request...");
             response = await fetch(url, defaultOptions);
+            
+            // If still unauthorized after refresh, logout and redirect
+            if (response.status === 401 || response.status === 403) {
+              console.log("Still unauthorized after token refresh - logging out...");
+              await logout();
+              window.location.href = "/login";
+              return response;
+            }
           } else {
-            // If refresh failed, force logout but don't retry
+            // If refresh failed, logout and redirect
             console.log("Token refresh failed - logging out...");
             await logout();
-            // Return the original 401 response instead of retrying
+            window.location.href = "/login";
             return response;
           }
+        }
 
-          // If the retried request is still unauthorized after successful refresh, logout
-          if (refreshed && response.status === 401) {
-            console.log("Still unauthorized after token refresh - logging out...");
-            await logout();
-          }
+        // Check for HTML responses (redirects to login page)
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("text/html")) {
+          console.log("Received HTML response - likely redirected to login");
+          window.location.href = "/login";
+          return response;
         }
 
         return response;
@@ -89,6 +99,23 @@ export function useApiRequest<T = unknown>(url: string, options: FetchOptions = 
           ...options,
           ...requestOptions
         });
+
+        // Check for HTML responses (redirects to login page)
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("text/html")) {
+          console.log("Received HTML response in useApiRequest - likely redirected to login");
+          window.location.href = "/login";
+          setState({
+            data: null,
+            error: "Authentication required - redirecting to login",
+            loading: false
+          });
+          return {
+            data: null,
+            error: "Authentication required - redirecting to login",
+            loading: false
+          };
+        }
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({ error: "Request failed" }));

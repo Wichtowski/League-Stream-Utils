@@ -2,8 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { LiveGameData } from "@libLeagueClient/types";
 import { TeamScoreDisplay } from "@libLeagueClient/components/game/TeamScoreDisplay";
 import { PlayerCard } from "@libLeagueClient/components/game/PlayerCard";
-import type { GameResult, Match } from "@libTournament/types/matches";
-import type { Tournament } from "@lib/types/championStats";
+import { Tournament, Match, GameResult } from "@libTournament/types";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import {
@@ -21,8 +20,7 @@ import { getSummonerSpells } from "@lib/summoner-spells";
 import { bindLivePlayersToMatch, createFallbackLivePlayer } from "@lib/services/game/live-binding";
 import { getLatestVersion } from "@lib/services/common/unified-asset-cache";
 import { useImagePreload } from "@lib/hooks/useImagePreload";
-
-import { Team } from "@lib/types/team";
+import { Team } from "@libTeam/types";
 
 interface GameDataDisplayProps {
   gameData: LiveGameData;

@@ -1,5 +1,6 @@
-import { v4 as uuidv4 } from "uuid";
+import { Types } from "mongoose";
 import type { GameSession, Champion, GameConfig, WSMessage, GameState, PlayerRole } from "@lib/types";
+import type { GameResult } from "@libTournament/types";
 import { getChampionById, getChampions } from "@lib/champions";
 
 import {
@@ -57,7 +58,7 @@ const TIMER_DURATIONS = {
 const timers = new Map<string, NodeJS.Timeout>();
 
 export async function createGameSession(config?: Partial<GameConfig>): Promise<GameSession> {
-  const sessionId = uuidv4();
+  const sessionId = new Types.ObjectId().toString();
 
   const currentPatch = config?.patchName || "14.24";
 
@@ -91,7 +92,7 @@ export async function createGameSession(config?: Partial<GameConfig>): Promise<G
     type: "web",
     teams: {
       blue: {
-        _id: uuidv4(),
+        _id: sessionId,
         name: defaultConfig.blueTeamName || "Blue Team",
         side: "blue",
         bans: [],
@@ -102,7 +103,7 @@ export async function createGameSession(config?: Partial<GameConfig>): Promise<G
         logo: defaultConfig.blueTeamId as string
       },
       red: {
-        _id: uuidv4(),
+        _id: sessionId,
         name: defaultConfig.redTeamName || "Red Team",
         side: "red",
         bans: [],
@@ -510,12 +511,16 @@ export async function completeGame(
     }
 
     // Create game result for champion statistics
-    const gameResult = {
+    const gameResult: GameResult = {
+      _id: sessionId,
       sessionId,
       tournamentId,
       gameNumber: session.config.currentGame,
+      winner,
       gameDuration,
       patch: session.config.patchName,
+      blueScore: winner === "blue" ? 1 : 0,
+      redScore: winner === "red" ? 1 : 0,
       completedAt: new Date(),
       blueTeam: {
         teamId: session.teams.blue._id,

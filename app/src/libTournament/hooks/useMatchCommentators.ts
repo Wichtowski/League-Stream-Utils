@@ -11,7 +11,9 @@ export const useMatchCommentators = (match: Match | null) => {
     const loadCommentators = async () => {
       if (!match) return;
       try {
-        const res = await fetch(`/api/v1/matches/${match._id}/commentators`);
+        const res = await fetch(`/api/v1/matches/${match._id}/commentators`, {
+          credentials: "include"
+        });
         if (res.ok) {
           const data = await res.json();
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -31,6 +33,7 @@ export const useMatchCommentators = (match: Match | null) => {
       const res = await fetch(`/api/v1/matches/${match._id}/commentators`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ commentatorId: newCommentatorId, matchId: match._id })
       });
       if (res.ok) {

@@ -401,6 +401,7 @@ export const mockMatch: Match = {
   tournamentId: "tourn_1",
   blueTeamId: "1", // Los Ratones
   redTeamId: "2", // FMS
+  isFearlessDraft: true,
   format: "BO5",
   patchName: "25.13",
   status: "in-progress",

@@ -40,6 +40,7 @@ export default function CommentatorPredictionsPage(): React.ReactElement {
                 redTeamId: n.team2!,
                 format: selectedTournament.matchFormat,
                 patchName: selectedTournament.patchVersion || "",
+                isFearlessDraft: false,
                 scheduledTime: n.scheduledTime ? new Date(n.scheduledTime) : undefined,
                 startTime: n.scheduledTime ? new Date(n.scheduledTime) : undefined,
                 endTime: n.scheduledTime ? new Date(n.scheduledTime) : undefined,

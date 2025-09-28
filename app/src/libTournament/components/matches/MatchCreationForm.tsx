@@ -85,8 +85,35 @@ export const MatchCreationForm = ({
   const availableBracketNodes =
     bracketNodes?.filter((node) => node.status === "pending" && node.team1 && node.team2) || [];
 
+  const generateMatchName = useCallback((): string => {
+    if (!formData.blueTeamId || !formData.redTeamId) return "";
+    
+    const blueTeam = availableTeams.find((t) => t._id === formData.blueTeamId);
+    const redTeam = availableTeams.find((t) => t._id === formData.redTeamId);
+    
+    if (!blueTeam || !redTeam) return "";
+    
+    let name = `${blueTeam.name} vs ${redTeam.name} `;
+    
+    if (formData.isFearlessDraft) {
+      name += " Fearless";
+    }
+    
+    name += `| ${formData.format} | ${formData.patchName}`;
+    
+    return name;
+  }, [formData.blueTeamId, formData.redTeamId, formData.isFearlessDraft, formData.format, formData.patchName, availableTeams]);
+
   const handleInputChange = (field: keyof FormData, value: string | boolean) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+    
+    // Auto-generate name when teams, format, fearless draft, or patch changes
+    if (field === "blueTeamId" || field === "redTeamId" || field === "format" || field === "isFearlessDraft" || field === "patchName") {
+      const newName = generateMatchName();
+      if (newName) {
+        setFormData((prev) => ({ ...prev, name: newName }));
+      }
+    }
   };
 
   const handleCreateMatch = useCallback(async (): Promise<void> => {
@@ -116,7 +143,7 @@ export const MatchCreationForm = ({
         blueTeamId: formData.blueTeamId,
         redTeamId: formData.redTeamId,
         format: formData.format,
-        fearlessDraft: formData.isFearlessDraft,
+        isFearlessDraft: formData.isFearlessDraft,
         patchName: formData.patchName,
         scheduledTime: formData.scheduledTime || undefined,
         createdBy: user?._id || ""
@@ -204,17 +231,20 @@ export const MatchCreationForm = ({
         return;
       }
 
-      const matchName = `Round ${node.round} - ${blueTeam.name} vs ${redTeam.name}`;
-
       setFormData((prev) => ({
         ...prev,
-        name: matchName,
         blueTeamId: node.team1!,
         redTeamId: node.team2!,
         bracketNodeId: node._id
       }));
+
+      // Generate name after setting teams
+      const generatedName = generateMatchName();
+      if (generatedName) {
+        setFormData((prev) => ({ ...prev, name: generatedName }));
+      }
     },
-    [availableTeams, showAlert]
+    [availableTeams, showAlert, generateMatchName]
   );
 
   if (teamsLoading) {
@@ -229,13 +259,29 @@ export const MatchCreationForm = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">Match Name</label>
-            <input
-              type="text"
-              value={formData.name}
-              onChange={(e) => handleInputChange("name", e.target.value)}
-              className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Enter match name"
-            />
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={formData.name}
+                onChange={(e) => handleInputChange("name", e.target.value)}
+                className="flex-1 px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Enter match name"
+              />
+              <Button
+                onClick={() => {
+                  const generatedName = generateMatchName();
+                  if (generatedName) {
+                    setFormData((prev) => ({ ...prev, name: generatedName }));
+                  }
+                }}
+                disabled={!formData.blueTeamId || !formData.redTeamId}
+                size="sm"
+                variant="secondary"
+                className="whitespace-nowrap"
+              >
+                Auto Generate
+              </Button>
+            </div>
           </div>
 
           <div>

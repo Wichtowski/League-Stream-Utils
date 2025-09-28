@@ -31,6 +31,7 @@
     "@types/mongoose": "^5.11.97",
     "axios": "^1.10.0",
     "bcryptjs": "^2.4.3",
+    "critters": "^0.0.25",
     "framer-motion": "^12.23.12",
     "gasp": "^0.0.2",
     "jsonwebtoken": "^9.0.2",

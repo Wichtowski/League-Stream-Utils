@@ -1,6 +1,6 @@
-import { Tournament } from "@lib/types/championStats";
+import { Tournament } from "@libTournament/types";
 import { MatchFormat } from "@libTournament/types/matches";
-import { TournamentData } from "@lib/types/electron";
+import { TournamentData } from "@libElectron/types";
 
 interface TournamentTemplate {
   id: string;

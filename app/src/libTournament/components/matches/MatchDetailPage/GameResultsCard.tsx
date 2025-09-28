@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@lib/components/common";
 import type { Match, GameResult, MatchFormat } from "@libTournament/types/matches";
-import type { Team } from "@lib/types/team";
+import type { Team } from "@libTeam/types";
 import type { Champion } from "@lib/types/game";
 
 interface GameResultsCardProps {
@@ -12,7 +13,7 @@ interface GameResultsCardProps {
   redTeam: Team | null;
   champions: Champion[];
   teamsSwapped: boolean;
-  onTeamsSwappedChange: (swapped: boolean) => void;
+  onSwapTeams: () => void;
   onAddGame: (winnerOverride?: "blue" | "red") => Promise<void>;
   onUpdateGameWinner: (gameNumber: number, winner: "blue" | "red" | "ongoing") => void;
   onSwapGameSides: (gameNumber: number) => void;
@@ -32,7 +33,7 @@ export const GameResultsCard: React.FC<GameResultsCardProps> = ({
   redTeam,
   champions,
   teamsSwapped,
-  onTeamsSwappedChange,
+  onSwapTeams,
   onAddGame,
   onUpdateGameWinner,
   onSwapGameSides,
@@ -43,9 +44,278 @@ export const GameResultsCard: React.FC<GameResultsCardProps> = ({
   getMinGamesByFormat,
   teamWins
 }) => {
+  const [draggedPlayer, setDraggedPlayer] = useState<{playerId: string, teamId: string, side: "blue" | "red"} | null>(null);
+  const [dragOverPlayer, setDragOverPlayer] = useState<string | null>(null);
   const maxGames = getMaxGamesByFormat(match.format);
   const minGames = getMinGamesByFormat(match.format);
   const existing = match.games || [];
+
+  // Framer Motion drag handlers
+  const handleDragStart = (playerId: string, teamId: string, side: "blue" | "red") => {
+    console.log('handleDragStart called with:', { playerId, teamId, side });
+    setDraggedPlayer({ playerId, teamId, side });
+    console.log('setDraggedPlayer called');
+  };
+
+  const _handleDragEnd = () => {
+    setDraggedPlayer(null);
+    setDragOverPlayer(null);
+  };
+
+
+  const handleDrop = async (targetPlayerId: string, targetTeamId: string) => {
+    console.log('handleDrop called with:', { targetPlayerId, targetTeamId, draggedPlayer });
+    if (draggedPlayer && draggedPlayer.playerId !== targetPlayerId && draggedPlayer.teamId === targetTeamId) {
+      console.log('Attempting to swap players:', draggedPlayer.playerId, targetPlayerId, targetTeamId);
+      await swapPlayersInTeam(draggedPlayer.playerId, targetPlayerId, targetTeamId);
+    } else {
+      console.log('Drop conditions not met:', { 
+        hasDraggedPlayer: !!draggedPlayer, 
+        differentPlayers: draggedPlayer?.playerId !== targetPlayerId,
+        sameTeam: draggedPlayer?.teamId === targetTeamId 
+      });
+    }
+    
+    // Don't clear state here - it's already cleared in onDragEnd
+  };
+
+  const swapPlayersInTeam = async (player1Id: string, player2Id: string, teamId: string) => {
+    console.log('swapPlayersInTeam called with:', { player1Id, player2Id, teamId });
+    
+    // Prevent swapping the same player
+    if (player1Id === player2Id) {
+      console.log('Cannot swap player with themselves');
+      return;
+    }
+    
+    try {
+      // Get current team data
+      const teamResponse = await fetch(`/api/v1/teams/${teamId}`);
+      if (!teamResponse.ok) {
+        console.error('Failed to fetch team data:', teamResponse.status, teamResponse.statusText);
+        return;
+      }
+      
+      const { team } = await teamResponse.json();
+      console.log('Team data fetched:', team);
+      if (!team || !team.players?.main) {
+        console.error('Team data not found or invalid structure');
+        return;
+      }
+
+      // Find the indices of the players to swap
+      const player1Index = team.players.main.findIndex((p: { _id: string }) => p._id === player1Id);
+      const player2Index = team.players.main.findIndex((p: { _id: string }) => p._id === player2Id);
+      
+      console.log('Player indices:', { player1Index, player2Index });
+      
+      if (player1Index === -1 || player2Index === -1) {
+        console.error('One or both players not found in team:', { player1Id, player2Id });
+        return;
+      }
+
+      // Create new players array with swapped positions
+      const newPlayers = [...team.players.main];
+      [newPlayers[player1Index], newPlayers[player2Index]] = [newPlayers[player2Index], newPlayers[player1Index]];
+
+      console.log('Swapping players:', {
+        before: [team.players.main[player1Index], team.players.main[player2Index]],
+        after: [newPlayers[player1Index], newPlayers[player2Index]]
+      });
+
+      // Update team with new player order
+      const updateResponse = await fetch(`/api/v1/teams/${teamId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          players: {
+            main: newPlayers,
+            substitutes: team.players.substitutes || []
+          }
+        })
+      });
+
+      if (!updateResponse.ok) {
+        const errorText = await updateResponse.text();
+        console.error('Failed to update team player order:', updateResponse.status, errorText);
+        return;
+      }
+
+      console.log('Team updated successfully, reloading page...');
+      // Refresh the page to show updated player order
+      window.location.reload();
+      
+    } catch (error) {
+      console.error('Error swapping players:', error);
+    }
+  };
+
+  // Draggable player component
+  const DraggablePlayer = ({ 
+    player, 
+    teamId, 
+    side, 
+    gameNumber, 
+    currentChampion, 
+    onChampionChange, 
+    isDisabled = false 
+  }: {
+    player: { _id: string; inGameName?: string; tag: string };
+    teamId: string;
+    side: "blue" | "red";
+    gameNumber?: number;
+    currentChampion?: number;
+    onChampionChange?: (gameNumber: number, side: "blue" | "red", playerId: string, championId: number) => void;
+    isDisabled?: boolean;
+  }) => {
+    const isDragging = draggedPlayer?.playerId === player._id;
+    const isDragOver = dragOverPlayer === player._id;
+    const canDrop = draggedPlayer && draggedPlayer.teamId === teamId && draggedPlayer.playerId !== player._id;
+    const isBeingDraggedOver = draggedPlayer && draggedPlayer.playerId !== player._id && draggedPlayer.teamId === teamId;
+    
+    console.log('DraggablePlayer render:', { 
+      playerId: player._id, 
+      editing, 
+      isDisabled, 
+      dragEnabled: editing && !isDisabled,
+      isDragging 
+    });
+    
+    return (
+      <motion.div
+        drag={editing && !isDisabled}
+        style={{ touchAction: 'none' }}
+        dragConstraints={false}
+        dragElastic={0}
+        dragMomentum={false}
+        dragSnapToOrigin={false}
+        dragPropagation={false}
+        dragTransition={{ bounceStiffness: 0, bounceDamping: 0 }}
+        onDragStart={() => {
+          console.log('Drag started for player:', player._id);
+          handleDragStart(player._id, teamId, side);
+          // Add visual indicators to all valid drop targets
+          const elements = document.querySelectorAll('[data-player-id]');
+          elements.forEach((el) => {
+            const targetPlayerId = el.getAttribute('data-player-id');
+            const targetTeamId = el.getAttribute('data-team-id');
+            if (targetPlayerId && targetTeamId && targetPlayerId !== player._id && targetTeamId === teamId) {
+              el.classList.add('border-2', 'border-blue-500', 'animate-pulse', 'bg-blue-900/20');
+            }
+          });
+        }}
+        onDrag={(_event, _info) => {
+          // Prevent snap-back by maintaining the drag position
+          // console.log('Dragging:', info.point.x, info.point.y, 'draggedPlayer:', draggedPlayer?.playerId);
+        }}
+        onDragEnd={(_, info) => {
+          console.log('Drag end triggered');
+          // Remove visual indicators first
+          const elements = document.querySelectorAll('[data-player-id]');
+          elements.forEach((el) => {
+            el.classList.remove('border-2', 'border-blue-500', 'animate-pulse', 'bg-blue-900/20');
+          });
+          
+          // Use a more reliable method to find drop targets
+          let closestElement = null;
+          let closestDistance = Infinity;
+          
+          elements.forEach((el) => {
+            const rect = el.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            const distance = Math.sqrt(
+              Math.pow(info.point.x - centerX, 2) + Math.pow(info.point.y - centerY, 2)
+            );
+            
+            if (distance < closestDistance && distance < 100) { // Within 100px
+              closestDistance = distance;
+              closestElement = el;
+            }
+          });
+          
+          if (closestElement) {
+            const targetPlayerId = (closestElement as HTMLElement).getAttribute('data-player-id');
+            const targetTeamId = (closestElement as HTMLElement).getAttribute('data-team-id');
+            console.log('Drop target found:', { targetPlayerId, targetTeamId, draggedPlayer: draggedPlayer?.playerId });
+            if (targetPlayerId && targetTeamId && targetPlayerId !== player._id) {
+              console.log('Attempting drop');
+              handleDrop(targetPlayerId, targetTeamId);
+            }
+          }
+          
+          // Always clear the drag state when drag ends
+          setDraggedPlayer(null);
+          setDragOverPlayer(null);
+        }}
+        whileDrag={{ 
+          scale: 1.05, 
+          rotate: 2,
+          zIndex: 1000,
+          boxShadow: "0 10px 25px rgba(0,0,0,0.3)",
+          opacity: 0.7
+        }}
+        className={`
+          flex items-center justify-between gap-2 p-2 rounded-md cursor-grab
+          ${isDragOver && canDrop ? 'bg-green-900/50 border-2 border-green-500' : ''}
+          ${isDragOver && !canDrop ? 'bg-red-900/50 border-2 border-red-500' : ''}
+          ${isBeingDraggedOver ? 'border-2 border-blue-500 bg-blue-900/20' : ''}
+          ${editing && !isDisabled && !isDragging ? 'hover:bg-gray-700/50' : ''}
+          ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}
+        `}
+        data-player-id={player._id}
+        data-team-id={teamId}
+      >
+        <div className="flex items-center gap-2">
+          {editing && !isDisabled && (
+            <div className="text-gray-400 text-xs cursor-grab hover:text-gray-200 select-none">⋮⋮</div>
+          )}
+          <span className="text-sm text-gray-300 truncate">{player.inGameName || player.tag}</span>
+          <AnimatePresence>
+            {isDragOver && canDrop && (
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                className="text-green-400 text-xs font-bold"
+              >
+                ✓ Drop here
+              </motion.div>
+            )}
+            {isDragOver && !canDrop && (
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                className="text-red-400 text-xs font-bold"
+              >
+                ✗ Invalid drop
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+        <select
+          className="w-40 px-2 py-1 bg-gray-700 border border-gray-600 rounded-md text-white"
+          value={currentChampion ?? ""}
+          onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+            if (onChampionChange && gameNumber) {
+              onChampionChange(gameNumber, side, player._id, parseInt(e.target.value));
+            }
+          }}
+          disabled={isDisabled}
+        >
+          <option value="">Select champion</option>
+          {champions.map((c) => (
+            <option key={c._id} value={c._id}>
+              {c.name}
+            </option>
+          ))}
+        </select>
+      </motion.div>
+    );
+  };
 
   const requiredWins = Math.ceil(maxGames / 2);
   const seriesDecided = teamWins.team1Wins >= requiredWins || teamWins.team2Wins >= requiredWins;
@@ -108,7 +378,7 @@ export const GameResultsCard: React.FC<GameResultsCardProps> = ({
                       <div className="flex items-center justify-center">
                         <button
                           type="button"
-                          onClick={() => onTeamsSwappedChange(!teamsSwapped)}
+                          onClick={onSwapTeams}
                           className="px-3 py-2 bg-gray-600 hover:bg-gray-500 rounded-md text-white border border-gray-500"
                           aria-label="Swap teams"
                           title="Swap teams"
@@ -139,6 +409,40 @@ export const GameResultsCard: React.FC<GameResultsCardProps> = ({
                           }}
                           className="h-4 w-4"
                         />
+                      </div>
+                    </div>
+                    
+                    {/* Players section for pending game */}
+                    <div className="mt-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <div className="text-xs text-gray-400 mb-2">Blue side champions</div>
+                          <div className="space-y-2">
+                            {((teamsSwapped ? redTeam?.players?.main : blueTeam?.players?.main) || []).slice(0, 5).map((p) => (
+                              <DraggablePlayer
+                                key={`blue_pending_${p._id}`}
+                                player={p}
+                                teamId={teamsSwapped ? match.redTeamId : match.blueTeamId}
+                                side="blue"
+                                isDisabled={false}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-xs text-gray-400 mb-2 text-right">Red side champions</div>
+                          <div className="space-y-2">
+                            {((teamsSwapped ? blueTeam?.players?.main : redTeam?.players?.main) || []).slice(0, 5).map((p) => (
+                              <DraggablePlayer
+                                key={`red_pending_${p._id}`}
+                                player={p}
+                                teamId={teamsSwapped ? match.blueTeamId : match.redTeamId}
+                                side="red"
+                                isDisabled={false}
+                              />
+                            ))}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -179,9 +483,13 @@ export const GameResultsCard: React.FC<GameResultsCardProps> = ({
                 </div>
               </div>
               <div className="mt-2 grid grid-cols-3 items-center">
-                <div className="text-white text-sm truncate text-left">{game.blueTeam}</div>
+                <div className="text-white text-sm truncate text-left">
+                  {typeof game.blueTeam === 'string' ? game.blueTeam : game.blueTeam.teamName}
+                </div>
                 <div className="text-center text-gray-400 text-xs">VS</div>
-                <div className="text-white text-sm truncate text-right">{game.redTeam}</div>
+                <div className="text-white text-sm truncate text-right">
+                  {typeof game.redTeam === 'string' ? game.redTeam : game.redTeam.teamName}
+                </div>
               </div>
               {editing && (
                 <div className="mt-3 grid grid-cols-3 items-center gap-2">
@@ -235,63 +543,49 @@ export const GameResultsCard: React.FC<GameResultsCardProps> = ({
                     <div>
                       <div className="text-xs text-gray-400 mb-2">Blue side champions</div>
                       <div className="space-y-2">
-                        {(blueTeam?.players?.main || []).slice(0, 5).map((p) => {
-                          const teamId = getTeamIdForSide(game, "blue");
-                          const current = game.championsPlayed?.[teamId]?.[p._id];
-                          return (
-                            <div
-                              key={`blue_${game.gameNumber}_${p._id}`}
-                              className="flex items-center justify-between gap-2"
-                            >
-                              <span className="text-sm text-gray-300 truncate">{p.inGameName || p.tag}</span>
-                              <select
-                                className="w-40 px-2 py-1 bg-gray-700 border border-gray-600 rounded-md text-white"
-                                value={current ?? ""}
-                                onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-                                  onChampionPlayedChange(game.gameNumber, "blue", p._id, parseInt(e.target.value))
-                                }
-                              >
-                                <option value="">Select champion</option>
-                                {champions.map((c) => (
-                                  <option key={c._id} value={c._id}>
-                                    {c.name}
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
-                          );
-                        })}
+                        {(() => {
+                          // For existing games, determine which team is on blue side based on game data
+                          const blueSideTeamId = getTeamIdForSide(game, "blue");
+                          const blueSideTeam = blueSideTeamId === match.blueTeamId ? blueTeam : redTeam;
+                          return (blueSideTeam?.players?.main || []).slice(0, 5).map((p) => {
+                            const current = game.championsPlayed?.[blueSideTeamId]?.[p._id];
+                            return (
+                              <DraggablePlayer
+                                key={`blue_${game.gameNumber}_${p._id}`}
+                                player={p}
+                                teamId={blueSideTeamId}
+                                side="blue"
+                                gameNumber={game.gameNumber}
+                                currentChampion={current}
+                                onChampionChange={onChampionPlayedChange}
+                              />
+                            );
+                          });
+                        })()}
                       </div>
                     </div>
                     <div>
                       <div className="text-xs text-gray-400 mb-2 text-right">Red side champions</div>
                       <div className="space-y-2">
-                        {(redTeam?.players?.main || []).slice(0, 5).map((p) => {
-                          const teamId = getTeamIdForSide(game, "red");
-                          const current = game.championsPlayed?.[teamId]?.[p._id];
-                          return (
-                            <div
-                              key={`red_${game.gameNumber}_${p._id}`}
-                              className="flex items-center justify-between gap-2"
-                            >
-                              <span className="text-sm text-gray-300 truncate">{p.inGameName || p.tag}</span>
-                              <select
-                                className="w-40 px-2 py-1 bg-gray-700 border border-gray-600 rounded-md text-white"
-                                value={current ?? ""}
-                                onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-                                  onChampionPlayedChange(game.gameNumber, "red", p._id, parseInt(e.target.value))
-                                }
-                              >
-                                <option value="">Select champion</option>
-                                {champions.map((c) => (
-                                  <option key={c._id} value={c._id}>
-                                    {c.name}
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
-                          );
-                        })}
+                        {(() => {
+                          // For existing games, determine which team is on red side based on game data
+                          const redSideTeamId = getTeamIdForSide(game, "red");
+                          const redSideTeam = redSideTeamId === match.blueTeamId ? blueTeam : redTeam;
+                          return (redSideTeam?.players?.main || []).slice(0, 5).map((p) => {
+                            const current = game.championsPlayed?.[redSideTeamId]?.[p._id];
+                            return (
+                              <DraggablePlayer
+                                key={`red_${game.gameNumber}_${p._id}`}
+                                player={p}
+                                teamId={redSideTeamId}
+                                side="red"
+                                gameNumber={game.gameNumber}
+                                currentChampion={current}
+                                onChampionChange={onChampionPlayedChange}
+                              />
+                            );
+                          });
+                        })()}
                       </div>
                     </div>
                   </div>

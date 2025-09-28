@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { SafeImage } from "@lib/components/common/SafeImage";
-import type { GameResult } from "@libTournament/types/matches";
+import { GameResult } from "@libTournament/types";
 import { getTeamWins } from "@libLeagueClient/utils/teamWins";
 
 // Generic team type that works with both PickbanTournamentTeam and MatchTeam
