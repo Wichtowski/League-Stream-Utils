@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigation } from "@lib/contexts/NavigationContext";
 import { LoadingSpinner } from "@lib/components/common";
 import { ConfirmModal } from "@lib/components/common/modal";
@@ -21,6 +21,13 @@ export default function CommentatorsPage(): React.ReactElement {
     isOpen: boolean;
     commentator: Commentator | null;
   }>({ isOpen: false, commentator: null });
+  const pageProps = useMemo(() => {
+    return {
+      title: !commentators ? (loading ? "Commentators Management" : "Commentators Not Found") : "Commentators Management",
+      subtitle: "Add, edit, and delete commentators for tournaments",
+      breadcrumbs: [{ label: "Commentators", href: "/modules/commentators", isActive: true }]
+    }
+  }, [commentators, loading]);
 
   useEffect(() => {
     setActiveModule("commentators");
@@ -209,18 +216,14 @@ export default function CommentatorsPage(): React.ReactElement {
 
   if (loading && commentators.length === 0) {
     return (
-      <PageWrapper>
+      <PageWrapper {...pageProps}>
         <LoadingSpinner fullscreen text="Loading commentators..." />
       </PageWrapper>
     );
   }
-
+  
   return (
-    <PageWrapper
-      title="Commentators Management"
-      subtitle="Manage commentators for tournaments"
-      breadcrumbs={[{ label: "Commentators", href: "/modules/commentators", isActive: true }]}
-    >
+    <PageWrapper {...pageProps}>
       <div className="bg-gray-900 rounded-xl p-6 mb-10 shadow-lg">
         <h3 className="text-xl font-semibold text-white mb-4">
           {editingCommentator ? "Edit Commentator" : "Add Commentator"}

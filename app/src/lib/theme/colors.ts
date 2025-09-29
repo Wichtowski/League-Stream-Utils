@@ -122,6 +122,11 @@ export const colorCombinations = {
       bg: colors.status.error,
       hover: "#b91c1c",
       text: colors.gray[50]
+    },
+    custom: {
+      bg: "",
+      hover: "",
+      text: ""
     }
   }
 } as const;

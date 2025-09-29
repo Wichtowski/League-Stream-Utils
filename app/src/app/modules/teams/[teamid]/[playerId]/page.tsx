@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useModal } from "@lib/contexts";
 import { useAuthenticatedFetch } from "@lib/hooks/useAuthenticatedFetch";
 import { PageWrapper } from "@lib/layout/PageWrapper";
-import { Button } from "@lib/components/common";
+import { Button, LoadingSpinner } from "@lib/components/common";
 import { Player } from "@lib/types";
 import { Team } from "@libTeam/types";
 
@@ -44,6 +44,15 @@ const PlayerStatsPage: React.FC = () => {
   const [careerStats, setCareerStats] = useState<PlayerCareerStats | null>(null);
   const [championMastery, setChampionMastery] = useState<ChampionMasteryItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const pageProps = useMemo(() => {
+    return {
+      title: !player ? (loading ? "Loading player..." : "Player not found") : `${player.inGameName}#${player.tag}`,
+      breadcrumbs: [
+        { label: "Teams", href: "/modules/teams" },
+        { label: team?.name || "Team", href: `/modules/teams/${teamId}` },
+        { label: `${player?.inGameName}#${player?.tag}`, href: `/modules/teams/${teamId}/${playerId}`, isActive: true }]
+    }
+  }, [player, loading, teamId, playerId, team]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -112,30 +121,15 @@ const PlayerStatsPage: React.FC = () => {
 
   if (loading) {
     return (
-      <PageWrapper
-        title="Loading player..."
-        breadcrumbs={[
-          { label: "Teams", href: "/modules/teams" },
-          { label: team?.name || "Team", href: `/modules/teams/${teamId}` },
-          { label: "Player", href: `/modules/teams/${teamId}/${playerId}`, isActive: true }
-        ]}
-        loading
-      >
-        <></>
+      <PageWrapper {...pageProps}>
+        <LoadingSpinner fullscreen text="Loading player..." />
       </PageWrapper>
     );
   }
 
   if (!team || !player) {
     return (
-      <PageWrapper
-        title="Player not found"
-        breadcrumbs={[
-          { label: "Teams", href: "/modules/teams" },
-          { label: team?.name || "Team", href: `/modules/teams/${teamId}` },
-          { label: "Player", href: `/modules/teams/${teamId}/${playerId}`, isActive: true }
-        ]}
-      >
+      <PageWrapper {...pageProps}>
         <div className="text-center py-8">
           <h2 className="text-xl font-semibold text-gray-300 mb-2">Player Not Found</h2>
           <p className="text-gray-400 mb-4">
@@ -153,14 +147,7 @@ const PlayerStatsPage: React.FC = () => {
   }
 
   return (
-    <PageWrapper
-      title={`${player.inGameName}#${player.tag}`}
-      breadcrumbs={[
-        { label: "Teams", href: "/modules/teams" },
-        { label: team.name, href: `/modules/teams/${teamId}` },
-        { label: `${player.inGameName}#${player.tag}`, href: `/modules/teams/${teamId}/${playerId}`, isActive: true }
-      ]}
-    >
+    <PageWrapper {...pageProps}>
       <div className="space-y-6">
         {/* Player Header */}
         <div className="bg-gray-800 rounded-lg p-6">

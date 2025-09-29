@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { TeamCreationForm } from "@libTeam/components";
 import { PageWrapper } from "@lib/layout";
@@ -10,9 +10,18 @@ import { useNavigation, useModal } from "@lib/contexts";
 export default function CreateTeamPage() {
   const [creating, setCreating] = useState(false);
   const { setActiveModule } = useNavigation();
-
   const { showAlert } = useModal();
   const router = useRouter();
+
+  const pageProps = useMemo(() => {
+    return {
+      title: "Create Team",
+      breadcrumbs: [
+        { label: "Teams", href: "/modules/teams" },
+        { label: "Create Team", href: "/modules/teams/create", isActive: true }
+      ]
+    }
+  }, []);
 
   useEffect(() => {
     setActiveModule("teams");
@@ -60,13 +69,7 @@ export default function CreateTeamPage() {
   };
 
   return (
-    <PageWrapper
-      title="Create Team"
-      breadcrumbs={[
-        { label: "Teams", href: "/modules/teams" },
-        { label: "Create Team", href: "/modules/teams/create", isActive: true }
-      ]}
-    >
+    <PageWrapper {...pageProps}>
       <TeamCreationForm onSubmit={handleCreateTeam} isCreating={creating} onCancel={handleCancel} />
     </PageWrapper>
   );

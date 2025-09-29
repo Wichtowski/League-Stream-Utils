@@ -18,6 +18,7 @@ type NavigationModule =
   | "sponsors"
   | "matches"
   | "commentators"
+  | "matches"
   | null;
 
 interface NavigationContextType {

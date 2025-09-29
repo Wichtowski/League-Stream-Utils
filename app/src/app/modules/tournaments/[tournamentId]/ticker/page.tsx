@@ -34,7 +34,7 @@ export default function TournamentTickerPage() {
         { label: "Ticker", href: `/modules/tournaments/${tournamentId}/ticker` },
       ],
     }
-  }, [tournament, tournamentId]);
+  }, [tournament, tournamentId, tournamentsLoading]);
   
   useEffect(() => {
     setActiveModule("tournaments");

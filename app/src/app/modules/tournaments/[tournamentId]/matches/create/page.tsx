@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { Match, Tournament, BracketStructure } from "@libTournament/types";
 import { useUser } from "@lib/contexts";
@@ -18,6 +18,17 @@ export default function CreateMatchPage(): React.ReactElement {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const tournamentId = params.tournamentId as string;
+  const pageProps = useMemo(() => {
+    return {
+      title: "Create Match",
+      subtitle: "Create a new match for this tournament. You can create matches manually or from existing bracket nodes.",
+      breadcrumbs: [
+        { label: "Tournaments", href: "/modules/tournaments" },
+        { label: "Matches", href: `/modules/tournaments/${tournamentId}/matches` },
+        { label: "Create", href: `/modules/tournaments/${tournamentId}/matches/create`, isActive: true }
+      ]
+    }
+  }, [tournamentId]);
 
   useEffect(() => {
     if (!tournamentId) return;
@@ -73,13 +84,7 @@ export default function CreateMatchPage(): React.ReactElement {
 
   if (loading) {
     return (
-      <PageWrapper
-        breadcrumbs={[
-          { label: "Tournaments", href: "/modules/tournaments" },
-          { label: "Matches", href: `/modules/tournaments/${tournamentId}/matches` },
-          { label: "Create", href: `/modules/tournaments/${tournamentId}/matches/create`, isActive: true }
-        ]}
-      >
+      <PageWrapper {...pageProps}>
         <div className="min-h-screen p-6 max-w-6xl mx-auto">
           <div className="text-center py-12">
             <LoadingSpinner />
@@ -92,12 +97,7 @@ export default function CreateMatchPage(): React.ReactElement {
 
   if (error) {
     return (
-      <PageWrapper
-        breadcrumbs={[
-          { label: "Tournaments", href: "/modules/tournaments" },
-          { label: "Matches", href: `/modules/tournaments/${tournamentId}/matches`, isActive: true }
-        ]}
-      >
+      <PageWrapper {...pageProps}>
         <div className="min-h-screen p-6 max-w-6xl mx-auto">
           <div className="text-center py-12">
             <div className="text-red-400 text-lg mb-4">{error}</div>
@@ -109,13 +109,7 @@ export default function CreateMatchPage(): React.ReactElement {
 
   if (!tournament) {
     return (
-      <PageWrapper
-        breadcrumbs={[
-          { label: "Tournaments", href: "/modules/tournaments" },
-          { label: "Matches", href: `/modules/tournaments/${tournamentId}/matches` },
-          { label: "Create", href: `/modules/tournaments/${tournamentId}/matches/create`, isActive: true }
-        ]}
-      >
+      <PageWrapper {...pageProps}>
         <div className="min-h-screen p-6 max-w-6xl mx-auto">
           <div className="text-center py-12">
             <div className="text-red-400 text-lg mb-4">Tournament not found</div>
@@ -126,13 +120,7 @@ export default function CreateMatchPage(): React.ReactElement {
   }
 
   return (
-    <PageWrapper
-      breadcrumbs={[
-        { label: "Tournaments", href: "/modules/tournaments" },
-        { label: "Matches", href: `/modules/tournaments/${tournamentId}/matches` },
-        { label: "Create", href: `/modules/tournaments/${tournamentId}/matches/create`, isActive: true }
-      ]}
-    >
+    <PageWrapper {...pageProps}>
       <div className="min-h-screen p-6 max-w-6xl mx-auto">
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-white mt-4">Create Match - {tournament.name}</h1>

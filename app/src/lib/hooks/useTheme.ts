@@ -1,4 +1,5 @@
 import { colors, colorCombinations, withOpacity } from "../theme/colors";
+import { ButtonVariant } from "../components/common/button/Button";
 
 export const useTheme = () => {
   return {
@@ -7,7 +8,7 @@ export const useTheme = () => {
     withOpacity,
 
     // Convenience methods for common patterns
-    getButtonColors: (variant: "primary" | "secondary" | "success" | "destructive") => {
+    getButtonColors: (variant: ButtonVariant) => {
       return colorCombinations.button[variant];
     },
 

@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState, useCallback, type ReactElement, Suspense, useMemo } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState, useCallback, type ReactElement, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { useNavigation } from "@lib/contexts";
 import { PageWrapper } from "@lib/layout";
 import { TeamListCard } from "@libTeam/components";
@@ -10,7 +10,6 @@ import { LoadingSpinner } from "@lib/components/common";
 
 export default function TeamsPage(): ReactElement {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { setActiveModule } = useNavigation();
   const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
@@ -18,16 +17,16 @@ export default function TeamsPage(): ReactElement {
 
   const pageProps = useMemo(() => {
     return {
-      title: "My Teams",
+      title: !teams ? (loading ? "Teams" : "Teams Not Found") : "Teams",
       breadcrumbs: [{ label: "Teams", href: "/modules/teams", isActive: true }],
-      actions: <button
+      actions: teams.length > 0 ? <button
         onClick={() => router.push("/modules/teams/create")}
         className="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-lg transition-colors"
       >
         Create Team
-      </button>
+      </button> : null
     }
-  }, [router]);
+  }, [router, teams, loading]);
 
   useEffect(() => {
     setActiveModule("teams");
@@ -67,33 +66,19 @@ export default function TeamsPage(): ReactElement {
     fetchTeams();
   }, [fetchTeams]);
 
-  // Check if we're returning from team creation and refresh
-  useEffect(() => {
-    const refresh = searchParams.get("refresh");
-    if (refresh === "true") {
-      fetchTeams();
-      // Clean up the URL
-      router.replace("/modules/teams");
-    }
-  }, [searchParams, fetchTeams, router]);
-
   if (loading) {
     return (
-      <Suspense fallback={<LoadingSpinner className="mx-auto mt-16">Loading Teams...</LoadingSpinner>}>
-        <PageWrapper
-          {...pageProps}
-        >
-          <LoadingSpinner className="mx-auto mt-16">Loading Teams...</LoadingSpinner>
-        </PageWrapper>
-      </Suspense>
+      <PageWrapper
+        {...pageProps}
+      >
+        <LoadingSpinner className="mx-auto mt-16">Loading Teams...</LoadingSpinner>
+      </PageWrapper>
     );
   }
 
   if (error) {
     return (
-      <PageWrapper
-        {...pageProps}
-      >
+      <PageWrapper {...pageProps}>
         <div className="text-center py-16">
           <div className="w-24 h-24 bg-red-700 rounded-full mx-auto mb-6 flex items-center justify-center">
             <svg className="w-12 h-12 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -126,47 +111,43 @@ export default function TeamsPage(): ReactElement {
   }
 
   return (
-    <Suspense fallback={<LoadingSpinner className="mx-auto mt-16">Loading Teams...</LoadingSpinner>}>
-      <PageWrapper
-        {...pageProps}
-      >
-        {teams.length === 0 ? (
-          <div className="text-center py-16">
-            <div className="w-24 h-24 bg-gray-700 rounded-full mx-auto mb-6 flex items-center justify-center">
-              <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                />
-              </svg>
-            </div>
-            <h3 className="text-xl font-semibold text-gray-300 mb-4">No standalone teams created yet</h3>
-            <p className="text-gray-400 mb-6 max-w-md mx-auto">
-              Create your first standalone team to get started with tournaments and matches.
-            </p>
-            <button
-              onClick={() => router.push("/modules/teams/create")}
-              className="bg-blue-600 hover:bg-blue-700 px-8 py-3 rounded-lg font-medium transition-colors"
-            >
-              Create Your First Team
-            </button>
+    <PageWrapper {...pageProps}>
+      {teams.length === 0 ? (
+        <div className="text-center py-16">
+          <div className="w-24 h-24 bg-gray-700 rounded-full mx-auto mb-6 flex items-center justify-center">
+            <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+              />
+            </svg>
           </div>
-        ) : (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {teams
-                .filter((team) => {
-                  return team && team.name && team.tag && team.isStandalone;
-                })
-                .map((team) => (
-                  <TeamListCard key={team._id} team={team} />
-                ))}
-            </div>
+          <h3 className="text-xl font-semibold text-gray-300 mb-4">No standalone teams created yet</h3>
+          <p className="text-gray-400 mb-6 max-w-md mx-auto">
+            Create your first standalone team to get started with tournaments and matches.
+          </p>
+          <button
+            onClick={() => router.push("/modules/teams/create")}
+            className="bg-blue-600 hover:bg-blue-700 px-8 py-3 rounded-lg font-medium transition-colors"
+          >
+            Create Your First Team
+          </button>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {teams
+              .filter((team) => {
+                return team && team.name && team.tag && team.isStandalone;
+              })
+              .map((team) => (
+                <TeamListCard key={team._id} team={team} />
+              ))}
           </div>
-        )}
-      </PageWrapper>
-    </Suspense>
+        </div>
+      )}
+    </PageWrapper>
   );
 }

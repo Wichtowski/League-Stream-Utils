@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import { useNavigation } from "@lib/contexts/NavigationContext";
 import { useAuth } from "@lib/contexts/AuthContext";
 import { CopyButton } from "@lib/components/common";
@@ -10,6 +10,13 @@ import Link from "next/link";
 export default function LeagueClientPage(): React.ReactElement {
   const { setActiveModule } = useNavigation();
   const { user: _user, isLoading: _authLoading } = useAuth();
+  const pageProps = useMemo(() => {
+    return {
+      title: "League Client Integration",
+      subtitle: "Quick links to demo overlays. Open to preview or copy URL for OBS/browser source.",
+      breadcrumbs: [{ label: "LeagueClient", href: "/modules/leagueclient", isActive: true }]
+    }
+  }, []);
 
   useEffect(() => {
     setActiveModule("leagueclient");
@@ -64,11 +71,7 @@ export default function LeagueClientPage(): React.ReactElement {
   };
 
   return (
-    <PageWrapper
-      title="League Client Integration"
-      subtitle="Quick links to demo overlays. Open to preview or copy URL for OBS/browser source."
-      breadcrumbs={[{ label: "LeagueClient", href: "/modules/leagueclient" }]}
-    >
+    <PageWrapper {...pageProps}>
       <div className="min-h-screen text-white p-6">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

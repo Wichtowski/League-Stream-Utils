@@ -7,6 +7,7 @@ import { MyTeamRegistration } from "../tournament/MyTeamRegistration";
 import { StandaloneTeamManager } from "../standalone/StandaloneTeamManager";
 import { PermissionGuard } from "@lib/components/permissions/PermissionGuard";
 import { Permission } from "@lib/types/permissions";
+import { Button } from "@/lib/components/common/button/Button";
 
 interface TournamentEditorProps {
   tournament: Tournament;
@@ -14,7 +15,7 @@ interface TournamentEditorProps {
   onTournamentUpdate: () => void;
 }
 
-const buttonStyle = "px-4 py-2 rounded text-sm cursor-pointer";
+const buttonStyle = "px-4 py-2 rounded text-sm cursor-pointer text-black transition";
 
 export const TournamentEditor = ({
   tournament,
@@ -24,6 +25,13 @@ export const TournamentEditor = ({
   const router = useRouter();
   const [showMyTeamRegistration, setShowMyTeamRegistration] = useState(false);
   const [showStandaloneTeamManager, setShowStandaloneTeamManager] = useState(false);
+
+  const getButtonBgStyle = (index: number): React.CSSProperties => {
+    const hue = (index * 12) % 360;
+    return { backgroundColor: `hsl(${hue} 85% 45%)` };
+  };
+
+  
 
   const handleTournamentUpdated = () => {
     onTournamentUpdate();
@@ -103,112 +111,162 @@ export const TournamentEditor = ({
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <div className="bg-gray-800 rounded-lg p-6">
-        <h3 className="text-lg font-semibold mb-4">Tournament Actions</h3>
-        <div className="flex flex-wrap gap-3">
-          <button
-            onClick={() => router.push(`/modules/tournaments/${tournament._id}/sponsors`)}
-            className={`${buttonStyle} bg-indigo-600 hover:bg-indigo-700`}
-          >
-            Sponsors
-          </button>
+      {/* Actions */}
+      {(() => {
+        let idx = 0;
+        return (
+          <>
+            <div className="bg-gray-800 rounded-lg p-6">
+              <h3 className="text-lg font-semibold mb-4">Organization</h3>
+              <div className="flex flex-wrap gap-3">
+                <Button
+                  onClick={() => router.push(`/modules/tournaments/${tournament._id}/matches`)}
+                  className={`${buttonStyle}`}
+                  hoverStyle={getButtonBgStyle(idx++).backgroundColor}
+                  style={getButtonBgStyle(idx++)}
+                  variant="custom"
+                >
+                  Matches
+                </Button>
 
-          <button
-            onClick={() => router.push(`/modules/tournaments/${tournament._id}/ticker`)}
-            className={`${buttonStyle} bg-purple-600 hover:bg-purple-700`}
-          >
-            Ticker
-          </button>
+                {(tournament.status === "draft" || tournament.status === "ongoing") && (
+                  <Button
+                    onClick={() => handleGenerateMatches()}
+                    className={`${buttonStyle}`}
+                    hoverStyle={getButtonBgStyle(idx++).backgroundColor}
+                    style={getButtonBgStyle(idx++)}
+                    variant="custom"
+                  >
+                    Generate {tournament.tournamentFormat === "Ladder" ? "Ladder" : "Matches"}
+                  </Button>
+                )}
 
-          <button
-            onClick={() => router.push(`/modules/tournaments/${tournament._id}/commentators`)}
-            className={`${buttonStyle} bg-blue-600 hover:bg-blue-700`}
-          >
-            Add commentators
-          </button>
+                <Button
+                  onClick={() => router.push(`/modules/tournaments/${tournament._id}/standalone`)}
+                  className={`${buttonStyle}`}
+                  hoverStyle={getButtonBgStyle(idx++).backgroundColor}
+                  style={getButtonBgStyle(idx++)}
+                  variant="custom"
+                >
+                  Standalone Teams
+                </Button>
 
-          <button
-            onClick={() => router.push(`/modules/tournaments/${tournament._id}/predictions`)}
-            className={`${buttonStyle} bg-purple-600 hover:bg-purple-700`}
-          >
-            Predictions
-          </button>
+                <PermissionGuard permission={Permission.TOURNAMENT_ADMIN} resourceId={tournament._id}>
+                  <Button
+                    onClick={() => router.push(`/modules/tournaments/${tournament._id}/permissions`)}
+                    className={`${buttonStyle}`}
+                    hoverStyle={getButtonBgStyle(idx++).backgroundColor}
+                    style={getButtonBgStyle(idx++)}
+                    variant="custom"
+                  >
+                    Manage Permissions
+                  </Button>
+                </PermissionGuard>
 
-          <button
-            onClick={() => router.push(`/modules/tournaments/${tournament._id}/matches`)}
-            className={`${buttonStyle} bg-red-600 hover:bg-red-700`}
-          >
-            Matches
-          </button>
+                {tournament.status === "draft" && (
+                  <Button
+                    onClick={() => onStatusUpdate(tournament._id, "registration")}
+                    className={`${buttonStyle}`}
+                    hoverStyle={getButtonBgStyle(idx++).backgroundColor}
+                    style={getButtonBgStyle(idx++)}
+                    variant="custom"
+                  >
+                    Open Registration
+                  </Button>
+                )}
 
-          {(tournament.status === "draft" || tournament.status === "ongoing") && (
-            <button
-              onClick={() => handleGenerateMatches()}
-              className={`${buttonStyle} bg-green-600 hover:bg-green-700`}
-            >
-              Generate {tournament.tournamentFormat === "Ladder" ? "Ladder" : "Matches"}
-            </button>
-          )}
+                {tournament.status === "registration" && (
+                  <>
+                    <Button
+                      onClick={() => onStatusUpdate(tournament._id, "ongoing")}
+                      className={`${buttonStyle}`}
+                      hoverStyle={getButtonBgStyle(idx++).backgroundColor}
+                      style={getButtonBgStyle(idx++)}
+                      variant="custom"
+                    >
+                      Start Tournament
+                    </Button>
+                    <Button
+                      onClick={() => setShowMyTeamRegistration(true)}
+                      className={`${buttonStyle}`}
+                      hoverStyle={getButtonBgStyle(idx++).backgroundColor}
+                      style={getButtonBgStyle(idx++)}
+                      variant="custom"
+                    >
+                      Add Teams
+                    </Button>
+                    <Button
+                      onClick={() => onStatusUpdate(tournament._id, "draft")}
+                      className={`${buttonStyle}`}
+                      hoverStyle={getButtonBgStyle(idx++).backgroundColor}
+                      style={getButtonBgStyle(idx++)}
+                      variant="custom"
+                    >
+                      Close Registration
+                    </Button>
+                  </>
+                )}
 
-          <button
-            onClick={() => router.push(`/modules/tournaments/${tournament._id}/standalone`)}
-            className={`${buttonStyle} bg-orange-600 hover:bg-orange-700`}
-          >
-            Standalone Teams
-          </button>
+                {tournament.status === "ongoing" && (
+                  <Button
+                    onClick={() => onStatusUpdate(tournament._id, "completed")}
+                    className={`${buttonStyle}`}
+                    hoverStyle={getButtonBgStyle(idx++).backgroundColor}
+                    style={getButtonBgStyle(idx++)}
+                    variant="custom"
+                  >
+                    Complete Tournament
+                  </Button>
+                )}
+              </div>
+            </div>
+            <div className="bg-gray-800 rounded-lg p-6">
+              <h3 className="text-lg font-semibold mb-4">Overlay Utilities</h3>
+              <div className="flex flex-wrap gap-3">
+                <Button
+                  onClick={() => router.push(`/modules/tournaments/${tournament._id}/sponsors`)}
+                  className={`${buttonStyle}`}
+                  hoverStyle={getButtonBgStyle(idx++).backgroundColor}
+                  style={getButtonBgStyle(idx++)}
+                  variant="custom"
+                >
+                  Sponsors
+                </Button>
 
-          <PermissionGuard permission={Permission.TOURNAMENT_ADMIN} resourceId={tournament._id}>
-            <button
-              onClick={() => router.push(`/modules/tournaments/${tournament._id}/permissions`)}
-              className={`${buttonStyle} bg-purple-600 hover:bg-purple-700`}
-            >
-              Manage Permissions
-            </button>
-          </PermissionGuard>
+                <Button
+                  onClick={() => router.push(`/modules/tournaments/${tournament._id}/ticker`)}
+                  className={`${buttonStyle}`}
+                  hoverStyle={getButtonBgStyle(idx++).backgroundColor}
+                  style={getButtonBgStyle(idx++)}
+                  variant="custom"
+                >
+                  Ticker
+                </Button>
 
-          {tournament.status === "draft" && (
-            <button
-              onClick={() => onStatusUpdate(tournament._id, "registration")}
-              className={`${buttonStyle} bg-blue-600 hover:bg-blue-700`}
-            >
-              Open Registration
-            </button>
-          )}
+                <Button
+                  onClick={() => router.push(`/modules/tournaments/${tournament._id}/commentators`)}
+                  className={`${buttonStyle}`}
+                  hoverStyle={getButtonBgStyle(idx++).backgroundColor}
+                  style={getButtonBgStyle(idx++)}
+                  variant="custom"
+                >
+                  Add commentators
+                </Button>
 
-          {tournament.status === "registration" && (
-            <>
-              <button
-                onClick={() => onStatusUpdate(tournament._id, "ongoing")}
-                className={`${buttonStyle} bg-green-600 hover:bg-green-700`}
-              >
-                Start Tournament
-              </button>
-              <button
-                onClick={() => setShowMyTeamRegistration(true)}
-                className={`${buttonStyle} bg-purple-600 hover:bg-purple-700`}
-              >
-                Add Teams
-              </button>
-              <button
-                onClick={() => onStatusUpdate(tournament._id, "draft")}
-                className={`${buttonStyle} bg-gray-600 hover:bg-gray-700`}
-              >
-                Close Registration
-              </button>
-            </>
-          )}
-
-          {tournament.status === "ongoing" && (
-            <button
-              onClick={() => onStatusUpdate(tournament._id, "completed")}
-              className={`${buttonStyle} bg-gray-600 hover:bg-gray-700`}
-            >
-              Complete Tournament
-            </button>
-          )}
-        </div>
-      </div>
+                <Button
+                  onClick={() => router.push(`/modules/tournaments/${tournament._id}/predictions`)}
+                  className={`${buttonStyle}`}
+                  hoverStyle={getButtonBgStyle(idx++).backgroundColor}
+                  style={getButtonBgStyle(idx++)}
+                  variant="custom"
+                >
+                  Predictions
+                </Button>
+              </div>
+            </div>
+          </>
+        );
+      })()}
 
       {/* Modals */}
       {showMyTeamRegistration && (

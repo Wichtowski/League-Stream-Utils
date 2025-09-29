@@ -97,6 +97,23 @@ export default function ModulesPage() {
   const isHiddenBehindTournament = (module: ModuleCard) =>
     module.name === "Matches" || module.name === "Commentators" || module.name === "Sponsors";
 
+  const pageProps = {
+    title: visibleModules.length === 0 ? (loading ? "Modules" : "Modules Not Found") : "Modules",
+    subtitle: `Welcome back, ${
+      user?.username ? user.username.charAt(0).toUpperCase() + user.username.slice(1) : "User"
+    }! Choose a module to get started.`,
+    contentClassName: "max-w-7xl mx-auto",
+    actions: (currentTournament || currentMatch) ? (
+        <>
+          <span>Remove Last Selected:</span>
+          {currentTournament ? (
+            <Button onClick={() => handleRemoveLastSelectedTournament()}>Tournament</Button>
+          ) : null}
+          {currentMatch ? <Button onClick={() => handleRemoveLastSelectedMatch()}>Match</Button> : null}
+        </>
+      ) : null
+  };
+
   if (loading) {
     return (
       <PageWrapper title="Modules" subtitle="Loading modules..." contentClassName="max-w-7xl mx-auto">
@@ -106,22 +123,7 @@ export default function ModulesPage() {
   }
 
   return (
-    <PageWrapper
-      title="Modules"
-      subtitle={`Welcome back, ${user?.username ? user.username.charAt(0).toUpperCase() + user.username.slice(1) : "User"}! Choose a module to get started.`}
-      contentClassName="max-w-7xl mx-auto"
-      actions={
-        currentTournament || currentMatch ? (
-          <>
-            <span>Remove Last Selected:</span>
-            {currentTournament ? (
-              <Button onClick={() => handleRemoveLastSelectedTournament()}>Tournament</Button>
-            ) : null}
-            {currentMatch ? <Button onClick={() => handleRemoveLastSelectedMatch()}>Match</Button> : null}
-          </>
-        ) : null
-      }
-    >
+    <PageWrapper {...pageProps}>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {visibleModules.map((module) => (
           <SpotlightCard

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useModal, useUser } from "@lib/contexts";
 import { useAuthenticatedFetch } from "@lib/hooks/useAuthenticatedFetch";
@@ -20,6 +20,16 @@ const TeamEditPage: React.FC = () => {
   const [showEditForm, setShowEditForm] = useState(false);
   const [team, setTeam] = useState<Team | null>(null);
   const [loading, setLoading] = useState(true);
+  const pageProps = useMemo(() => {
+    return {
+      title: !team ? (loading ? "Loading team..." : "Team not found") : team.name,
+      subtitle: "Manage team details and players",
+      breadcrumbs: [
+        { label: "Teams", href: "/modules/teams" },
+        { label: team?.name || "Team", href: `/modules/teams/${teamId}`, isActive: true }
+      ]
+    }
+  }, [team, loading, teamId]);
 
   // Direct API fetch instead of relying on broken context
   useEffect(() => {
@@ -65,46 +75,6 @@ const TeamEditPage: React.FC = () => {
     fetchTeam();
   }, [teamId, authenticatedFetch]);
 
-  if (loading) {
-    return (
-      <PageWrapper
-        title="Loading team..."
-        breadcrumbs={[
-          { label: "Teams", href: "/modules/teams" },
-          { label: teamId, href: "/modules/teams", isActive: true }
-        ]}
-        loading={true}
-      >
-        <LoadingSpinner fullscreen>Loading Team...</LoadingSpinner>
-      </PageWrapper>
-    );
-  }
-
-  if (!team) {
-    return (
-      <PageWrapper
-        title="Team not found"
-        breadcrumbs={[
-          { label: "Teams", href: "/modules/teams" },
-          { label: teamId || "Unknown", href: "/modules/teams", isActive: true }
-        ]}
-      >
-        <div className="text-center py-8">
-          <h2 className="text-xl font-semibold text-gray-300 mb-2">Team Not Found</h2>
-          <p className="text-gray-400 mb-4">
-            The team you&apos;re looking for doesn&apos;t exist or you don&apos;t have access to it.
-          </p>
-          <Button
-            onClick={() => router.push("/modules/teams")}
-            className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded"
-          >
-            Back to Teams
-          </Button>
-        </div>
-      </PageWrapper>
-    );
-  }
-
   const handleEditTeam = () => {
     setShowEditForm(true);
   };
@@ -124,7 +94,8 @@ const TeamEditPage: React.FC = () => {
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify(updatedTeam)
+        body: JSON.stringify(updatedTeam),
+        credentials: "include"
       });
 
       if (response.ok) {
@@ -196,14 +167,34 @@ const TeamEditPage: React.FC = () => {
     }
   };
 
+  if (loading) {
+    return (
+      <PageWrapper {...pageProps}>
+        <LoadingSpinner fullscreen text="Loading Team..." />
+      </PageWrapper>
+    );
+  }
+
+  if (!team) {
+    return (
+      <PageWrapper {...pageProps}>
+        <div className="text-center py-8">
+          <p className="text-gray-400 mb-4">
+            The team you&apos;re looking for doesn&apos;t exist or you don&apos;t have access to it.
+          </p>
+          <Button
+            onClick={() => router.push("/modules/teams")}
+            className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded"
+          >
+            Back to Teams
+          </Button>
+        </div>
+      </PageWrapper>
+    );
+  }
+
   return (
-    <PageWrapper
-      title={team.name}
-      breadcrumbs={[
-        { label: "Teams", href: "/modules/teams" },
-        { label: team.name, href: `/modules/teams/${team._id}`, isActive: true }
-      ]}
-    >
+    <PageWrapper {...pageProps}>
       <div className="space-y-6">
         {showEditForm ? (
           <TeamEditForm team={team} onSave={handleSaveTeam} onCancel={() => setShowEditForm(false)} />
