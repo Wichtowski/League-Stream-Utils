@@ -50,6 +50,20 @@ export default function TeamPickBanPage() {
   const [isConnected, setIsConnected] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const pageProps = useMemo(() => {
+    return {
+      title: `${session?.teams[teamSide].name} - Pick & Ban`,
+      subtitle: `Session: ${session?.name || sessionId} (Real-time Team Interface)`,
+      actions: <div className="flex gap-3">
+        <div className="bg-green-900/30 border border-green-600 px-3 py-2 rounded-lg text-sm">
+          Real-time Team Interface
+        </div>
+        <div className={`px-3 py-2 rounded-lg text-sm font-medium ${isConnected ? "bg-green-600 text-white" : "bg-red-600 text-white"}`}>
+          {isConnected ? "Connected" : "Disconnected"}
+        </div>
+      </div>
+    }
+  }, [session, sessionId, isConnected, teamSide]);
 
   const getTeamBans = useCallback(
     (team: "blue" | "red") => {
@@ -323,19 +337,6 @@ export default function TeamPickBanPage() {
   const myTeamLogoUrl = teamSide === "blue" ? blueTeamLogoUrl : redTeamLogoUrl;
   const opponentTeamLogoUrl = teamSide === "blue" ? redTeamLogoUrl : blueTeamLogoUrl;
 
-
-  const pageProps = {
-    title: `${myTeam.name} - Pick & Ban`,
-    subtitle: `Session: ${session.name || sessionId} (Real-time Team Interface)`,
-    actions: <div className="flex gap-3">
-      <div className="bg-green-900/30 border border-green-600 px-3 py-2 rounded-lg text-sm">
-        Real-time Team Interface
-      </div>
-      <div className={`px-3 py-2 rounded-lg text-sm font-medium ${isConnected ? "bg-green-600 text-white" : "bg-red-600 text-white"}`}>
-        {isConnected ? "Connected" : "Disconnected"}
-      </div>
-    </div>
-  };
 
   return (
     <PageWrapper {...pageProps}>

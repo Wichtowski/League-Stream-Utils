@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, type ReactElement } from "react";
+import React, { useEffect, useMemo, type ReactElement } from "react";
 import { useRouter } from "next/navigation";
 import { useNavigation } from "@lib/contexts/NavigationContext";
 import { useAuth } from "@lib/contexts/AuthContext";
@@ -15,13 +15,25 @@ export default function CameraSetupListPage(): ReactElement {
   const { isLoading: authLoading } = useAuth();
   const { mergedTeams, loading } = useMergedCameraTeams(true);
 
+  const pageProps = useMemo(() => {
+    return {
+      requireAuth: false,
+      title:"Camera Stream Setup",
+      subtitle: "Select a team to configure stream URLs",
+      breadcrumbs: [
+        { label: "Camera Hub", href: "/modules/cameras" },
+        { label: "Setup", href: `/modules/cameras/setup`, isActive: true }
+      ],
+    }
+  }, []);
+
   useEffect(() => {
     setActiveModule("cameras");
   }, [setActiveModule]);
 
   if (authLoading || loading) {
     return (
-      <PageWrapper requireAuth={false}>
+      <PageWrapper {...pageProps}>
         <div className="flex items-center justify-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400"></div>
         </div>
@@ -30,16 +42,7 @@ export default function CameraSetupListPage(): ReactElement {
   }
 
   return (
-    <PageWrapper
-      requireAuth={false}
-      breadcrumbs={[
-        { label: "Camera Hub", href: "/modules/cameras" },
-        { label: "Setup", href: `/modules/cameras/setup`, isActive: true }
-      ]}
-      title="Camera Stream Setup"
-      subtitle="Select a team to configure stream URLs"
-      contentClassName="max-w-6xl mx-auto"
-    >
+    <PageWrapper {...pageProps} contentClassName="max-w-6xl mx-auto">
       {/* Teams List */}
       {mergedTeams.length === 0 ? (
         <div className="text-center py-12">

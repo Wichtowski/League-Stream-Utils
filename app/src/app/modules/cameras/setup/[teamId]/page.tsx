@@ -1,13 +1,11 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, type ReactElement, useMemo } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useNavigation } from "@lib/contexts/NavigationContext";
 import { useModal } from "@lib/contexts/ModalContext";
 import { useAuth } from "@lib/contexts/AuthContext";
-import { useElectron } from "@libElectron/contexts/ElectronContext";
 import { useAuthenticatedFetch } from "@lib/hooks/useAuthenticatedFetch";
-import { Team } from "@libTeam/types";
 import { useCameras } from "@libCamera/context/CamerasContext";
 import { CameraPlayer, CameraTeam } from "@libCamera/types";
 import {
@@ -18,116 +16,75 @@ import {
   QuickActions,
   HelpSection
 } from "@libCamera/components";
+import { useMergedCameraTeams } from "@lib/hooks/useMergedCameraTeams";
+import { PageWrapper } from "@lib/layout/PageWrapper";
+import { LoadingSpinner } from "@lib/components/common";
 
-export default function TeamCameraSetupPage() {
+export default function TeamCameraSetupPage(): ReactElement {
   const router = useRouter();
   const params = useParams();
   const teamId = params.teamId as string;
   const { setActiveModule } = useNavigation();
   const { showAlert } = useModal();
-  const { user, isLoading: authLoading } = useAuth();
-  const { isElectron, useLocalData } = useElectron();
+  const { isLoading: authLoading } = useAuth();
   const { authenticatedFetch } = useAuthenticatedFetch();
-  const [userTeams, setUserTeams] = useState<Team[]>([]);
   const { teams: cameraTeamsRaw, loading: camerasLoading, refreshCameras } = useCameras();
+  const { mergedTeams, loading: mergedLoading } = useMergedCameraTeams(true);
+
   const [team, setTeam] = useState<CameraTeam | null>(null);
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  // Find the full team info from userTeams
-  const fullTeam = userTeams.find((t) => t._id === teamId);
+  const baseTeam = mergedTeams.find((t) => t._id === teamId);
 
-  // Set module once
+  const pageProps = useMemo(() => {
+    return {
+      title: "Manage camera stream settings",
+      breadcrumbs: [
+        { label: "Camera Hub", href: "/modules/cameras" },
+        { label: "Setup", href: `/modules/cameras/setup` },
+        { label: team?.teamName || "Camera Setup", href: `/modules/cameras/setup/${teamId}`, isActive: true }
+      ]
+    }
+  }, [team, teamId]);
+
   useEffect(() => {
     setActiveModule("cameras");
   }, [setActiveModule]);
 
-  // Fetch teams directly
+  // Build team data when baseTeam is available
   useEffect(() => {
-    const fetchTeams = async () => {
-      try {
-        const response = await fetch("/api/v1/teams", {
-          credentials: "include"
-        });
+    if (!baseTeam) return;
 
-        if (response.ok) {
-          const data = await response.json();
-          setUserTeams(data.teams || []);
-        }
-      } catch (error) {
-        console.error("Error fetching teams:", error);
-      }
-    };
+    console.log("Building team data for:", baseTeam.name);
+    console.log("Base team allPlayers:", baseTeam.allPlayers);
 
-    fetchTeams();
-  }, []);
+    const cameraTeams = (cameraTeamsRaw as unknown as CameraTeam[]) || [];
+    const foundTeam = cameraTeams.find((t) => t.teamId === teamId) || null;
 
-  // Build team view from context (and refresh once if empty)
-  useEffect(() => {
-    if (authLoading) return;
-    if (!user && !(isElectron && useLocalData)) {
-      router.push("/login");
-      return;
-    }
+    const allPlayers = (baseTeam.allPlayers || []).map((player) => {
+      const cameraPlayer = foundTeam?.players.find(
+        (cp: CameraPlayer) =>
+          (cp.playerId && cp.playerId === player._id) || (cp.inGameName && cp.inGameName === player.inGameName)
+      );
+      return {
+        ...player,
+        playerId: player._id,
+        playerName: player.inGameName,
+        url: cameraPlayer?.url || "",
+        imagePath: cameraPlayer?.imagePath || ""
+      };
+    });
 
-    let cancelled = false;
-    const ensureDataAndCompose = async (): Promise<void> => {
-      try {
-        setLoading(true);
-        if ((!cameraTeamsRaw || (Array.isArray(cameraTeamsRaw) && cameraTeamsRaw.length === 0)) && !camerasLoading) {
-          await refreshCameras();
-        }
+    console.log("Mapped players:", allPlayers);
 
-        const cameraTeams = (cameraTeamsRaw as unknown as CameraTeam[]) || [];
-        const foundTeam = cameraTeams.find((t) => t.teamId === teamId) || null;
-
-        if (!cancelled) {
-          if (fullTeam) {
-            const allPlayers = [...fullTeam.players.main, ...fullTeam.players.substitutes].map((player) => {
-              const cameraPlayer = foundTeam?.players.find(
-                (cp: CameraPlayer) =>
-                  (cp.playerId && cp.playerId === player._id) || (cp.inGameName && cp.inGameName === player.inGameName)
-              );
-              return {
-                ...player,
-                playerId: player._id,
-                playerName: player.inGameName,
-                url: cameraPlayer?.url || "",
-                imagePath: cameraPlayer?.imagePath || ""
-              };
-            });
-            setTeam({
-              teamId: fullTeam._id,
-              teamName: fullTeam.name,
-              teamLogo: fullTeam.logo?.data,
-              players: allPlayers,
-              teamStreamUrl: foundTeam?.teamStreamUrl || ""
-            });
-          } else {
-            router.push("/modules/cameras/setup");
-          }
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    };
-
-    void ensureDataAndCompose();
-    return () => {
-      cancelled = true;
-    };
-  }, [
-    authLoading,
-    user,
-    isElectron,
-    useLocalData,
-    router,
-    teamId,
-    fullTeam,
-    cameraTeamsRaw,
-    camerasLoading,
-    refreshCameras
-  ]);
+    setTeam({
+      teamId: baseTeam._id,
+      teamName: baseTeam.name,
+      teamLogo: baseTeam.logo?.data,
+      players: allPlayers,
+      teamStreamUrl: foundTeam?.teamStreamUrl || ""
+    });
+  }, [baseTeam, cameraTeamsRaw, teamId]);
 
   const updatePlayerUrl = (playerId: string, url: string) => {
     if (!team) return;
@@ -159,7 +116,6 @@ export default function TeamCameraSetupPage() {
         currentTeams.push(team);
       }
 
-      // Save updated settings
       const saveResponse = await authenticatedFetch("/api/v1/cameras/settings", {
         method: "POST",
         headers: {
@@ -173,7 +129,6 @@ export default function TeamCameraSetupPage() {
           type: "success",
           message: "Camera settings saved successfully!"
         });
-        // Optionally refresh context after save
         await refreshCameras();
       } else {
         await showAlert({
@@ -192,57 +147,71 @@ export default function TeamCameraSetupPage() {
     }
   };
 
-  if (authLoading || loading) {
+  // Show loading while data is being fetched
+  if (authLoading || mergedLoading || camerasLoading) {
     return (
-      <div className="min-h-screen  flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400"></div>
-      </div>
+      <PageWrapper {...pageProps}>
+        <LoadingSpinner fullscreen text="Loading team..." />
+      </PageWrapper>
     );
   }
 
+  // Show not found only after all loading is complete and no team found
+  if (!baseTeam) {
+    return (
+      <PageWrapper {...pageProps}>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-white mb-4">Team Not Found</h2>
+            <button
+              onClick={() => router.push("/modules/cameras/setup")}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg"
+            >
+              Back to Setup
+            </button>
+          </div>
+        </div>
+      </PageWrapper>
+    );
+  }
+
+  // Show loading while team data is being built
   if (!team) {
     return (
-      <div className="min-h-screen  flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-white mb-4">Team Not Found</h2>
-          <button
-            onClick={() => router.push("/modules/cameras/setup")}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg"
-          >
-            Back to Setup
-          </button>
-        </div>
-      </div>
+      <PageWrapper {...pageProps}>
+        <LoadingSpinner fullscreen text="Preparing team data..." />
+      </PageWrapper>
     );
   }
 
   return (
-    <div className="min-h-screen p-6">
-      <div className="max-w-6xl mx-auto">
-        <TeamSetupHeader
-          teamId={teamId}
-          teamName={team.teamName}
-          teamLogo={team.teamLogo}
-          saving={saving}
-          onSave={saveSettings}
-        />
+    <PageWrapper {...pageProps}>
+      <div className="min-h-screen p-6">
+        <div className="max-w-6xl mx-auto">
+          <TeamSetupHeader
+            teamName={team.teamName}
+            teamLogo={team.teamLogo}
+            saving={saving}
+            onSave={saveSettings}
+          />
 
-        <ProgressBar
-          completed={team.players.filter((p) => p.url && p.url.trim() !== "").length}
-          total={team.players.length}
-        />
+          <ProgressBar
+            completed={team.players.filter((p) => p.url && p.url.trim() !== "").length}
+            total={team.players.length}
+          />
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
-          <TeamStreamSection teamStreamUrl={team.teamStreamUrl || ""} onChange={updateTeamStreamUrl} />
-          {team.players.map((player) => (
-            <PlayerStreamCard key={player.playerId} player={player} onChange={updatePlayerUrl} />
-          ))}
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
+            <TeamStreamSection teamStreamUrl={team.teamStreamUrl || ""} onChange={updateTeamStreamUrl} />
+            {team.players.map((player) => (
+              <PlayerStreamCard key={player.playerId} player={player} onChange={updatePlayerUrl} />
+            ))}
+          </div>
+
+          <QuickActions teamId={teamId} />
+
+          <HelpSection />
         </div>
-
-        <QuickActions teamId={teamId} />
-
-        <HelpSection />
       </div>
-    </div>
+    </PageWrapper>
   );
 }
