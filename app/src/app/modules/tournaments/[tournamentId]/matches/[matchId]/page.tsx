@@ -29,17 +29,21 @@ export default function MatchDetailPageWrapper(): React.ReactElement {
         { label: "Matches", href: `/modules/tournaments/${tournamentId}/matches` },
         { label: currentMatch?.name || "Match", href: `/modules/tournaments/${tournamentId}/matches/${matchId}`, isActive: true }
       ],
-      actions: <>
-        <span className="text-gray-400">LeagueClient</span>
-        <Button target="_blank" href={`/modules/leagueclient/${currentTournament?._id}/${currentMatch?._id}/champselect`} size="sm" variant="primary">
-          Open Champ Select
-        </Button>
-        <Button target="_blank" href={`/modules/leagueclient/${currentTournament?._id}/${currentMatch?._id}/game`} size="sm" variant="secondary">
-          Open Game
-        </Button>
-      </>
+      actions: 
+        <>
+          <Button target="_blank" href={`/modules/tournaments/${tournamentId}/matches/${matchId}/ticker`} size="sm" variant="secondary">
+            Open Match Ticker
+          </Button>
+          <span className="text-gray-400">LeagueClient</span>
+          <Button target="_blank" href={`/modules/leagueclient/${tournamentId}/${matchId}/champselect`} size="sm" variant="primary">
+            Open Champ Select
+          </Button>
+          <Button target="_blank" href={`/modules/leagueclient/${tournamentId}/${matchId}/game`} size="sm" variant="secondary">
+            Open Game
+          </Button>
+        </>
     }
-  }, [currentMatch, currentTournament, tournamentId, matchId, loading]);
+  }, [currentTournament, currentMatch, tournamentId, matchId, loading]);
 
   useEffect(() => {
     setActiveModule("matches");
@@ -95,7 +99,7 @@ export default function MatchDetailPageWrapper(): React.ReactElement {
           <div className="text-center py-12">
             <div className="text-red-400 text-lg mb-4">Error loading match</div>
             <p className="text-gray-500">{error ? "Match not found" : ""}</p>
-            <Button onClick={() => router.push(`/modules/tournaments/${currentTournament?._id}/matches`)} className="mt-4">
+            <Button onClick={() => router.push(`/modules/tournaments/${tournamentId}/matches`)} className="mt-4">
               Go Back
             </Button>
           </div>

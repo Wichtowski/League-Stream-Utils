@@ -1,13 +1,16 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { Ticker, EmbeddedTicker, Tournament, Match } from "@libTournament/types";
+import type { Sponsorship } from "@libTournament/types/sponsors";
 import { Team } from "@libTeam/types";
+import { getImageSrc } from "@lib/services/common/image";
 import { CarouselTicker } from "./CarouselTicker";
+import { motion } from "framer-motion";
+import type React from "react";
 import { ErrorBoundary } from "@lib/components/common/ErrorBoundary";
 import { useErrorHandling } from "@lib/hooks/useErrorHandling";
-import { logError as _logError } from "@lib/utils/error-handling";
-import Image from "next/image";
+import { SafeImage } from "@lib/components/common/SafeImage";
 
 interface TickerDisplayProps {
   tournamentId?: string;
@@ -36,19 +39,20 @@ export const TickerDisplay = ({
   team1,
   team2,
   className = "",
-  refreshInterval = 60000,
   showDebugInfo = false
-}: TickerDisplayProps) => {
+}: TickerDisplayProps): React.ReactElement => {
+  
   const [displayData, setDisplayData] = useState<DisplayData | null>(null);
   const [lastFetchTime, setLastFetchTime] = useState<number>(0);
-  const [connectionStatus, setConnectionStatus] = useState<"connected" | "disconnected" | "reconnecting">("connected");
   const [retryCount, setRetryCount] = useState(0);
   const [maxRetries] = useState(3);
+  const [sponsors, setSponsors] = useState<Sponsorship[]>([]);
 
+  const errorContext = useMemo(() => ({ component: "TickerDisplay", tournamentId }), [tournamentId]);
   const { error, isLoading, executeWithRetry, clearError } = useErrorHandling({
-    showUserErrors: false, // Don't show user alerts in OBS overlay
+    showUserErrors: false,
     logErrors: true,
-    context: { component: "TickerDisplay", tournamentId }
+    context: errorContext
   });
 
   const ticker = displayData?.ticker || null;
@@ -71,7 +75,6 @@ export const TickerDisplay = ({
     }
 
     const fetchData = async (): Promise<DisplayData> => {
-      setConnectionStatus("reconnecting");
 
       const response = await fetch(`/api/v1/tournaments/${tournamentId}/ticker/display`, {
         headers: {
@@ -111,27 +114,36 @@ export const TickerDisplay = ({
       });
 
       setLastFetchTime(Date.now());
-      setConnectionStatus("connected");
       setRetryCount(0);
       clearError();
     } else {
-      setConnectionStatus("disconnected");
       setRetryCount((prev) => Math.min(prev + 1, maxRetries));
     }
   }, [tournamentId, tournament, executeWithRetry, maxRetries, clearError]);
 
-  // Initial fetch and periodic refresh
   useEffect(() => {
     fetchTickerData();
+  }, [fetchTickerData]);
 
-    // Only set up interval if refreshInterval is greater than 0
-    if (refreshInterval > 0) {
-      const interval = setInterval(fetchTickerData, refreshInterval);
-      return () => clearInterval(interval);
-    }
-  }, [fetchTickerData, refreshInterval]);
+  useEffect(() => {
+    const fetchSponsors = async (): Promise<void> => {
+      try {
+        const id = tournamentId || tournament?._id;
+        if (!id) return;
+        const resp = await fetch(`/api/v1/tournaments/${id}/sponsors/display`, {
+          headers: { Accept: "application/json" },
+          signal: AbortSignal.timeout(8000)
+        });
+        if (!resp.ok) return;
+        const data: { sponsors: Sponsorship[] } = await resp.json();
+        setSponsors(Array.isArray(data.sponsors) ? data.sponsors : []);
+      } catch {
+        setSponsors([]);
+      }
+    };
 
-  // Get the single ticker (first active ticker)
+    void fetchSponsors();
+  }, [tournamentId, tournament]);
 
   // Error state - only show in development or when debug is enabled
   if (error && (showDebugInfo || process.env.NODE_ENV === "development")) {
@@ -157,15 +169,6 @@ export const TickerDisplay = ({
             {isLoading ? "Retrying..." : "Retry Now"}
           </button>
         </div>
-      </div>
-    );
-  }
-
-  // In production, gracefully degrade to empty state on error
-  if (error && !showDebugInfo && process.env.NODE_ENV === "production") {
-    return (
-      <div className={`w-full h-screen bg-transparent ${className}`}>
-        {/* Empty state - completely transparent for OBS */}
       </div>
     );
   }
@@ -197,115 +200,144 @@ export const TickerDisplay = ({
       <div className={`w-full h-screen bg-transparent relative overflow-hidden ${className}`}>
         {/* ticker Content - Title sticks above carousel */}
         {ticker && (
-          <div className="absolute bottom-0 left-0 right-0">
+          <motion.div
+            className="fixed bottom-0 left-0 right-0"
+            initial={{ y: 64, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.45, ease: "easeOut" }}
+            style={{ willChange: "transform" }}
+          >
             {/* Title directly above carousel - Full width */}
             {ticker.title.trim() && (
               <div
-                className="w-full backdrop-blur-sm border-t border-gray-600/50"
+                className="w-full"
                 style={{
-                  backgroundColor: ticker.titleBackgroundColor || "#1f2937",
-                  animation: "fadeIn 0.5s ease-out"
+                  backgroundColor: ticker.titleBackgroundColor || "#1f2937"
                 }}
               >
-                <div className="flex items-center justify-center py-4 px-4 gap-6">
-                  {/* Team logos section (only show if we have match data) */}
-                  {match && (team1 || team2) && (
-                    <div className="flex items-center gap-4">
-                      {/* Team 1 Logo */}
-                      {team1?.logo && (
+                {(() => {
+                  const hasImages = Boolean(match && (team1 || team2));
+                  if (hasImages) {
+                    return (
+                      <div className="flex items-stretch justify-start h-32">
+                        {/* Left: Images */}
                         <div className="flex items-center">
-                          <Image
-                            src={
-                              team1.logo.type === "url"
-                                ? team1.logo.url
-                                : team1.logo.type === "upload"
-                                  ? `data:image/${team1.logo.format};base64,${team1.logo.data}`
-                                  : "/default-team-logo.svg"
-                            }
-                            alt={team1.name}
-                            width={48}
-                            height={48}
-                            className="rounded-lg shadow-lg object-cover"
-                          />
+                          {team1?.logo && (
+                            <div className="bg-black h-full">
+                              <div className="relative w-32 h-32 overflow-hidden shadow-lg">
+                                <SafeImage
+                                  src={getImageSrc(team1.logo)}
+                                  alt={team1.name}
+                                  fill
+                                  className="object-cover"
+                                />
+                              </div>
+                            </div>
+                          )}
+                          {team1 && team2 && match && (
+                            <div className="flex items-center h-full bg-black w-[72px]">
+                              <div className="h-full flex flex-col items-center justify-center w-full">
+                                <div className="text-4xl font-bold tracking-wider text-white w-full h-full flex items-end justify-center">VS</div>
+                                <div className="text-xl font-bold tracking-wider text-white w-full h-full flex items-center justify-center">{match.format}</div>
+                              </div>
+                            </div>
+                          )}
+                          {team2?.logo && (
+                            <div className="bg-black h-full">
+                              <div className="relative w-32 h-32 overflow-hidden shadow-lg">
+                                <SafeImage
+                                  src={getImageSrc(team2.logo)}
+                                  alt={team2.name}
+                                  fill
+                                  className="object-cover"
+                                />
+                              </div>
+                            </div>
+                          )}
                         </div>
-                      )}
 
-                      {/* VS text */}
-                      {team1 && team2 && (
-                        <span
-                          className="text-lg font-bold tracking-wider drop-shadow-lg"
-                          style={{ color: ticker.titleTextColor || "#ffffff" }}
-                        >
-                          VS
-                        </span>
-                      )}
-
-                      {/* Team 2 Logo */}
-                      {team2?.logo && (
-                        <div className="flex items-center">
-                          <Image
-                            src={
-                              team2.logo.type === "url"
-                                ? team2.logo.url
-                                : team2.logo.type === "upload"
-                                  ? `data:image/${team2.logo.format};base64,${team2.logo.data}`
-                                  : "/default-team-logo.svg"
-                            }
-                            alt={team2.name}
-                            width={48}
-                            height={48}
-                            className="rounded-lg shadow-lg object-cover"
-                          />
+                        {/* Center: Title/Carousel (left) + Sponsors (right spanning two rows) */}
+                        <div className="flex h-full w-full">
+                          <div className="flex flex-col justify-between h-full flex-1 min-w-0">
+                            <div className="h-[70%] flex items-center">
+                              <h1
+                                className="ml-4 font-bold text-left tracking-wide drop-shadow-lg max-w-[60vw] overflow-hidden text-ellipsis text-lg sm:text-xl md:text-2xl lg:text-4xl"
+                                style={{ color: ticker.titleTextColor || "#ffffff" }}
+                              >
+                                {ticker.title}
+                              </h1>
+                            </div>
+                            <div className="h-[30%] flex items-center">
+                              {ticker.carouselItems.length > 0 && (
+                                <CarouselTicker
+                                  items={ticker.carouselItems}
+                                  speed={ticker.carouselSpeed}
+                                  backgroundColor={ticker.carouselBackgroundColor}
+                                />
+                              )}
+                            </div>
+                          </div> 
                         </div>
-                      )}
+
+                        {/* Sponsors - right */}
+                        <div className="flex h-full w-full h-[160px]">
+                          {sponsors.length > 0 && (
+                            <div className="h-full w-[320px] flex items-center">
+                              <div className="grid grid-rows-2 gap-3 w-full">
+                                {[0, 1].map((row) => {
+                                  const s = sponsors[row];
+                                  if (!s) return <div key={row} className="h-16" />;
+                                  return (
+                                    <div key={s._id} className="w-full h-16 bg-black/40 rounded flex items-center justify-center p-2">
+                                      <div className="relative w-full h-full">
+                                        <SafeImage
+                                          src={getImageSrc(s.logo)}
+                                          alt={s.name}
+                                          fill
+                                          className="object-contain"
+                                        />
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  // Fallback: No images, keep original title-only row
+                  return (
+                    <div className="flex items-start justify-start py-4 px-4 gap-6">
+                      <h1
+                        className="font-bold text-left tracking-wide drop-shadow-lg max-w-[60vw] overflow-hidden text-ellipsis text-lg sm:text-xl md:text-2xl lg:text-4xl"
+                        style={{ color: ticker.titleTextColor || "#ffffff" }}
+                      >
+                        {ticker.title}
+                      </h1>
                     </div>
-                  )}
-
-                  {/* Title */}
-                  <h1
-                    className="font-bold text-center tracking-wide drop-shadow-lg max-w-[60vw] overflow-hidden text-ellipsis text-lg sm:text-xl md:text-2xl lg:text-3xl"
-                    style={{
-                      color: ticker.titleTextColor || "#ffffff"
-                    }}
-                  >
-                    {ticker.title}
-                  </h1>
-                </div>
+                  );
+                })()}
               </div>
             )}
 
             {/* Carousel Ticker */}
-            {ticker.carouselItems.length > 0 && (
-              <CarouselTicker
-                items={ticker.carouselItems}
-                speed={ticker.carouselSpeed}
-                backgroundColor={ticker.carouselBackgroundColor}
-              />
-            )}
-          </div>
-        )}
-
-        {/* Debug info (visible when showDebugInfo is true or in development) */}
-        {(showDebugInfo || process.env.NODE_ENV === "development") && (
-          <div className="absolute top-4 right-4 bg-black/70 backdrop-blur-sm rounded px-3 py-2 text-xs text-gray-300 font-mono">
-            <div className="flex items-center gap-2 mb-1">
-              <div
-                className={`w-2 h-2 rounded-full ${
-                  connectionStatus === "connected"
-                    ? "bg-green-500"
-                    : connectionStatus === "reconnecting"
-                      ? "bg-yellow-500 animate-pulse"
-                      : "bg-red-500"
-                }`}
-              ></div>
-              <span className="capitalize">{connectionStatus}</span>
-            </div>
-            <div>Tournament: {displayData.tournament.abbreviation}</div>
-            <div>ticker: {ticker ? "Active" : "None"}</div>
-            <div>Speed: {ticker?.carouselSpeed || 50}px/s</div>
-            <div>Items: {ticker?.carouselItems.length || 0}</div>
-            <div>Last Update: {new Date(lastFetchTime).toLocaleTimeString()}</div>
-          </div>
+            {(() => {
+              const hasImages = Boolean(match && (team1 || team2));
+              if (hasImages) return null; // When images exist, carousel is shown under title at right
+              return (
+                ticker.carouselItems.length > 0 && (
+                  <CarouselTicker
+                    items={ticker.carouselItems}
+                    speed={ticker.carouselSpeed}
+                    backgroundColor={ticker.carouselBackgroundColor}
+                  />
+                )
+              );
+            })()}
+          </motion.div>
         )}
       </div>
     </ErrorBoundary>

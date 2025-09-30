@@ -26,11 +26,25 @@ export const SafeImage = ({
   fill = false
 }: SafeImageProps): React.ReactElement => {
   try {
+    const isDataUrl = typeof src === "string" && src.startsWith("data:");
+    const isBlobUrl = typeof src === "string" && src.startsWith("blob:");
     const url = new URL(src, typeof window !== "undefined" ? window.location.origin : "http://localhost");
     const isSameOrigin = typeof window !== "undefined" && url.origin === window.location.origin;
-    const isLocalBase64 = typeof src === "string" && src.startsWith("data:");
+    const isLocalBase64 = isDataUrl;
 
-    if (isSameOrigin || isLocalBase64 || ALLOWED.has(url.hostname)) {
+    if (isSameOrigin || isLocalBase64 || isBlobUrl || ALLOWED.has(url.hostname)) {
+      if (fill) {
+        return (
+          <Image
+            src={src}
+            alt={alt}
+            className={className}
+            priority={priority}
+            fill
+            unoptimized={isDataUrl || isBlobUrl}
+          />
+        );
+      }
       return (
         <Image
           src={src}
@@ -39,7 +53,7 @@ export const SafeImage = ({
           height={height}
           className={className}
           priority={priority}
-          fill={fill}
+          unoptimized={isDataUrl || isBlobUrl}
         />
       );
     }

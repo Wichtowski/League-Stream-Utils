@@ -70,6 +70,20 @@ export const getTournamentLogoUrl = async (tournamentId: string): Promise<string
   return "";
 };
 
+/**
+ * Build a usable src string for an ImageStorage object.
+ * - url: returns url
+ * - upload: returns data URL, respecting pre-prefixed data strings
+ */
+export const getImageSrc = (image?: ImageStorage): string => {
+  if (!image) return "/default-team-logo.svg";
+  if (image.type === "url") return image.url || "";
+  const data = image.data || "";
+  if (data.startsWith("data:")) return data;
+  console.log(data);
+  return `data:image/${image.format};base64,${data}`;
+};
+
 export const isAlmostSquare = (width: number, height: number, tolerance: number = LOGO_SQUARE_TOLERANCE): boolean => {
   if (width <= 0 || height <= 0) {
     console.warn(`Invalid dimensions: width=${width}, height=${height}`);

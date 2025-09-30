@@ -31,8 +31,6 @@ export const TournamentEditor = ({
     return { backgroundColor: `hsl(${hue} 85% 45%)` };
   };
 
-  
-
   const handleTournamentUpdated = () => {
     onTournamentUpdate();
     setShowMyTeamRegistration(false);
@@ -56,9 +54,7 @@ export const TournamentEditor = ({
       const result = await response.json();
       alert(`Successfully generated ${result.matches.length} matches for ${tournament.tournamentFormat} format!`);
       onTournamentUpdate();
-    } catch (error) {
-      console.error("Error generating matches:", error);
-      alert(error instanceof Error ? error.message : "Failed to generate matches");
+    } catch (_error) {
     }
   };
 
@@ -231,6 +227,16 @@ export const TournamentEditor = ({
                   variant="custom"
                 >
                   Sponsors
+                </Button>
+
+                <Button
+                  onClick={() => router.push(`/modules/tournaments/${tournament._id}/cameras`)}
+                  className={`${buttonStyle}`}
+                  hoverStyle={getButtonBgStyle(idx++).backgroundColor}
+                  style={getButtonBgStyle(idx++)}
+                  variant="custom"
+                >
+                  Team Cameras
                 </Button>
 
                 <Button

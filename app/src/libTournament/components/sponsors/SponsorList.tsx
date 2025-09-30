@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { getImageSrc } from "@lib/services/common/image";
 import type { Sponsorship } from "@libTournament/types";
 
 interface SponsorListProps {
@@ -51,31 +52,17 @@ export const SponsorList = ({ sponsors, loading, onEditSponsor, onDeleteSponsor 
               </div>
 
               <div className="text-center mb-3">
-                {sponsor.logo.type === "url" ? (
-                  <Image
-                    src={sponsor.logo.url}
-                    alt={sponsor.name}
-                    width={128}
-                    height={64}
-                    className="max-w-32 max-h-16 mx-auto object-contain"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.style.display = "none";
-                    }}
-                  />
-                ) : (
-                  <Image
-                    src={`data:image/${sponsor.logo.format};base64,${sponsor.logo.data}`}
-                    alt={sponsor.name}
-                    width={128}
-                    height={64}
-                    className="max-w-32 max-h-16 mx-auto object-contain"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.style.display = "none";
-                    }}
-                  />
-                )}
+                <Image
+                  src={getImageSrc(sponsor.logo)}
+                  alt={sponsor.name}
+                  width={128}
+                  height={64}
+                  className="max-w-32 max-h-16 mx-auto object-contain"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = "none";
+                  }}
+                />
               </div>
 
               <h4 className="font-semibold text-center mb-1">{sponsor.name}</h4>

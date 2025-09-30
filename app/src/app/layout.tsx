@@ -37,7 +37,6 @@ export const metadata: Metadata = {
   title: "League Stream Utils",
   description: "Tournament stream management utilities",
   applicationName: "League Stream Utils",
-
   authors: [{ name: "Oskar Wichtowski", url: "https://github.com/wichtowski" }]
 };
 
@@ -69,7 +68,7 @@ export default function RootLayout({
             { name: "Modal", provider: ModalProvider }
           ]}
         >
-          <div className="bg-black">
+          <div className={`bg-black`}>
             <NavigationGuard>
               <main className="flex-1">{children}</main>
               <ChampionCacheInitializer />
