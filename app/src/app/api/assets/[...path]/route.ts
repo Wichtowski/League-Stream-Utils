@@ -43,16 +43,14 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         headers["Content-Security-Policy"] = "default-src 'self'";
       }
 
-      return new NextResponse(fileBuffer, {
+      return new NextResponse(Buffer.from(fileBuffer), {
         status: 200,
         headers
       });
-    } catch (fileError) {
-      console.error(`Asset not found: ${assetPath}`, fileError);
+    } catch (_fileError) {
       return new NextResponse("Asset not found", { status: 404 });
     }
-  } catch (error) {
-    console.error("Asset API error:", error);
+  } catch (_error) {
     return new NextResponse("Internal server error", { status: 500 });
   }
 }

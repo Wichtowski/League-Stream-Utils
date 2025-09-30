@@ -43,8 +43,7 @@ export const useMatchEditing = (match: Match | null) => {
       setEditData(updatedMatch.match);
       setEditing(false);
       return true;
-    } catch (err) {
-      console.error("Failed to save changes:", err);
+    } catch (_error) {
       return false;
     } finally {
       setSaving(false);
@@ -68,8 +67,7 @@ export const useMatchEditing = (match: Match | null) => {
       const updatedMatch = await response.json();
       setEditData(updatedMatch.match);
       return true;
-    } catch (err) {
-      console.error("Failed to update status:", err);
+    } catch (_error) {
       return false;
     } finally {
       setSaving(false);
@@ -90,8 +88,7 @@ export const useMatchEditing = (match: Match | null) => {
         throw new Error("Failed to delete match");
       }
       return true;
-    } catch (err) {
-      console.error("Failed to delete match:", err);
+    } catch (_error) {
       return false;
     } finally {
       setSaving(false);

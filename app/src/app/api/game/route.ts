@@ -75,11 +75,11 @@ export async function GET(_request: NextRequest) {
         { status: response.statusCode || 500 }
       );
     }
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       {
         error: "Live Client Data API is not running",
-        details: error instanceof Error ? error.message : "Unknown error"
+        details: "The API is not running"
       },
       { status: 212 }
     );

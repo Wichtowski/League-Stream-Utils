@@ -49,7 +49,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       inChampSelect: champSelectResult.data !== null
     });
   } catch (error) {
-    console.error("Champion select polling error:", error);
 
     return NextResponse.json(
       {

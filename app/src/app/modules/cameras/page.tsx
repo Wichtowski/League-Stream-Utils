@@ -39,8 +39,7 @@ export default function CamerasPage(): ReactElement {
           window.location.href = "/login";
           return;
         }
-      } catch (error) {
-        console.error("Error fetching teams:", error);
+      } catch (_error) {
       } finally {
         setTeamsLoading(false);
       }

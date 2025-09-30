@@ -37,25 +37,21 @@ export function useAuthenticatedFetch(): {
 
         let response = await fetch(url, defaultOptions);
 
-        // Handle authentication failures
+        // Handle authentication failures silently
         if ((response.status === 401 || response.status === 403) && !skipAuth && user) {
-          console.log("Authentication failed - attempting token refresh...");
           const refreshed = await refreshToken();
 
           if (refreshed) {
-            console.log("Token refreshed, retrying request...");
             response = await fetch(url, defaultOptions);
             
             // If still unauthorized after refresh, logout and redirect
             if (response.status === 401 || response.status === 403) {
-              console.log("Still unauthorized after token refresh - logging out...");
               await logout();
               window.location.href = "/login";
               return response;
             }
           } else {
             // If refresh failed, logout and redirect
-            console.log("Token refresh failed - logging out...");
             await logout();
             window.location.href = "/login";
             return response;
@@ -65,7 +61,6 @@ export function useAuthenticatedFetch(): {
         // Check for HTML responses (redirects to login page)
         const contentType = response.headers.get("content-type");
         if (contentType && contentType.includes("text/html")) {
-          console.log("Received HTML response - likely redirected to login");
           window.location.href = "/login";
           return response;
         }
@@ -103,7 +98,6 @@ export function useApiRequest<T = unknown>(url: string, options: FetchOptions = 
         // Check for HTML responses (redirects to login page)
         const contentType = response.headers.get("content-type");
         if (contentType && contentType.includes("text/html")) {
-          console.log("Received HTML response in useApiRequest - likely redirected to login");
           window.location.href = "/login";
           setState({
             data: null,

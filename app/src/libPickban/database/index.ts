@@ -99,7 +99,6 @@ export async function saveGameSession(session: GameSessionType): Promise<GameSes
       return transformToGameSession(saved.toObject());
     }
   } catch (error) {
-    console.error("Error saving game session:", error);
     throw error;
   }
 }
@@ -112,7 +111,6 @@ export async function getGameSession(sessionId: string): Promise<GameSessionType
     if (!session) return null;
     return transformToGameSession(session);
   } catch (error) {
-    console.error("Error getting game session:", error);
     throw error;
   }
 }
@@ -139,7 +137,6 @@ export async function deleteGameSession(sessionId: string): Promise<boolean> {
     const result = await GameSessionModel.deleteOne({ id: sessionId });
     return result.deletedCount > 0;
   } catch (error) {
-    console.error("Error deleting game session:", error);
     throw error;
   }
 }
@@ -151,7 +148,6 @@ export async function getAllGameSessions(): Promise<GameSessionType[]> {
     const sessions = await GameSessionModel.find({}).lean();
     return sessions.map((doc) => transformToGameSession(doc));
   } catch (error) {
-    console.error("Error getting all game sessions:", error);
     throw error;
   }
 }

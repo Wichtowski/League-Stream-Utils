@@ -76,8 +76,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             success: true,
             message: "Items download completed successfully"
           });
-        } catch (error) {
-          console.error("Items download error:", error);
+        } catch (_error) {
           return NextResponse.json({ success: false, error: "Failed to download items" }, { status: 500 });
         }
 
@@ -94,16 +93,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
               completeness
             }
           });
-        } catch (error) {
-          console.error("Items progress check error:", error);
+        } catch (_error) {
           return NextResponse.json({ success: false, error: "Failed to check items progress" }, { status: 500 });
         }
 
       default:
         return NextResponse.json({ success: false, error: "Invalid action" }, { status: 400 });
     }
-  } catch (error) {
-    console.error("Asset API error:", error);
+  } catch (_error) {
     return NextResponse.json({ success: false, error: "Failed to process request" }, { status: 500 });
   }
 }

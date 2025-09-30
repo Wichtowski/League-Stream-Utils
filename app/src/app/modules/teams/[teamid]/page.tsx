@@ -55,17 +55,13 @@ const TeamEditPage: React.FC = () => {
             setTeam(null);
           }
         } else if (response.status === 404) {
-          console.error("Team not found");
           setTeam(null);
         } else if (response.status === 403) {
-          console.error("Access forbidden");
           setTeam(null);
         } else {
-          console.error("Failed to fetch team:", response.status);
           setTeam(null);
         }
-      } catch (error) {
-        console.error("Error fetching team:", error);
+      } catch (_error) {
         setTeam(null);
       } finally {
         setLoading(false);
