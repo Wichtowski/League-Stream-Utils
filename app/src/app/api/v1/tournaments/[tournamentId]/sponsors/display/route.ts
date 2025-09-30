@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getTournament } from "@libTournament/database/tournament";
+import { Sponsorship } from "@libTournament/types";
 
 // GET /api/v1/tournaments/[tournamentId]/sponsors/display - Get tournament sponsors for OBS display
 export const GET = async (req: NextRequest, { params }: { params: Promise<{ tournamentId: string }> }) => {
@@ -15,8 +16,15 @@ export const GET = async (req: NextRequest, { params }: { params: Promise<{ tour
       return NextResponse.json({ error: "Tournament not found" }, { status: 404 });
     }
 
-    // Return sponsors sorted by tier (highest first)
-    const sponsors = (tournament.sponsors || []).sort((a, b) => (b.tier as string).localeCompare(a.tier as string));
+    // Return sponsors sorted by tier (highest first) with normalized fields for legacy data
+    const sponsors = (tournament.sponsors || [])
+      .map((s: Partial<Sponsorship>) => ({
+        ...s,
+        timeInSeconds: s.timeInSeconds ?? 3,
+        variant: s.variant ?? "corner",
+        fullwidth: s.fullwidth ?? false,
+      }))
+      .sort((a, b) => (b.tier as string).localeCompare(a.tier as string));
 
     return NextResponse.json({
       tournament: {

@@ -4,12 +4,13 @@ export interface Sponsorship {
   _id: string;
   name: string;
   logo: ImageStorage;
-  website?: string;
   description?: string;
   tier: "platinum" | "gold" | "silver" | "bronze";
-  startDate: Date;
-  endDate: Date;
-  isActive: boolean;
+  timeInSeconds?: number;
+  variant?: "corner" | "banner";
+  fullwidth?: boolean;
+  showName?: boolean;
+  namePosition?: "top" | "bottom" | "left" | "right";
   createdAt: Date;
   updatedAt: Date;
 }

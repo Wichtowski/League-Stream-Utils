@@ -51,8 +51,8 @@ export const POST = withAuth(async (req: NextRequest, user, params: Promise<Reco
 
     const sponsorData: Omit<Sponsorship, "_id"> = await req.json();
 
-    // Validate required fields
-    if (!sponsorData.name || !sponsorData.logo || !sponsorData.tier) {
+    // Validate required fields (name optional)
+    if (!sponsorData.logo || !sponsorData.tier) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
@@ -61,13 +61,12 @@ export const POST = withAuth(async (req: NextRequest, user, params: Promise<Reco
 
     const newSponsor: Sponsorship = {
       _id: sponsorId,
-      name: sponsorData.name,
+      name: sponsorData.name ?? "",
       logo: sponsorData.logo,
-      website: sponsorData.website,
       tier: sponsorData.tier,
-      startDate: sponsorData.startDate,
-      endDate: sponsorData.endDate,
-      isActive: sponsorData.isActive,
+      timeInSeconds: sponsorData.timeInSeconds,
+      variant: sponsorData.variant ?? "corner",
+      fullwidth: sponsorData.fullwidth ?? false,
       createdAt: new Date(),
       updatedAt: new Date()
     };

@@ -3,6 +3,9 @@ import { withAuth } from "@lib/auth";
 import { getTournament, updateTournamentFields } from "@libTournament/database/tournament";
 import { Sponsorship } from "@libTournament/types";
 
+type IdLike = string | { toString(): string };
+const normalizeId = (id: IdLike): string => (typeof id === "string" ? id : id.toString());
+
 // PUT /api/v1/tournaments/[tournamentId]/sponsors/[sponsorId] - Update sponsor
 export const PUT = withAuth(async (req: NextRequest, user, params: Promise<Record<string, string>>) => {
   try {
@@ -23,10 +26,11 @@ export const PUT = withAuth(async (req: NextRequest, user, params: Promise<Recor
     }
 
     const updateData: Partial<Sponsorship> = await req.json();
+    console.log("Received update data:", updateData);
 
     // Find and update the sponsor
-    const currentSponsors = tournament.sponsors || [];
-    const sponsorIndex = currentSponsors.findIndex((sponsor) => sponsor._id === sponsorId);
+    const currentSponsors = (tournament.sponsors || []) as Array<Sponsorship & { _id: IdLike }>;
+    const sponsorIndex = currentSponsors.findIndex((sponsor) => normalizeId(sponsor._id) === sponsorId);
 
     if (sponsorIndex === -1) {
       return NextResponse.json({ error: "Sponsor not found" }, { status: 404 });
@@ -37,6 +41,7 @@ export const PUT = withAuth(async (req: NextRequest, user, params: Promise<Recor
       ...updatedSponsors[sponsorIndex],
       ...updateData
     };
+    console.log("Updated sponsor:", updatedSponsors[sponsorIndex]);
 
     const result = await updateTournamentFields(tournamentId, {
       sponsors: updatedSponsors
@@ -73,8 +78,8 @@ export const DELETE = withAuth(async (_req: NextRequest, user, params: Promise<R
     }
 
     // Remove the sponsor
-    const currentSponsors = tournament.sponsors || [];
-    const updatedSponsors = currentSponsors.filter((sponsor) => sponsor._id !== sponsorId);
+    const currentSponsors = (tournament.sponsors || []) as Array<Sponsorship & { _id: IdLike }>;
+    const updatedSponsors = currentSponsors.filter((sponsor) => normalizeId(sponsor._id) !== sponsorId);
 
     const result = await updateTournamentFields(tournamentId, {
       sponsors: updatedSponsors

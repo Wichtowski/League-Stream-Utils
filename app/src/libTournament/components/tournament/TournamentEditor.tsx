@@ -220,13 +220,23 @@ export const TournamentEditor = ({
               <h3 className="text-lg font-semibold mb-4">Overlay Utilities</h3>
               <div className="flex flex-wrap gap-3">
                 <Button
-                  onClick={() => router.push(`/modules/tournaments/${tournament._id}/sponsors`)}
+                  onClick={() => router.push(`/modules/tournaments/${tournament._id}/sponsors/corner`)}
                   className={`${buttonStyle}`}
                   hoverStyle={getButtonBgStyle(idx++).backgroundColor}
                   style={getButtonBgStyle(idx++)}
                   variant="custom"
                 >
-                  Sponsors
+                  Sponsors Corner
+                </Button>
+
+                <Button
+                  onClick={() => router.push(`/modules/tournaments/${tournament._id}/sponsors/banner`)}
+                  className={`${buttonStyle}`}
+                  hoverStyle={getButtonBgStyle(idx++).backgroundColor}
+                  style={getButtonBgStyle(idx++)}
+                  variant="custom"
+                >
+                  Sponsors Banner
                 </Button>
 
                 <Button

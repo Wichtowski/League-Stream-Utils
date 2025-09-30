@@ -44,20 +44,15 @@ export const SponsorList = ({ sponsors, loading, onEditSponsor, onDeleteSponsor 
                 >
                   {sponsor.tier.charAt(0).toUpperCase() + sponsor.tier.slice(1)}
                 </span>
-                <span
-                  className={`text-xs px-2 py-1 rounded ${sponsor.isActive ? "text-green-400 bg-green-900" : "text-red-400 bg-red-900"}`}
-                >
-                  {sponsor.isActive ? "Active" : "Inactive"}
-                </span>
               </div>
 
               <div className="text-center mb-3">
                 <Image
                   src={getImageSrc(sponsor.logo)}
                   alt={sponsor.name}
-                  width={128}
-                  height={64}
-                  className="max-w-32 max-h-16 mx-auto object-contain"
+                  width={256}
+                  height={128}
+                  className="max-w-64 max-h-32 mx-auto object-contain"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.style.display = "none";
@@ -65,15 +60,43 @@ export const SponsorList = ({ sponsors, loading, onEditSponsor, onDeleteSponsor 
                 />
               </div>
 
-              <h4 className="font-semibold text-center mb-1">{sponsor.name}</h4>
-              {sponsor.website && <p className="text-xs text-gray-400 text-center mb-3">{sponsor.website}</p>}
+              <h4 className="font-semibold text-center mb-3">{sponsor.name}</h4>
 
-              <div className="text-xs text-gray-400 mb-3">
-                <p>Start: {new Date(sponsor.startDate).toLocaleDateString()}</p>
-                <p>End: {new Date(sponsor.endDate).toLocaleDateString()}</p>
+              <div className="space-y-1 text-sm w-32 ml-12">
+                {sponsor.showName && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-400">Show Name:</span>
+                    <span className="text-white">Yes</span>
+                  </div>
+                )}
+                
+                {sponsor.timeInSeconds && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-400">Duration:</span>
+                    <span className="text-white">{sponsor.timeInSeconds}s</span>
+                  </div>
+                )}
+                
+                {sponsor.namePosition && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-400">Position:</span>
+                    <span className="text-white capitalize">{sponsor.namePosition}</span>
+                  </div>
+                )}
+                
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400">Fullwidth:</span>
+                  <span className="text-white">{sponsor.fullwidth ? "Yes" : "No"}</span>
+                </div>
+                
+                {sponsor.variant && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-400">Variant:</span>
+                    <span className="text-white capitalize">{sponsor.variant}</span>
+                  </div>
+                )}
               </div>
-
-              <div className="flex justify-center space-x-2">
+              <div className="flex justify-end space-x-2">
                 <button
                   onClick={() => onEditSponsor(sponsor)}
                   className="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-sm"

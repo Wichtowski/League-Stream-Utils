@@ -3,11 +3,13 @@ import { Sponsorship } from "@libTournament/types";
 
 interface SponsorWindowProps {
   currentSponsor?: Sponsorship;
-  isVisible: boolean;
   fixed?: boolean;
+  showName?: boolean;
+  namePosition?: "top" | "bottom";
+  variant?: "corner" | "banner";
 }
 
-export const SponsorWindow = ({ currentSponsor, isVisible, fixed = true }: SponsorWindowProps) => {
+export const SponsorWindow = ({ currentSponsor, fixed = true, variant = "corner" }: SponsorWindowProps) => {
   if (!currentSponsor) {
     return (
       <div className={`${fixed ? "fixed bottom-4 left-4" : ""} w-64 h-32 bg-black bg-opacity-50 rounded-lg`}>
@@ -20,23 +22,25 @@ export const SponsorWindow = ({ currentSponsor, isVisible, fixed = true }: Spons
     );
   }
 
+  const baseClass = variant === "banner" ? `${fixed ? "fixed bottom-4 left-1/2 -translate-x-1/2" : ""} w-[560px] h-40 bg-black bg-opacity-60 rounded-xl` : `${fixed ? "fixed bottom-0 left-0" : ""} w-78 h-39 bg-black bg-opacity-50`;
+
   return (
-    <div className={`${fixed ? "fixed bottom-0 left-0" : ""} w-78 h-39 bg-black bg-opacity-50`}>
+    <div className={baseClass}>
       <div
-        className={`w-full h-full flex items-center justify-center transition-opacity duration-1000 ${
-          isVisible ? "opacity-100" : "opacity-0"
-        }`}
+        className={`w-full h-full flex items-center justify-center transition-opacity duration-1000`}
       >
-        <div className="flex flex-col items-center gap-2">
-          <span className="text-white text-sm font-semibold text-center">{currentSponsor.name}</span>
+        <div className={`flex ${variant === "banner" ? "flex-row items-center gap-4 px-4" : "flex-col items-center gap-2"}`}>
+          {currentSponsor.showName && currentSponsor.namePosition === "top" && (
+            <span className="text-white text-sm font-semibold text-center">{currentSponsor.name}</span>
+          )}
 
           {currentSponsor.logo.type === "url" ? (
             <Image
-              width={128}
-              height={128}
+              width={variant === "banner" ? 192 : 128}
+              height={variant === "banner" ? 192 : 128}
               src={currentSponsor.logo.url}
               alt={currentSponsor.name}
-              className="max-w-32 max-h-32 object-contain"
+              className={`${variant === "banner" ? "max-w-48 max-h-32" : (currentSponsor.fullwidth ?? false) ? "w-full h-full object-cover" : "max-w-32 max-h-32"} object-contain`}
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
                 target.style.display = "none";
@@ -44,16 +48,20 @@ export const SponsorWindow = ({ currentSponsor, isVisible, fixed = true }: Spons
             />
           ) : (
             <Image
-              width={128}
-              height={128}
+              width={variant === "banner" ? 192 : 128}
+              height={variant === "banner" ? 192 : 128}
               src={`data:image/${currentSponsor.logo.format};base64,${currentSponsor.logo.data}`}
               alt={currentSponsor.name}
-              className="max-w-32 max-h-32 object-contain"
+              className={`${variant === "banner" ? "max-w-48 max-h-32" : (currentSponsor.fullwidth ?? false) ? "w-full h-full object-cover" : "max-w-32 max-h-32"} object-contain`}
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
                 target.style.display = "none";
               }}
             />
+          )}
+
+          {currentSponsor.showName && currentSponsor.namePosition === "bottom" && (
+            <span className={`text-white font-semibold text-center ${variant === "banner" ? "text-base" : "text-sm"}`}>{currentSponsor.name}</span>
           )}
         </div>
       </div>

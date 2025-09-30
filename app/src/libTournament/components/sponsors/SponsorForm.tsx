@@ -25,7 +25,7 @@ export const SponsorForm = ({
   onCloseForm,
   handleLogoUpload,
   handleLogoUrlChange
-}: SponsorFormProps) => {
+}: SponsorFormProps): React.ReactElement => {
   return (
     <div className="bg-gray-800 rounded-lg p-6">
       <div className="flex justify-between items-center mb-4">
@@ -34,158 +34,130 @@ export const SponsorForm = ({
           ×
         </button>
       </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium mb-2">Name *</label>
-          <input
-            type="text"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2"
-            placeholder="Sponsor name"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-2">Tier</label>
-          <select
-            value={formData.tier}
-            onChange={(e) =>
-              setFormData({
-                ...formData,
-                tier: e.target.value as SponsorFormData["tier"]
-              })
-            }
-            className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2"
-          >
-            <option value="platinum">Platinum</option>
-            <option value="gold">Gold</option>
-            <option value="silver">Silver</option>
-            <option value="bronze">Bronze</option>
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-2">Website</label>
-          <input
-            type="url"
-            value={formData.website}
-            onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-            className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2"
-            placeholder="https://example.com"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-2">Start Date</label>
-          <input
-            type="date"
-            value={formData.startDate.toISOString().split("T")[0]}
-            onChange={(e) =>
-              setFormData({
-                ...formData,
-                startDate: new Date(e.target.value)
-              })
-            }
-            className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-2">End Date</label>
-          <input
-            type="date"
-            value={formData.endDate.toISOString().split("T")[0]}
-            onChange={(e) =>
-              setFormData({
-                ...formData,
-                endDate: new Date(e.target.value)
-              })
-            }
-            className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-2">Active Status</label>
-          <label className="flex items-center">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-2">Name</label>
             <input
-              type="checkbox"
-              checked={formData.isActive}
+              type="text"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2"
+              placeholder="Optional sponsor name"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">Tier</label>
+            <select
+              value={formData.tier}
               onChange={(e) =>
                 setFormData({
                   ...formData,
-                  isActive: e.target.checked
+                  tier: e.target.value as SponsorFormData["tier"]
                 })
               }
-              className="mr-2"
-            />
-            <span className="text-sm">Sponsor is active</span>
-          </label>
-        </div>
-
-        <div className="md:col-span-2">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Live Preview */}
-            <div>
-              <label className="block text-sm font-medium mb-2">Live Preview</label>
-              {formData.logo ? (
-                <div className="relative">
-                  <SponsorWindow
-                    currentSponsor={{
-                      _id: "preview",
-                      name: formData.name || "Sponsor Name",
-                      logo: formData.logo,
-                      website: formData.website,
-                      tier: formData.tier,
-                      startDate: formData.startDate,
-                      endDate: formData.endDate,
-                      isActive: formData.isActive,
-                      createdAt: new Date(),
-                      updatedAt: new Date()
-                    }}
-                    isVisible={true}
-                    fixed={false}
-                  />
-                </div>
-              ) : (
-                <div className="w-64 h-32 bg-gray-700 border border-gray-600 rounded-lg flex items-center justify-center">
-                  <p className="text-gray-400 text-sm">Upload a logo to see preview</p>
-                </div>
-              )}
-            </div>
+              className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2"
+            >
+              <option value="platinum">Platinum</option>
+              <option value="gold">Gold</option>
+              <option value="silver">Silver</option>
+              <option value="bronze">Bronze</option>
+            </select>
           </div>
-        </div>
 
-        <div className="md:col-span-2">
-          <label className="block text-sm font-medium mb-2">Logo *</label>
-          <div className="space-y-2">
+          {formData.variant !== "banner" && (
             <div>
-              <label className="block text-xs text-gray-400 mb-1">Upload PNG file:</label>
-              <input
-                type="file"
-                accept="image/png"
-                onChange={handleLogoUpload}
-                className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2"
-              />
-            </div>
-            <div className="text-center text-gray-400">OR</div>
-            <div>
-              <label className="block text-xs text-gray-400 mb-1">Enter URL:</label>
-              <input
-                type="url"
-                onChange={(e) => handleLogoUrlChange(e.target.value)}
-                className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2"
-                placeholder="https://example.com/logo.png"
-              />
-            </div>
-          </div>
-          {formData.logo && (
-            <div className="mt-2">
-              <p className="text-xs text-green-400">✓ Logo selected</p>
+              <label className="block text-sm font-medium mb-2">Corner Fill</label>
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={Boolean(formData.fullwidth)}
+                  onChange={(e) => setFormData({ ...formData, fullwidth: e.target.checked })}
+                  className="mr-2"
+                />
+                <span className="text-sm">Make sponsor image fill the corner (cover)</span>
+              </label>
             </div>
           )}
+
+        <div>
+          <label className="block text-sm font-medium mb-2">Time (seconds)</label>
+          <input
+            type="number"
+            min={1}
+            value={formData.timeInSeconds ?? 3}
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                timeInSeconds: Math.max(1, Number(e.target.value || 0))
+              })
+            }
+            className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2"
+            placeholder="e.g. 5"
+          />
+        </div>
+
+          
+
+          <div>
+            <label className="block text-sm font-medium mb-2">Logo</label>
+            <div className="space-y-2">
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">Upload PNG file:</label>
+                <input
+                  type="file"
+                  accept="image/png"
+                  onChange={handleLogoUpload}
+                  className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2"
+                />
+              </div>
+              <div className="text-center text-gray-400">OR</div>
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">Enter URL:</label>
+                <input
+                  type="url"
+                  onChange={(e) => handleLogoUrlChange(e.target.value)}
+                  className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2"
+                  placeholder="https://example.com/logo.png"
+                />
+              </div>
+            </div>
+            {formData.logo && (
+              <div className="mt-2">
+                <p className="text-xs text-green-400">✓ Logo selected</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="lg:pl-4">
+          <label className="block text-sm font-medium mb-2">Live Preview</label>
+          <div className="sticky top-4">
+            {formData.logo ? (
+              <div className="relative">
+                <SponsorWindow
+                  currentSponsor={{
+                    _id: "preview",
+                    name: formData.name || "",
+                    logo: formData.logo,
+                    tier: formData.tier,
+                    fullwidth: formData.fullwidth,
+                    timeInSeconds: formData.timeInSeconds,
+                    createdAt: new Date(),
+                    updatedAt: new Date()
+                  }}
+                  fixed={false}
+                  showName={Boolean(formData.name)}
+                  variant={formData.variant === "banner" ? "banner" : "corner"}
+                />
+              </div>
+            ) : (
+              <div className="w-64 h-32 bg-gray-700 border border-gray-600 rounded-lg flex items-center justify-center">
+                <p className="text-gray-400 text-sm">Upload a logo to see preview</p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

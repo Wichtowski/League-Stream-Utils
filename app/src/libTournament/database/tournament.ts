@@ -134,10 +134,6 @@ export const updateTournament = async (
 ): Promise<TournamentType | null> => {
   await connectToDatabase();
 
-  console.log("updateTournament called with:");
-  console.log("Tournament ID:", tournamentId);
-  console.log("Updates:", JSON.stringify(updates, null, 2));
-
   // Use $set operator to ensure nested objects are properly updated
   const updateQuery = { $set: updates };
 
@@ -145,7 +141,6 @@ export const updateTournament = async (
 
   try {
     // Use findByIdAndUpdate with $set to avoid full document validation
-    console.log("Using findByIdAndUpdate with $set...");
 
     const updatedTournament = await TournamentModel.findByIdAndUpdate(
       tournamentId,

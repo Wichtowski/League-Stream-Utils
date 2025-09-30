@@ -80,7 +80,6 @@ export const getImageSrc = (image?: ImageStorage): string => {
   if (image.type === "url") return image.url || "";
   const data = image.data || "";
   if (data.startsWith("data:")) return data;
-  console.log(data);
   return `data:image/${image.format};base64,${data}`;
 };
 
