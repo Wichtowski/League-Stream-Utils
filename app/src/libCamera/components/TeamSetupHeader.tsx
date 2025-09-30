@@ -2,10 +2,9 @@
 
 import React from "react";
 import Image from "next/image";
-import { Breadcrumbs } from "@lib/components/common";
+import { Button } from "@lib/components/common";
 
 interface TeamSetupHeaderProps {
-  teamId: string;
   teamName: string;
   teamLogo?: string;
   saving: boolean;
@@ -13,7 +12,6 @@ interface TeamSetupHeaderProps {
 }
 
 export const TeamSetupHeader = ({
-  teamId,
   teamName,
   teamLogo,
   saving,
@@ -34,22 +32,13 @@ export const TeamSetupHeader = ({
           <p className="text-gray-400">Configure stream URLs</p>
         </div>
       </div>
-      <div className="flex gap-3">
-        <Breadcrumbs
-          items={[
-            { label: "Camera Hub", href: "/modules/cameras" },
-            { label: "Setup", href: "/modules/cameras/setup" },
-            { label: teamName, href: `/modules/cameras/setup/${teamId}`, isActive: true }
-          ]}
-        />
-        <button
+        <Button
           onClick={onSave}
           disabled={saving}
           className="bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white px-6 py-2 rounded-lg transition-colors"
         >
           {saving ? "Saving..." : "Save Settings"}
-        </button>
-      </div>
+        </Button>
     </div>
   );
 };
