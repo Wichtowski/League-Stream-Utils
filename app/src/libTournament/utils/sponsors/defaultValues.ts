@@ -1,4 +1,4 @@
-import { SponsorFormData } from "@/libTournament/types";
+import { SponsorFormData } from "@libTournament/types";
 
 export const createDefaultSponsorForm = (): SponsorFormData => ({
   name: "",

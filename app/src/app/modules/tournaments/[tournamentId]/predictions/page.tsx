@@ -8,7 +8,7 @@ import { Tournament } from "@libTournament/types";
 import { Match, MatchPrediction, Commentator } from "@libTournament/types";
 import { PageWrapper } from "@lib/layout";
 import { useParams } from "next/navigation";
-import { useModal } from "@/lib/contexts/ModalContext";
+import { useModal } from "@lib/contexts/ModalContext";
 
 export default function PredictionsPage(): React.ReactElement {
   const { tournaments, loading: tournamentsLoading } = useTournaments();

@@ -9,7 +9,7 @@ import { useCurrentMatch } from "@libTournament/contexts/CurrentMatchContext";
 import { Match } from "@libTournament/types";
 import { LoadingSpinner, Button } from "@lib/components/common";
 import { CurrentMatchStatus } from "@libTournament/components";
-import { useCurrentTournament } from "@/libTournament/contexts/CurrentTournamentContext";
+import { useCurrentTournament } from "@libTournament/contexts/CurrentTournamentContext";
 
 export default function TournamentMatchesPage(): React.ReactElement {
   const params = useParams();

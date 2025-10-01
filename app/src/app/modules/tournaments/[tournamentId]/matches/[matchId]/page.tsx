@@ -5,9 +5,9 @@ import { useRouter, useParams } from "next/navigation";
 import { PageWrapper } from "@lib/layout";
 import { LoadingSpinner, Button } from "@lib/components/common";
 import { MatchDetailPage } from "@libTournament/components/matches/MatchDetailPage";
-import { useNavigation } from "@/lib/contexts/NavigationContext";
-import { useCurrentTournament } from "@/libTournament/contexts/CurrentTournamentContext";
-import { useCurrentMatch } from "@/libTournament/contexts/CurrentMatchContext";
+import { useNavigation } from "@lib/contexts/NavigationContext";
+import { useCurrentTournament } from "@libTournament/contexts/CurrentTournamentContext";
+import { useCurrentMatch } from "@libTournament/contexts/CurrentMatchContext";
 
 export default function MatchDetailPageWrapper(): React.ReactElement {
   const params = useParams();
@@ -17,6 +17,7 @@ export default function MatchDetailPageWrapper(): React.ReactElement {
   const { currentMatch, setCurrentMatch } = useCurrentMatch();
   const tournamentId = params.tournamentId as string;
   const matchId = params.matchId as string;
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const pageProps = useMemo(() => {
@@ -31,15 +32,24 @@ export default function MatchDetailPageWrapper(): React.ReactElement {
       ],
       actions: 
         <>
-          <Button target="_blank" href={`/modules/tournaments/${tournamentId}/matches/${matchId}/ticker`} size="sm" variant="secondary">
-            Open Match Ticker
-          </Button>
-          <span className="text-gray-400">LeagueClient</span>
+          <div className="flex gap-2 flex-wrap">
+            <h4 className="text-gray-400">Match:</h4>
+            <Button href={`/modules/tournaments/${tournamentId}/matches/${matchId}/ticker`} size="sm" variant="secondary">
+              Ticker
+            </Button>
+            <Button href={`/modules/tournaments/${tournamentId}/matches/${matchId}/predictions`} size="sm" variant="secondary">
+              Predictions
+            </Button>
+            <Button href={`/modules/tournaments/${tournamentId}/matches/${matchId}/commentator-predictions`} size="sm" variant="secondary">
+              Commentator Predictions
+            </Button>
+          </div>
+          <h4 className="text-gray-400">LeagueClient</h4>
           <Button target="_blank" href={`/modules/leagueclient/${tournamentId}/${matchId}/champselect`} size="sm" variant="primary">
-            Open Champ Select
+            Champ Select
           </Button>
           <Button target="_blank" href={`/modules/leagueclient/${tournamentId}/${matchId}/game`} size="sm" variant="secondary">
-            Open Game
+            Game
           </Button>
         </>
     }

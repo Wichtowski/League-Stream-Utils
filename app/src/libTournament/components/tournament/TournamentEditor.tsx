@@ -7,7 +7,7 @@ import { MyTeamRegistration } from "../tournament/MyTeamRegistration";
 import { StandaloneTeamManager } from "../standalone/StandaloneTeamManager";
 import { PermissionGuard } from "@lib/components/permissions/PermissionGuard";
 import { Permission } from "@lib/types/permissions";
-import { Button } from "@/lib/components/common/button/Button";
+import { Button } from "@lib/components/common/button/Button";
 
 interface TournamentEditorProps {
   tournament: Tournament;
