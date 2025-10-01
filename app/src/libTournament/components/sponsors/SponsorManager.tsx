@@ -15,11 +15,10 @@ interface SponsorManagerProps {
 const createDefaultSponsorForm = (): SponsorFormData => ({
   name: "",
   logo: null,
-  website: "",
   tier: "bronze",
-  startDate: new Date(),
-  endDate: new Date(),
-  isActive: true
+  timeInSeconds: 3,
+  variant: "corner",
+  fullwidth: false
 });
 
 export const SponsorManager = ({ tournamentId, tournament: _tournament, onSponsorsUpdated }: SponsorManagerProps) => {
@@ -164,11 +163,10 @@ export const SponsorManager = ({ tournamentId, tournament: _tournament, onSponso
     setFormData({
       name: sponsor.name,
       logo: sponsor.logo,
-      website: sponsor.website || "",
       tier: sponsor.tier,
-      startDate: sponsor.startDate,
-      endDate: sponsor.endDate,
-      isActive: sponsor.isActive
+      timeInSeconds: sponsor.timeInSeconds ?? 3,
+      variant: sponsor.variant ?? "corner",
+      fullwidth: sponsor.fullwidth ?? true
     });
   };
 
@@ -221,7 +219,7 @@ export const SponsorManager = ({ tournamentId, tournament: _tournament, onSponso
   }
 
   const sortedSponsors = [...sponsors].sort(
-    (a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
   );
 
   return (
@@ -284,64 +282,7 @@ export const SponsorManager = ({ tournamentId, tournament: _tournament, onSponso
               </select>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium mb-2">Website</label>
-              <input
-                type="url"
-                value={formData.website}
-                onChange={(e) => setFormData((prev) => ({ ...prev, website: e.target.value }))}
-                className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2"
-                placeholder="https://example.com"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">Start Date</label>
-              <input
-                type="date"
-                value={formData.startDate.toISOString().split("T")[0]}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    startDate: new Date(e.target.value)
-                  }))
-                }
-                className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">End Date</label>
-              <input
-                type="date"
-                value={formData.endDate.toISOString().split("T")[0]}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    endDate: new Date(e.target.value)
-                  }))
-                }
-                className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">Active Status</label>
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={formData.isActive}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      isActive: e.target.checked
-                    }))
-                  }
-                  className="mr-2"
-                />
-                <span className="text-sm">Sponsor is active</span>
-              </label>
-            </div>
+            
 
             <div className="md:col-span-2">
               <label className="block text-sm font-medium mb-2">Logo *</label>
@@ -415,11 +356,7 @@ export const SponsorManager = ({ tournamentId, tournament: _tournament, onSponso
                 >
                   {sponsor.tier.charAt(0).toUpperCase() + sponsor.tier.slice(1)}
                 </span>
-                <span
-                  className={`text-xs px-2 py-1 rounded ${sponsor.isActive ? "text-green-400 bg-green-900" : "text-red-400 bg-red-900"}`}
-                >
-                  {sponsor.isActive ? "Active" : "Inactive"}
-                </span>
+                
               </div>
 
               <div className="text-center mb-3">
@@ -447,7 +384,7 @@ export const SponsorManager = ({ tournamentId, tournament: _tournament, onSponso
               </div>
 
               <h4 className="font-semibold text-center mb-1">{sponsor.name}</h4>
-              {sponsor.website && <p className="text-xs text-gray-400 text-center mb-3">{sponsor.website}</p>}
+              
 
               <div className="flex justify-center space-x-2">
                 <button
