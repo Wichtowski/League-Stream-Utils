@@ -16,9 +16,8 @@ interface SponsorsDisplayData {
   sponsors: Sponsorship[];
 }
 
-export default function SponsorsCornerOBSPage() {
+export default function SponsorsCornerOBSPage(): React.ReactElement {
   const [data, setData] = useState<SponsorsDisplayData | null>(null);
-  const [currentSponsorIndex, setCurrentSponsorIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const params = useParams();
@@ -48,39 +47,13 @@ export default function SponsorsCornerOBSPage() {
     return () => clearInterval(refreshInterval);
   }, [fetchSponsors]);
 
-  useEffect(() => {
-    if (!data || data.sponsors.length === 0) return;
-
-    const fadeOutDuration = 1000;
-    let timeoutId: NodeJS.Timeout | null = null;
-
-    const runCycle = (index: number): void => {
-      const current = data.sponsors[index];
-      const displaySeconds = Math.max(1, current.timeInSeconds ?? 3);
-      const displayDuration = displaySeconds * 1000;
-
-      if (timeoutId) clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => {
-        setTimeout(() => {
-          setCurrentSponsorIndex((prev) => {
-            const next = (prev + 1) % data.sponsors.length;
-            setTimeout(() => runCycle(next), 50);
-            return next;
-          });
-        }, fadeOutDuration);
-      }, displayDuration);
-    };
-
-    runCycle(currentSponsorIndex);
-    return () => {
-      if (timeoutId) clearTimeout(timeoutId);
-    };
-  }, [data, currentSponsorIndex]);
+  // Cycling handled by SponsorWindow component
 
   if (loading || error || !data || data.sponsors.length === 0) {
     return <></>;
   }
 
-  const currentSponsor = data.sponsors[currentSponsorIndex];
-  return <SponsorWindow currentSponsor={currentSponsor} variant="corner" />;
+  return (
+    <SponsorWindow sponsors={data.sponsors} variant="corner" />
+  );
 }

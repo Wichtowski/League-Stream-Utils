@@ -137,8 +137,6 @@ export const updateTournament = async (
   // Use $set operator to ensure nested objects are properly updated
   const updateQuery = { $set: updates };
 
-  console.log("MongoDB update query:", JSON.stringify(updateQuery, null, 2));
-
   try {
     // Use findByIdAndUpdate with $set to avoid full document validation
 
@@ -153,10 +151,6 @@ export const updateTournament = async (
     );
 
     console.log("MongoDB update result:", updatedTournament ? "Document found and updated" : "No document found");
-
-    if (updatedTournament) {
-      console.log("Updated tournament Ticker:", JSON.stringify(updatedTournament.ticker, null, 2));
-    }
 
     if (!updatedTournament) return null;
 

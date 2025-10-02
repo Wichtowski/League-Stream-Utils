@@ -137,7 +137,7 @@ export const SponsorForm = ({
             {formData.logo ? (
               <div className="relative">
                 <SponsorWindow
-                  currentSponsor={{
+                  sponsors={[{
                     _id: "preview",
                     name: formData.name || "",
                     logo: formData.logo,
@@ -146,7 +146,7 @@ export const SponsorForm = ({
                     timeInSeconds: formData.timeInSeconds,
                     createdAt: new Date(),
                     updatedAt: new Date()
-                  }}
+                  }]}
                   fixed={false}
                   showName={Boolean(formData.name)}
                   variant={formData.variant === "banner" ? "banner" : "corner"}

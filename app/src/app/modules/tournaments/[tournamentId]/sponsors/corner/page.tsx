@@ -17,7 +17,7 @@ import { PageWrapper } from "@lib/layout";
 import { useParams } from "next/navigation";
 import { createDefaultSponsorForm } from "@libTournament/utils/sponsors/defaultValues";
 
-export default function TournamentSponsorsPage() {
+export default function TournamentSponsorsPage(): React.ReactElement {
   const { currentTournament, refreshCurrentTournament, loading: tournamentLoading, error: tournamentError } = useCurrentTournament();
   
   const { setActiveModule } = useNavigation();
@@ -32,7 +32,7 @@ export default function TournamentSponsorsPage() {
   const [editingSponsor, setEditingSponsor] = useState<Sponsorship | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
 
-  // Preview cycling state
+  // Preview cycling state (index displayed by window)
   const [currentSponsorIndex, setCurrentSponsorIndex] = useState(0);
 
   const pageProps = useMemo(() => {
@@ -318,11 +318,12 @@ export default function TournamentSponsorsPage() {
                       {sponsors.length})
                     </p>
                   </div>
-                  <div className="relative">
+                  <div className={`relative`}>
                     <SponsorWindow
-                      currentSponsor={sponsors[currentSponsorIndex] || sponsors[0]}
+                      sponsors={sponsors}
                       fixed={false}
                       variant="corner"
+                      onIndexChange={(i) => setCurrentSponsorIndex(i)}
                     />
                   </div>
                 </div>

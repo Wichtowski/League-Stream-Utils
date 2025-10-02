@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import Image from "next/image";
 import { Sponsorship } from "@libTournament/types";
 
@@ -9,7 +10,7 @@ interface SponsorBannerWindowProps {
   fixed?: boolean;
 }
 
-export const SponsorBannerWindow = ({ currentSponsor, isVisible, fixed = true }: SponsorBannerWindowProps): JSX.Element => {
+export const SponsorBannerWindow = ({ currentSponsor, isVisible, fixed = true }: SponsorBannerWindowProps): React.ReactElement => {
   if (!currentSponsor) {
     return (
       <div className={`${fixed ? "fixed bottom-4 left-1/2 -translate-x-1/2" : ""} w-[560px] h-40 bg-black bg-opacity-60 rounded-xl`}>
