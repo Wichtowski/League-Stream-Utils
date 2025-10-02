@@ -80,6 +80,30 @@ export class GameService {
 
       const transformed: LiveGameData = transformRiotToLiveGameData(riotData);
 
+      // Refine creepScore values using playerscores (best-effort, async fanout)
+      // try {
+      //   const updates = await Promise.all(
+      //     transformed.allPlayers.map(async (p) => {
+      //       try {
+      //         const res = await fetch(`/api/game/playerscores?riotId=${encodeURIComponent(p.summonerName)}`);
+      //         if (!res.ok) return null;
+      //         const scores: { creepScore?: number } = await res.json();
+      //         const cs = typeof scores.creepScore === "number" ? scores.creepScore : null;
+      //         return cs != null ? { name: p.summonerName, cs } : null;
+      //       } catch (_e) {
+      //         return null;
+      //       }
+      //     })
+      //   );
+      //   updates.forEach((u) => {
+      //     if (!u) return;
+      //     const target = transformed.allPlayers.find((x) => x.summonerName === u.name);
+      //     if (target) target.scores.creepScore = u.cs;
+      //   });
+      // } catch (_err) {
+      //   // ignore, best-effort refinement only
+      // }
+
       return {
         success: true,
         data: transformed

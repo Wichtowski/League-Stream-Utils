@@ -239,6 +239,11 @@ export const getAtakhanAsset = (version: string, asset: AtakhanAsset): string =>
   return getAsset(version, "atakhan", asset);
 };
 
+type CommonAsset = "tower.png" | "crossed_swords.png" | "crossed_swords_gray.png" | "turret.png" | "turret_gray.png";
+export const getCommonAsset = (version: string, asset: CommonAsset): string => {
+  return getAsset(version, "common", asset);
+};
+
 type ScoreboardAsset = "gold.png" | "tower.png" | "grubs.png";
 export const getScoreboardAsset = (version: string, asset: ScoreboardAsset): string => {
   return getAsset(version, "scoreboard", asset);
@@ -265,5 +270,6 @@ export const getAllRoleIconAssets = (version: string): { [key: string]: string }
 };
 
 const getAsset = (version: string, type: string, asset: string): string => {
+  console.log(`assets/${version}/${type}/${asset}`);
   return `/api/local-image?path=${encodeURIComponent(`assets/${version}/overlay/${type}/${asset}`)}`;
 };

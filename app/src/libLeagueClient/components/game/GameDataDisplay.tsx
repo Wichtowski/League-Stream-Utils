@@ -5,6 +5,7 @@ import { PlayerCard } from "@libLeagueClient/components/game/PlayerCard";
 import { Tournament, Match, GameResult } from "@libTournament/types";
 import Image from "next/image";
 import { motion } from "framer-motion";
+import { LaneHud } from "@libLeagueClient/components/game/LaneHud";
 import {
   getChampionSquareImage,
   getSummonerSpellImageByName,
@@ -12,9 +13,10 @@ import {
   getDragonPitAsset,
   getBaronPitAsset,
   getScoreboardAsset,
-  getAtakhanAsset
+  getAtakhanAsset,
+  getCommonAsset
 } from "@libLeagueClient/components/common";
-import { getItemImage, getItems } from "@lib/items";
+import { getItems } from "@lib/items";
 import { getChampions } from "@lib/champions";
 import { getSummonerSpells } from "@lib/summoner-spells";
 import { bindLivePlayersToMatch, createFallbackLivePlayer } from "@lib/services/game/live-binding";
@@ -92,7 +94,7 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({
           redTeamData?.logo?.data || redTeamData?.logo?.url || getDefaultAsset(resolvedVersion, "chaos.png")
         );
         setGoldIcon(getScoreboardAsset(resolvedVersion, "gold.png"));
-        setTowerIcon(getScoreboardAsset(resolvedVersion, "tower.png"));
+        setTowerIcon(getCommonAsset(resolvedVersion, "tower.png"));
         setBaronIcon(getBaronPitAsset(resolvedVersion, "baron.png"));
         setGrubsIcon(getBaronPitAsset(resolvedVersion, "grubs.png"));
         setHeraldIcon(getBaronPitAsset(resolvedVersion, "herald.png"));
@@ -378,68 +380,7 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({
         </div>
       </motion.div>
 
-      {/* Bottom Bar - Player Stats Table */}
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gray-900/95 border-t-2 border-gray-600">
-        <div className="h-full overflow-x-auto">
-          <table className="w-full text-xs">
-            <thead>
-              <tr className="border-b border-gray-600">
-                <th className="px-2 py-1 text-left text-gray-400">Champion</th>
-                <th className="px-2 py-1 text-center text-gray-400">KDA</th>
-                <th className="px-2 py-1 text-center text-gray-400">CS</th>
-                <th className="px-2 py-1 text-center text-gray-400">Gold</th>
-                <th className="px-2 py-1 text-center text-gray-400">Items</th>
-                <th className="px-2 py-1 text-center text-gray-400">Team</th>
-              </tr>
-            </thead>
-            <tbody>
-              {[...blueTeamPlayers, ...redTeamPlayers].map((player, index) => (
-                <tr key={index} className="border-b border-gray-700/50 hover:bg-gray-800/50">
-                  <td className="px-2 py-1">
-                    <div className="flex items-center space-x-2">
-                      <Image
-                        src={getChampionSquareImage(player.championName) || "/api/local-image?path=default/player.png"}
-                        alt={player.championName}
-                        width={24}
-                        height={24}
-                        className="rounded"
-                      />
-                      <div>
-                        <div className="font-medium text-white">{player.championName}</div>
-                        <div className="text-xs text-gray-400">{player.position}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-2 py-1 text-center">
-                    <span className="font-bold text-white">
-                      {player.scores?.kills || 0}/{player.scores?.deaths || 0}/{player.scores?.assists || 0}
-                    </span>
-                  </td>
-                  <td className="px-2 py-1 text-center text-white">{player.scores?.creepScore || 0}</td>
-                  <td className="px-2 py-1 text-center text-white">{Math.round((player.gold || 0) / 100) / 10}K</td>
-                  <td className="px-2 py-1">
-                    <div className="flex space-x-1 justify-center">
-                      {player.items?.slice(0, 3).map((item, itemIndex) => (
-                        <div
-                          key={itemIndex}
-                          className="w-5 h-5 bg-gray-700 rounded border border-gray-600 flex items-center justify-center"
-                        >
-                          <Image src={getItemImage(item.itemID)} alt={item.name} width={20} height={20} />
-                        </div>
-                      ))}
-                    </div>
-                  </td>
-                  <td className="px-2 py-1 text-center">
-                    <div
-                      className={`w-3 h-3 rounded-full mx-auto ${player.team === "ORDER" ? "bg-blue-500" : "bg-red-500"}`}
-                    ></div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <LaneHud gameData={gameData} gameVersion={gameVersion} />
     </div>
   );
 };

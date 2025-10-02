@@ -14,7 +14,7 @@ const ROLE_ORDER: PlayerRole[] = ["TOP", "JUNGLE", "MID", "BOTTOM", "SUPPORT"];
 
 const normalize = (value?: string): string => (value || "").trim().toLowerCase();
 
-const livePositionToRole = (position: string): PlayerRole | null => {
+export const livePositionToRole = (position: string): PlayerRole | null => {
   const key = normalize(position);
   if (key === "top") return "TOP";
   if (key === "jungle") return "JUNGLE";

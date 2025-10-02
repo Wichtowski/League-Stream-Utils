@@ -84,6 +84,7 @@ async function getSummonerSpellsFromComprehensiveCache(): Promise<SummonerSpell[
       return await fetchSummonerSpellsFromAPI().then((data) => data.spells);
     }
 
+    const latest = await getLatestVersion();
     const spells = await summonerSpellCacheService.getAllSummonerSpells();
     console.log("Spells:", spells);
 
@@ -98,6 +99,7 @@ async function getSummonerSpellsFromComprehensiveCache(): Promise<SummonerSpell[
       }
     }
 
+    // Note: summonerSpellCacheService hides version; fall back to versioned local cache check below
     return spells;
   } catch (error) {
     console.warn("Comprehensive summoner spell cache failed:", error);
@@ -128,12 +130,23 @@ async function getSummonerSpellsFromCache(): Promise<SummonerSpell[]> {
   // Only try to fetch if we're in a browser environment
   if (typeof window !== "undefined") {
     try {
+      const latest = await getLatestVersion();
       const spells = await getSummonerSpellsFromComprehensiveCache();
-      return spells.map((s) => ({ ...s, image: toLocalImageUrl(s.image) }));
+      if (spells.length > 0) {
+        return spells.map((s) => ({ ...s, image: toLocalImageUrl(s.image) }));
+      }
+      const cached = loadListFromLocal<SummonerSpell>("summoner_spells");
+      if (cached?.data && cached.version === latest) {
+        return cached.data.map((s) => ({ ...s, image: toLocalImageUrl(s.image) }));
+      }
+      return await getSummonerSpellsFromBasicCache();
     } catch (error) {
       console.error("Error fetching summoner spells from comprehensive cache:", error);
+      const latest = await getLatestVersion();
       const cached = loadListFromLocal<SummonerSpell>("summoner_spells");
-      if (cached?.data) return cached.data.map((s) => ({ ...s, image: toLocalImageUrl(s.image) }));
+      if (cached?.data && cached.version === latest) {
+        return cached.data.map((s) => ({ ...s, image: toLocalImageUrl(s.image) }));
+      }
       return await getSummonerSpellsFromBasicCache();
     }
   }

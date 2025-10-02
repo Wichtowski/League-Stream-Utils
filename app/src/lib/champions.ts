@@ -112,13 +112,15 @@ async function getChampionsFromComprehensiveCache(): Promise<Champion[]> {
 }
 
 async function getChampionsFromBasicCache(): Promise<Champion[]> {
+  const latest = await getLatestVersion();
+
   const electronCache = await loadFromElectronCache();
-  if (electronCache) {
+  if (electronCache && electronCache.version === latest) {
     return electronCache.champions.map((c: Champion) => ({ ...c, image: toLocalImageUrl(c.image) }));
   }
 
   const localCache: { champions: Champion[]; version: string; timestamp: number } | null = loadFromLocalStorage();
-  if (localCache) {
+  if (localCache && localCache.version === latest) {
     return localCache.champions.map((c: Champion) => ({ ...c, image: toLocalImageUrl(c.image) }));
   }
 
@@ -130,7 +132,8 @@ async function getChampionsFromBasicCache(): Promise<Champion[]> {
   } catch (error) {
     console.error("Error fetching champions from API:", error);
     const fallback = loadFromLocalStorage();
-    if (fallback) return fallback.champions.map((c: Champion) => ({ ...c, image: toLocalImageUrl(c.image) }));
+    if (fallback && fallback.version === latest)
+      return fallback.champions.map((c: Champion) => ({ ...c, image: toLocalImageUrl(c.image) }));
     return [];
   }
 }

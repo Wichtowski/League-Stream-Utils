@@ -81,8 +81,15 @@ async function loadFromElectronCache(): Promise<{ items: Item[]; timestamp: numb
 }
 
 async function getItemsFromBasicCache(): Promise<Item[]> {
+  const latest = await getLatestVersion();
+
   const electronCache = await loadFromElectronCache();
-  if (electronCache) return electronCache.items;
+  if (electronCache) return electronCache.items; // Electron service already uses latest internally
+
+  const cached = loadListFromLocal<Item>("items");
+  if (cached && cached.version === latest) {
+    return cached.data.map((i) => ({ ...i, image: toLocalImageUrl(i.image) }));
+  }
 
   const { items, version } = await fetchItemsFromAPI();
   saveListToLocal("items", items, version);
@@ -94,8 +101,12 @@ async function getItemsFromCache(): Promise<Item[]> {
     try {
       return await getItemsFromBasicCache();
     } catch (_error) {
+      const latest = await getLatestVersion();
       const cached = loadListFromLocal<Item>("items");
-      return cached?.data?.map((i) => ({ ...i, image: toLocalImageUrl(i.image) })) || [];
+      if (cached && cached.version === latest) {
+        return cached.data.map((i) => ({ ...i, image: toLocalImageUrl(i.image) }));
+      }
+      return [];
     }
   }
   return [];
