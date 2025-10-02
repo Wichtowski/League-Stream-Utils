@@ -158,8 +158,7 @@ class LCUConnector {
         console.warn("Champion select polling failed:", result.message);
         this.onChampSelectUpdate?.(null);
       }
-    } catch (error) {
-      console.error("Error polling champ select:", error);
+    } catch (_error) {
       this.onChampSelectUpdate?.(null);
     }
   }

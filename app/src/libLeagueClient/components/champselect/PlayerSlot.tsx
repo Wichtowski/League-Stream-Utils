@@ -4,41 +4,7 @@ import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import type { EnhancedChampSelectPlayer } from "@lib/types";
 import { getChampionName, getChampionCenteredSplashImage } from "../common";
-
-// Pick and ban phase configuration - 20 turns total
-const PICK_BAN_ORDER: Array<{
-  phase: string;
-  team: "blue" | "red";
-  type: "pick" | "ban";
-}> = [
-  // Ban phase 1 (6 bans)
-  { phase: "BAN_1", team: "blue", type: "ban" },
-  { phase: "BAN_1", team: "red", type: "ban" },
-  { phase: "BAN_1", team: "blue", type: "ban" },
-  { phase: "BAN_1", team: "red", type: "ban" },
-  { phase: "BAN_1", team: "blue", type: "ban" },
-  { phase: "BAN_1", team: "red", type: "ban" },
-
-  // Pick phase 1 (6 picks)
-  { phase: "PICK_1", team: "blue", type: "pick" },
-  { phase: "PICK_1", team: "red", type: "pick" },
-  { phase: "PICK_1", team: "red", type: "pick" },
-  { phase: "PICK_1", team: "blue", type: "pick" },
-  { phase: "PICK_1", team: "blue", type: "pick" },
-  { phase: "PICK_1", team: "red", type: "pick" },
-
-  // Ban phase 2 (4 bans)
-  { phase: "BAN_2", team: "red", type: "ban" },
-  { phase: "BAN_2", team: "blue", type: "ban" },
-  { phase: "BAN_2", team: "red", type: "ban" },
-  { phase: "BAN_2", team: "blue", type: "ban" },
-
-  // Pick phase 2 (4 picks)
-  { phase: "PICK_2", team: "red", type: "pick" },
-  { phase: "PICK_2", team: "blue", type: "pick" },
-  { phase: "PICK_2", team: "blue", type: "pick" },
-  { phase: "PICK_2", team: "red", type: "pick" }
-];
+import { PICK_BAN_MAPPINGS } from "../../utils/pickBanMappings";
 
 interface PlayerSlotProps {
   player: EnhancedChampSelectPlayer;
@@ -70,11 +36,43 @@ export const PlayerSlotComponent: React.FC<PlayerSlotProps> = ({
   cardsAnimated,
   teamSide
 }) => {
-  const image = getChampionCenteredSplashImage(player.championId);
+  // Determine if this slot is the current picking player
+  const getCurrentPickingPlayerIndex = (): number => {
+    if (!hoverState?.currentTurn || hoverState?.currentActionType !== "pick") {
+      return -1;
+    }
+
+    // Use teamSide instead of teamColor since teamColor is a CSS color value
+    const isBlueTeam = teamSide === "left";
+    const expectedTeam = isBlueTeam ? "blue" : "red";
+
+    // Check if this team is currently picking
+    if (hoverState.currentTeam !== expectedTeam) {
+      return -1;
+    }
+
+    // If currentTurn is already a player index (0-4), use it directly
+    // If it's a turn number, we need to map it to player index
+    if (hoverState.currentTurn >= 0 && hoverState.currentTurn <= 4) {
+      return hoverState.currentTurn;
+    }
+
+    // For mock data or other cases where currentTurn is a turn number
+    // Map turn number to player index using the shared mapping
+    const mapping = isBlueTeam ? PICK_BAN_MAPPINGS.blue : PICK_BAN_MAPPINGS.red;
+    return mapping[hoverState.currentTurn as keyof typeof mapping] ?? -1;
+  };
+
+  const isCurrentPickingPlayer = getCurrentPickingPlayerIndex() === index;
+  const isCurrentlyPicking = hoverState?.currentActionType === "pick" && isCurrentPickingPlayer;
+  
+  // Show hovered champion image when hovering, otherwise show picked champion
+  const image = hoverState?.isHovering && hoverState?.hoveredChampionId && isCurrentPickingPlayer 
+    ? getChampionCenteredSplashImage(hoverState.hoveredChampionId)
+    : getChampionCenteredSplashImage(player.championId);
   const [recentlyPicked, setRecentlyPicked] = useState(false);
   const isPlaceholder = player.cellId < 0;
   const championPicked = player.championId > 0;
-
   // Register images with parent component
   useEffect(() => {
     if (onRegisterImages) {
@@ -93,47 +91,6 @@ export const PlayerSlotComponent: React.FC<PlayerSlotProps> = ({
       onRegisterImages(urls);
     }
   }, [player.championId, player.role, image, roleIcons, onRegisterImages]);
-
-  const getCurrentPickingPlayerIndex = (): number => {
-    if (!hoverState?.currentTurn || hoverState?.currentActionType !== "pick") {
-      return -1;
-    }
-
-    const currentTurn = hoverState.currentTurn;
-    const currentAction = PICK_BAN_ORDER[currentTurn];
-
-    // Use teamSide instead of teamColor since teamColor is a CSS color value
-    const isBlueTeam = teamSide === "left";
-    const expectedTeam = isBlueTeam ? "blue" : "red";
-
-    if (!currentAction || currentAction.type !== "pick" || currentAction.team !== expectedTeam) {
-      return -1;
-    }
-
-    // Separate mappings for blue and red teams
-    const bluePlayerMapping: Record<number, number> = {
-      6: 0, // Blue first pick
-      9: 1, // Blue second pick
-      10: 2, // Blue third pick
-      17: 3, // Blue fourth pick
-      18: 4 // Blue fourth pick
-    };
-
-    const redPlayerMapping: Record<number, number> = {
-      7: 0, // Red first pick
-      8: 1, // Red second pick
-      11: 2, // Red third pick
-      16: 3, // Red fourth pick
-      19: 4 // Red fifth pick
-    };
-
-    const mapping = isBlueTeam ? bluePlayerMapping : redPlayerMapping;
-    return mapping[currentTurn] ?? -1;
-  };
-
-  // Check if this specific player slot should show hover effect
-  const isCurrentPickingPlayer = getCurrentPickingPlayerIndex() === index;
-  const isCurrentlyPicking = hoverState?.currentActionType === "pick" && isCurrentPickingPlayer;
 
   useEffect(() => {
     // Only trigger recentlyPicked when this specific player's champion was just picked
@@ -180,6 +137,13 @@ export const PlayerSlotComponent: React.FC<PlayerSlotProps> = ({
     return 0;
   };
 
+  const indexToRole = (index: number): "TOP" | "JUNGLE" | "MID" | "BOTTOM" | "SUPPORT" => {
+    if (index === 0) return "TOP";
+    if (index === 1) return "JUNGLE";
+    if (index === 2) return "MID";
+    if (index === 3) return "BOTTOM";
+    return "SUPPORT";
+  };
   return (
     <div
       key={player.cellId}
@@ -205,7 +169,7 @@ export const PlayerSlotComponent: React.FC<PlayerSlotProps> = ({
         {!isPlaceholder && image && image.trim() !== "" ? (
           <Image
             src={image}
-            alt={getChampionName(player.championId) || player.summonerName || `Player ${index + 1}`}
+            alt={player.summonerName || player.playerInfo?.name || player?.gameName || getChampionName(player.championId) || ""}
             fill
             sizes="100vw"
             className="object-cover object-center absolute inset-0 z-0"
@@ -215,17 +179,20 @@ export const PlayerSlotComponent: React.FC<PlayerSlotProps> = ({
           <div className="absolute inset-0 w-full h-full bg-transparent flex items-start justify-center text-gray-500 text-sm z-0 pt-16">
             {!isPlaceholder && player.role && roleIcons[player.role] ? (
               <Image
-                src={roleIcons[player.role]} // || PLAYER_CARD_ROLE_ICONS[player.role]}
+                src={roleIcons[player.role]}
                 alt={player.role}
                 width={12}
                 height={12}
                 className="w-12 h-12 object-contain"
               />
             ) : (
-              <div className="text-center">
-                <div className="text-4xl mb-2">{isPlaceholder ? "⚪" : "👤"}</div>
-                <div className="text-sm">{isPlaceholder ? "Empty Slot" : "No Role"}</div>
-              </div>
+              <Image
+              src={roleIcons[indexToRole(index)] || ""}
+              alt={indexToRole(index) || ""}
+              width={12}
+              height={12}
+              className="w-12 h-12 object-contain"
+            />
             )}
           </div>
         )}
@@ -233,16 +200,25 @@ export const PlayerSlotComponent: React.FC<PlayerSlotProps> = ({
         <div className="relative z-20 p-3 pl-0 flex flex-col items-center text-center justify-end max-w-full">
           <div className="flex items-end mb-3 w-full">
             <div
-              className="text-2xl font-semibold text-white rotate-270 origin-bottom-left transform-gpu whitespace-nowrap"
+              className="text-2xl font-semibold text-white rotate-270 origin-bottom-left transform-gpu"
               style={{
                 position: "absolute",
                 bottom: "10px",
                 left: "40px",
-                maxHeight: "200px",
-                overflow: "visible"
+                width: "200px",
+                height: "40px",
+                overflow: "visible",
+                fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Noto Sans', 'Malgun Gothic', sans-serif",
+                textRendering: "optimizeLegibility",
+                WebkitFontSmoothing: "antialiased",
+                MozOsxFontSmoothing: "grayscale",
+                whiteSpace: "nowrap",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "flex-start"
               }}
             >
-              {isPlaceholder ? "Empty Slot" : player.summonerName || player.playerInfo?.name || `Player ${index + 1}`}
+              {isPlaceholder ? "Empty Slot" : player.summonerName || player.playerInfo?.name || player.gameName || ""}
             </div>
             {!isPlaceholder && player.role && roleIcons[player.role] && championPicked && (
               <div className="absolute bottom-5 right-5">

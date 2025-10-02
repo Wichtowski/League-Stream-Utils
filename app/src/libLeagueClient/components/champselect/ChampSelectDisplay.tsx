@@ -27,9 +27,9 @@ import { getTeamById } from "@libTeam/database";
 
 interface ChampSelectDisplayProps {
   data: EnhancedChampSelectSession;
-  match: Match;
+  match?: Match;
   teams?: Team[];
-  tournament: Tournament;
+  tournament?: Tournament;
   roleIcons: Record<string, string>;
   banPlaceholder: string;
   showControls?: boolean;
@@ -46,7 +46,8 @@ const ChampSelectDisplayComponent: React.FC<ChampSelectDisplayProps> = ({
   showControls = false,
   onToggleControls
 }) => {
-  const { myTeam, theirTeam, tournamentData, bans, timer, hoverState } = data;
+  const { myTeam, theirTeam, tournamentData, timer, hoverState } = data;
+  const bans = data.bans || { myTeamBans: [], theirTeamBans: [] };
   const [uiReady, setUiReady] = useState(false);
   const [loadedTournament, setLoadedTournament] = useState<Tournament | null>(null);
   const [loadedMatch, setLoadedMatch] = useState<Match | null>(null);
@@ -68,24 +69,63 @@ const ChampSelectDisplayComponent: React.FC<ChampSelectDisplayProps> = ({
   }>({ blue: [], red: [] });
   const [centerAnimated, setCenterAnimated] = useState(false);
 
+  // Derive hover state from actions when not provided by data
+  const derivedHoverState = useMemo((): {
+    isHovering: boolean;
+    isSelecting: boolean;
+    hoveredChampionId: number | null;
+    currentTeam: "blue" | "red" | null;
+    currentActionType: "pick" | "ban" | null;
+    currentTurn?: number;
+  } | undefined => {
+    if (!data?.actions || (hoverState && hoverState.isHovering)) return hoverState;
+
+    const flatActions = data.actions.flat();
+    
+    // Find the next actionable pick/ban (first not completed)
+    const nextAction = flatActions.find((a) => a && !a.completed && (a.type === "pick" || a.type === "ban"));
+    if (!nextAction) return hoverState;
+
+    const actionIndex = flatActions.findIndex((a) => a === nextAction);
+    const actorCellId = nextAction.actorCellId;
+    const isBlue = myTeam.some((p) => p.cellId === actorCellId);
+    const currentTeam = isBlue ? "blue" : (theirTeam.some((p) => p.cellId === actorCellId) ? "red" : null);
+
+    // Find the player index based on actorCellId in the team
+    const teamPlayers = isBlue ? myTeam : theirTeam;
+    const playerIndex = teamPlayers.findIndex((p) => p.cellId === actorCellId);
+    
+
+    return {
+      isHovering: true,
+      isSelecting: nextAction.type === "pick",
+      hoveredChampionId: nextAction.championId || null,
+      currentTeam,
+      currentActionType: nextAction.type,
+      currentTurn: playerIndex !== undefined ? playerIndex : actionIndex
+    };
+  }, [data?.actions, hoverState, myTeam, theirTeam]);
+
+  const effectiveHoverState = hoverState || derivedHoverState;
+
   // Load tournament and match data when IDs are provided
   useEffect(() => {
     const loadData = async () => {
       // Skip database operations if we have mock data provided directly
-      if (tournament._id || match._id) {
+      if (tournament?._id || match?._id) {
         return;
       }
 
-      if (!match._id) return;
+      if (!match?._id) return;
 
       try {
         const promises: Promise<void>[] = [];
 
-        if (tournament._id) {
+        if (tournament?._id) {
           promises.push(getTournamentById(tournament._id).then(setLoadedTournament));
         }
 
-        if (match._id) {
+        if (match?._id) {
           promises.push(getMatchById(match._id).then(setLoadedMatch));
         }
 
@@ -96,7 +136,7 @@ const ChampSelectDisplayComponent: React.FC<ChampSelectDisplayProps> = ({
     };
 
     loadData();
-  }, [match._id, tournament, match]);
+  }, [tournament, match]);
 
   // Load teams when match data is available
   useEffect(() => {
@@ -472,7 +512,7 @@ const ChampSelectDisplayComponent: React.FC<ChampSelectDisplayProps> = ({
                     teamColor={getTeamColor(effectiveTournamentData?.blueTeam, blueColor)}
                     isFearlessDraft={fearlessActive}
                     usedChampions={data.usedChampions}
-                    hoverState={hoverState}
+                    hoverState={effectiveHoverState}
                     onRegisterImages={registerChildImages}
                     bansAnimated={bansAnimated}
                     teamSide="left"
@@ -493,7 +533,7 @@ const ChampSelectDisplayComponent: React.FC<ChampSelectDisplayProps> = ({
                     teamColor={getTeamColor(effectiveTournamentData?.redTeam, redColor)}
                     isFearlessDraft={fearlessActive}
                     usedChampions={data.usedChampions}
-                    hoverState={hoverState}
+                    hoverState={effectiveHoverState}
                     banPlaceholder={banPlaceholder}
                     onRegisterImages={registerChildImages}
                     bansAnimated={bansAnimated}
@@ -504,7 +544,7 @@ const ChampSelectDisplayComponent: React.FC<ChampSelectDisplayProps> = ({
             <TimeBar
               timer={timer}
               tournamentData={effectiveTournamentData}
-              hoverState={hoverState}
+              hoverState={effectiveHoverState}
               animated={bansAnimated}
             />
           </>
@@ -518,7 +558,7 @@ const ChampSelectDisplayComponent: React.FC<ChampSelectDisplayProps> = ({
             }}
             teamColor={getTeamColor(effectiveTournamentData?.blueTeam, blueColor)}
             currentPhase={data.phase}
-            hoverState={hoverState}
+            hoverState={effectiveHoverState}
             roleIcons={roleIcons}
             onRegisterImages={registerChildImages}
             cardsAnimated={cardsAnimated}
@@ -569,7 +609,7 @@ const ChampSelectDisplayComponent: React.FC<ChampSelectDisplayProps> = ({
               })()}
               onRegisterImages={registerChildImages}
               animated={centerAnimated}
-              patchVersion={tournament.patchVersion}
+              patchVersion={tournament?.patchVersion}
             />
           ) : (
             <div className="flex items-center justify-center h-full">

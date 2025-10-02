@@ -146,7 +146,7 @@ const TeamBansComponent: React.FC<TeamBansProps> = ({
         return (
           <div
             key={index}
-            className={`relative w-16 h-16 overflow-hidden flex items-center justify-center transition-all duration-500 ${bansAnimated ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
+            className={`relative w-16 h-16 overflow-hidden flex items-center justify-center transition-all duration-500 opacity-100 translate-y-0`}
             style={{
               transitionDelay: `${getBanAnimationDelay(index)}s`
             }}

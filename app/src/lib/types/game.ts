@@ -272,6 +272,7 @@ export interface ChampSelectSession {
 export interface EnhancedChampSelectPlayer extends ChampSelectPlayer {
   // Additional tournament data
   playerInfo?: PickbanPlayer;
+  gameName?: string;
   role?: "TOP" | "JUNGLE" | "MID" | "BOTTOM" | "SUPPORT";
   profileImage?: string;
 }

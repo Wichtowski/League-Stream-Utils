@@ -70,22 +70,49 @@ const TeamSection: React.FC<TeamSectionProps> = ({
     }
   }, [team, roleIcons, onRegisterImages]);
 
-  // Create a full team array with placeholder players if needed
-  const fullTeam = [...team];
-  while (fullTeam.length < 5) {
-    fullTeam.push({
-      cellId: -fullTeam.length, // Negative to avoid conflicts with real cellIds
+  const roleToIndex: Record<string, number> = {
+    TOP: 0,
+    JUNGLE: 1,
+    MID: 2,
+    BOTTOM: 3,
+    SUPPORT: 4
+  };
+
+  const orderedTeam: Array<EnhancedChampSelectPlayer | null> = new Array(5).fill(null);
+
+  team.forEach((p) => {
+    const idx = p.role ? roleToIndex[p.role] : undefined;
+    if (typeof idx === "number" && idx >= 0 && idx < 5) {
+      if (!orderedTeam[idx]) orderedTeam[idx] = p;
+    }
+  });
+
+  team.forEach((p) => {
+    if (!p.role) {
+      for (let i = 0; i < 5; i++) {
+        if (!orderedTeam[i]) {
+          orderedTeam[i] = p;
+          break;
+        }
+      }
+    }
+  });
+
+  const fullTeam: EnhancedChampSelectPlayer[] = orderedTeam.map((p, i) => {
+    if (p) return p;
+    return {
+      cellId: -(i + 1),
       championId: 0,
       summonerId: 0,
-      summonerName: `Player ${fullTeam.length + 1}`,
+      summonerName: `Player ${i + 1}`,
       puuid: "",
       isBot: false,
       isActingNow: false,
       pickTurn: 0,
       banTurn: 0,
       team: teamColor === "blue" ? 100 : 200
-    } as EnhancedChampSelectPlayer);
-  }
+    } as EnhancedChampSelectPlayer;
+  });
 
   return (
     <div className="w-full">
