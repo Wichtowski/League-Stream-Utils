@@ -71,8 +71,14 @@ export default function ModulesPage() {
       if (module.status === "coming-soon") {
         return;
       }
-      if (isHiddenBehindTournament(module)) {
+      if (isHiddenBehindTournament(module.id)) {
         if (!currentTournament) {
+          return;
+        } else if (module.id === "currentMatch") {
+          router.push(`/modules/tournaments/${currentTournament._id}/matches/${currentMatch?._id}`);
+          return;
+        } else if (module.id === "currentTournament") {
+          router.push(`/modules/tournaments/${currentTournament._id}`);
           return;
         } else {
           router.push(`/modules/tournaments/${currentTournament._id}/${module.id}`);
@@ -94,8 +100,8 @@ export default function ModulesPage() {
     // Use context action if needed; for now, match context is authoritative
   };
 
-  const isHiddenBehindTournament = (module: ModuleCard) =>
-    module.name === "Matches" || module.name === "Commentators" || module.name === "Sponsors";
+  const isHiddenBehindTournament = (moduleId: string) =>
+    moduleId === "matches" || moduleId === "commentators" || moduleId === "sponsors" || moduleId === "currentMatch" || moduleId === "currentTournament";
 
   const pageProps = {
     title: visibleModules.length === 0 ? (loading ? "Modules" : "Modules Not Found") : "Modules",
@@ -132,7 +138,7 @@ export default function ModulesPage() {
             className={`cursor-pointer p-6 ${module.status === "coming-soon" ? "opacity-50 cursor-not-allowed" : ""}`}
             spotlightColor={module.spotlightColor}
             module={module}
-            isHiddenBehindTournament={isHiddenBehindTournament(module)}
+            isHiddenBehindTournament={isHiddenBehindTournament(module.id)}
             tournamentName={currentTournament?.name || undefined}
           />
         ))}

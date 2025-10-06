@@ -70,9 +70,7 @@ export const TournamentEditor = ({
           <div className="flex items-center space-x-2">
             <span
               className={`px-3 py-1 rounded text-sm ${
-                tournament.status === "draft"
-                  ? "bg-yellow-600"
-                  : tournament.status === "registration"
+                  tournament.status === "registration"
                     ? "bg-blue-600"
                     : tournament.status === "ongoing"
                       ? "bg-green-600"
@@ -113,6 +111,57 @@ export const TournamentEditor = ({
         return (
           <>
             <div className="bg-gray-800 rounded-lg p-6">
+              <h3 className="text-lg font-semibold mb-4">Tournament Status</h3>
+              <div className="flex flex-wrap gap-3">
+              {tournament.status === "registration" && (
+                  <>
+                    <Button
+                      onClick={() => setShowMyTeamRegistration(true)}
+                      className={`${buttonStyle}`}
+                      hoverStyle={getButtonBgStyle(idx++).backgroundColor}
+                      style={getButtonBgStyle(idx++)}
+                      variant="custom"
+                    >
+                      Add Teams
+                    </Button>
+                    <Button
+                      onClick={() => onStatusUpdate(tournament._id, "ongoing")}
+                      className={`${buttonStyle}`}
+                      hoverStyle={getButtonBgStyle(idx++).backgroundColor}
+                      style={getButtonBgStyle(idx++)}
+                      variant="custom"
+                    >
+                      Close Registration & Start Tournament
+                    </Button>
+                  </>
+                )}
+
+                {tournament.status === "ongoing" && (
+                  <>
+                    <Button
+                      onClick={() => onStatusUpdate(tournament._id, "completed")}
+                      className={`${buttonStyle}`}
+                      hoverStyle={getButtonBgStyle(idx++).backgroundColor}
+                      style={getButtonBgStyle(idx++)}
+                      variant="custom"
+                      >
+                      Close Tournament
+                    </Button>
+                    
+                    <Button
+                      onClick={() => onStatusUpdate(tournament._id, "registration")}
+                      className={`${buttonStyle}`}
+                      hoverStyle={getButtonBgStyle(idx++).backgroundColor}
+                      style={getButtonBgStyle(idx++)}
+                      variant="custom"
+                      >
+                      Reopen Registration
+                    </Button>
+                  </>
+                )}
+              </div>
+            </div>
+            <div className="bg-gray-800 rounded-lg p-6">
               <h3 className="text-lg font-semibold mb-4">Organization</h3>
               <div className="flex flex-wrap gap-3">
                 <Button
@@ -125,7 +174,7 @@ export const TournamentEditor = ({
                   Matches
                 </Button>
 
-                {(tournament.status === "draft" || tournament.status === "ongoing") && (
+                {tournament.status === "ongoing" && (
                   <Button
                     onClick={() => handleGenerateMatches()}
                     className={`${buttonStyle}`}
@@ -159,7 +208,7 @@ export const TournamentEditor = ({
                   </Button>
                 </PermissionGuard>
 
-                {tournament.status === "draft" && (
+                {tournament.status === "registration" && (
                   <Button
                     onClick={() => onStatusUpdate(tournament._id, "registration")}
                     className={`${buttonStyle}`}
@@ -171,49 +220,7 @@ export const TournamentEditor = ({
                   </Button>
                 )}
 
-                {tournament.status === "registration" && (
-                  <>
-                    <Button
-                      onClick={() => onStatusUpdate(tournament._id, "ongoing")}
-                      className={`${buttonStyle}`}
-                      hoverStyle={getButtonBgStyle(idx++).backgroundColor}
-                      style={getButtonBgStyle(idx++)}
-                      variant="custom"
-                    >
-                      Start Tournament
-                    </Button>
-                    <Button
-                      onClick={() => setShowMyTeamRegistration(true)}
-                      className={`${buttonStyle}`}
-                      hoverStyle={getButtonBgStyle(idx++).backgroundColor}
-                      style={getButtonBgStyle(idx++)}
-                      variant="custom"
-                    >
-                      Add Teams
-                    </Button>
-                    <Button
-                      onClick={() => onStatusUpdate(tournament._id, "draft")}
-                      className={`${buttonStyle}`}
-                      hoverStyle={getButtonBgStyle(idx++).backgroundColor}
-                      style={getButtonBgStyle(idx++)}
-                      variant="custom"
-                    >
-                      Close Registration
-                    </Button>
-                  </>
-                )}
 
-                {tournament.status === "ongoing" && (
-                  <Button
-                    onClick={() => onStatusUpdate(tournament._id, "completed")}
-                    className={`${buttonStyle}`}
-                    hoverStyle={getButtonBgStyle(idx++).backgroundColor}
-                    style={getButtonBgStyle(idx++)}
-                    variant="custom"
-                  >
-                    Complete Tournament
-                  </Button>
-                )}
               </div>
             </div>
             <div className="bg-gray-800 rounded-lg p-6">

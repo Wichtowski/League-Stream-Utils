@@ -6,6 +6,7 @@ import os from "os";
 import https from "https";
 import { URL } from "url";
 import { getLeagueInstallationPaths } from "../RIOT/league-paths";
+import { ChampSelectSession } from "@lib/types/game";
 
 const execAsync = promisify(exec);
 
@@ -188,8 +189,10 @@ export const testLCUConnection = async (
 };
 
 // Get champion select session
-export const getChampSelectSession = async (credentials: LCUCredentials): Promise<LCURequestResult> => {
-  return makeLCURequest(credentials, "/lol-champ-select/v1/session");
+export const getChampSelectSession = async (
+  credentials: LCUCredentials
+): Promise<LCURequestResult<ChampSelectSession | null>> => {
+  return makeLCURequest<ChampSelectSession | null>(credentials, "/lol-champ-select/v1/session");
 };
 
 // Get gameflow phase

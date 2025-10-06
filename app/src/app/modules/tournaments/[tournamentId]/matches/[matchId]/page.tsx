@@ -34,10 +34,10 @@ export default function MatchDetailPageWrapper(): React.ReactElement {
         <>
           <div className="flex gap-2 flex-wrap">
             <h4 className="text-gray-400">Match:</h4>
-            <Button href={`/modules/tournaments/${tournamentId}/matches/${matchId}/ticker`} size="sm" variant="secondary">
+            <Button target="_blank" href={`/modules/tournaments/${tournamentId}/matches/${matchId}/ticker`} size="sm" variant="secondary">
               Ticker
             </Button>
-            <Button href={`/modules/tournaments/${tournamentId}/matches/${matchId}/predictions`} size="sm" variant="secondary">
+            <Button target="_blank" href={`/modules/tournaments/${tournamentId}/matches/${matchId}/predictions`} size="sm" variant="secondary">
               Predictions
             </Button>
             <Button href={`/modules/tournaments/${tournamentId}/matches/${matchId}/commentator-predictions`} size="sm" variant="secondary">

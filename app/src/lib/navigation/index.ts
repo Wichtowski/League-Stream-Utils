@@ -138,6 +138,28 @@ export const MODULES: ModuleCard[] = [
     spotlightColor: "rgba(239, 68, 68, 0.15)",
     status: "new",
     category: "tournament"
+  },
+  {
+    id: "currentMatch",
+    name: "Current Match",
+    description: "View and manage the current match",
+    icon: "🎮",
+    color: "from-red-500 to-pink-500",
+    spotlightColor: "rgba(239, 68, 68, 0.15)",
+    status: "new",
+    category: "tournament",
+    path: "", // PATH IS DYNAMIC SET IN handleModuleClick
+  },
+  {
+    id: "currentTournament",
+    name: "Current Tournament",
+    description: "View and manage the current tournament",
+    icon: "🎮",
+    color: "from-red-500 to-pink-500",
+    spotlightColor: "rgba(239, 68, 68, 0.15)",
+    status: "new",
+    category: "tournament",
+    path: "", // PATH IS DYNAMIC SET IN handleModuleClick
   }
 ];
 
@@ -178,6 +200,13 @@ export function getVisibleModules({
     if (module.id === "sponsors" || module.id === "matches" || module.id === "commentators") {
       return showFullNav && (needsTournamentSelected || needsMatchSelected);
     }
+    if (module.id === "currentMatch") {
+      return showFullNav && needsMatchSelected;
+    }
+    if (module.id === "currentTournament") {
+      return showFullNav && needsTournamentSelected;
+    }
+    
     // All other modules require full nav
     return showFullNav;
   });

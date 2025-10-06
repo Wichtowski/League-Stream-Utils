@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { findLCUCredentials, getChampSelectSession } from "@lib/services/external/LCU/helpers";
 import { getDynamicMockData } from "@lib/mocks/dynamic-champselect";
+import type { ChampSelectSession, ChampSelectAction, ChampSelectPlayer } from "@lib/types/game";
 import fs from "node:fs/promises";
 import path from "node:path";
 
@@ -66,20 +67,20 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     }
 
     // Process the LCU data to extract bans from actions
-    const processedData = champSelectResult.data;
+    const processedData: ChampSelectSession | null = champSelectResult.data ?? null;
     if (processedData && processedData.actions) {
       const flatActions = processedData.actions.flat();
       const blueBans: number[] = [];
       const redBans: number[] = [];
       
       // Extract completed ban actions
-      flatActions.forEach((action) => {
+      flatActions.forEach((action: ChampSelectAction) => {
         if (action && action.type === "ban" && action.completed && action.championId) {
           // Determine team based on actorCellId
-          const isBlueTeam = processedData.myTeam?.some((p: any) => p.cellId === action.actorCellId);
+          const isBlueTeam = processedData.myTeam.some((p: ChampSelectPlayer) => p.cellId === action.actorCellId);
           if (isBlueTeam) {
             blueBans.push(action.championId);
-          } else if (processedData.theirTeam?.some((p: any) => p.cellId === action.actorCellId)) {
+          } else if (processedData.theirTeam.some((p: ChampSelectPlayer) => p.cellId === action.actorCellId)) {
             redBans.push(action.championId);
           }
         }

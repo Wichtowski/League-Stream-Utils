@@ -4,7 +4,7 @@ import { Sponsorship } from "@libTournament/types/sponsors";
 import { EmbeddedTicker } from "@libTournament/types/ticker";
 
 export type TournamentFormat = "Ladder" | "Swiss into Ladder" | "Round Robin into Ladder" | "Groups";
-export type TournamentStatus = "draft" | "registration" | "ongoing" | "completed" | "cancelled";
+export type TournamentStatus = "registration" | "ongoing" | "completed" | "cancelled";
 
 export interface Tournament {
   _id: string;
