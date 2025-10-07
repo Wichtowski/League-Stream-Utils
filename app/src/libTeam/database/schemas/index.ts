@@ -5,6 +5,8 @@ export const TeamSchema = new Schema({
   name: { type: String, required: true },
   tag: { type: String, required: true },
   logo: { type: ImageStorageSchema, required: false }, // Temporarily optional for migration
+  flag: { type: String, required: false }, // team-selected ISO country code
+  majorityFlag: { type: String, required: false },
 
   colors: {
     primary: { type: String, required: true },
@@ -40,6 +42,13 @@ export const TeamSchema = new Schema({
     discord: { type: String },
     website: { type: String }
   },
+
+  collaborators: [
+    {
+      userId: { type: String, required: true },
+      role: { type: String, required: true }
+    }
+  ],
 
   teamOwnerId: { type: String, required: false },
   createdAt: { type: Date, required: false, default: Date.now },

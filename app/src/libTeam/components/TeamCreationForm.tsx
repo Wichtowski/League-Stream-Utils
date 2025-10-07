@@ -6,6 +6,7 @@ import { useModal } from "@lib/contexts";
 import { LOGO_SQUARE_TOLERANCE, ALLOWED_IMAGE_HOSTS } from "@lib/services/common/constants";
 import { isAlmostSquare, extractTeamColorsFromImage } from "@lib/services/common/image";
 import { ColorPalette } from "./ColorPalette";
+import { COUNTRY_OPTIONS } from "@libTeam/utils/countries";
 
 // Helper function to check if a URL supports CORS based on allowed hosts
 const supportsCORS = (url: string): boolean => {
@@ -370,6 +371,7 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
       name: sanitizeTeamName(formData.name || ""),
       tag: sanitizeTeamTag(formData.tag || ""),
       region: sanitizeRegion(formData.region || ""),
+      flag: (formData.flag as string | undefined)?.toUpperCase(),
       players: {
         main: (formData.players?.main || []).map((player) => ({
           ...player,
@@ -590,6 +592,32 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
           )}
         </div>
 
+        {/* Team Country Flag */}
+        <div>
+          <label htmlFor="teamFlag" className="block text-sm font-medium mb-2">
+            Team Flag (overrides majority)
+          </label>
+          <select
+            value={(formData.flag as string) || ""}
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                flag: e.target.value
+              })
+            }
+            className="w-full bg-gray-700 rounded px-3 py-2 text-white border-gray-600"
+            id="teamFlag"
+          >
+            <option value="">Select country (optional)</option>
+            {COUNTRY_OPTIONS.map((country) => (
+              <option key={country.code} value={country.code}>
+                {country.flag} {country.name}
+              </option>
+            ))}
+          </select>
+          <p className="text-xs text-gray-400 mt-1">If left empty, majority flag will be used when available.</p>
+        </div>
+
         {/* Team Colors */}
         <div>
           <div className="flex items-center justify-between mb-3">
@@ -719,7 +747,7 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
           <h3 className="text-lg font-medium mb-3">Main Roster (5 players required)</h3>
           <div className="space-y-3">
             {formData.players?.main.map((player, index) => (
-              <div key={player.role} className="grid grid-cols-3 gap-4 items-center">
+              <div key={player.role} className="grid grid-cols-4 gap-4 items-center">
                 <div className="bg-gray-700 px py-2 rounded text-center font-medium">{player.role}</div>
                 <input
                   type="text"
@@ -741,6 +769,23 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
                   id={`${player.role}-${index}-tag`}
                   required
                 />
+                <select
+                  value={player.country || ""}
+                  onChange={(e) => {
+                    const newPlayers = [...(formData.players?.main || [])];
+                    newPlayers[index] = { ...newPlayers[index], country: e.target.value };
+                    setFormData({ ...formData, players: { ...formData.players!, main: newPlayers } });
+                  }}
+                  className="bg-gray-700 rounded px-3 py-2 text-white"
+                  id={`${player.role}-${index}-country`}
+                >
+                  <option value="">Select country</option>
+                  {COUNTRY_OPTIONS.map((country) => (
+                    <option key={country.code} value={country.code}>
+                      {country.flag} {country.name}
+                    </option>
+                  ))}
+                </select>
               </div>
             ))}
           </div>
@@ -760,7 +805,7 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
           </div>
           <div className="space-y-3">
             {formData.players?.substitutes.map((player, index) => (
-              <div key={index} className="grid grid-cols-4 gap-4 items-center">
+              <div key={index} className="grid grid-cols-5 gap-4 items-center">
                 <select
                   value={player.role}
                   onChange={(e) => updateSubstitute(index, "role", e.target.value)}
@@ -790,6 +835,23 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
                   autoComplete="off"
                   id={`${player.role}-${index}-tag`}
                 />
+                  <select
+                    value={player.country || ""}
+                    onChange={(e) => {
+                      const newSubs = [...(formData.players?.substitutes || [])];
+                      newSubs[index] = { ...newSubs[index], country: e.target.value };
+                      setFormData({ ...formData, players: { ...formData.players!, substitutes: newSubs } });
+                    }}
+                    className="bg-gray-700 rounded px-3 py-2 text-white"
+                    id={`${player.role}-${index}-country`}
+                  >
+                    <option value="">Select country</option>
+                    {COUNTRY_OPTIONS.map((country) => (
+                      <option key={country.code} value={country.code}>
+                        {country.flag} {country.name}
+                      </option>
+                    ))}
+                  </select>
                 <button
                   type="button"
                   onClick={() => removeSubstitute(index)}

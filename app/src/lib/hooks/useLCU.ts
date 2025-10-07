@@ -63,7 +63,15 @@ export const useLCU = (): UseLCUReturn => {
 
   // Auto-connect on mount
   useEffect(() => {
-    connect();
+    const isElectron = typeof window !== "undefined" &&
+      (navigator.userAgent.includes("Electron") || typeof (window as unknown as { electronAPI?: unknown }).electronAPI !== "undefined");
+
+    const onLeagueClientPage = typeof window !== "undefined" &&
+      window.location.pathname.startsWith("/modules/leagueclient");
+
+    if (isElectron && onLeagueClientPage) {
+      connect();
+    }
   }, [connect]);
 
   return {

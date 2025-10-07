@@ -35,6 +35,11 @@ const sanitizeTeamData = (teamData: CreateTeamRequest): CreateTeamRequest => {
     name: sanitizeTeamName(teamData.name || ""),
     tag: sanitizeTeamTag(teamData.tag || ""),
     region: sanitizeRegion(teamData.region || ""),
+    flag: teamData.flag?.toUpperCase(),
+    collaborators: (teamData.collaborators || []).map((c) => ({
+      userId: sanitizeText(c.userId).slice(0, 64),
+      role: c.role
+    })),
     players: {
       main: (teamData.players?.main || []).map((player) => ({
         ...player,

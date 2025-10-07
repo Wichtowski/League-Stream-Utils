@@ -6,6 +6,7 @@ export interface CreateTeamRequest {
   name: string;
   tag: string;
   logo: ImageStorage;
+  flag?: string; // ISO country code chosen by team owner (overrides majority)
   colors: TeamColors;
   players: {
     main: Omit<Player, "_id" | "createdAt" | "updatedAt">[];
@@ -23,6 +24,10 @@ export interface CreateTeamRequest {
     discord?: string;
     website?: string;
   };
+  collaborators?: Array<{
+    userId: string;
+    role: import("@lib/types/permissions").Role;
+  }>;
   // Standalone team fields
   isStandalone?: boolean;
   tournamentId?: string;

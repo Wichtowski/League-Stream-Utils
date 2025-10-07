@@ -37,6 +37,13 @@ class LCUConnector {
     this.pollInterval = options.pollInterval ?? 1000;
   }
 
+  private isElectronEnv(): boolean {
+    if (typeof window === "undefined") return false;
+    const ua = typeof navigator !== "undefined" ? navigator.userAgent : "";
+    const hasPreload = typeof (window as unknown as { electronAPI?: unknown }).electronAPI !== "undefined";
+    return ua.includes("Electron") || hasPreload;
+  }
+
   // Event handler setters
   public setOnStatusChange(handler: (status: ConnectionStatus) => void): void {
     this.onStatusChange = handler;
@@ -52,6 +59,9 @@ class LCUConnector {
 
   // Public methods
   public async connect(): Promise<void> {
+    if (!this.isElectronEnv()) {
+      return;
+    }
     this.setConnectionStatus("connecting");
     this.reconnectAttempts = 0;
 
@@ -119,6 +129,9 @@ class LCUConnector {
   }
 
   private async findLCUCredentials(): Promise<LCUCredentials | null> {
+    if (!this.isElectronEnv()) {
+      return null;
+    }
     try {
       const response = await fetch("/api/v1/leagueclient/lcu-credentials");
 

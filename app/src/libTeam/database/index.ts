@@ -27,10 +27,23 @@ const convertMongoDoc = (doc: Document): Team => {
 };
 
 export const createTeam = async (userId: string, teamData: CreateTeamRequest): Promise<Team> => {
+  // compute majority flag from players if possible
+  const countries = (teamData.players?.main || [])
+    .map((p) => p.country)
+    .filter((c): c is string => !!c);
+  const countryCounts = countries.reduce<Record<string, number>>((acc, c) => {
+    acc[c] = (acc[c] || 0) + 1;
+    return acc;
+  }, {});
+  const majorityEntry = Object.entries(countryCounts).find(([, count]) => count >= 3);
+  const computedMajorityFlag = majorityEntry?.[0];
+
   const newTeam = new TeamModel({
     name: teamData.name,
     tag: teamData.tag,
     logo: teamData.logo,
+    flag: teamData.flag,
+    majorityFlag: computedMajorityFlag,
     colors: teamData.colors,
     players: teamData.players,
     staff: teamData.staff,
@@ -39,6 +52,7 @@ export const createTeam = async (userId: string, teamData: CreateTeamRequest): P
     founded: new Date(),
 
     socialMedia: teamData.socialMedia,
+    collaborators: teamData.collaborators,
     teamOwnerId: userId,
     isStandalone: teamData.isStandalone || false,
     tournamentId: teamData.tournamentId
@@ -115,13 +129,25 @@ export const updateTeam = async (
   if (updates.name) team.name = updates.name;
   if (updates.tag) team.tag = updates.tag;
   if (updates.logo) team.logo = updates.logo as unknown as typeof team.logo;
+  if (typeof updates.flag !== "undefined") team.flag = updates.flag;
   if (updates.colors) team.colors = updates.colors;
   if (updates.region) team.region = updates.region;
   if (updates.tier) team.tier = updates.tier;
   if (updates.socialMedia) team.socialMedia = updates.socialMedia;
+  if (updates.collaborators) team.collaborators = updates.collaborators as unknown as typeof team.collaborators;
 
   if (updates.players) {
     team.players = updates.players as unknown as typeof team.players;
+    // recompute majority flag if player countries changed
+    const countries = (team.players?.main || [])
+      .map((p: { country?: string }) => p.country)
+      .filter((c: string | undefined): c is string => !!c);
+    const countryCounts = countries.reduce<Record<string, number>>((acc, c) => {
+      acc[c] = (acc[c] || 0) + 1;
+      return acc;
+    }, {});
+    const majorityEntry = Object.entries(countryCounts).find(([, count]) => count >= 3);
+    team.majorityFlag = majorityEntry?.[0];
   }
 
   if (updates.staff) {

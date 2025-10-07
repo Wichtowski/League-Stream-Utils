@@ -4,9 +4,11 @@ import { Button } from "@lib/components/common";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useCurrentMatch } from "@libTournament/contexts/CurrentMatchContext";
+import { useMatchTeams } from "@libTournament/hooks/useMatchTeams";
 
 export const CurrentMatchStatus = (): React.ReactElement => {
   const { currentMatch, loading, clearCurrentMatch } = useCurrentMatch();
+  const { blueTeam, redTeam } = useMatchTeams(currentMatch);
   const [tournamentName, setTournamentName] = useState<string>("");
   const [blueTeamName, setBlueTeamName] = useState<string>("");
   const [redTeamName, setRedTeamName] = useState<string>("");
@@ -87,8 +89,8 @@ export const CurrentMatchStatus = (): React.ReactElement => {
         <div className="flex items-center justify-between">
           <span className="text-gray-400">Teams:</span>
           <div className="text-right">
-            <div className="text-blue-400">{blueTeamName || ""}</div>
-            <div className="text-red-400">{redTeamName || ""}</div>
+            <div className="text-blue-400">{blueTeam?.name ? blueTeamName : ""}</div>
+            <div className="text-red-400">{redTeam?.name ? redTeamName : ""}</div>
           </div>
         </div>
 

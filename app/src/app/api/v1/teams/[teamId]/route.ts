@@ -36,6 +36,9 @@ export const PUT = withAuth(async (req: NextRequest, user: JWTPayload) => {
     const teamId = url.pathname.split("/").pop()!;
 
     const teamData: Partial<CreateTeamRequest> = await req.json();
+    if (typeof teamData.flag === "string") {
+      teamData.flag = teamData.flag.toUpperCase();
+    }
 
     // Validate player roles if players are being updated
     if (teamData.players?.main) {

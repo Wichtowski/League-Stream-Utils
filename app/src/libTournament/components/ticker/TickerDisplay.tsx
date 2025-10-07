@@ -224,7 +224,7 @@ export const TickerDisplay = ({
                         <div className="flex items-center">
                           {team1?.logo && (
                             <div className="bg-black h-full">
-                              <div className="relative w-32 h-32 overflow-hidden shadow-lg">
+                              <div className="relative w-32 h-32 overflow-hidden">
                                 <SafeImage
                                   src={getImageSrc(team1.logo)}
                                   alt={team1.name}
@@ -244,7 +244,7 @@ export const TickerDisplay = ({
                           )}
                           {team2?.logo && (
                             <div className="bg-black h-full">
-                              <div className="relative w-32 h-32 overflow-hidden shadow-lg">
+                              <div className="relative w-32 h-32 overflow-clip">
                                 <SafeImage
                                   src={getImageSrc(team2.logo)}
                                   alt={team2.name}
@@ -261,7 +261,7 @@ export const TickerDisplay = ({
                           <div className="flex flex-col justify-between h-full flex-1 min-w-0">
                             <div className="h-[70%] flex items-center">
                               <h1
-                                className="ml-4 font-bold text-left tracking-wide drop-shadow-lg max-w-[60vw] overflow-hidden text-ellipsis text-lg sm:text-xl md:text-2xl lg:text-4xl"
+                                className="ml-4 font-bold text-left tracking-wide max-w-[60vw] overflow-hidden text-ellipsis text-lg sm:text-xl md:text-2xl lg:text-4xl"
                                 style={{ color: ticker.titleTextColor || "#ffffff" }}
                               >
                                 {ticker.title}
@@ -312,7 +312,7 @@ export const TickerDisplay = ({
                   return (
                     <div className="flex items-start justify-start py-4 px-4 gap-6">
                       <h1
-                        className="font-bold text-left tracking-wide drop-shadow-lg max-w-[60vw] overflow-hidden text-ellipsis text-lg sm:text-xl md:text-2xl lg:text-4xl"
+                        className="font-bold text-left tracking-wide max-w-[60vw] overflow-hidden text-ellipsis text-lg sm:text-xl md:text-2xl lg:text-4xl"
                         style={{ color: ticker.titleTextColor || "#ffffff" }}
                       >
                         {ticker.title}
