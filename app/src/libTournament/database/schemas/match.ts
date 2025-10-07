@@ -56,6 +56,8 @@ export const MatchSchema = new Schema(
           enum: ["blue", "red", "ongoing"],
           required: true
         },
+        // optional map teamId -> [playerId]
+        playerSwapOrder: { type: Object, required: false },
         duration: { type: Number, required: false },
         blueScore: { type: Number, required: true },
         redScore: { type: Number, required: true },

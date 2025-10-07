@@ -1,7 +1,6 @@
 import React from "react";
-import { Breadcrumbs, BreadcrumbItem, SettingsCog } from "@lib/components/common";
+import { Breadcrumbs, BreadcrumbItem, SettingsCog, LoadingSpinner, Footer } from "@lib/components/common";
 import { useElectron } from "@libElectron/contexts/ElectronContext";
-import { Footer } from "@lib/components/common/Footer";
 
 export interface PageLayoutProps {
   children: React.ReactNode;
@@ -32,9 +31,10 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
       <div className="min-h-screen text-white">
         <div className="container mx-auto px-6 py-8">
           <div className="mb-4 flex justify-between items-center">
-            <Breadcrumbs items={[]} />
+            
           </div>
           <div className="space-y-6">{children}</div>
+          <LoadingSpinner fullscreen text="Loading Application..." />
         </div>
       </div>
     );

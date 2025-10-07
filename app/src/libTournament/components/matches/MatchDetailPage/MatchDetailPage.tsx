@@ -6,8 +6,6 @@ import { useChampions } from "@lib/contexts/ChampionContext";
 import {
   usePlayerStatsData,
   usePlayerStats,
-  useMatchPredictions,
-  useMatchCommentators,
   useMatchTeams,
   useMatchEditing,
   useMatchGames
@@ -56,11 +54,6 @@ export const MatchDetailPage: React.FC<MatchDetailPageProps> = ({ match, tournam
     handleSwapGameSides,
     handleDeleteGame
   } = useMatchGames(currentMatch, blueTeam, redTeam, match);
-
-  const { commentators, newCommentatorId, setNewCommentatorId, assigningCommentator, handleAssignCommentator } =
-    useMatchCommentators(currentMatch);
-
-  const { predictions, submittingPrediction, submitPrediction } = useMatchPredictions(currentMatch);
 
   const { updatePlayerStat } = usePlayerStats(playerStats, setPlayerStats);
 
@@ -159,6 +152,7 @@ export const MatchDetailPage: React.FC<MatchDetailPageProps> = ({ match, tournam
             getMaxGamesByFormat={getMaxGamesByFormat}
             getMinGamesByFormat={getMinGamesByFormat}
             teamWins={teamWins}
+            onUpdateGames={(games) => setEditData((prev) => ({ ...(prev || {}), games }))}
           />
 
           <PlayerStatsCard playerStats={playerStats} editing={editing} updatePlayerStat={updatePlayerStat} />
@@ -172,16 +166,8 @@ export const MatchDetailPage: React.FC<MatchDetailPageProps> = ({ match, tournam
           blueTeam={blueTeam}
           redTeam={redTeam}
           teamWins={teamWins}
-          commentators={commentators}
-          newCommentatorId={newCommentatorId}
-          assigningCommentator={assigningCommentator}
-          predictions={predictions}
-          submittingPrediction={submittingPrediction}
           onStatusChange={handleStatusChangeWithUpdate}
           onSwapTeams={handleSwapTeamsWithUpdate}
-          onNewCommentatorIdChange={setNewCommentatorId}
-          onAssignCommentator={handleAssignCommentator}
-          onSubmitPrediction={submitPrediction}
         />
       </div>
 

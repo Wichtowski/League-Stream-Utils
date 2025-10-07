@@ -1,3 +1,4 @@
+import { PlayerRole } from "@lib/types";
 import { Commentator, MatchPrediction } from "@libTournament/types";
 
 export type MatchFormat = "BO1" | "BO3" | "BO5";
@@ -68,13 +69,14 @@ export interface GameResult {
   patch?: string;
   blueScore: number;
   redScore: number;
+  playerSwapOrder?: { [teamId: string]: string[] };
   blueTeam: string | {
     teamId?: string;
     teamName: string;
     won: boolean;
     picks: {
       championId: number;
-      role?: "TOP" | "JUNGLE" | "MID" | "BOTTOM" | "SUPPORT";
+      role?: PlayerRole;
       player?: string;
     }[];
     bans: number[];
@@ -85,7 +87,7 @@ export interface GameResult {
     won: boolean;
     picks: {
       championId: number;
-      role?: "TOP" | "JUNGLE" | "MID" | "BOTTOM" | "SUPPORT";
+      role?: PlayerRole;
       player?: string;
     }[];
     bans: number[];
