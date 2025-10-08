@@ -8,7 +8,7 @@ export const streamBannerValidators = {
   title: validators.required("Title"),
   titleBackgroundColor: validators.color("Title background color"),
   titleTextColor: validators.color("Title text color"),
-  carouselSpeed: validators.range("Carousel speed", 10, 200),
+  carouselSpeed: validators.range("Carousel speed", 10, 600),
   carouselBackgroundColor: validators.color("Carousel background color")
 };
 
@@ -84,21 +84,37 @@ export const validateCarouselItem = (item: CarouselItemFormData): ValidationErro
 };
 
 /**
+ * Sanitizes text content to handle emojis and special characters properly
+ */
+const sanitizeText = (text: string): string => {
+  if (!text) return "";
+  
+  // Normalize unicode characters (handles emojis properly)
+  const normalized = text.normalize("NFC");
+  
+  // Trim whitespace
+  const trimmed = normalized.trim();
+  
+  // Remove any null bytes or control characters that might cause issues
+  return trimmed.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "");
+};
+
+/**
  * Sanitizes form data before submission
  */
 export const sanitizeStreamBannerForm = (formData: TickerFormData): TickerFormData => {
   return {
     ...formData,
-    title: formData.title.trim(),
+    title: sanitizeText(formData.title),
     titleBackgroundColor: formData.titleBackgroundColor?.trim() || "#1f2937",
     titleTextColor: formData.titleTextColor?.trim() || "#ffffff",
     carouselBackgroundColor: formData.carouselBackgroundColor?.trim() || "#1f2937",
-    carouselSpeed: Math.max(10, Math.min(200, formData.carouselSpeed || 50)),
+    carouselSpeed: Math.max(10, Math.min(600, formData.carouselSpeed || 50)),
     carouselItems: formData.carouselItems
-      .filter((item) => item.text.trim()) // Remove empty items
+      .filter((item) => sanitizeText(item.text)) // Remove empty items
       .map((item, index) => ({
         ...item,
-        text: item.text.trim(),
+        text: sanitizeText(item.text),
         backgroundColor: item.backgroundColor?.trim() || "#1f2937",
         textColor: item.textColor?.trim() || "#ffffff",
         order: index
@@ -111,7 +127,7 @@ export const sanitizeStreamBannerForm = (formData: TickerFormData): TickerFormDa
  */
 export const hasUnsavedChanges = (currentData: TickerFormData, originalData: TickerFormData | null): boolean => {
   if (!originalData) {
-    return currentData.title.trim() !== "" || currentData.carouselItems.length > 0;
+    return sanitizeText(currentData.title) !== "" || currentData.carouselItems.length > 0;
   }
 
   return (

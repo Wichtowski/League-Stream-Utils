@@ -5,3 +5,4 @@ export { TickerDisplay } from "./TickerDisplay";
 export { OBSDisplayInfo } from "./OBSDisplayInfo";
 export { MainTitle } from "./MainTitle";
 export { CarouselTicker } from "./CarouselTicker";
+export { SponsorWithinTicker } from "./SponsorWithinTicker";

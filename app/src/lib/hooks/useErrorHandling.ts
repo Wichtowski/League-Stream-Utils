@@ -173,6 +173,12 @@ export const useApiCall = () => {
         });
 
         if (!response.ok) {
+          console.error("API call failed:", {
+            url,
+            status: response.status,
+            statusText: response.statusText,
+            headers: Object.fromEntries(response.headers.entries())
+          });
           throw await createApiError(response);
         }
 

@@ -116,11 +116,11 @@ export const POST = withAuth(async (req: NextRequest, user, params: Promise<Reco
 
     // Convert to form data format for validation
     const formData = {
-      title: tickerData.title || "",
+      title: (tickerData.title || "").normalize("NFC"),
       titleBackgroundColor: tickerData.titleBackgroundColor || "#1f2937",
       titleTextColor: tickerData.titleTextColor || "#ffffff",
       carouselItems: (tickerData.carouselItems || []).map((item, index) => ({
-        text: item.text || "",
+        text: (item.text || "").normalize("NFC"),
         backgroundColor: item.backgroundColor || "#1f2937",
         textColor: item.textColor || "#ffffff",
         order: index
@@ -160,9 +160,13 @@ export const POST = withAuth(async (req: NextRequest, user, params: Promise<Reco
       updatedAt: new Date()
     };
 
+    console.log("Updating ticker for tournament:", tournamentId, "with data:", cleanTicker);
+    
     const result = await updateTournamentFields(tournamentId, {
       ticker: cleanTicker
     });
+
+    console.log("Update result:", result);
 
     if (!result) {
       logError(new Error("Database update failed"), {
@@ -189,6 +193,10 @@ export const POST = withAuth(async (req: NextRequest, user, params: Promise<Reco
       { status: existingTicker ? 200 : 201 }
     );
   } catch (error) {
+    console.error("Ticker API error:", error);
+    console.error("Error type:", typeof error);
+    console.error("Error details:", error);
+    
     logError(error instanceof Error ? error : new Error(String(error)), {
       operation: "POST_TICKER",
       tournamentId: (await params) ?? "ERROR",

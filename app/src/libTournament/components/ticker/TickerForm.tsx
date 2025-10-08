@@ -290,8 +290,8 @@ export const TickerForm = ({
               <label className="block text-sm font-medium mb-2">Carousel Speed (px/s)</label>
               <input
                 type="number"
-                min="10"
-                max="200"
+                min="0"
+                max="600"
                 value={formData.carouselSpeed || 50}
                 onChange={(e) => {
                   setFormData({
@@ -307,7 +307,7 @@ export const TickerForm = ({
               />
               {errors.carouselSpeed && <p className="text-red-400 text-xs mt-1">{errors.carouselSpeed}</p>}
               <p className="text-xs text-gray-400 mt-1">
-                Controls how fast the carousel items scroll (10-200 pixels per second)
+                Controls how fast the carousel items scroll (10-600 pixels per second)
               </p>
             </div>
 
@@ -352,7 +352,7 @@ export const TickerForm = ({
                 </button>
               </div>
 
-              <div className="space-y-3 max-h-64 overflow-y-auto">
+              <div className="space-y-3 max-h-256 overflow-y-auto">
                 {formData.carouselItems.map((item, index) => (
                   <div key={index} className="bg-gray-700 rounded p-3">
                     <div className="flex justify-between items-start mb-2">

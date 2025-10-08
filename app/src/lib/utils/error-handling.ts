@@ -33,10 +33,17 @@ export const createApiError = async (response: Response): Promise<ApiError> => {
     if (contentType && contentType.includes("application/json")) {
       errorData = await response.json();
     } else {
-      errorData = { message: await response.text() };
+      const textResponse = await response.text();
+      errorData = textResponse ? { message: textResponse } : { message: "Empty response body" };
     }
-  } catch {
-    errorData = { message: "Unknown error occurred" };
+  } catch (error) {
+    console.error("Error parsing API response:", error);
+    errorData = { message: "Failed to parse error response" };
+  }
+
+  // Handle empty response body
+  if (Object.keys(errorData).length === 0) {
+    errorData = { message: "Empty response body" };
   }
 
   const errorField = (errorData as Record<string, unknown>)["error"];
@@ -257,7 +264,8 @@ export const logError = (error: Error | ApiError, context?: Record<string, unkno
     stack: "stack" in error ? error.stack : undefined,
     status: "status" in error ? error.status : undefined,
     context,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    rawError: error // Add raw error for debugging
   };
 
   console.error("Application Error:", errorInfo);

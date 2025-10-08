@@ -84,7 +84,7 @@ export default function MatchTickerPage(): ReactElement {
   if (loading || !tournament || !match || !team1 || !team2) return <></>;
 
   return (
-    <div className="min-h-screen">
+    <div className="">
       <TickerDisplay tournament={tournament} match={match} team1={team1} team2={team2} />
     </div>
   );

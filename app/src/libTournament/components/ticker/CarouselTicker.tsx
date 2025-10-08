@@ -48,7 +48,7 @@ export const CarouselTicker = ({ items, speed, backgroundColor, className = "" }
   if (!sortedItems.length) {
     return (
       <div
-        className={`h-12 backdrop-blur-sm border-t border-gray-600/50 ${className}`}
+        className={`h-full backdrop-blur-sm border-t border-gray-600/50 ${className}`}
         style={{ backgroundColor: backgroundColor || "#1f2937" }}
       >
         <div className="flex items-center justify-center h-full">
@@ -59,23 +59,24 @@ export const CarouselTicker = ({ items, speed, backgroundColor, className = "" }
   }
 
   // Calculate animation duration based on content width and speed
-  const animationDuration = contentWidth > 0 ? (contentWidth + containerWidth) / speed : 20;
+  // For seamless loop, we need to animate through one full set of items
+  const animationDuration = contentWidth > 0 ? contentWidth / speed : 20;
 
   return (
     <>
       <style jsx>{`
         @keyframes scrollLeft {
           0% {
-            transform: translateX(100%);
+            transform: translateX(0%);
           }
           100% {
-            transform: translateX(-100%);
+            transform: translateX(-50%);
           }
         }
       `}</style>
       <div
         ref={containerRef}
-        className={`h-12 backdrop-blur-sm border-t border-gray-600/50 overflow-hidden relative ${className}`}
+        className={`h-full backdrop-blur-sm border-t border-gray-600/50 overflow-hidden relative w-full max-w-full ${className}`}
         style={{ backgroundColor: backgroundColor || "#1f2937" }}
       >
         <div
@@ -86,14 +87,16 @@ export const CarouselTicker = ({ items, speed, backgroundColor, className = "" }
             animationDuration: `${animationDuration}s`,
             animationTimingFunction: "linear",
             animationIterationCount: "infinite",
-            animationPlayState: contentWidth > containerWidth ? "running" : "paused"
+            animationPlayState: contentWidth > containerWidth ? "running" : "paused",
+            width: "max-content",
+            maxWidth: "none"
           }}
         >
           {/* Render items twice for seamless loop */}
           {[...sortedItems, ...sortedItems].map((item, index) => (
             <div
               key={`${item._id || item.text}-${index}`}
-              className="flex-shrink-0 px-4 py-2 mx-2 rounded text-sm font-medium shadow-sm"
+              className="flex-shrink-0 px-4 py-2 mx-2 rounded text-base font-medium shadow-sm"
               style={{
                 backgroundColor: item.backgroundColor || "#1f2937",
                 color: item.textColor || "#ffffff"

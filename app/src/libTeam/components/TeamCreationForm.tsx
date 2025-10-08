@@ -1,24 +1,11 @@
-import React, { useState, useRef } from "react";
+import React from "react";
 import { SafeImage } from "@lib/components/common/SafeImage";
 import { CreateTeamRequest, TeamTier } from "@libTeam/types";
 import { createDefaultTeamRequest } from "@libTeam/utils/defaultValues";
-import { useModal } from "@lib/contexts";
-import { LOGO_SQUARE_TOLERANCE, ALLOWED_IMAGE_HOSTS } from "@lib/services/common/constants";
-import { isAlmostSquare, extractTeamColorsFromImage } from "@lib/services/common/image";
 import { ColorPalette } from "./ColorPalette";
+import { ALLOWED_IMAGE_HOSTS } from "@lib/services/common/constants";
 import { COUNTRY_OPTIONS } from "@libTeam/utils/countries";
-
-// Helper function to check if a URL supports CORS based on allowed hosts
-const supportsCORS = (url: string): boolean => {
-  try {
-    const urlObj = new URL(url);
-    const hostname = urlObj.hostname.toLowerCase();
-
-    return !ALLOWED_IMAGE_HOSTS.some((noCorsHost) => hostname.includes(noCorsHost));
-  } catch {
-    return false;
-  }
-};
+import { useTeamLogo, useTeamColors, useTeamForm } from "@libTeam/hooks";
 
 // Input sanitization functions
 const sanitizeText = (text: string): string => {
@@ -44,349 +31,73 @@ interface TeamCreationFormProps {
 }
 
 export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, onCancel, isCreating }) => {
-  const { showAlert } = useModal();
-  const [logoPreview, setLogoPreview] = useState<string>("");
-  const [logoUrlInput, setLogoUrlInput] = useState<string>("");
-  const [extractedColors, setExtractedColors] = useState<string[]>([]);
-  const [useManualColors, setUseManualColors] = useState(false);
-  const [formData, setFormData] = useState<Partial<CreateTeamRequest>>(createDefaultTeamRequest());
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const urlAutoPreviewTimer = useRef<number | null>(null);
-
-  const clearLogo = (): void => {
-    setFormData({
-      ...formData,
-      logo: undefined
-    });
-    setLogoPreview("");
-    setLogoUrlInput("");
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-  };
-
-  const clearUrlOnly = (): void => {
-    if (formData.logo?.type === "url") {
-      setFormData({ ...formData, logo: undefined });
-      setLogoPreview("");
-    }
-    if (logoUrlInput) setLogoUrlInput("");
-  };
-
-  const clearFileOnly = (): void => {
-    if (formData.logo?.type === "upload") {
-      setFormData({ ...formData, logo: undefined });
-      setLogoPreview("");
-    }
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-  };
-
-  const attemptAutoPreviewUrl = async (url: string): Promise<void> => {
-    try {
-      await new Promise<void>((resolve, reject) => {
-        const img = new Image();
-
-        // Only set crossOrigin for hosts that support CORS
-        if (supportsCORS(url)) {
-          img.crossOrigin = "anonymous";
+  const {
+    formData,
+    updateFormData,
+    updatePlayer,
+    updateSubstitute,
+    addSubstitute,
+    removeSubstitute,
+    handleSubmit
+  } = useTeamForm({
+    initialData: createDefaultTeamRequest(),
+    onSubmit: async (data) => {
+      // Final sanitization before submission
+      const sanitizedFormData: CreateTeamRequest = {
+        ...data,
+        name: sanitizeTeamName(data.name || ""),
+        tag: sanitizeTeamTag(data.tag || ""),
+        region: sanitizeRegion(data.region || ""),
+        flag: (data.flag as string | undefined)?.toUpperCase(),
+        players: {
+          main: (data.players?.main || []).map((player) => ({
+            ...player,
+            inGameName: player.inGameName || "",
+            tag: player.tag || ""
+          })),
+          substitutes: (data.players?.substitutes || []).map((player) => ({
+            ...player,
+            inGameName: player.inGameName || "",
+            tag: player.tag || ""
+          }))
         }
-
-        // Add a small delay to ensure image is fully loaded
-        img.onload = () => {
-          // Wait a bit more for WebP images to fully decode
-          setTimeout(() => {
-            // Try to get natural dimensions if available
-            const width = img.naturalWidth || img.width;
-            const height = img.naturalHeight || img.height;
-
-            // Image dimensions validation
-
-            if (!isAlmostSquare(width, height)) {
-              reject(
-                new Error(`Not square - Width: ${width}, Height: ${height}, Ratio: ${(width / height).toFixed(3)}`)
-              );
-              return;
-            }
-            resolve();
-          }, 100);
-        };
-        img.onerror = () => reject(new Error("Failed to load image from URL"));
-        img.src = url;
-      });
-    } catch {
-      return;
+      } as CreateTeamRequest;
+      await onSubmit(sanitizedFormData);
     }
-    setFormData({
-      ...formData,
-      logo: {
-        type: "url",
-        url,
-        format: "png"
-      }
-    });
-    setLogoPreview(url);
-  };
+  });
 
-  const handleLogoUrlChange = (url: string): void => {
-    // Switching to URL entry clears any uploaded file
-    clearFileOnly();
-    setLogoUrlInput(url);
-    if (urlAutoPreviewTimer.current) {
-      window.clearTimeout(urlAutoPreviewTimer.current);
-      urlAutoPreviewTimer.current = null;
-    }
-    const trimmed = url.trim();
-    if (trimmed.length > 25 && /^https?:\/\//i.test(trimmed)) {
-      urlAutoPreviewTimer.current = window.setTimeout(() => {
-        void attemptAutoPreviewUrl(trimmed);
-      }, 600);
-    } else {
-      setLogoPreview("");
-    }
-  };
+  const {
+    logoPreview,
+    logoUrlInput,
+    fileInputRef,
+    clearLogo,
+    clearUrlOnly,
+    clearFileOnly,
+    handleLogoUrlChange,
+    handlePreviewUrl,
+    handleLogoFileChange
+  } = useTeamLogo({
+    initialLogo: formData.logo,
+    onLogoChange: (logo) => updateFormData({ logo })
+  });
 
-  const handlePreviewUrl = async (): Promise<void> => {
-    const url = logoUrlInput.trim();
-    if (!/^https?:\/\//i.test(url)) {
-      await showAlert({ type: "warning", message: "Please enter a valid http(s) image URL" });
-      return;
-    }
-    try {
-      new URL(url);
-    } catch {
-      await showAlert({ type: "warning", message: "Invalid URL format" });
-      return;
-    }
-
-    // Validate aspect ratio before accepting preview
-    try {
-      await new Promise<void>((resolve, reject) => {
-        const img = new Image();
-
-        // Only set crossOrigin for hosts that support CORS
-        if (supportsCORS(url)) {
-          img.crossOrigin = "anonymous";
-        }
-
-        img.onload = () => {
-          // Wait a bit more for WebP images to fully decode
-          setTimeout(() => {
-            // Try to get natural dimensions if available
-            const width = img.naturalWidth || img.width;
-            const height = img.naturalHeight || img.height;
-
-            // Image dimensions validation
-
-            if (!isAlmostSquare(width, height)) {
-              reject(
-                new Error(
-                  `Logo should be square. Current ratio ${(width / height).toFixed(3)}. Allowed deviation ±${LOGO_SQUARE_TOLERANCE}.`
-                )
-              );
-              return;
-            }
-            resolve();
-          }, 100);
-        };
-        img.onerror = () => reject(new Error("Failed to load image from URL"));
-        img.src = url;
-      });
-    } catch (err) {
-      await showAlert({ type: "warning", message: err instanceof Error ? err.message : "Invalid image URL" });
-      return;
-    }
-
-    // Store the URL for display, but we'll transform it when submitting
-    setFormData({
-      ...formData,
-      logo: {
-        type: "url",
-        url,
-        format: "png"
-      }
-    });
-    setLogoPreview(url);
-  };
-
-  const handleLogoFileChange = async (file: File) => {
-    if (!file) return;
-
-    if (!file.type.startsWith("image/")) {
-      await showAlert({
-        type: "warning",
-        message: "Please select an image file"
-      });
-      return;
-    }
-    if (file.size <= 30 * 1024) {
-      await showAlert({
-        type: "warning",
-        message: "Image must be larger than 30KB to be visible"
-      });
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      // 5MB
-      await showAlert({
-        type: "warning",
-        message: "Image must be smaller than 5MB"
-      });
-      return;
-    }
-
-    const format = file.type.split("/")[1] as "png" | "jpg" | "webp" | "jpeg";
-    if (!["png", "jpg", "jpeg", "webp"].includes(format)) {
-      await showAlert({
-        type: "warning",
-        message: "Supported formats: PNG, JPG, WEBP"
-      });
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      const base64 = e.target?.result as string;
-      try {
-        const img = new Image();
-        img.onload = async () => {
-          // Wait a bit more for WebP images to fully decode
-          setTimeout(async () => {
-            // Try to get natural dimensions if available
-            const width = img.naturalWidth || img.width;
-            const height = img.naturalHeight || img.height;
-
-            // Image dimensions validation
-
-            if (!isAlmostSquare(width, height)) {
-              await showAlert({
-                type: "warning",
-                message: `Logo should be square. Current ratio ${(width / height).toFixed(3)}. Allowed deviation ±${LOGO_SQUARE_TOLERANCE}.`
-              });
-              return;
-            }
-            setFormData({
-              ...formData,
-              logo: {
-                type: "upload",
-                data: base64,
-                size: file.size,
-                format: format === "jpeg" ? "jpg" : format
-              }
-            });
-            setLogoPreview(base64);
-          }, 100);
-        };
-        img.src = base64;
-      } catch {
-        setLogoPreview(base64);
-      }
-    };
-    reader.readAsDataURL(file);
-  };
+  const {
+    extractedColors,
+    useManualColors,
+    generateColorsFromLogo,
+    handleColorChange,
+    toggleColorMode
+  } = useTeamColors({
+    initialColors: formData.colors,
+    onColorsChange: (colors) => updateFormData({ colors })
+  });
 
   const generateColorsFromCurrentLogo = async (): Promise<void> => {
-    if (!logoPreview) return;
-    try {
-      const colors = await extractTeamColorsFromImage(logoPreview);
-      setExtractedColors(colors);
-      setUseManualColors(false); // Switch to generated colors mode
-
-      // Set the first 3 colors as default team colors
-      if (colors.length >= 3) {
-        setFormData({
-          ...formData,
-          colors: {
-            ...formData.colors!,
-            primary: colors[0],
-            secondary: colors[1],
-            accent: colors[2]
-          }
-        });
-      }
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to generate colors from logo";
-      await showAlert({ type: "warning", message: errorMessage });
-    }
+    await generateColorsFromLogo(logoPreview);
   };
 
   const handleColorsChange = (colors: { primary: string; secondary: string; accent: string }) => {
-    setFormData({
-      ...formData,
-      colors: {
-        ...formData.colors!,
-        ...colors
-      }
-    });
-  };
-
-  const toggleColorMode = () => {
-    setUseManualColors(!useManualColors);
-  };
-
-  const updatePlayer = (index: number, field: "inGameName" | "tag", value: string) => {
-    const newPlayers = [...(formData.players?.main || [])];
-    newPlayers[index] = { ...newPlayers[index], [field]: value };
-    setFormData({
-      ...formData,
-      players: { ...formData.players!, main: newPlayers }
-    });
-  };
-
-  const addSubstitute = () => {
-    const newSubs = [...(formData.players?.substitutes || [])];
-    newSubs.push({ role: "TOP", inGameName: "", tag: "" });
-    setFormData({
-      ...formData,
-      players: { ...formData.players!, substitutes: newSubs }
-    });
-  };
-
-  const removeSubstitute = (index: number) => {
-    const newSubs = [...(formData.players?.substitutes || [])];
-    newSubs.splice(index, 1);
-    setFormData({
-      ...formData,
-      players: { ...formData.players!, substitutes: newSubs }
-    });
-  };
-
-  const updateSubstitute = (index: number, field: "role" | "inGameName" | "tag", value: string) => {
-    const newSubs = [...(formData.players?.substitutes || [])];
-    newSubs[index] = { ...newSubs[index], [field]: value };
-    setFormData({
-      ...formData,
-      players: { ...formData.players!, substitutes: newSubs }
-    });
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    // Final sanitization before submission
-    const sanitizedFormData: CreateTeamRequest = {
-      ...formData,
-      name: sanitizeTeamName(formData.name || ""),
-      tag: sanitizeTeamTag(formData.tag || ""),
-      region: sanitizeRegion(formData.region || ""),
-      flag: (formData.flag as string | undefined)?.toUpperCase(),
-      players: {
-        main: (formData.players?.main || []).map((player) => ({
-          ...player,
-          inGameName: player.inGameName || "",
-          tag: player.tag || ""
-        })),
-        substitutes: (formData.players?.substitutes || []).map((player) => ({
-          ...player,
-          inGameName: player.inGameName || "",
-          tag: player.tag || ""
-        }))
-      }
-    } as CreateTeamRequest;
-
-    await onSubmit(sanitizedFormData);
+    updateFormData({ colors });
   };
 
   return (
@@ -403,12 +114,7 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
               type="text"
               placeholder="Enter team name"
               value={formData.name || ""}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  name: e.target.value
-                })
-              }
+              onChange={(e) => updateFormData({ name: e.target.value })}
               className="w-full bg-gray-700 rounded px-3 py-2 text-white placeholder-gray-400"
               autoComplete="off"
               id="teamName"
@@ -423,12 +129,7 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
               type="text"
               placeholder="Enter team tag (e.g., TSM)"
               value={formData.tag || ""}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  tag: e.target.value
-                })
-              }
+              onChange={(e) => updateFormData({ tag: e.target.value })}
               className="w-full bg-gray-700 rounded px-3 py-2 text-white placeholder-gray-400"
               autoComplete="off"
               id="teamTag"
@@ -441,12 +142,7 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
             </label>
             <select
               value={formData.region || ""}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  region: e.target.value
-                })
-              }
+              onChange={(e) => updateFormData({ region: e.target.value })}
               className="w-full bg-gray-700 rounded px-3 py-2 text-white border-gray-600 h-[40px]"
               id="region"
               required
@@ -471,12 +167,7 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
             </label>
             <select
               value={formData.tier || "amateur"}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  tier: e.target.value as TeamTier
-                })
-              }
+              onChange={(e) => updateFormData({ tier: e.target.value as TeamTier })}
               className="w-full bg-gray-700 rounded px-3 py-2 text-white border-gray-600 h-[40px]"
               id="teamTier"
               required
@@ -501,7 +192,7 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
               <input
                 type="file"
                 accept="image/*"
-                onClick={clearUrlOnly}
+                onClick={clearFileOnly}
                 onChange={(e) => {
                   clearUrlOnly();
                   if (e.target.files?.[0]) void handleLogoFileChange(e.target.files[0]);
@@ -599,12 +290,7 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
           </label>
           <select
             value={(formData.flag as string) || ""}
-            onChange={(e) =>
-              setFormData({
-                ...formData,
-                flag: e.target.value
-              })
-            }
+            onChange={(e) => updateFormData({ flag: e.target.value })}
             className="w-full bg-gray-700 rounded px-3 py-2 text-white border-gray-600"
             id="teamFlag"
           >
@@ -694,12 +380,7 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
                 <input
                   type="color"
                   value={formData.colors?.primary}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      colors: { ...formData.colors!, primary: e.target.value }
-                    })
-                  }
+                  onChange={(e) => handleColorChange("primary", e.target.value)}
                   className="w-full h-10 rounded border-gray-600"
                   id="primaryColor"
                 />
@@ -711,12 +392,7 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
                 <input
                   type="color"
                   value={formData.colors?.secondary}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      colors: { ...formData.colors!, secondary: e.target.value }
-                    })
-                  }
+                  onChange={(e) => handleColorChange("secondary", e.target.value)}
                   className="w-full h-10 rounded border-gray-600"
                   id="secondaryColor"
                 />
@@ -728,12 +404,7 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
                 <input
                   type="color"
                   value={formData.colors?.accent}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      colors: { ...formData.colors!, accent: e.target.value }
-                    })
-                  }
+                  onChange={(e) => handleColorChange("accent", e.target.value)}
                   className="w-full h-10 rounded border-gray-600"
                   id="accentColor"
                 />
@@ -771,11 +442,7 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
                 />
                 <select
                   value={player.country || ""}
-                  onChange={(e) => {
-                    const newPlayers = [...(formData.players?.main || [])];
-                    newPlayers[index] = { ...newPlayers[index], country: e.target.value };
-                    setFormData({ ...formData, players: { ...formData.players!, main: newPlayers } });
-                  }}
+                  onChange={(e) => updatePlayer(index, "country", e.target.value)}
                   className="bg-gray-700 rounded px-3 py-2 text-white"
                   id={`${player.role}-${index}-country`}
                 >
@@ -837,11 +504,7 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
                 />
                   <select
                     value={player.country || ""}
-                    onChange={(e) => {
-                      const newSubs = [...(formData.players?.substitutes || [])];
-                      newSubs[index] = { ...newSubs[index], country: e.target.value };
-                      setFormData({ ...formData, players: { ...formData.players!, substitutes: newSubs } });
-                    }}
+                    onChange={(e) => updateSubstitute(index, "country", e.target.value)}
                     className="bg-gray-700 rounded px-3 py-2 text-white"
                     id={`${player.role}-${index}-country`}
                   >

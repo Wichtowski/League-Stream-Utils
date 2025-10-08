@@ -6,6 +6,7 @@ import type { Sponsorship } from "@libTournament/types/sponsors";
 import { Team } from "@libTeam/types";
 import { getImageSrc } from "@lib/services/common/image";
 import { CarouselTicker } from "./CarouselTicker";
+import { SponsorWithinTicker } from "./SponsorWithinTicker";
 import { motion } from "framer-motion";
 import type React from "react";
 import { ErrorBoundary } from "@lib/components/common/ErrorBoundary";
@@ -197,7 +198,7 @@ export const TickerDisplay = ({
         </div>
       }
     >
-      <div className={`w-full h-screen bg-transparent relative overflow-hidden ${className}`}>
+      <div className={`${className}`}>
         {/* ticker Content - Title sticks above carousel */}
         {ticker && (
           <motion.div
@@ -205,7 +206,7 @@ export const TickerDisplay = ({
             initial={{ y: 64, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.45, ease: "easeOut" }}
-            style={{ willChange: "transform" }}
+            style={{ willChange: "transform", marginLeft: "24px", marginRight: "24px", marginBottom: "64px" }}
           >
             {/* Title directly above carousel - Full width */}
             {ticker.title.trim() && (
@@ -258,51 +259,32 @@ export const TickerDisplay = ({
 
                         {/* Center: Title/Carousel (left) + Sponsors (right spanning two rows) */}
                         <div className="flex h-full w-full">
-                          <div className="flex flex-col justify-between h-full flex-1 min-w-0">
+                          <div className="flex flex-col justify-between h-full" style={{ width: '1288px' }}>
                             <div className="h-[70%] flex items-center">
                               <h1
-                                className="ml-4 font-bold text-left tracking-wide max-w-[60vw] overflow-hidden text-ellipsis text-lg sm:text-xl md:text-2xl lg:text-4xl"
+                                className="ml-4 font-bold text-left tracking-wide max-w-[100vw] overflow-hidden text-ellipsis text-lg sm:text-xl md:text-2xl lg:text-4xl"
                                 style={{ color: ticker.titleTextColor || "#ffffff" }}
                               >
                                 {ticker.title}
                               </h1>
                             </div>
-                            <div className="h-[30%] flex items-center">
+                            <div className="h-[30%] flex items-center w-full overflow-hidden">
                               {ticker.carouselItems.length > 0 && (
-                                <CarouselTicker
-                                  items={ticker.carouselItems}
-                                  speed={ticker.carouselSpeed}
-                                  backgroundColor={ticker.carouselBackgroundColor}
-                                />
+                                <div className="w-full mr-6" style={{ width: 'calc(100% + 24px)' }}>
+                                  <CarouselTicker
+                                    items={ticker.carouselItems}
+                                    speed={ticker.carouselSpeed}
+                                    backgroundColor={ticker.carouselBackgroundColor}
+                                  />
+                                </div>
                               )}
                             </div>
                           </div> 
                         </div>
 
                         {/* Sponsors - right */}
-                        <div className="flex h-full w-full h-[160px]">
-                          {sponsors.length > 0 && (
-                            <div className="h-full w-[320px] flex items-center">
-                              <div className="grid grid-rows-2 gap-3 w-full">
-                                {[0, 1].map((row) => {
-                                  const s = sponsors[row];
-                                  if (!s) return <div key={row} className="h-16" />;
-                                  return (
-                                    <div key={s._id} className="w-full h-16 bg-black/40 rounded flex items-center justify-center p-2">
-                                      <div className="relative w-full h-full">
-                                        <SafeImage
-                                          src={getImageSrc(s.logo)}
-                                          alt={s.name}
-                                          fill
-                                          className="object-contain"
-                                        />
-                                      </div>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                          )}
+                        <div className="flex w-[256px] h-[128px]">
+                          <SponsorWithinTicker sponsors={sponsors} />
                         </div>
                       </div>
                     );
@@ -312,7 +294,7 @@ export const TickerDisplay = ({
                   return (
                     <div className="flex items-start justify-start py-4 px-4 gap-6">
                       <h1
-                        className="font-bold text-left tracking-wide max-w-[60vw] overflow-hidden text-ellipsis text-lg sm:text-xl md:text-2xl lg:text-4xl"
+                        className="font-bold text-left tracking-wide max-w-[100vw] overflow-hidden text-ellipsis text-lg sm:text-xl md:text-2xl lg:text-4xl"
                         style={{ color: ticker.titleTextColor || "#ffffff" }}
                       >
                         {ticker.title}
@@ -329,11 +311,13 @@ export const TickerDisplay = ({
               if (hasImages) return null; // When images exist, carousel is shown under title at right
               return (
                 ticker.carouselItems.length > 0 && (
-                  <CarouselTicker
-                    items={ticker.carouselItems}
-                    speed={ticker.carouselSpeed}
-                    backgroundColor={ticker.carouselBackgroundColor}
-                  />
+                  <div className="w-full mr-6" style={{ width: 'calc(100% + 24px)' }}>
+                    <CarouselTicker
+                      items={ticker.carouselItems}
+                      speed={ticker.carouselSpeed}
+                      backgroundColor={ticker.carouselBackgroundColor}
+                    />
+                  </div>
                 )
               );
             })()}
