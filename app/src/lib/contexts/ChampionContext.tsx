@@ -4,6 +4,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { Champion } from "@lib/types/game";
 import { getChampionsCached, getChampions } from "@lib/champions";
 import { loadListFromLocal } from "@lib/services/common/unified-asset-cache";
+import { getRunes } from "@lib/runes";
 
 interface ChampionContextType {
   champions: Champion[];
@@ -27,6 +28,10 @@ export const ChampionProvider: React.FC<ChampionProviderProps> = ({ children }) 
     try {
       setLoading(true);
       setError(null);
+      
+      getRunes().catch((err) => {
+        console.warn("Failed to initialize runes cache:", err);
+      });
       
       // First try to get from unified cache (champions_cache)
       const cachedData = loadListFromLocal<Champion>("champions");

@@ -77,6 +77,13 @@ export const toLocalImageUrl = (pathOrUrl: string): string => {
       const rel = `assets/${version}/champions/${champKey}/square.png`;
       return `/api/local-image?path=${encodeURIComponent(rel)}`;
     }
+    const runeMatch = pathOrUrl.match(/\/cdn\/([^/]+)\/img\/perk-images\/(?:Styles|StatMods)\/([^/]+\.png)$/i);
+    if (runeMatch) {
+      const version = runeMatch[1];
+      const filename = runeMatch[2];
+      const rel = `assets/${version}/runes/${filename}`;
+      return `/api/local-image?path=${encodeURIComponent(rel)}`;
+    }
     return pathOrUrl;
   }
   let rel = pathOrUrl.replace(/^file:\/\//i, "").replace(/\\/g, "/");

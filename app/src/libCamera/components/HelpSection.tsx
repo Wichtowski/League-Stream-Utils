@@ -32,6 +32,12 @@ export const HelpSection = (): React.ReactElement => {
               https://example.com/stream.m3u8
             </code>
           </div>
+          <div>
+            <h4 className="font-medium text-gray-300 mb-2">VDO Ninja:</h4>
+            <code className="block bg-gray-700 p-2 rounded text-green-400 text-xs">
+              https://vdo.ninja/
+            </code>
+          </div>
         </div>
         <div className="space-y-4">
           <div className="bg-red-600/10 border border-red-600/30 rounded-lg p-4">

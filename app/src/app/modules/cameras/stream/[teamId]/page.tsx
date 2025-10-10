@@ -1,29 +1,24 @@
 "use client";
 
-import React, { useEffect, useState, Suspense, useCallback } from "react";
+import React, { useEffect, useState, Suspense, useCallback, useMemo } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useNavigation } from "@lib/contexts/NavigationContext";
-import { useAuthenticatedFetch } from "@lib/hooks/useAuthenticatedFetch";
 import { CameraPlayer, CameraTeam } from "@libCamera/types";
 import { PageWrapper } from "@lib/layout/PageWrapper";
 import { useCameras } from "@libCamera/context/CamerasContext";
 import { SafeImage } from "@lib/components/common/SafeImage";
+import { LoadingSpinner } from "@lib/components/common";
 
 export default function TeamCameraStreamPage() {
   const router = useRouter();
   const params = useParams();
   const teamId = params.teamId as string;
   const { setActiveModule } = useNavigation();
-  const { authenticatedFetch } = useAuthenticatedFetch();
   const { teams: cameraTeamsRaw, loading: camerasLoading, refreshCameras } = useCameras();
   const [players, setPlayers] = useState<CameraPlayer[]>([]);
   const [currentPlayer, setCurrentPlayer] = useState<CameraPlayer | null>(null);
-  const [randomMode, setRandomMode] = useState(false);
+  const [randomMode, setRandomMode] = useState(true);
   const [teamName, setTeamName] = useState<string>("");
-  const [accessDenied, setAccessDenied] = useState(false);
-  const [accessReason, setAccessReason] = useState<string>("");
-  const [_streamFailed, setStreamFailed] = useState(false);
-  const [teamNotFound, setTeamNotFound] = useState(false);
 
   const getRandomPlayer = useCallback((): CameraPlayer | null => {
     if (players.length === 0) return null;
@@ -44,47 +39,31 @@ export default function TeamCameraStreamPage() {
         const playerIndex = parseInt(e.key) - 1;
         if (playerIndex >= 0 && playerIndex < players.length) {
           setCurrentPlayer(players[playerIndex]);
-          setRandomMode(false); // Disable random mode when manually selecting
+          setRandomMode(false);
         }
       }
     },
     [players, getRandomPlayer]
   );
 
+  // Load team data and players
   useEffect(() => {
     setActiveModule("cameras");
 
-    const checkAccess = async () => {
-      try {
-        const accessResponse = await authenticatedFetch(`/api/v1/cameras/access?teamId=${teamId}`);
-        if (accessResponse.ok) {
-          const accessData = await accessResponse.json();
-          if (!accessData.hasAccess) {
-            setAccessDenied(true);
-            setAccessReason(accessData.reason);
-            setTeamName(accessData.teamName || "Unknown Team");
-            return;
-          }
-        }
-      } catch (_error) {
-        setAccessDenied(true);
-        setAccessReason("error");
-      }
-    };
-
     if (teamId) {
-      checkAccess();
       if (!cameraTeamsRaw || (Array.isArray(cameraTeamsRaw) && cameraTeamsRaw.length === 0)) {
         refreshCameras();
       }
     }
-  }, [teamId, setActiveModule, authenticatedFetch, cameraTeamsRaw, refreshCameras]);
+  }, [teamId, setActiveModule, cameraTeamsRaw, refreshCameras]);
 
-  // Derive team players from CamerasContext
+  // Load team players from camera data
   useEffect(() => {
-    if (!teamId || accessDenied) return;
+    if (!teamId || camerasLoading) return;
+    
     const cameraTeams = cameraTeamsRaw as unknown as CameraTeam[];
     const team = (cameraTeams || []).find((t) => t.teamId === teamId);
+    
     if (team) {
       setTeamName(team.teamName);
       const basePlayers = team.players || [];
@@ -102,15 +81,13 @@ export default function TeamCameraStreamPage() {
             ]
           : basePlayers;
       setPlayers(playersWithTeamStream);
-      setTeamNotFound(false);
-    } else if (!camerasLoading) {
-      setTeamNotFound(true);
+    } else {
       setPlayers([]);
       setTeamName("");
     }
-  }, [teamId, cameraTeamsRaw, accessDenied, camerasLoading]);
+  }, [teamId, cameraTeamsRaw, camerasLoading]);
 
-  // Separate effect to set initial player when players are loaded
+  // Set initial player when players are loaded
   useEffect(() => {
     if (players.length > 0 && !currentPlayer) {
       const initialPlayer = getRandomPlayer();
@@ -120,6 +97,7 @@ export default function TeamCameraStreamPage() {
     }
   }, [players, currentPlayer, getRandomPlayer]);
 
+  // Keyboard event listeners
   useEffect(() => {
     window.addEventListener("keydown", handleKeyPress);
     return () => window.removeEventListener("keydown", handleKeyPress);
@@ -134,36 +112,42 @@ export default function TeamCameraStreamPage() {
       if (nextPlayer) {
         setCurrentPlayer(nextPlayer);
       }
-    }, 5000); // Switch every 5 seconds
+    }, 5000);
 
     return () => clearInterval(interval);
   }, [randomMode, players.length, getRandomPlayer]);
 
-  const handleStreamError = () => {
-    setStreamFailed(true);
-  };
+  const pageProps = useMemo(() => {
+    return {
+      title: !teamName ? (camerasLoading ? "Loading..." : "Team not found") : teamName,
+      breadcrumbs: [
+        { label: "Camera Hub", href: "/modules/cameras" },
+        { label: teamName, href: `/modules/cameras/stream/${teamId}`, isActive: true }
+      ]
+    }
+  }, [teamName, camerasLoading, teamId]);
 
-  // Show access denied message
-  if (accessDenied) {
-    const getAccessMessage = () => {
-      switch (accessReason) {
-        case "not_authorized":
-          return `You don't have permission to view ${teamName}'s cameras. Only team owners and admins can access team cameras.`;
-        case "team_not_found":
-          return "Team not found or has been deleted.";
-        case "error":
-          return "An error occurred while checking your permissions.";
-        default:
-          return "Access denied.";
-      }
-    };
-
+  if (camerasLoading) {
     return (
-      <PageWrapper title="Access Denied" className="bg-black" contentClassName="flex items-center justify-center p-8">
-        <div className="text-center max-w-md">
-          <div className="text-red-400 text-6xl mb-6">🚫</div>
-          <h2 className="text-2xl font-bold text-white mb-4">Access Denied</h2>
-          <p className="text-gray-400 mb-6">{getAccessMessage()}</p>
+      <PageWrapper {...pageProps}>
+        <LoadingSpinner fullscreen text="Loading..." />
+      </PageWrapper>
+    );
+  }
+
+  if (players.length === 0 && !camerasLoading) {
+    return (
+      <PageWrapper {...pageProps}>
+        <div className="text-center py-8">
+          <h2 className="text-xl font-semibold text-gray-300 mb-2">
+            {teamName ? "No Players Found" : "Team Not Found"}
+          </h2>
+          <p className="text-gray-400 mb-4">
+            {teamName 
+              ? `No camera feeds configured for ${teamName}` 
+              : "This team doesn't exist or you don't have access to it"
+            }
+          </p>
           <div className="space-x-4">
             <button
               onClick={() => router.push("/modules/cameras")}
@@ -184,117 +168,55 @@ export default function TeamCameraStreamPage() {
   }
 
   return (
-    <PageWrapper
-      breadcrumbs={[
-        { label: "Camera Hub", href: "/modules/cameras" },
-        { label: "Setup", href: `/modules/cameras/setup` },
-        { label: teamName, href: `/modules/cameras/setup/${teamId}`, isActive: true }
-      ]}
-      className="bg-black"
-    >
-      {teamNotFound ? (
-        <div className="flex items-center justify-center p-8">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-white mb-4">Team Not Found</h2>
-            <p className="text-gray-400 mb-6">The requested team does not exist or has no cameras configured.</p>
-            <button
-              onClick={() => router.push("/modules/cameras")}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors"
-            >
-              Camera Hub
-            </button>
-          </div>
-        </div>
-      ) : players.length === 0 ? (
-        <div className="flex items-center justify-center p-8">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-white mb-4">No Players Found</h2>
-            <p className="text-gray-400 mb-6">
-              {teamName ? `No camera feeds configured for ${teamName}` : "Team not found or no cameras configured"}
-            </p>
-            <button
-              onClick={() => router.push("/modules/cameras")}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors"
-            >
-              Configure Cameras
-            </button>
-          </div>
-        </div>
-      ) : (
-        <Suspense fallback={<div>Loading...</div>}>
-          <div className="relative w-full aspect-video">
-            {/* Main Stream Display */}
-            {currentPlayer && (
-              <div className="absolute inset-0 w-full h-full block">
-                {currentPlayer.url ? (
-                  <iframe
-                    src={currentPlayer.url}
-                    className="w-full h-full"
-                    allow="autoplay; fullscreen"
-                    onError={handleStreamError}
-                    title={`${currentPlayer.inGameName || currentPlayer.playerName} camera feed`}
-                  />
-                ) : currentPlayer.imagePath ? (
-                  <SafeImage
-                    src={currentPlayer.imagePath}
-                    alt={currentPlayer.inGameName || currentPlayer.playerName || "Player"}
-                    fill={true}
-                    className="object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-gray-800 flex items-center justify-center">
-                    <div className="text-center text-gray-400">
-                      <div className="text-2xl mb-2">📹</div>
-                      <p className="text-sm">No feed</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Player Name Overlay - Full width bottom centered */}
-            {currentPlayer && (
-              <div className="absolute bottom-0 left-0 right-0 z-10 bg-gradient-to-t from-black via-black/70 to-transparent py-8 px-4">
-                <div className="text-center">
-                  <h2 className="text-4xl font-bold text-white drop-shadow-lg">
-                    {currentPlayer.inGameName || currentPlayer.playerName || "Unknown Player"}
-                  </h2>
+    <Suspense fallback={<LoadingSpinner fullscreen text="Loading..." />}>
+      <div className="relative w-full aspect-video">
+        {/* Main Stream Display */}
+        {currentPlayer && (
+          <div className="absolute inset-0 w-full h-full block">
+            {currentPlayer.url ? (
+              <iframe
+                src={currentPlayer.url}
+                className="w-full h-full"
+                allow="autoplay; fullscreen"
+                title={`${currentPlayer.inGameName || currentPlayer.playerName} camera feed`}
+              />
+            ) : currentPlayer.imagePath ? (
+              <SafeImage
+                src={currentPlayer.imagePath}
+                alt={currentPlayer.inGameName || currentPlayer.playerName || "Player"}
+                fill={true}
+                className="object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-gray-800 flex items-center justify-center">
+                <div className="text-center text-gray-400">
+                  <div className="text-2xl mb-2">📹</div>
+                  <p className="text-sm">No feed</p>
                 </div>
               </div>
             )}
+          </div>
+        )}
 
-            {/* Player Controls */}
-            <div className="absolute bottom-4 right-4 z-10 space-y-2">
-              <div className="bg-black/70 text-white px-4 py-2 rounded-lg">
-                <div className="text-xs text-gray-400 mb-2">Individual Players</div>
-                <div className="flex flex-wrap gap-1 font-bold text-white">
-                  {players.map((player, index) => (
-                    <button
-                      key={`${player.inGameName || player.playerName || "player"}-${index}`}
-                      onClick={() =>
-                        router.push(`/modules/cameras/stream/${teamId}/${encodeURIComponent(player.inGameName || "")}`)
-                      }
-                      className="bg-gray-600 hover:bg-gray-500 text-white px-2 py-1 rounded text-xs transition-colors"
-                      title={`${player.inGameName} (${player.role})`}
-                    >
-                      {index + 1}
-                    </button>
-                  ))}
-                </div>
-              </div>
+        {/* Player Name Overlay */}
+        {currentPlayer && (
+          <div className="absolute bottom-0 left-0 right-0 z-10 bg-gradient-to-t from-black via-black/70 to-transparent py-8 px-4">
+            <div className="text-center">
+              <h2 className="text-4xl font-bold text-white drop-shadow-lg">
+                {currentPlayer.inGameName || currentPlayer.playerName || "Unknown Player"}
+              </h2>
             </div>
           </div>
-
-          {/* Random Mode Indicator - Below Container */}
-          {randomMode && (
-            <div className="flex justify-center mt-4">
-              <div className="bg-red-600 text-white px-4 py-2 rounded-full text-sm font-medium animate-pulse">
-                🔄 Random Mode Active
-              </div>
-            </div>
-          )}
-        </Suspense>
+        )}
+      </div>
+      {/* Random Mode Indicator */}
+      {randomMode && (
+        <div className="flex justify-center mt-4">
+          <div className="bg-red-600 text-white px-4 py-2 rounded-full text-sm font-medium animate-pulse">
+            🔄 Random Mode Active
+          </div>
+        </div>
       )}
-    </PageWrapper>
+    </Suspense>
   );
 }

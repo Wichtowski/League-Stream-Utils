@@ -37,8 +37,6 @@ const LiveGamePage: React.FC = () => {
           console.log("Tournament response:", tournamentData);
           const tournament = tournamentData.tournament || tournamentData;
           setCurrentTournament(tournament as Tournament);
-        } else {
-          console.error("Failed to fetch tournament data:", tournamentResponse.status, tournamentResponse.statusText);
         }
 
         // Fetch match data

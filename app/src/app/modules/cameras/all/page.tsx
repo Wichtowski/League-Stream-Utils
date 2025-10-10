@@ -183,10 +183,8 @@ export default function AllCamerasPage() {
       title="All Cameras"
       subtitle={`${validTeams.length} team${validTeams.length !== 1 ? "s" : ""}`}
     >
-      {/* Team Accordions */}
       <Accordion items={accordionItems} openId={openTeamId} onToggle={handleAccordionToggle} />
 
-      {/* Footer Info */}
       <div className="mt-6 text-center text-gray-400 text-sm">
         <p>Open a team to view its cameras. Use number keys (1-9) in single view to switch between cameras</p>
       </div>

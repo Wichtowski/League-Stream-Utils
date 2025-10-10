@@ -3,6 +3,7 @@ import Image from "next/image";
 import { LiveGameData } from "@libLeagueClient/types";
 import { getChampionSquareImage, getDefaultAsset, getSummonerSpellImageByName } from "@libLeagueClient/components/common";
 import { getItemImage } from "@lib/items";
+import { getRuneImage } from "@lib/runes";
 
 interface LaneHudProps {
   gameData: LiveGameData;
@@ -11,7 +12,7 @@ interface LaneHudProps {
 
 export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): React.ReactElement => {
   return (
-    <div className="absolute bottom-0 left-0 right-0 h-40 bg-gray-900/95 border-t-2 border-gray-600">
+    <div className="absolute bottom-0 left-0 right-0 h-56 bg-gray-900/95 border-t-2 border-gray-600">
       <div className="h-full w-full px-3">
         {(() => {
           const laneOrder = ["TOP", "JUNGLE", "MID", "BOTTOM", "SUPPORT"] as const;
@@ -53,11 +54,15 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
             return first || null;
           };
 
-          const renderItems = (items: typeof gameData.allPlayers[number]["items"]) => {
+          const renderItems = (items: typeof gameData.allPlayers[number]["items"], align: "left" | "right") => {
             const six = Array.from({ length: 6 }).map((_, i) => items?.[i] || null);
             return (
               <div className="flex gap-1">
-                {six.map((it, idx) => (
+                {align === "left" ? six.reverse().map((it, idx) => (
+                  <div key={idx} className="w-5 h-5 bg-gray-700 rounded border border-gray-600 flex items-center justify-center">
+                    {it ? <Image src={getItemImage(it.itemID)} alt={it.name} width={20} height={20} /> : null}
+                  </div>
+                )) : six.map((it, idx) => (
                   <div key={idx} className="w-5 h-5 bg-gray-700 rounded border border-gray-600 flex items-center justify-center">
                     {it ? <Image src={getItemImage(it.itemID)} alt={it.name} width={20} height={20} /> : null}
                   </div>
@@ -70,7 +75,7 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
             const s1 = p.summonerSpells?.summonerSpellOne?.displayName;
             const s2 = p.summonerSpells?.summonerSpellTwo?.displayName;
             return (
-              <div className="flex gap-1">
+              <div className="flex flex-col">
                 <div className="w-5 h-5 bg-gray-700 rounded border border-gray-600 flex items-center justify-center">
                   {s1 ? <Image src={getSummonerSpellImageByName(s1)} alt={s1} width={20} height={20} /> : null}
                 </div>
@@ -81,11 +86,17 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
             );
           };
 
-          const renderRunes = () => {
+          const renderRunes = (p: typeof gameData.allPlayers[number]) => {
+            const r1 = p.runes?.primaryRuneTree;
+            const r2 = p.runes?.secondaryRuneTree;
             return (
               <div className="flex gap-1">
-                <div className="w-5 h-5 bg-gray-700 rounded border border-gray-600" />
-                <div className="w-5 h-5 bg-gray-700 rounded border border-gray-600" />
+                <div className="w-5 h-5 bg-gray-700 rounded border border-gray-600">
+                  {r1 ? <Image src={getRuneImage(r1)} alt={r1} width={20} height={20} /> : null}
+                </div>
+                <div className="w-5 h-5 bg-gray-700 rounded border border-gray-600">
+                  {r2 ? <Image src={getRuneImage(r2)} alt={r2} width={20} height={20} /> : null}
+                </div>
               </div>
             );
           };
@@ -94,48 +105,57 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
             return <div className="w-5 h-5 bg-gray-700 rounded border border-gray-600" />;
           };
 
+          const renderImage = (p: typeof gameData.allPlayers[number]) => {
+            return (
+              <Image
+                src={getChampionSquareImage(p.championName) || getDefaultAsset(gameVersion, "player.png")}
+                alt={p.championName}
+                width={40}
+                height={40}
+              />
+            );
+          };
+
+          const renderTexts = (p: typeof gameData.allPlayers[number], align: "left" | "right") => {
+            return (
+              <div className={`flex direction-${align} flex-row gap-1`}>
+                <div className="text-xs">
+                  <div className="font-semibold truncate max-w-[120px]">{p.summonerName || p.championName}</div>
+                  <div className="text-gray-300">CS {p.scores?.creepScore ?? 0}</div>
+                </div>
+                <div>
+                  {p.scores?.kills}/{p.scores?.deaths}/{p.scores?.assists}
+                </div>
+              </div>
+            );
+          };
+
           const renderPlayerSide = (
             p: typeof gameData.allPlayers[number] | undefined | null,
             align: "left" | "right"
           ) => {
             if (!p) return <div className="flex-1" />;
             return (
-              <div className={`flex items-center gap-2 ${align === "left" ? "justify-start" : "justify-end"} flex-1`}>
+              <div className={`flex items-center gap-2 ${align === "left" ? "justify-end" : "justify-start"} flex-1`}>
                 {align === "left" ? (
                   <>
-                    <Image
-                      src={getChampionSquareImage(p.championName) || getDefaultAsset(gameVersion, "player.png")}
-                      alt={p.championName}
-                      width={24}
-                      height={24}
-                      className="rounded"
-                    />
-                    <div className="text-xs">
-                      <div className="font-semibold truncate max-w-[120px]">{p.summonerName || p.championName}</div>
-                      <div className="text-gray-300">CS {p.scores?.creepScore ?? 0}</div>
-                    </div>
-                    {renderSpells(p)}
-                    {renderItems(p.items)}
+                    
                     {renderTrinket()}
-                    {renderRunes()}
+                    {renderItems(p.items, "left")}
+                    {renderRunes(p)}
+                    {renderSpells(p)}
+                    {renderTexts(p, "left")}
+                    {renderImage(p)}
+
                   </>
                 ) : (
                   <>
-                    {renderRunes()}
-                    {renderTrinket()}
-                    {renderItems(p.items)}
+                    {renderImage(p)}
+                    {renderTexts(p, "right")}
                     {renderSpells(p)}
-                    <div className="text-right text-xs">
-                      <div className="font-semibold truncate max-w-[120px]">{p.summonerName || p.championName}</div>
-                      <div className="text-gray-300">CS {p.scores?.creepScore ?? 0}</div>
-                    </div>
-                    <Image
-                      src={getChampionSquareImage(p.championName) || getDefaultAsset(gameVersion, "player.png")}
-                      alt={p.championName}
-                      width={24}
-                      height={24}
-                      className="rounded"
-                    />
+                    {renderItems(p.items, "right")}
+                    {renderRunes(p)}
+                    {renderTrinket()}
                   </>
                 )}
               </div>
