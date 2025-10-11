@@ -63,7 +63,7 @@ export const SpotlightCard: React.FC<SpotlightCardProps> = ({
         <div
           className={`w-12 h-12 bg-gradient-to-br ${module.color} rounded-lg flex items-center justify-center text-2xl`}
         >
-          {module.icon}
+          {typeof module.icon === 'string' ? module.icon : <module.icon className="w-6 h-6" />}
         </div>
         <div className="flex items-center space-x-2">
           {module.status === "beta" && (

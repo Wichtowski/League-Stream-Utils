@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import Link from "next/link";
 import { getVisibleModules } from "@lib/navigation";
 import { useNavigation } from "@lib/contexts/NavigationContext";
@@ -63,7 +64,7 @@ export function Footer() {
                   }`}
                   title={module.name}
                 >
-                  <span className="mr-1">{module.icon}</span>
+                  <span className="mr-1">{<module.icon className="w-6 h-6" />}</span>
                   {module.name}
                 </Link>
               ))}

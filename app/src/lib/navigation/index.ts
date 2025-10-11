@@ -1,12 +1,17 @@
-import type { ReactNode } from "react";
+import { RiSwordFill, RiTeamFill } from "react-icons/ri";
+import { BsCameraVideoFill, BsFillLightningFill, BsFillShieldLockFill } from "react-icons/bs";
+import { MdTour } from "react-icons/md";
+import { BiSolidBriefcase } from "react-icons/bi"
+import { IoGameController, IoChatboxOutline } from "react-icons/io5";
+import { SiRiotgames, SiKdenlive } from "react-icons/si";
+import { HiTrophy, HiMiniWrenchScrewdriver } from "react-icons/hi2";
 
 export type ModuleCategory = "tournament" | "prediction" | "core" | "integration" | "admin";
-
 export interface ModuleCard {
   id: string;
   name: string;
   description: string;
-  icon: ReactNode | string;
+  icon: React.ComponentType<{ className?: string }>;
   path: string;
   color: string;
   spotlightColor: string;
@@ -20,7 +25,7 @@ export const MODULES: ModuleCard[] = [
     id: "teams",
     name: "Teams",
     description: "Create and manage tournament teams with player rosters and information",
-    icon: "👥",
+    icon: RiTeamFill,
     path: "/modules/teams",
     color: "from-blue-500 to-cyan-500",
     spotlightColor: "rgba(14, 165, 233, 0.15)",
@@ -31,7 +36,7 @@ export const MODULES: ModuleCard[] = [
     id: "tournaments",
     name: "Tournaments",
     description: "Create and manage tournaments with brackets, schedules, and settings",
-    icon: "🏆",
+    icon: HiTrophy,
     path: "/modules/tournaments",
     color: "from-yellow-500 to-orange-500",
     spotlightColor: "rgba(245, 158, 11, 0.15)",
@@ -42,7 +47,7 @@ export const MODULES: ModuleCard[] = [
     id: "adminTournaments",
     name: "Admin Tournament Manager",
     description: "Register any team to any tournament with admin privileges and bypass restrictions",
-    icon: "🔧",
+    icon: HiMiniWrenchScrewdriver,
     path: "/modules/tournaments/admin",
     color: "from-purple-500 to-pink-500",
     spotlightColor: "rgba(168, 85, 247, 0.15)",
@@ -54,7 +59,7 @@ export const MODULES: ModuleCard[] = [
     id: "adminPermissions",
     name: "Global Permissions",
     description: "Manage user roles and permissions across the entire system",
-    icon: "🛡️",
+    icon: BsFillShieldLockFill,
     path: "/modules/admin/permissions",
     color: "from-red-500 to-pink-500",
     spotlightColor: "rgba(239, 68, 68, 0.15)",
@@ -66,7 +71,7 @@ export const MODULES: ModuleCard[] = [
     id: "pickban",
     name: "Pick & Ban",
     description: "Champion draft interface for tournament matches with live updates",
-    icon: "⚔️",
+    icon: RiSwordFill,
     path: "/modules/pickban",
     color: "from-purple-500 to-pink-500",
     spotlightColor: "rgba(168, 85, 247, 0.15)",
@@ -77,7 +82,7 @@ export const MODULES: ModuleCard[] = [
     id: "cameras",
     name: "Camera Setup",
     description: "Configure player stream cameras and fallback images for broadcasting",
-    icon: "📹",
+    icon: BsCameraVideoFill,
     path: "/modules/cameras",
     color: "from-green-500 to-emerald-500",
     spotlightColor: "rgba(34, 197, 94, 0.15)",
@@ -88,7 +93,7 @@ export const MODULES: ModuleCard[] = [
     id: "leagueclient",
     name: "League Client",
     description: "Connect to the League of Legends client to get live data",
-    icon: "📟",
+    icon: SiRiotgames,
     path: "/modules/leagueclient",
     color: "from-teal-500 to-cyan-500",
     spotlightColor: "rgba(20, 184, 166, 0.15)",
@@ -99,7 +104,7 @@ export const MODULES: ModuleCard[] = [
     id: "champ-ability",
     name: "Champions Abilities",
     description: "Browse League of Legends champions abilities with stats and information",
-    icon: "⚡",
+    icon: BsFillLightningFill,
     path: "/modules/champ-ability",
     color: "from-indigo-500 to-purple-500",
     spotlightColor: "rgba(99, 102, 241, 0.15)",
@@ -110,7 +115,7 @@ export const MODULES: ModuleCard[] = [
     id: "commentators",
     name: "Commentators",
     description: "Manage commentators and their predictions for the selected tournament",
-    icon: "🗣️",
+    icon: IoChatboxOutline,
     path: "", // PATH IS DYNAMIC SET IN handleModuleClick
     color: "from-pink-500 to-yellow-500",
     spotlightColor: "rgba(236, 72, 153, 0.15)",
@@ -121,7 +126,7 @@ export const MODULES: ModuleCard[] = [
     id: "sponsors",
     name: "Sponsors",
     description: "Manage tournament sponsors and their display settings",
-    icon: "💼",
+    icon: BiSolidBriefcase,
     path: "", // PATH IS DYNAMIC SET IN handleModuleClick
     color: "from-emerald-500 to-teal-500",
     spotlightColor: "rgba(16, 185, 129, 0.15)",
@@ -132,7 +137,7 @@ export const MODULES: ModuleCard[] = [
     id: "matches",
     name: "Matches",
     description: "View and manage tournament matches",
-    icon: "🎮",
+    icon: IoGameController,
     path: "", // PATH IS DYNAMIC SET IN handleModuleClick
     color: "from-red-500 to-pink-500",
     spotlightColor: "rgba(239, 68, 68, 0.15)",
@@ -143,7 +148,7 @@ export const MODULES: ModuleCard[] = [
     id: "currentMatch",
     name: "Current Match",
     description: "View and manage the current match",
-    icon: "🎮",
+    icon: SiKdenlive,
     color: "from-red-500 to-pink-500",
     spotlightColor: "rgba(239, 68, 68, 0.15)",
     status: "new",
@@ -154,7 +159,7 @@ export const MODULES: ModuleCard[] = [
     id: "currentTournament",
     name: "Current Tournament",
     description: "View and manage the current tournament",
-    icon: "🎮",
+    icon: MdTour,
     color: "from-red-500 to-pink-500",
     spotlightColor: "rgba(239, 68, 68, 0.15)",
     status: "new",

@@ -27,6 +27,13 @@ export interface RuneReforged {
 }
 
 /**
+ * Check if we're running in Electron environment
+ */
+const isElectronEnvironment = (): boolean => {
+  return typeof window !== "undefined" && !!window.electronAPI?.isElectron;
+};
+
+/**
  * Centralized DataDragon API client to eliminate duplicate fetch patterns
  */
 export class DataDragonClient {
@@ -45,7 +52,12 @@ export class DataDragonClient {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
-      const response = await fetch(`${DDRAGON_BASE_URL}/api/versions.json`, {
+      // Use proxy endpoint in browser environment to avoid CORS
+      const url = !isElectronEnvironment() 
+        ? "/api/ddragon/versions"
+        : `${DDRAGON_BASE_URL}/api/versions.json`;
+
+      const response = await fetch(url, {
         signal: controller.signal,
         headers: {
           "User-Agent": "League-Stream-Utils/1.0.0"
@@ -79,7 +91,12 @@ export class DataDragonClient {
     }
 
     try {
-      const response = await fetch(`${DDRAGON_BASE_URL}/api/versions.json`);
+      // Use proxy endpoint in browser environment to avoid CORS
+      const url = !isElectronEnvironment() 
+        ? "/api/ddragon/versions"
+        : `${DDRAGON_BASE_URL}/api/versions.json`;
+
+      const response = await fetch(url);
       if (!response.ok) {
         throw new Error(`Failed to fetch versions: ${response.status}`);
       }
@@ -100,7 +117,12 @@ export class DataDragonClient {
    */
   static async fetchData<T>(endpoint: string, version?: string): Promise<DataDragonResponse<T>> {
     const actualVersion = version || (await this.getLatestVersion());
-    const url = `${DDRAGON_CDN}/${actualVersion}/data/en_US/${endpoint}`;
+    
+    // Use proxy endpoint in browser environment to avoid CORS
+    const isBrowser = !isElectronEnvironment();
+    const url = isBrowser 
+      ? `/api/ddragon/${endpoint.replace('.json', '')}?version=${actualVersion}`
+      : `${DDRAGON_CDN}/${actualVersion}/data/en_US/${endpoint}`;
 
     try {
       const controller = new AbortController();
@@ -167,7 +189,12 @@ export class DataDragonClient {
    */
   static async getRunes(version?: string): Promise<RuneReforged[]> {
     const actualVersion = version || (await this.getLatestVersion());
-    const url = `${DDRAGON_CDN}/${actualVersion}/data/en_US/runesReforged.json`;
+    
+    // Use proxy endpoint in browser environment to avoid CORS
+    const isBrowser = !isElectronEnvironment();
+    const url = isBrowser 
+      ? `/api/ddragon/runes?version=${actualVersion}`
+      : `${DDRAGON_CDN}/${actualVersion}/data/en_US/runesReforged.json`;
 
     const response = await fetch(url, {
       headers: {

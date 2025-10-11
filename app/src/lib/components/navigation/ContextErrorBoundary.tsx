@@ -72,7 +72,7 @@ export function ContextWrapper({ children, contexts }: ContextWrapperProps) {
   return contexts.reduceRight((wrapped, context) => {
     const Provider = context.provider;
     return (
-      <ContextErrorBoundary contextName={context.name}>
+      <ContextErrorBoundary key={context.name} contextName={context.name}>
         <Provider>{wrapped}</Provider>
       </ContextErrorBoundary>
     );

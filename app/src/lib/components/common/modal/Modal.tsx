@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import type { BaseModalProps } from "@lib/types";
 
 export function Modal({ isOpen, onClose, title, children, showCloseButton = true }: BaseModalProps) {
