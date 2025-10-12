@@ -13,12 +13,12 @@ export default function TeamCameraStreamPage() {
   const teamId = params.teamId as string;
   const { teams: cameraTeamsRaw, loading: camerasLoading, refreshCameras } = useCameras();
   const [players, setPlayers] = useState<CameraPlayer[]>([]);
-  const [teamName, setTeamName] = useState<string>("")
+  const [teamName, setTeamName] = useState<string>("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     setLoading(true);
-    
+
     if (teamId) {
       // First, ensure we have camera data
       if (!cameraTeamsRaw || (Array.isArray(cameraTeamsRaw) && cameraTeamsRaw.length === 0)) {
@@ -69,15 +69,12 @@ export default function TeamCameraStreamPage() {
         { label: "Camera Hub", href: "/modules/cameras" },
         { label: teamName, href: `/modules/cameras/stream/${teamId}`, isActive: true }
       ]
-    }
+    };
   }, [teamName, loading, teamId]);
-
 
   if (loading) {
     return (
-      <PageWrapper
-        {...pageProps}
-      >
+      <PageWrapper {...pageProps}>
         <LoadingSpinner fullscreen text="Loading..." />
       </PageWrapper>
     );
@@ -85,18 +82,15 @@ export default function TeamCameraStreamPage() {
 
   if (players.length === 0 && !camerasLoading) {
     return (
-      <PageWrapper
-        {...pageProps}
-      >
+      <PageWrapper {...pageProps}>
         <div className="text-center py-8">
           <h2 className="text-xl font-semibold text-gray-300 mb-2">
             {teamName ? "No Players Found" : "Team Not Found"}
           </h2>
           <p className="text-gray-400 mb-4">
-            {teamName 
-              ? `No camera feeds configured for ${teamName}` 
-              : "This team doesn't exist or you don't have access to it"
-            }
+            {teamName
+              ? `No camera feeds configured for ${teamName}`
+              : "This team doesn't exist or you don't have access to it"}
           </p>
           <div className="space-x-4">
             <button

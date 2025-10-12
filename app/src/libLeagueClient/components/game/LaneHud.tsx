@@ -1,7 +1,11 @@
 import React from "react";
 import Image from "next/image";
 import { LiveGameData } from "@libLeagueClient/types";
-import { getChampionSquareImage, getDefaultAsset, getSummonerSpellImageByName } from "@libLeagueClient/components/common";
+import {
+  getChampionSquareImage,
+  getDefaultAsset,
+  getSummonerSpellImageByName
+} from "@libLeagueClient/components/common";
 import { getItemImage } from "@lib/items";
 import { getRuneImage } from "@lib/runes";
 
@@ -16,7 +20,7 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
       <div className="h-full w-full px-3">
         {(() => {
           const laneOrder = ["TOP", "JUNGLE", "MID", "BOTTOM", "SUPPORT"] as const;
-          type LaneKey = typeof laneOrder[number];
+          type LaneKey = (typeof laneOrder)[number];
           const normalizePosition = (pos: string): LaneKey | null => {
             const p = (pos || "").trim().toUpperCase();
             if (p === "TOP") return "TOP";
@@ -30,7 +34,7 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
           const orderPlayers = gameData.allPlayers.filter((p) => p.team === "ORDER");
           const chaosPlayers = gameData.allPlayers.filter((p) => p.team === "CHAOS");
 
-          const scoreMatch = (p: typeof gameData.allPlayers[number], lane: LaneKey): number => {
+          const scoreMatch = (p: (typeof gameData.allPlayers)[number], lane: LaneKey): number => {
             const pos = normalizePosition(p.position);
             if (!pos) return 0;
             if (pos === lane) return 3;
@@ -42,7 +46,7 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
             players: typeof gameData.allPlayers,
             lane: LaneKey,
             used: Set<string>
-          ): typeof gameData.allPlayers[number] | null => {
+          ): (typeof gameData.allPlayers)[number] | null => {
             const exact = players.find((p) => !used.has(p.summonerName) && normalizePosition(p.position) === lane);
             if (exact) return exact;
             const candidates = players
@@ -54,24 +58,32 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
             return first || null;
           };
 
-          const renderItems = (items: typeof gameData.allPlayers[number]["items"], align: "left" | "right") => {
+          const renderItems = (items: (typeof gameData.allPlayers)[number]["items"], align: "left" | "right") => {
             const six = Array.from({ length: 6 }).map((_, i) => items?.[i] || null);
             return (
               <div className="flex gap-1">
-                {align === "left" ? six.reverse().map((it, idx) => (
-                  <div key={idx} className="w-5 h-5 bg-gray-700 rounded border border-gray-600 flex items-center justify-center">
-                    {it ? <Image src={getItemImage(it.itemID)} alt={it.name} width={20} height={20} /> : null}
-                  </div>
-                )) : six.map((it, idx) => (
-                  <div key={idx} className="w-5 h-5 bg-gray-700 rounded border border-gray-600 flex items-center justify-center">
-                    {it ? <Image src={getItemImage(it.itemID)} alt={it.name} width={20} height={20} /> : null}
-                  </div>
-                ))}
+                {align === "left"
+                  ? six.reverse().map((it, idx) => (
+                      <div
+                        key={idx}
+                        className="w-5 h-5 bg-gray-700 rounded border border-gray-600 flex items-center justify-center"
+                      >
+                        {it ? <Image src={getItemImage(it.itemID)} alt={it.name} width={20} height={20} /> : null}
+                      </div>
+                    ))
+                  : six.map((it, idx) => (
+                      <div
+                        key={idx}
+                        className="w-5 h-5 bg-gray-700 rounded border border-gray-600 flex items-center justify-center"
+                      >
+                        {it ? <Image src={getItemImage(it.itemID)} alt={it.name} width={20} height={20} /> : null}
+                      </div>
+                    ))}
               </div>
             );
           };
 
-          const renderSpells = (p: typeof gameData.allPlayers[number]) => {
+          const renderSpells = (p: (typeof gameData.allPlayers)[number]) => {
             const s1 = p.summonerSpells?.summonerSpellOne?.displayName;
             const s2 = p.summonerSpells?.summonerSpellTwo?.displayName;
             return (
@@ -86,7 +98,7 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
             );
           };
 
-          const renderRunes = (p: typeof gameData.allPlayers[number]) => {
+          const renderRunes = (p: (typeof gameData.allPlayers)[number]) => {
             const r1 = p.runes?.primaryRuneTree;
             const r2 = p.runes?.secondaryRuneTree;
             return (
@@ -105,7 +117,7 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
             return <div className="w-5 h-5 bg-gray-700 rounded border border-gray-600" />;
           };
 
-          const renderImage = (p: typeof gameData.allPlayers[number]) => {
+          const renderImage = (p: (typeof gameData.allPlayers)[number]) => {
             return (
               <Image
                 src={getChampionSquareImage(p.championName) || getDefaultAsset(gameVersion, "player.png")}
@@ -116,7 +128,7 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
             );
           };
 
-          const renderTexts = (p: typeof gameData.allPlayers[number], align: "left" | "right") => {
+          const renderTexts = (p: (typeof gameData.allPlayers)[number], align: "left" | "right") => {
             return (
               <div className={`flex direction-${align} flex-row gap-1`}>
                 <div className="text-xs">
@@ -131,7 +143,7 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
           };
 
           const renderPlayerSide = (
-            p: typeof gameData.allPlayers[number] | undefined | null,
+            p: (typeof gameData.allPlayers)[number] | undefined | null,
             align: "left" | "right"
           ) => {
             if (!p) return <div className="flex-1" />;
@@ -139,14 +151,12 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
               <div className={`flex items-center gap-2 ${align === "left" ? "justify-end" : "justify-start"} flex-1`}>
                 {align === "left" ? (
                   <>
-                    
                     {renderTrinket()}
                     {renderItems(p.items, "left")}
                     {renderRunes(p)}
                     {renderSpells(p)}
                     {renderTexts(p, "left")}
                     {renderImage(p)}
-
                   </>
                 ) : (
                   <>
@@ -175,8 +185,8 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
           );
 
           const renderGoldDiff = (
-            left?: typeof gameData.allPlayers[number] | null,
-            right?: typeof gameData.allPlayers[number] | null
+            left?: (typeof gameData.allPlayers)[number] | null,
+            right?: (typeof gameData.allPlayers)[number] | null
           ) => {
             const l = left?.gold || 0;
             const r = right?.gold || 0;
@@ -209,14 +219,14 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
                   if (leftPlayer) usedOrder.add(leftPlayer.summonerName);
                   const rightPlayer = pickByLaneWithFallback(chaosPlayers, lane, usedChaos);
                   if (rightPlayer) usedChaos.add(rightPlayer.summonerName);
-                return (
-                  <div key={lane} className="flex items-center">
-                    {renderPlayerSide(leftPlayer, "left")}
-                    {renderGoldDiff(leftPlayer, rightPlayer)}
-                    {renderPlayerSide(rightPlayer, "right")}
-                  </div>
-                );
-              });
+                  return (
+                    <div key={lane} className="flex items-center">
+                      {renderPlayerSide(leftPlayer, "left")}
+                      {renderGoldDiff(leftPlayer, rightPlayer)}
+                      {renderPlayerSide(rightPlayer, "right")}
+                    </div>
+                  );
+                });
               })()}
             </div>
           );
@@ -225,5 +235,3 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
     </div>
   );
 };
-
-

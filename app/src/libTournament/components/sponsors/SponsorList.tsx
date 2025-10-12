@@ -69,26 +69,26 @@ export const SponsorList = ({ sponsors, loading, onEditSponsor, onDeleteSponsor 
                     <span className="text-white">Yes</span>
                   </div>
                 )}
-                
+
                 {sponsor.timeInSeconds && (
                   <div className="flex justify-between items-center">
                     <span className="text-gray-400">Duration:</span>
                     <span className="text-white">{sponsor.timeInSeconds}s</span>
                   </div>
                 )}
-                
+
                 {sponsor.namePosition && (
                   <div className="flex justify-between items-center">
                     <span className="text-gray-400">Position:</span>
                     <span className="text-white capitalize">{sponsor.namePosition}</span>
                   </div>
                 )}
-                
+
                 <div className="flex justify-between items-center">
                   <span className="text-gray-400">Fullwidth:</span>
                   <span className="text-white">{sponsor.fullwidth ? "Yes" : "No"}</span>
                 </div>
-                
+
                 {sponsor.variant && (
                   <div className="flex justify-between items-center">
                     <span className="text-gray-400">Variant:</span>

@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
     // If this is a tournament match, check if the tournament is public
     if (match.tournamentId) {
       const tournament = await getTournamentById(match.tournamentId);
-      if (!tournament || tournament.status === "draft") {
+      if (!tournament || tournament.status === "registration") {
         return NextResponse.json({ error: "Match not public" }, { status: 403 });
       }
     }

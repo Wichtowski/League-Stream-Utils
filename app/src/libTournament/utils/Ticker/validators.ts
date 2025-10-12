@@ -88,13 +88,13 @@ export const validateCarouselItem = (item: CarouselItemFormData): ValidationErro
  */
 const sanitizeText = (text: string): string => {
   if (!text) return "";
-  
+
   // Normalize unicode characters (handles emojis properly)
   const normalized = text.normalize("NFC");
-  
+
   // Trim whitespace
   const trimmed = normalized.trim();
-  
+
   // Remove any null bytes or control characters that might cause issues
   return trimmed.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "");
 };

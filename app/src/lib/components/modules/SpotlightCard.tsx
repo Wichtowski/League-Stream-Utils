@@ -14,6 +14,14 @@ interface SpotlightCardProps {
   loading?: boolean;
 }
 
+export const isHiddenBehindTournament = (moduleId: string) =>
+  moduleId === "matches" ||
+  moduleId === "commentators" ||
+  moduleId === "sponsors" ||
+  moduleId === "currentMatch" ||
+  moduleId === "currentTournament" ||
+  moduleId === "ticker";
+
 export const SpotlightCard: React.FC<SpotlightCardProps> = ({
   module,
   className = "",
@@ -49,21 +57,29 @@ export const SpotlightCard: React.FC<SpotlightCardProps> = ({
     );
   }
 
+  const isUnavailable = module.status === "unavailable";
+
   return (
     <div
-      className={`group relative rounded-xl border border-white/10 bg-gray-800/50 backdrop-blur-sm shadow-2xl transition-all duration-300 hover:scale-105 ${className}`}
-      onMouseMove={handleMouseMove}
-      onClick={onClick}
+      className={`group relative rounded-xl border border-white/10 bg-gray-800/50 backdrop-blur-sm shadow-2xl transition-all duration-300 ${
+        isUnavailable ? "opacity-50 cursor-not-allowed" : "hover:scale-105"
+      } ${className}`}
+      onMouseMove={isUnavailable ? undefined : handleMouseMove}
+      onClick={isUnavailable ? undefined : onClick}
     >
-      <motion.div
-        className="pointer-events-none absolute -inset-px rounded-xl opacity-0 transition duration-300 group-hover:opacity-100"
-        style={{ background }}
-      />
+      {!isUnavailable && (
+        <motion.div
+          className="pointer-events-none absolute -inset-px rounded-xl opacity-0 transition duration-300 group-hover:opacity-100"
+          style={{ background }}
+        />
+      )}
       <div className="flex items-start justify-between mb-4">
         <div
-          className={`w-12 h-12 bg-gradient-to-br ${module.color} rounded-lg flex items-center justify-center text-2xl`}
+          className={`w-12 h-12 bg-gradient-to-br ${
+            isUnavailable ? "from-gray-500 to-gray-600" : module.color
+          } rounded-lg flex items-center justify-center text-2xl`}
         >
-          {typeof module.icon === 'string' ? module.icon : <module.icon className="w-6 h-6" />}
+          {typeof module.icon === "string" ? module.icon : <module.icon className="w-6 h-6" />}
         </div>
         <div className="flex items-center space-x-2">
           {module.status === "beta" && (
@@ -88,9 +104,14 @@ export const SpotlightCard: React.FC<SpotlightCardProps> = ({
               COMING SOON
             </span>
           )}
+          {module.status === "unavailable" && (
+            <span className={`bg-gradient-to-br ${reversedColor} text-white px-2 py-1 rounded text-xs font-semibold`}>
+              UNAVAILABLE
+            </span>
+          )}
         </div>
       </div>
-      <h3 className="text-xl font-bold text-white mb-2">
+      <h3 className={`text-xl font-bold mb-2 ${isUnavailable ? "text-gray-500" : "text-white"}`}>
         {isHiddenBehindTournament && (
           <div className="flex items-center space-x-2">
             <span className="text-gray-400 text-sm">Current Tournament: {tournamentName}</span>
@@ -98,7 +119,9 @@ export const SpotlightCard: React.FC<SpotlightCardProps> = ({
         )}
         {module.name}
       </h3>
-      <p className="text-gray-300 text-sm leading-relaxed">{module.description}</p>
+      <p className={`text-sm leading-relaxed ${isUnavailable ? "text-gray-500" : "text-gray-300"}`}>
+        {module.description}
+      </p>
     </div>
   );
 };

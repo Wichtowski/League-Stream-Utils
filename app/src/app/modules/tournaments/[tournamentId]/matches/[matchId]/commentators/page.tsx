@@ -29,7 +29,11 @@ export default function MatchCommentatorsPage(): React.ReactElement {
         { label: currentTournament?.name || "Tournament", href: `/modules/tournaments/${tournamentId}` },
         { label: "Matches", href: `/modules/tournaments/${tournamentId}/matches` },
         { label: currentMatch?.name || "Match", href: `/modules/tournaments/${tournamentId}/matches/${matchId}` },
-        { label: "Commentators", href: `/modules/tournaments/${tournamentId}/matches/${matchId}/commentators`, isActive: true }
+        {
+          label: "Commentators",
+          href: `/modules/tournaments/${tournamentId}/matches/${matchId}/commentators`,
+          isActive: true
+        }
       ]
     };
   }, [currentMatch, currentTournament, tournamentId, matchId, loading]);
@@ -133,7 +137,13 @@ export default function MatchCommentatorsPage(): React.ReactElement {
       <div className="space-y-6 max-w-5xl">
         <div className="flex items-center justify-between">
           <div className="text-white text-xl font-semibold">{currentMatch.name}</div>
-          <Button onClick={() => router.push(`/modules/tournaments/${tournamentId}/matches/${matchId}`)} variant="secondary" size="sm">Back to Match</Button>
+          <Button
+            onClick={() => router.push(`/modules/tournaments/${tournamentId}/matches/${matchId}`)}
+            variant="secondary"
+            size="sm"
+          >
+            Back to Match
+          </Button>
         </div>
 
         <div className="bg-gray-800 rounded-lg p-6">
@@ -143,7 +153,12 @@ export default function MatchCommentatorsPage(): React.ReactElement {
               {currentMatch.commentators.map((c) => (
                 <div key={c._id} className="bg-gray-700 rounded px-3 py-2 flex items-center gap-2">
                   <span className="text-sm text-white">{c.name}</span>
-                  <button onClick={() => c._id && removeFromMatch(c._id)} className="text-red-400 hover:text-red-300 text-sm">×</button>
+                  <button
+                    onClick={() => c._id && removeFromMatch(c._id)}
+                    className="text-red-400 hover:text-red-300 text-sm"
+                  >
+                    ×
+                  </button>
                 </div>
               ))}
             </div>
@@ -161,7 +176,12 @@ export default function MatchCommentatorsPage(): React.ReactElement {
               {allCommentators
                 .filter((gc) => !currentMatch.commentators.some((mc) => (mc._id || mc.id) === (gc._id || gc.id)))
                 .map((gc) => (
-                  <Button key={gc._id || gc.id} size="sm" disabled={assigning} onClick={() => (gc._id || gc.id) && assignToMatch(gc._id || (gc.id as string))}>
+                  <Button
+                    key={gc._id || gc.id}
+                    size="sm"
+                    disabled={assigning}
+                    onClick={() => (gc._id || gc.id) && assignToMatch(gc._id || (gc.id as string))}
+                  >
                     + {gc.name}
                   </Button>
                 ))}
@@ -172,5 +192,3 @@ export default function MatchCommentatorsPage(): React.ReactElement {
     </PageWrapper>
   );
 }
-
-

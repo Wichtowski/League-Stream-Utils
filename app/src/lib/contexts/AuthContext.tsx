@@ -156,7 +156,7 @@ export function AuthProvider({ children }: { children: ReactNode }): React.React
       if (typeof window !== "undefined") {
         localStorage.clear();
         sessionStorage.clear();
-        window.location.href = "/login";
+        // The NavigationGuard will handle redirecting to login
       }
     }
   }, [clearAuthData]);

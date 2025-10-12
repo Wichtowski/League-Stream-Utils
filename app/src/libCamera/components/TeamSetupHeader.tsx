@@ -11,12 +11,7 @@ interface TeamSetupHeaderProps {
   onSave: () => void;
 }
 
-export const TeamSetupHeader = ({
-  teamName,
-  teamLogo,
-  saving,
-  onSave
-}: TeamSetupHeaderProps): React.ReactElement => {
+export const TeamSetupHeader = ({ teamName, teamLogo, saving, onSave }: TeamSetupHeaderProps): React.ReactElement => {
   return (
     <div className="flex justify-between items-center mb-8">
       <div className="flex items-center gap-4">
@@ -32,13 +27,13 @@ export const TeamSetupHeader = ({
           <p className="text-gray-400">Configure stream URLs</p>
         </div>
       </div>
-        <Button
-          onClick={onSave}
-          disabled={saving}
-          className="bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white px-6 py-2 rounded-lg transition-colors"
-        >
-          {saving ? "Saving..." : "Save Settings"}
-        </Button>
+      <Button
+        onClick={onSave}
+        disabled={saving}
+        className="bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white px-6 py-2 rounded-lg transition-colors"
+      >
+        {saving ? "Saving..." : "Save Settings"}
+      </Button>
     </div>
   );
 };

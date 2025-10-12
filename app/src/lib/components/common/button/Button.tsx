@@ -25,9 +25,11 @@ export const Button = ({
 }: ButtonProps): React.ReactElement => {
   const theme = useTheme();
   const buttonColors = theme.getButtonColors(variant);
-  const providedBg = (props.style && (props.style as React.CSSProperties).backgroundColor
-    ? (props.style as React.CSSProperties).backgroundColor
-    : undefined) as string | undefined;
+  const providedBg = (
+    props.style && (props.style as React.CSSProperties).backgroundColor
+      ? (props.style as React.CSSProperties).backgroundColor
+      : undefined
+  ) as string | undefined;
 
   const sizeClasses = {
     sm: "px-3 py-1.5 text-sm",

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { AuthTabs, MessageDisplay, LoginForm, RegisterForm, ContactInfo } from "@lib/auth/components";
 import { useAuth } from "@lib/contexts/AuthContext";
 import { useNavigation } from "@lib/contexts/NavigationContext";
-import { SettingsCog, PageWrapper } from "@lib/components/common";
+import { PageWrapper } from "@lib/components/common";
 import { useElectron } from "@libElectron/contexts/ElectronContext";
 
 export default function AuthPage() {
@@ -71,7 +71,7 @@ export default function AuthPage() {
   }
 
   return (
-    <PageWrapper contentClassName="max-w-md mx-auto mt-10" actions={<SettingsCog />} requireAuth={false}>
+    <PageWrapper contentClassName="max-w-md mx-auto mt-10" requireAuth={false}>
       <div className="w-full bg-gray-800 rounded-lg p-8 shadow-2xl">
         <h1 className="text-3xl font-bold mb-6 text-center text-blue-400">League Stream Utils</h1>
 

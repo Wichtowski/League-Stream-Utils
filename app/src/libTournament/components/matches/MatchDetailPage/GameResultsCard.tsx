@@ -46,10 +46,19 @@ export const GameResultsCard: React.FC<GameResultsCardProps> = ({
   teamWins,
   onUpdateGames
 }) => {
-  const [draggedPlayer, setDraggedPlayer] = useState<{playerId: string, teamId: string, side: "blue" | "red", gameNumber?: number} | null>(null);
-  const draggedRef = useRef<{playerId: string, teamId: string, side: "blue" | "red", gameNumber?: number} | null>(null);
+  const [draggedPlayer, setDraggedPlayer] = useState<{
+    playerId: string;
+    teamId: string;
+    side: "blue" | "red";
+    gameNumber?: number;
+  } | null>(null);
+  const draggedRef = useRef<{ playerId: string; teamId: string; side: "blue" | "red"; gameNumber?: number } | null>(
+    null
+  );
   const [dragOverPlayer, setDragOverPlayer] = useState<string | null>(null);
-  const [gameOrder, setGameOrder] = useState<Record<string, Array<{ _id: string; inGameName?: string; tag: string }>>>({});
+  const [gameOrder, setGameOrder] = useState<Record<string, Array<{ _id: string; inGameName?: string; tag: string }>>>(
+    {}
+  );
   const maxGames = getMaxGamesByFormat(match.format);
   const minGames = getMinGamesByFormat(match.format);
   const existing = match.games || [];
@@ -77,15 +86,29 @@ export const GameResultsCard: React.FC<GameResultsCardProps> = ({
         ): Array<{ _id: string; inGameName?: string; tag: string }> | undefined => {
           if (!ids || !teamPlayers) return undefined;
           const map = new Map(teamPlayers.map((p) => [p._id, p] as const));
-          const resolved = ids.map((id) => map.get(id)).filter(Boolean) as Array<{ _id: string; inGameName?: string; tag: string }>;
+          const resolved = ids.map((id) => map.get(id)).filter(Boolean) as Array<{
+            _id: string;
+            inGameName?: string;
+            tag: string;
+          }>;
           return resolved.length ? resolved : undefined;
         };
 
-        const blueRoster = (blueId === match.blueTeamId ? blueTeam?.players?.main : redTeam?.players?.main) as Array<{ _id: string; inGameName?: string; tag: string }> | undefined;
-        const redRoster = (redId === match.blueTeamId ? blueTeam?.players?.main : redTeam?.players?.main) as Array<{ _id: string; inGameName?: string; tag: string }> | undefined;
+        const blueRoster = (blueId === match.blueTeamId ? blueTeam?.players?.main : redTeam?.players?.main) as
+          | Array<{ _id: string; inGameName?: string; tag: string }>
+          | undefined;
+        const redRoster = (redId === match.blueTeamId ? blueTeam?.players?.main : redTeam?.players?.main) as
+          | Array<{ _id: string; inGameName?: string; tag: string }>
+          | undefined;
 
-        const blueFromSaved = resolveOrder((g as unknown as { playerSwapOrder?: Record<string, string[]> }).playerSwapOrder?.[blueId], blueRoster);
-        const redFromSaved = resolveOrder((g as unknown as { playerSwapOrder?: Record<string, string[]> }).playerSwapOrder?.[redId], redRoster);
+        const blueFromSaved = resolveOrder(
+          (g as unknown as { playerSwapOrder?: Record<string, string[]> }).playerSwapOrder?.[blueId],
+          blueRoster
+        );
+        const redFromSaved = resolveOrder(
+          (g as unknown as { playerSwapOrder?: Record<string, string[]> }).playerSwapOrder?.[redId],
+          redRoster
+        );
 
         addIfMissing(`${g.gameNumber}:${blueId}`, blueFromSaved || blueRoster);
         addIfMissing(`${g.gameNumber}:${redId}`, redFromSaved || redRoster);
@@ -96,17 +119,25 @@ export const GameResultsCard: React.FC<GameResultsCardProps> = ({
         if (!g) {
           addIfMissing(
             `${i}:${match.blueTeamId}`,
-            (blueTeam?.players?.main as Array<{ _id: string; inGameName?: string; tag: string }> | undefined)
+            blueTeam?.players?.main as Array<{ _id: string; inGameName?: string; tag: string }> | undefined
           );
           addIfMissing(
             `${i}:${match.redTeamId}`,
-            (redTeam?.players?.main as Array<{ _id: string; inGameName?: string; tag: string }> | undefined)
+            redTeam?.players?.main as Array<{ _id: string; inGameName?: string; tag: string }> | undefined
           );
         }
       }
       return changed ? seed : prev;
     });
-  }, [match.games, match.blueTeamId, match.redTeamId, blueTeam?.players?.main, redTeam?.players?.main, match.format, getTeamIdForSide]);
+  }, [
+    match.games,
+    match.blueTeamId,
+    match.redTeamId,
+    blueTeam?.players?.main,
+    redTeam?.players?.main,
+    match.format,
+    getTeamIdForSide
+  ]);
 
   // Framer Motion drag handlers
   const handleDragStart = (playerId: string, teamId: string, side: "blue" | "red", gameNumber?: number) => {
@@ -119,10 +150,14 @@ export const GameResultsCard: React.FC<GameResultsCardProps> = ({
     setDragOverPlayer(null);
   };
 
-
   const handleDrop = async (targetPlayerId: string, targetTeamId: string, gameNumber?: number) => {
     const currentDragged = draggedRef.current;
-    if (currentDragged && currentDragged.playerId !== targetPlayerId && currentDragged.teamId === targetTeamId && gameNumber) {
+    if (
+      currentDragged &&
+      currentDragged.playerId !== targetPlayerId &&
+      currentDragged.teamId === targetTeamId &&
+      gameNumber
+    ) {
       const key = `${gameNumber}:${targetTeamId}`;
       let nextOrderIds: string[] | null = null;
       setGameOrder((prev) => {
@@ -138,46 +173,46 @@ export const GameResultsCard: React.FC<GameResultsCardProps> = ({
       if (nextOrderIds && (nextOrderIds as string[]).length) {
         const updatedGames: GameResult[] = (match.games || []).map((g) => {
           if (g.gameNumber !== gameNumber) return g;
-          const existing: Record<string, string[]> = (g as unknown as { playerSwapOrder?: Record<string, string[]> }).playerSwapOrder || {};
+          const existing: Record<string, string[]> =
+            (g as unknown as { playerSwapOrder?: Record<string, string[]> }).playerSwapOrder || {};
           return { ...g, playerSwapOrder: { ...existing, [targetTeamId]: nextOrderIds as string[] } } as GameResult;
         });
         onUpdateGames(updatedGames);
       }
     }
-    
+
     // Don't clear state here - it's already cleared in onDragEnd
   };
 
   const _swapPlayersInTeam = async (player1Id: string, player2Id: string, teamId: string) => {
-    
     // Prevent swapping the same player
     if (player1Id === player2Id) {
       return;
     }
-    
+
     try {
       // Get current team data
       const teamResponse = await fetch(`/api/v1/teams/${teamId}`);
       if (!teamResponse.ok) {
-        console.error('Failed to fetch team data:', teamResponse.status, teamResponse.statusText);
+        console.error("Failed to fetch team data:", teamResponse.status, teamResponse.statusText);
         return;
       }
-      
+
       const { team } = await teamResponse.json();
-      console.log('Team data fetched:', team);
+      console.log("Team data fetched:", team);
       if (!team || !team.players?.main) {
-        console.error('Team data not found or invalid structure');
+        console.error("Team data not found or invalid structure");
         return;
       }
 
       // Find the indices of the players to swap
       const player1Index = team.players.main.findIndex((p: { _id: string }) => p._id === player1Id);
       const player2Index = team.players.main.findIndex((p: { _id: string }) => p._id === player2Id);
-      
-      console.log('Player indices:', { player1Index, player2Index });
-      
+
+      console.log("Player indices:", { player1Index, player2Index });
+
       if (player1Index === -1 || player2Index === -1) {
-        console.error('One or both players not found in team:', { player1Id, player2Id });
+        console.error("One or both players not found in team:", { player1Id, player2Id });
         return;
       }
 
@@ -185,16 +220,16 @@ export const GameResultsCard: React.FC<GameResultsCardProps> = ({
       const newPlayers = [...team.players.main];
       [newPlayers[player1Index], newPlayers[player2Index]] = [newPlayers[player2Index], newPlayers[player1Index]];
 
-      console.log('Swapping players:', {
+      console.log("Swapping players:", {
         before: [team.players.main[player1Index], team.players.main[player2Index]],
         after: [newPlayers[player1Index], newPlayers[player2Index]]
       });
 
       // Update team with new player order
       const updateResponse = await fetch(`/api/v1/teams/${teamId}`, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json"
         },
         body: JSON.stringify({
           players: {
@@ -206,24 +241,23 @@ export const GameResultsCard: React.FC<GameResultsCardProps> = ({
 
       if (!updateResponse.ok) {
         const errorText = await updateResponse.text();
-        console.error('Failed to update team player order:', updateResponse.status, errorText);
+        console.error("Failed to update team player order:", updateResponse.status, errorText);
         return;
       }
 
-      console.log('Team updated successfully');
-    } catch (_error) {
-    }
+      console.log("Team updated successfully");
+    } catch (_error) {}
   };
 
   // Draggable player component
-  const DraggablePlayer = ({ 
-    player, 
-    teamId, 
-    side, 
-    gameNumber, 
-    currentChampion, 
-    onChampionChange, 
-    isDisabled = false 
+  const DraggablePlayer = ({
+    player,
+    teamId,
+    side,
+    gameNumber,
+    currentChampion,
+    onChampionChange,
+    isDisabled = false
   }: {
     player: { _id: string; inGameName?: string; tag: string };
     teamId: string;
@@ -235,22 +269,30 @@ export const GameResultsCard: React.FC<GameResultsCardProps> = ({
   }) => {
     const isDragging = draggedPlayer?.playerId === player._id;
     const isDragOver = dragOverPlayer === player._id;
-    const canDrop = !!draggedRef.current && draggedRef.current.teamId === teamId && draggedRef.current.playerId !== player._id && draggedRef.current.gameNumber === gameNumber;
-    const isBeingDraggedOver = !!draggedRef.current && draggedRef.current.playerId !== player._id && draggedRef.current.teamId === teamId && draggedRef.current.gameNumber === gameNumber;
-    
-    console.log('DraggablePlayer render:', { 
-      playerId: player._id, 
-      editing, 
-      isDisabled, 
+    const canDrop =
+      !!draggedRef.current &&
+      draggedRef.current.teamId === teamId &&
+      draggedRef.current.playerId !== player._id &&
+      draggedRef.current.gameNumber === gameNumber;
+    const isBeingDraggedOver =
+      !!draggedRef.current &&
+      draggedRef.current.playerId !== player._id &&
+      draggedRef.current.teamId === teamId &&
+      draggedRef.current.gameNumber === gameNumber;
+
+    console.log("DraggablePlayer render:", {
+      playerId: player._id,
+      editing,
+      isDisabled,
       dragEnabled: editing && !isDisabled,
-      isDragging 
+      isDragging
     });
-    
+
     return (
       <motion.div
         layout
         drag={editing && !isDisabled}
-        style={{ touchAction: 'none' }}
+        style={{ touchAction: "none" }}
         dragConstraints={false}
         dragElastic={0}
         dragMomentum={false}
@@ -258,16 +300,18 @@ export const GameResultsCard: React.FC<GameResultsCardProps> = ({
         dragPropagation={false}
         dragTransition={{ bounceStiffness: 0, bounceDamping: 0 }}
         onDragStart={() => {
-          console.log('Drag started for player:', player._id);
+          console.log("Drag started for player:", player._id);
           handleDragStart(player._id, teamId, side, gameNumber);
           // Add visual indicators to all valid drop targets
-          const selector = gameNumber ? `[data-game-key="${gameNumber}:${teamId}"][data-player-id]` : '[data-player-id]';
+          const selector = gameNumber
+            ? `[data-game-key="${gameNumber}:${teamId}"][data-player-id]`
+            : "[data-player-id]";
           const elements = document.querySelectorAll(selector);
           elements.forEach((el) => {
-            const targetPlayerId = el.getAttribute('data-player-id');
-            const targetTeamId = el.getAttribute('data-team-id');
+            const targetPlayerId = el.getAttribute("data-player-id");
+            const targetTeamId = el.getAttribute("data-team-id");
             if (targetPlayerId && targetTeamId && targetPlayerId !== player._id && targetTeamId === teamId) {
-              el.classList.add('border-2', 'border-blue-500', 'animate-pulse', 'bg-blue-900/20');
+              el.classList.add("border-2", "border-blue-500", "animate-pulse", "bg-blue-900/20");
             }
           });
         }}
@@ -276,31 +320,34 @@ export const GameResultsCard: React.FC<GameResultsCardProps> = ({
           // console.log('Dragging:', info.point.x, info.point.y, 'draggedPlayer:', draggedPlayer?.playerId);
         }}
         onDragEnd={async (_, info) => {
-          console.log('Drag end triggered');
+          console.log("Drag end triggered");
           // Remove visual indicators first
-          const elements = document.querySelectorAll('[data-player-id]');
+          const elements = document.querySelectorAll("[data-player-id]");
           elements.forEach((el) => {
-            el.classList.remove('border-2', 'border-blue-500', 'animate-pulse', 'bg-blue-900/20');
+            el.classList.remove("border-2", "border-blue-500", "animate-pulse", "bg-blue-900/20");
           });
-          
+
           // Prefer element under pointer within same game/side
           let closestElement = null as Element | null;
           const expectedKey = gameNumber ? `${gameNumber}:${teamId}` : undefined;
           // Temporarily hide the dragged element so elementFromPoint can see the element underneath
-          const draggedElSelector = draggedRef.current && expectedKey
-            ? `[data-game-key="${expectedKey}"][data-player-id="${draggedRef.current.playerId}"]`
+          const draggedElSelector =
+            draggedRef.current && expectedKey
+              ? `[data-game-key="${expectedKey}"][data-player-id="${draggedRef.current.playerId}"]`
+              : null;
+          const draggedEl = draggedElSelector
+            ? (document.querySelector(draggedElSelector) as HTMLElement | null)
             : null;
-          const draggedEl = draggedElSelector ? (document.querySelector(draggedElSelector) as HTMLElement | null) : null;
           const originalVisibility = draggedEl ? draggedEl.style.visibility : undefined;
-          if (draggedEl) draggedEl.style.visibility = 'hidden';
+          if (draggedEl) draggedEl.style.visibility = "hidden";
           const pointerEl = document.elementFromPoint(info.point.x, info.point.y) as HTMLElement | null;
           if (draggedEl && originalVisibility !== undefined) draggedEl.style.visibility = originalVisibility;
           let cursor: HTMLElement | null = pointerEl;
           while (cursor) {
-            if (cursor.hasAttribute('data-player-id')) {
-              const pid = cursor.getAttribute('data-player-id');
-              const tId = cursor.getAttribute('data-team-id');
-              const gk = cursor.getAttribute('data-game-key');
+            if (cursor.hasAttribute("data-player-id")) {
+              const pid = cursor.getAttribute("data-player-id");
+              const tId = cursor.getAttribute("data-team-id");
+              const gk = cursor.getAttribute("data-game-key");
               if (pid && tId && pid !== player._id && (!expectedKey || gk === expectedKey)) {
                 if (!draggedRef.current || tId === draggedRef.current.teamId) {
                   closestElement = cursor;
@@ -312,28 +359,37 @@ export const GameResultsCard: React.FC<GameResultsCardProps> = ({
           }
           // Fallback: containment check in scoped list
           if (!closestElement) {
-            const scopeSelector = gameNumber ? `[data-game-key="${expectedKey}"]` : '';
-            const scopedElements = gameNumber ? document.querySelectorAll(`${scopeSelector}[data-player-id]`) : elements;
+            const scopeSelector = gameNumber ? `[data-game-key="${expectedKey}"]` : "";
+            const scopedElements = gameNumber
+              ? document.querySelectorAll(`${scopeSelector}[data-player-id]`)
+              : elements;
             scopedElements.forEach((el) => {
-              const targetPlayerId = el.getAttribute('data-player-id');
-              const targetTeamId = el.getAttribute('data-team-id');
+              const targetPlayerId = el.getAttribute("data-player-id");
+              const targetTeamId = el.getAttribute("data-team-id");
               if (!targetPlayerId || !targetTeamId) return;
               if (targetPlayerId === player._id) return;
               if (draggedRef.current && targetTeamId !== draggedRef.current.teamId) return;
               const rect = el.getBoundingClientRect();
-              if (info.point.x >= rect.left && info.point.x <= rect.right && info.point.y >= rect.top && info.point.y <= rect.bottom) {
+              if (
+                info.point.x >= rect.left &&
+                info.point.x <= rect.right &&
+                info.point.y >= rect.top &&
+                info.point.y <= rect.bottom
+              ) {
                 closestElement = el;
               }
             });
           }
           // Final fallback: nearest center within scope
           if (!closestElement) {
-            const scopeSelector = gameNumber ? `[data-game-key="${expectedKey}"]` : '';
-            const scopedElements = gameNumber ? document.querySelectorAll(`${scopeSelector}[data-player-id]`) : elements;
+            const scopeSelector = gameNumber ? `[data-game-key="${expectedKey}"]` : "";
+            const scopedElements = gameNumber
+              ? document.querySelectorAll(`${scopeSelector}[data-player-id]`)
+              : elements;
             let closestDistance = Infinity;
             scopedElements.forEach((el) => {
-              const targetPlayerId = el.getAttribute('data-player-id');
-              const targetTeamId = el.getAttribute('data-team-id');
+              const targetPlayerId = el.getAttribute("data-player-id");
+              const targetTeamId = el.getAttribute("data-team-id");
               if (!targetPlayerId || !targetTeamId) return;
               if (targetPlayerId === player._id) return;
               if (draggedRef.current && targetTeamId !== draggedRef.current.teamId) return;
@@ -347,24 +403,29 @@ export const GameResultsCard: React.FC<GameResultsCardProps> = ({
               }
             });
           }
-          
+
           if (closestElement) {
-            const targetPlayerId = (closestElement as HTMLElement).getAttribute('data-player-id');
-            const targetTeamId = (closestElement as HTMLElement).getAttribute('data-team-id');
-            console.log('Drop target found:', { targetPlayerId, targetTeamId, draggedPlayer: draggedRef.current?.playerId, gameNumber });
+            const targetPlayerId = (closestElement as HTMLElement).getAttribute("data-player-id");
+            const targetTeamId = (closestElement as HTMLElement).getAttribute("data-team-id");
+            console.log("Drop target found:", {
+              targetPlayerId,
+              targetTeamId,
+              draggedPlayer: draggedRef.current?.playerId,
+              gameNumber
+            });
             if (targetPlayerId && targetTeamId && targetPlayerId !== player._id) {
-              console.log('Attempting drop');
+              console.log("Attempting drop");
               await handleDrop(targetPlayerId, targetTeamId, gameNumber);
             }
           }
-          
+
           // Always clear the drag state when drag ends
           setDraggedPlayer(null);
           draggedRef.current = null;
           setDragOverPlayer(null);
         }}
-        whileDrag={{ 
-          scale: 1.05, 
+        whileDrag={{
+          scale: 1.05,
           rotate: 2,
           zIndex: 1000,
           boxShadow: "0 10px 25px rgba(0,0,0,0.3)",
@@ -372,11 +433,11 @@ export const GameResultsCard: React.FC<GameResultsCardProps> = ({
         }}
         className={`
           flex items-center justify-between gap-2 p-2 rounded-md cursor-grab
-          ${isDragOver && canDrop ? 'bg-green-900/50 border-2 border-green-500' : ''}
-          ${isDragOver && !canDrop ? 'bg-red-900/50 border-2 border-red-500' : ''}
-          ${isBeingDraggedOver ? 'border-2 border-blue-500 bg-blue-900/20' : ''}
-          ${editing && !isDisabled && !isDragging ? 'hover:bg-gray-700/50' : ''}
-          ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}
+          ${isDragOver && canDrop ? "bg-green-900/50 border-2 border-green-500" : ""}
+          ${isDragOver && !canDrop ? "bg-red-900/50 border-2 border-red-500" : ""}
+          ${isBeingDraggedOver ? "border-2 border-blue-500 bg-blue-900/20" : ""}
+          ${editing && !isDisabled && !isDragging ? "hover:bg-gray-700/50" : ""}
+          ${isDisabled ? "opacity-50 cursor-not-allowed" : ""}
         `}
         data-player-id={player._id}
         data-team-id={teamId}
@@ -389,7 +450,7 @@ export const GameResultsCard: React.FC<GameResultsCardProps> = ({
           <span className="text-sm text-gray-300 truncate">{player.inGameName || player.tag}</span>
           <AnimatePresence>
             {isDragOver && canDrop && (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.8 }}
@@ -399,7 +460,7 @@ export const GameResultsCard: React.FC<GameResultsCardProps> = ({
               </motion.div>
             )}
             {isDragOver && !canDrop && (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.8 }}
@@ -412,11 +473,17 @@ export const GameResultsCard: React.FC<GameResultsCardProps> = ({
         </div>
         <select
           className="w-40 px-2 py-1 bg-gray-700 border border-gray-600 rounded-md text-white"
-          id={`champion-select-${gameNumber ?? 'pending'}-${side}-${player._id}`}
-          name={`champion-select-${gameNumber ?? 'pending'}-${side}-${player._id}`}
-          onPointerDown={(e) => { e.stopPropagation(); }}
-          onPointerUp={(e) => { e.stopPropagation(); }}
-          onClick={(e) => { e.stopPropagation(); }}
+          id={`champion-select-${gameNumber ?? "pending"}-${side}-${player._id}`}
+          name={`champion-select-${gameNumber ?? "pending"}-${side}-${player._id}`}
+          onPointerDown={(e) => {
+            e.stopPropagation();
+          }}
+          onPointerUp={(e) => {
+            e.stopPropagation();
+          }}
+          onClick={(e) => {
+            e.stopPropagation();
+          }}
           value={currentChampion ?? ""}
           onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
             if (onChampionChange && gameNumber) {
@@ -530,7 +597,7 @@ export const GameResultsCard: React.FC<GameResultsCardProps> = ({
                         />
                       </div>
                     </div>
-                    
+
                     {/* Players section for pending game */}
                     <div className="mt-4">
                       <div className="grid grid-cols-2 gap-4">
@@ -540,16 +607,18 @@ export const GameResultsCard: React.FC<GameResultsCardProps> = ({
                             {(() => {
                               const key = `${num}:${teamsSwapped ? match.redTeamId : match.blueTeamId}`;
                               const list = gameOrder[key] || [];
-                              return list.slice(0, 5).map((p) => (
-                              <DraggablePlayer
-                                key={`blue_pending_${p._id}`}
-                                player={p}
-                                teamId={teamsSwapped ? match.redTeamId : match.blueTeamId}
-                                side="blue"
-                                isDisabled={false}
-                                gameNumber={num}
-                              />
-                              ));
+                              return list
+                                .slice(0, 5)
+                                .map((p) => (
+                                  <DraggablePlayer
+                                    key={`blue_pending_${p._id}`}
+                                    player={p}
+                                    teamId={teamsSwapped ? match.redTeamId : match.blueTeamId}
+                                    side="blue"
+                                    isDisabled={false}
+                                    gameNumber={num}
+                                  />
+                                ));
                             })()}
                           </div>
                         </div>
@@ -559,16 +628,18 @@ export const GameResultsCard: React.FC<GameResultsCardProps> = ({
                             {(() => {
                               const key = `${num}:${teamsSwapped ? match.blueTeamId : match.redTeamId}`;
                               const list = gameOrder[key] || [];
-                              return list.slice(0, 5).map((p) => (
-                              <DraggablePlayer
-                                key={`red_pending_${p._id}`}
-                                player={p}
-                                teamId={teamsSwapped ? match.blueTeamId : match.redTeamId}
-                                side="red"
-                                isDisabled={false}
-                                gameNumber={num}
-                              />
-                              ));
+                              return list
+                                .slice(0, 5)
+                                .map((p) => (
+                                  <DraggablePlayer
+                                    key={`red_pending_${p._id}`}
+                                    player={p}
+                                    teamId={teamsSwapped ? match.blueTeamId : match.redTeamId}
+                                    side="red"
+                                    isDisabled={false}
+                                    gameNumber={num}
+                                  />
+                                ));
                             })()}
                           </div>
                         </div>
@@ -613,11 +684,11 @@ export const GameResultsCard: React.FC<GameResultsCardProps> = ({
               </div>
               <div className="mt-2 grid grid-cols-3 items-center">
                 <div className="text-white text-sm truncate text-left">
-                  {typeof game.blueTeam === 'string' ? game.blueTeam : game.blueTeam.teamName}
+                  {typeof game.blueTeam === "string" ? game.blueTeam : game.blueTeam.teamName}
                 </div>
                 <div className="text-center text-gray-400 text-xs">VS</div>
                 <div className="text-white text-sm truncate text-right">
-                  {typeof game.redTeam === 'string' ? game.redTeam : game.redTeam.teamName}
+                  {typeof game.redTeam === "string" ? game.redTeam : game.redTeam.teamName}
                 </div>
               </div>
               {editing && (

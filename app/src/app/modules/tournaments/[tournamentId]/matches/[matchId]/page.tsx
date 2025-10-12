@@ -23,40 +23,69 @@ export default function MatchDetailPageWrapper(): React.ReactElement {
   const pageProps = useMemo(() => {
     return {
       title: !currentMatch ? (loading ? "Loading match..." : "Match not found") : currentMatch.name,
-      subtitle: 'Match Details',
+      subtitle: "Match Details",
       breadcrumbs: [
         { label: "Tournaments", href: "/modules/tournaments" },
         { label: currentTournament?.name || "Loading...", href: `/modules/tournaments/${tournamentId}` },
         { label: "Matches", href: `/modules/tournaments/${tournamentId}/matches` },
-        { label: currentMatch?.name || "Match", href: `/modules/tournaments/${tournamentId}/matches/${matchId}`, isActive: true }
+        {
+          label: currentMatch?.name || "Match",
+          href: `/modules/tournaments/${tournamentId}/matches/${matchId}`,
+          isActive: true
+        }
       ],
-      actions: 
+      actions: (
         <>
           <div className="flex gap-2 flex-wrap">
             <h4 className="text-gray-400">Match:</h4>
-            <Button target="_blank" href={`/modules/tournaments/${tournamentId}/matches/${matchId}/ticker`} size="sm" variant="secondary">
+            <Button
+              target="_blank"
+              href={`/modules/tournaments/${tournamentId}/matches/${matchId}/ticker`}
+              size="sm"
+              variant="secondary"
+            >
               Ticker
             </Button>
-            <Button target="_blank" href={`/modules/tournaments/${tournamentId}/matches/${matchId}/predictions`} size="sm" variant="secondary">
+            <Button
+              target="_blank"
+              href={`/modules/tournaments/${tournamentId}/matches/${matchId}/predictions`}
+              size="sm"
+              variant="secondary"
+            >
               Predictions
             </Button>
-            <Button href={`/modules/tournaments/${tournamentId}/matches/${matchId}/commentator-predictions`} size="sm" variant="secondary">
+            <Button
+              href={`/modules/tournaments/${tournamentId}/matches/${matchId}/commentator-predictions`}
+              size="sm"
+              variant="secondary"
+            >
               Commentator Predictions
             </Button>
           </div>
           <h4 className="text-gray-400">LeagueClient</h4>
-          <Button target="_blank" href={`/modules/leagueclient/${tournamentId}/${matchId}/champselect`} size="sm" variant="primary">
+          <Button
+            target="_blank"
+            href={`/modules/leagueclient/${tournamentId}/${matchId}/champselect`}
+            size="sm"
+            variant="primary"
+          >
             Champ Select
           </Button>
-          <Button target="_blank" href={`/modules/leagueclient/${tournamentId}/${matchId}/game`} size="sm" variant="secondary">
+          <Button
+            target="_blank"
+            href={`/modules/leagueclient/${tournamentId}/${matchId}/game`}
+            size="sm"
+            variant="secondary"
+          >
             Game
           </Button>
         </>
-    }
+      )
+    };
   }, [currentTournament, currentMatch, tournamentId, matchId, loading]);
 
   useEffect(() => {
-    setActiveModule("matches");
+    setActiveModule("currentMatch");
   }, [setActiveModule]);
 
   useEffect(() => {
@@ -73,10 +102,7 @@ export default function MatchDetailPageWrapper(): React.ReactElement {
           throw new Error("Failed to fetch data");
         }
 
-        const [matchData, tournamentData] = await Promise.all([
-          matchResponse.json(),
-          tournamentResponse.json()
-        ]);
+        const [matchData, tournamentData] = await Promise.all([matchResponse.json(), tournamentResponse.json()]);
 
         if (!matchData.match || !tournamentData.tournament) {
           throw new Error("Invalid data received");
@@ -97,7 +123,7 @@ export default function MatchDetailPageWrapper(): React.ReactElement {
   if (loading) {
     return (
       <PageWrapper {...pageProps}>
-          <LoadingSpinner fullscreen text="Loading match data..." />
+        <LoadingSpinner fullscreen text="Loading match data..." />
       </PageWrapper>
     );
   }

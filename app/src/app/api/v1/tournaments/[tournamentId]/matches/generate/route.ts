@@ -18,9 +18,9 @@ export const POST = withAuth(async (req: NextRequest, user: JWTPayload, params: 
       return NextResponse.json({ error: "Forbidden: Only tournament organizer can generate matches" }, { status: 403 });
     }
 
-    if (tournament.status !== "draft" && tournament.status !== "ongoing") {
+    if (tournament.status !== "registration" && tournament.status !== "ongoing") {
       return NextResponse.json(
-        { error: "Matches can only be generated for tournaments in draft or ongoing status" },
+        { error: "Matches can only be generated for tournaments in registration or ongoing status" },
         { status: 400 }
       );
     }

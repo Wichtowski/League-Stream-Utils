@@ -4,7 +4,7 @@ import { CopyButton } from "@lib/components/common";
 
 interface OBSDisplayInfoProps {
   tournamentId: string;
-  variant: 'corner' | 'banner';
+  variant: "corner" | "banner";
 }
 
 export const OBSDisplayInfo = ({ tournamentId, variant }: OBSDisplayInfoProps) => {

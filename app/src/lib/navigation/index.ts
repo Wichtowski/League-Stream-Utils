@@ -1,10 +1,11 @@
 import { RiSwordFill, RiTeamFill } from "react-icons/ri";
 import { BsCameraVideoFill, BsFillLightningFill, BsFillShieldLockFill } from "react-icons/bs";
 import { MdTour } from "react-icons/md";
-import { BiSolidBriefcase } from "react-icons/bi"
-import { IoGameController, IoChatboxOutline } from "react-icons/io5";
+import { BiSolidBriefcase } from "react-icons/bi";
+import { IoGameController, IoChatbox } from "react-icons/io5";
 import { SiRiotgames, SiKdenlive } from "react-icons/si";
 import { HiTrophy, HiMiniWrenchScrewdriver } from "react-icons/hi2";
+import { FaTextWidth } from "react-icons/fa";
 
 export type ModuleCategory = "tournament" | "prediction" | "core" | "integration" | "admin";
 export interface ModuleCard {
@@ -15,7 +16,7 @@ export interface ModuleCard {
   path: string;
   color: string;
   spotlightColor: string;
-  status: "available" | "beta" | "new" | "revamped" | "coming-soon";
+  status: "available" | "beta" | "new" | "revamped" | "coming-soon" | "unavailable";
   category: ModuleCategory;
   adminOnly?: boolean;
 }
@@ -45,13 +46,13 @@ export const MODULES: ModuleCard[] = [
   },
   {
     id: "adminTournaments",
-    name: "Admin Tournament Manager",
+    name: "Admin Manager",
     description: "Register any team to any tournament with admin privileges and bypass restrictions",
     icon: HiMiniWrenchScrewdriver,
     path: "/modules/tournaments/admin",
     color: "from-purple-500 to-pink-500",
     spotlightColor: "rgba(168, 85, 247, 0.15)",
-    status: "new",
+    status: "available",
     category: "tournament",
     adminOnly: true
   },
@@ -73,9 +74,9 @@ export const MODULES: ModuleCard[] = [
     description: "Champion draft interface for tournament matches with live updates",
     icon: RiSwordFill,
     path: "/modules/pickban",
-    color: "from-purple-500 to-pink-500",
-    spotlightColor: "rgba(168, 85, 247, 0.15)",
-    status: "available",
+    color: "from-fuchsia-500 to-red-500",
+    spotlightColor: "rgba(217, 70, 239, 0.15)",
+    status: "unavailable",
     category: "core"
   },
   {
@@ -115,11 +116,11 @@ export const MODULES: ModuleCard[] = [
     id: "commentators",
     name: "Commentators",
     description: "Manage commentators and their predictions for the selected tournament",
-    icon: IoChatboxOutline,
+    icon: IoChatbox,
     path: "", // PATH IS DYNAMIC SET IN handleModuleClick
     color: "from-pink-500 to-yellow-500",
     spotlightColor: "rgba(236, 72, 153, 0.15)",
-    status: "new",
+    status: "available",
     category: "tournament"
   },
   {
@@ -130,8 +131,19 @@ export const MODULES: ModuleCard[] = [
     path: "", // PATH IS DYNAMIC SET IN handleModuleClick
     color: "from-emerald-500 to-teal-500",
     spotlightColor: "rgba(16, 185, 129, 0.15)",
-    status: "new",
+    status: "available",
     category: "tournament"
+  },
+  {
+    id: "ticker",
+    name: "Ticker",
+    description: "View and manage the ticker for the selected tournament",
+    icon: FaTextWidth,
+    color: "from-sky-500 to-indigo-500",
+    spotlightColor: "rgba(14, 165, 233, 0.15)",
+    status: "available",
+    category: "tournament",
+    path: "" // PATH IS DYNAMIC SET IN handleModuleClick
   },
   {
     id: "matches",
@@ -141,7 +153,7 @@ export const MODULES: ModuleCard[] = [
     path: "", // PATH IS DYNAMIC SET IN handleModuleClick
     color: "from-red-500 to-pink-500",
     spotlightColor: "rgba(239, 68, 68, 0.15)",
-    status: "new",
+    status: "available",
     category: "tournament"
   },
   {
@@ -149,22 +161,22 @@ export const MODULES: ModuleCard[] = [
     name: "Current Match",
     description: "View and manage the current match",
     icon: SiKdenlive,
-    color: "from-red-500 to-pink-500",
-    spotlightColor: "rgba(239, 68, 68, 0.15)",
-    status: "new",
+    color: "from-orange-500 to-rose-500",
+    spotlightColor: "rgba(249, 115, 22, 0.15)",
+    status: "available",
     category: "tournament",
-    path: "", // PATH IS DYNAMIC SET IN handleModuleClick
+    path: "" // PATH IS DYNAMIC SET IN handleModuleClick
   },
   {
     id: "currentTournament",
     name: "Current Tournament",
     description: "View and manage the current tournament",
     icon: MdTour,
-    color: "from-red-500 to-pink-500",
-    spotlightColor: "rgba(239, 68, 68, 0.15)",
-    status: "new",
+    color: "from-orange-500 to-yellow-500",
+    spotlightColor: "rgba(245, 158, 11, 0.15)",
+    status: "available",
     category: "tournament",
-    path: "", // PATH IS DYNAMIC SET IN handleModuleClick
+    path: "" // PATH IS DYNAMIC SET IN handleModuleClick
   }
 ];
 
@@ -202,7 +214,7 @@ export function getVisibleModules({
     if (module.id === "adminTournaments" || module.id === "adminPermissions") {
       return showFullNav && isAdmin;
     }
-    if (module.id === "sponsors" || module.id === "matches" || module.id === "commentators") {
+    if (module.id === "sponsors" || module.id === "matches" || module.id === "commentators" || module.id === "ticker") {
       return showFullNav && (needsTournamentSelected || needsMatchSelected);
     }
     if (module.id === "currentMatch") {
@@ -211,7 +223,7 @@ export function getVisibleModules({
     if (module.id === "currentTournament") {
       return showFullNav && needsTournamentSelected;
     }
-    
+
     // All other modules require full nav
     return showFullNav;
   });

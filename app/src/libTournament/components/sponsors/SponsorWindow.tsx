@@ -11,7 +11,12 @@ interface SponsorWindowProps {
   onIndexChange?: (index: number) => void;
 }
 
-export const SponsorWindow = ({ sponsors, fixed = true, variant = "corner", onIndexChange }: SponsorWindowProps): React.ReactElement => {
+export const SponsorWindow = ({
+  sponsors,
+  fixed = true,
+  variant = "corner",
+  onIndexChange
+}: SponsorWindowProps): React.ReactElement => {
   const hasList = Array.isArray(sponsors) && sponsors.length > 0;
   const [index, setIndex] = useState<number>(0);
   const [isVisible, setIsVisible] = useState<boolean>(true);
@@ -76,14 +81,19 @@ export const SponsorWindow = ({ sponsors, fixed = true, variant = "corner", onIn
     );
   }
 
-  const baseClass = variant === "banner" ? `${fixed ? "fixed bottom-4 left-1/2 -translate-x-1/2" : ""} w-[560px] h-40 bg-black bg-opacity-60 rounded-xl` : `${fixed ? "fixed bottom-0 left-0" : ""} w-78 h-39 bg-black bg-opacity-50`;
+  const baseClass =
+    variant === "banner"
+      ? `${fixed ? "fixed bottom-4 left-1/2 -translate-x-1/2" : ""} w-[560px] h-40 bg-black bg-opacity-60 rounded-xl`
+      : `${fixed ? "fixed bottom-0 left-0" : ""} w-78 h-39 bg-black bg-opacity-50`;
 
   return (
     <div className={baseClass}>
       <div
         className={`w-full h-full flex items-center justify-center transition-opacity duration-1000 ${isVisible ? "opacity-100" : "opacity-0"}`}
       >
-        <div className={`flex ${variant === "banner" ? "flex-row items-center gap-4 px-4" : "flex-col items-center gap-2"}`}>
+        <div
+          className={`flex ${variant === "banner" ? "flex-row items-center gap-4 px-4" : "flex-col items-center gap-2"}`}
+        >
           {activeSponsor.showName && activeSponsor.namePosition === "top" && (
             <span className="text-white text-sm font-semibold text-center">{activeSponsor.name}</span>
           )}
@@ -115,7 +125,9 @@ export const SponsorWindow = ({ sponsors, fixed = true, variant = "corner", onIn
           )}
 
           {activeSponsor.showName && activeSponsor.namePosition === "bottom" && (
-            <span className={`text-white font-semibold text-center ${variant === "banner" ? "text-base" : "text-sm"}`}>{activeSponsor.name}</span>
+            <span className={`text-white font-semibold text-center ${variant === "banner" ? "text-base" : "text-sm"}`}>
+              {activeSponsor.name}
+            </span>
           )}
         </div>
       </div>

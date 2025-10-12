@@ -18,8 +18,13 @@ import { useParams } from "next/navigation";
 import { createDefaultSponsorForm } from "@libTournament/utils/sponsors/defaultValues";
 
 export default function TournamentSponsorsPage(): React.ReactElement {
-  const { currentTournament, refreshCurrentTournament, loading: tournamentLoading, error: tournamentError } = useCurrentTournament();
-  
+  const {
+    currentTournament,
+    refreshCurrentTournament,
+    loading: tournamentLoading,
+    error: tournamentError
+  } = useCurrentTournament();
+
   const { setActiveModule } = useNavigation();
   const { showAlert, showConfirm } = useModal();
   const params = useParams();
@@ -40,10 +45,13 @@ export default function TournamentSponsorsPage(): React.ReactElement {
       title: !currentTournament ? (tournamentLoading ? "Sponsors" : "Tournament Not Found") : "Sponsors",
       subtitle: `Manage sponsors ${currentTournament?.abbreviation ? "for " + currentTournament?.abbreviation : ""}`,
       breadcrumbs: [
-        { label: "Tournaments", href: "/modules/tournaments" }, 
-        currentTournament?.name ?  { label: currentTournament.name , href: `/modules/tournaments/${tournamentId}` } : null,
-        { label: "Sponsors", href: `/modules/tournaments/${tournamentId}/sponsors`, isActive: true }],
-    }
+        { label: "Tournaments", href: "/modules/tournaments" },
+        currentTournament?.name
+          ? { label: currentTournament.name, href: `/modules/tournaments/${tournamentId}` }
+          : null,
+        { label: "Sponsors", href: `/modules/tournaments/${tournamentId}/sponsors`, isActive: true }
+      ]
+    };
   }, [currentTournament, tournamentId, tournamentLoading]);
 
   useEffect(() => {
@@ -292,9 +300,7 @@ export default function TournamentSponsorsPage(): React.ReactElement {
 
   if (!currentTournament || currentTournament._id !== tournamentId) {
     return (
-      <PageWrapper
-        {...pageProps}
-      >
+      <PageWrapper {...pageProps}>
         <div className="text-center">
           <p>The tournament you&apos;re looking for doesn&apos;t exist or you don&apos;t have access to it.</p>
         </div>
@@ -338,7 +344,7 @@ export default function TournamentSponsorsPage(): React.ReactElement {
 
           <div className="flex-1 space-y-6">
             <SponsorGuidebook expanded={false} />
-            <OBSDisplayInfo tournamentId={tournamentId} variant="corner"/>
+            <OBSDisplayInfo tournamentId={tournamentId} variant="corner" />
           </div>
         </div>
 

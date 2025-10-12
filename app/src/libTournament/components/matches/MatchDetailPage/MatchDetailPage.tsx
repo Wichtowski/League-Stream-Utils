@@ -63,7 +63,6 @@ export const MatchDetailPage: React.FC<MatchDetailPageProps> = ({ match, tournam
     return getTeamWins(currentMatch.games);
   }, [currentMatch?.games]);
 
-
   // Handlers
   const handleSaveWithUpdate = async () => {
     const success = await handleSave();

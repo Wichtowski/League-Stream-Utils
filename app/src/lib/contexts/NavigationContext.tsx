@@ -11,27 +11,44 @@ type NavigationModule =
   | "modules"
   | "tournaments"
   | "adminTournaments"
-  | "admin"
+  | "adminPermissions"
   | "teams"
   | "settings"
   | "leagueclient"
   | "sponsors"
   | "matches"
   | "commentators"
-  | "matches"
+  | "ticker"
+  | "currentMatch"
+  | "currentTournament"
+  | "predictions"
   | null;
 
 interface NavigationContextType {
   activeModule: NavigationModule;
   setActiveModule: (module: NavigationModule) => void;
+  sidebarCollapsed: boolean;
+  setSidebarCollapsed: (collapsed: boolean) => void;
+  toggleSidebar: () => void;
 }
 
 const NavigationContext = createContext<NavigationContextType | undefined>(undefined);
 
 export function NavigationProvider({ children }: { children: ReactNode }) {
   const [activeModule, setActiveModule] = useState<NavigationModule>(null);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
 
-  return <NavigationContext.Provider value={{ activeModule, setActiveModule }}>{children}</NavigationContext.Provider>;
+  const toggleSidebar = (): void => {
+    setSidebarCollapsed((prev) => !prev);
+  };
+
+  return (
+    <NavigationContext.Provider
+      value={{ activeModule, setActiveModule, sidebarCollapsed, setSidebarCollapsed, toggleSidebar }}
+    >
+      {children}
+    </NavigationContext.Provider>
+  );
 }
 
 export function useNavigation() {

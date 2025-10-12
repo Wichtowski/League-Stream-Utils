@@ -23,10 +23,14 @@ export default function CommentatorsPage(): React.ReactElement {
   }>({ isOpen: false, commentator: null });
   const pageProps = useMemo(() => {
     return {
-      title: !commentators ? (loading ? "Commentators Management" : "Commentators Not Found") : "Commentators Management",
+      title: !commentators
+        ? loading
+          ? "Commentators Management"
+          : "Commentators Not Found"
+        : "Commentators Management",
       subtitle: "Add, edit, and delete commentators for tournaments",
       breadcrumbs: [{ label: "Commentators", href: "/modules/commentators", isActive: true }]
-    }
+    };
   }, [commentators, loading]);
 
   useEffect(() => {
@@ -221,7 +225,7 @@ export default function CommentatorsPage(): React.ReactElement {
       </PageWrapper>
     );
   }
-  
+
   return (
     <PageWrapper {...pageProps}>
       <div className="bg-gray-900 rounded-xl p-6 mb-10 shadow-lg">

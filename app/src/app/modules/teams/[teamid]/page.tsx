@@ -28,7 +28,7 @@ const TeamEditPage: React.FC = () => {
         { label: "Teams", href: "/modules/teams" },
         { label: team?.name || "Team", href: `/modules/teams/${teamId}`, isActive: true }
       ]
-    }
+    };
   }, [team, loading, teamId]);
 
   // Direct API fetch instead of relying on broken context

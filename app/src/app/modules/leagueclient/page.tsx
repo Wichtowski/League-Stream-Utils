@@ -3,7 +3,6 @@
 import React, { useEffect, useMemo } from "react";
 import { useNavigation } from "@lib/contexts/NavigationContext";
 import { useAuth } from "@lib/contexts/AuthContext";
-import { CopyButton } from "@lib/components/common";
 import { PageWrapper } from "@lib/layout";
 import Link from "next/link";
 
@@ -15,7 +14,7 @@ export default function LeagueClientPage(): React.ReactElement {
       title: "League Client Integration",
       subtitle: "Quick links to demo overlays. Open to preview or copy URL for OBS/browser source.",
       breadcrumbs: [{ label: "LeagueClient", href: "/modules/leagueclient", isActive: true }]
-    }
+    };
   }, []);
 
   useEffect(() => {
@@ -53,10 +52,6 @@ export default function LeagueClientPage(): React.ReactElement {
           <h3 className="text-lg font-semibold mb-1">{title}</h3>
           <p className="text-sm text-gray-400 mb-4">{description}</p>
           <div className="flex items-stretch justify-between gap-4">
-            <code className={`text-xs ${accentStyles.chip} px-3 h-10 py-2 rounded select-all flex items-center gap-2`}>
-              <span className="text-sm">Copy OBS URL</span>
-              <CopyButton text={url} />
-            </code>
             <Link
               href={`${url}/demo`}
               target="_blank"

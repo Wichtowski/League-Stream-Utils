@@ -182,11 +182,6 @@ export class RunesBlueprintDownloader extends BaseCacheService<CommunityDragonRu
         // Convert icon path to DataDragon CDN URL
         const iconPath = rune.iconPath.replace("/lol-game-data/assets/v1/perk-images/", "");
         const iconUrl = `${this.DDRAGON_CDN}/img/perk-images/${iconPath}`;
-        console.log(iconPath, "assets", iconUrl);
-        // Styles/Sorcery/Unflinching/Unflinching.png
-        // assets 
-        // https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Resolve/Conditioning/Conditioning.png
-
 
         // Determine style (color) from rune.key (e.g., Domination, Precision, etc.)
         // If rune.key is undefined, try to extract from icon path or use a default
@@ -203,9 +198,9 @@ export class RunesBlueprintDownloader extends BaseCacheService<CommunityDragonRu
 
         // Use the last part of the iconPath as the file name
         const iconFileName = iconPath.split("/").pop() || `${rune.name}.png`;
-        const iconKey = `${runeDir}/${iconFileName}`;
-        console.log(iconKey, "assets", iconKey);
-        // Styles/RunesIcon.png assets https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/RunesIcon.png
+        const iconKey = `${runeDir}/${iconFileName}`.toLowerCase();
+        // console.log(iconKey, "assets", iconKey);
+
         // Update progress for current rune
         this.updateProgress({
           current: downloadedCount,

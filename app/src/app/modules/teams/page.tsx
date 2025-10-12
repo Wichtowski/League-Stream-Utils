@@ -19,13 +19,16 @@ export default function TeamsPage(): ReactElement {
     return {
       title: !teams ? (loading ? "Teams" : "Teams Not Found") : "Teams",
       breadcrumbs: [{ label: "Teams", href: "/modules/teams", isActive: true }],
-      actions: teams.length > 0 ? <button
-        onClick={() => router.push("/modules/teams/create")}
-        className="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-lg transition-colors"
-      >
-        Create Team
-      </button> : null
-    }
+      actions:
+        teams.length > 0 ? (
+          <button
+            onClick={() => router.push("/modules/teams/create")}
+            className="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-lg transition-colors"
+          >
+            Create Team
+          </button>
+        ) : null
+    };
   }, [router, teams, loading]);
 
   useEffect(() => {
@@ -68,9 +71,7 @@ export default function TeamsPage(): ReactElement {
 
   if (loading) {
     return (
-      <PageWrapper
-        {...pageProps}
-      >
+      <PageWrapper {...pageProps}>
         <LoadingSpinner className="mx-auto mt-16">Loading Teams...</LoadingSpinner>
       </PageWrapper>
     );

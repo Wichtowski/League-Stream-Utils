@@ -23,14 +23,22 @@ export default function CommentatorsPage(): React.ReactElement {
   const tournamentId = params.tournamentId as string;
   const pageProps = useMemo(() => {
     return {
-      title: !tournament ? (tournamentsLoading ? "Assign Commentators" : "Tournament Not Found") : "Assign Commentators",
+      title: !tournament
+        ? tournamentsLoading
+          ? "Assign Commentators"
+          : "Tournament Not Found"
+        : "Assign Commentators",
       subtitle: `Manage commentators ${tournament?.abbreviation ? "for " + tournament?.abbreviation : ""}`,
       breadcrumbs: [
         { label: "Tournaments", href: "/modules/tournaments" },
-        !tournament ? (tournamentsLoading ? { label: "Loading...", href: `/modules/tournaments/${tournamentId}` } : { label: "Tournament Not Found", href: `/modules/tournaments/${tournamentId}` }) : { label: tournament?.name || "Loading...", href: `/modules/tournaments/${tournamentId}` },
-        { label: "Commentators", href: `/modules/tournaments/${tournamentId}/commentators`, isActive: true },
-      ],
-    }
+        !tournament
+          ? tournamentsLoading
+            ? { label: "Loading...", href: `/modules/tournaments/${tournamentId}` }
+            : { label: "Tournament Not Found", href: `/modules/tournaments/${tournamentId}` }
+          : { label: tournament?.name || "Loading...", href: `/modules/tournaments/${tournamentId}` },
+        { label: "Commentators", href: `/modules/tournaments/${tournamentId}/commentators`, isActive: true }
+      ]
+    };
   }, [tournament, tournamentId, tournamentsLoading]);
 
   useEffect(() => {
@@ -269,10 +277,7 @@ export default function CommentatorsPage(): React.ReactElement {
   }
 
   return (
-    <PageWrapper
-      {...pageProps}
-      contentClassName="max-w-6xl mx-auto"
-    >
+    <PageWrapper {...pageProps} contentClassName="max-w-6xl mx-auto">
       <div className="mb-6">
         <button
           onClick={() => router.push(`/modules/tournaments/${tournamentId}`)}

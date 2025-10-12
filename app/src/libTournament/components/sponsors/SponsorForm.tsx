@@ -81,24 +81,22 @@ export const SponsorForm = ({
             </div>
           )}
 
-        <div>
-          <label className="block text-sm font-medium mb-2">Time (seconds)</label>
-          <input
-            type="number"
-            min={1}
-            value={formData.timeInSeconds ?? 3}
-            onChange={(e) =>
-              setFormData({
-                ...formData,
-                timeInSeconds: Math.max(1, Number(e.target.value || 0))
-              })
-            }
-            className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2"
-            placeholder="e.g. 5"
-          />
-        </div>
-
-          
+          <div>
+            <label className="block text-sm font-medium mb-2">Time (seconds)</label>
+            <input
+              type="number"
+              min={1}
+              value={formData.timeInSeconds ?? 3}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  timeInSeconds: Math.max(1, Number(e.target.value || 0))
+                })
+              }
+              className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2"
+              placeholder="e.g. 5"
+            />
+          </div>
 
           <div>
             <label className="block text-sm font-medium mb-2">Logo</label>
@@ -137,16 +135,18 @@ export const SponsorForm = ({
             {formData.logo ? (
               <div className="relative">
                 <SponsorWindow
-                  sponsors={[{
-                    _id: "preview",
-                    name: formData.name || "",
-                    logo: formData.logo,
-                    tier: formData.tier,
-                    fullwidth: formData.fullwidth,
-                    timeInSeconds: formData.timeInSeconds,
-                    createdAt: new Date(),
-                    updatedAt: new Date()
-                  }]}
+                  sponsors={[
+                    {
+                      _id: "preview",
+                      name: formData.name || "",
+                      logo: formData.logo,
+                      tier: formData.tier,
+                      fullwidth: formData.fullwidth,
+                      timeInSeconds: formData.timeInSeconds,
+                      createdAt: new Date(),
+                      updatedAt: new Date()
+                    }
+                  ]}
                   fixed={false}
                   showName={Boolean(formData.name)}
                   variant={formData.variant === "banner" ? "banner" : "corner"}

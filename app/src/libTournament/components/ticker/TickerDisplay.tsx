@@ -42,7 +42,6 @@ export const TickerDisplay = ({
   className = "",
   showDebugInfo = false
 }: TickerDisplayProps): React.ReactElement => {
-  
   const [displayData, setDisplayData] = useState<DisplayData | null>(null);
   const [lastFetchTime, setLastFetchTime] = useState<number>(0);
   const [retryCount, setRetryCount] = useState(0);
@@ -76,7 +75,6 @@ export const TickerDisplay = ({
     }
 
     const fetchData = async (): Promise<DisplayData> => {
-
       const response = await fetch(`/api/v1/tournaments/${tournamentId}/ticker/display`, {
         headers: {
           "Cache-Control": "no-cache",
@@ -238,8 +236,12 @@ export const TickerDisplay = ({
                           {team1 && team2 && match && (
                             <div className="flex items-center h-full bg-black w-[72px]">
                               <div className="h-full flex flex-col items-center justify-center w-full">
-                                <div className="text-4xl font-bold tracking-wider text-white w-full h-full flex items-end justify-center">VS</div>
-                                <div className="text-xl font-bold tracking-wider text-white w-full h-full flex items-center justify-center">{match.format}</div>
+                                <div className="text-4xl font-bold tracking-wider text-white w-full h-full flex items-end justify-center">
+                                  VS
+                                </div>
+                                <div className="text-xl font-bold tracking-wider text-white w-full h-full flex items-center justify-center">
+                                  {match.format}
+                                </div>
                               </div>
                             </div>
                           )}
@@ -259,7 +261,7 @@ export const TickerDisplay = ({
 
                         {/* Center: Title/Carousel (left) + Sponsors (right spanning two rows) */}
                         <div className="flex h-full w-full">
-                          <div className="flex flex-col justify-between h-full" style={{ width: '1288px' }}>
+                          <div className="flex flex-col justify-between h-full" style={{ width: "1288px" }}>
                             <div className="h-[70%] flex items-center">
                               <h1
                                 className="ml-4 font-bold text-left tracking-wide max-w-[100vw] overflow-hidden text-ellipsis text-lg sm:text-xl md:text-2xl lg:text-4xl"
@@ -270,7 +272,7 @@ export const TickerDisplay = ({
                             </div>
                             <div className="h-[30%] flex items-center w-full overflow-hidden">
                               {ticker.carouselItems.length > 0 && (
-                                <div className="w-full mr-6" style={{ width: 'calc(100% + 24px)' }}>
+                                <div className="w-full mr-6" style={{ width: "calc(100% + 24px)" }}>
                                   <CarouselTicker
                                     items={ticker.carouselItems}
                                     speed={ticker.carouselSpeed}
@@ -279,7 +281,7 @@ export const TickerDisplay = ({
                                 </div>
                               )}
                             </div>
-                          </div> 
+                          </div>
                         </div>
 
                         {/* Sponsors - right */}
@@ -311,7 +313,7 @@ export const TickerDisplay = ({
               if (hasImages) return null; // When images exist, carousel is shown under title at right
               return (
                 ticker.carouselItems.length > 0 && (
-                  <div className="w-full mr-6" style={{ width: 'calc(100% + 24px)' }}>
+                  <div className="w-full mr-6" style={{ width: "calc(100% + 24px)" }}>
                     <CarouselTicker
                       items={ticker.carouselItems}
                       speed={ticker.carouselSpeed}

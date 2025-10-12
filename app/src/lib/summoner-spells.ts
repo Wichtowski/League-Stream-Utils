@@ -84,7 +84,7 @@ async function getSummonerSpellsFromComprehensiveCache(): Promise<SummonerSpell[
       return await fetchSummonerSpellsFromAPI().then((data) => data.spells);
     }
 
-    const latest = await getLatestVersion();
+    // const latest = await getLatestVersion();
     const spells = await summonerSpellCacheService.getAllSummonerSpells();
     console.log("Spells:", spells);
 

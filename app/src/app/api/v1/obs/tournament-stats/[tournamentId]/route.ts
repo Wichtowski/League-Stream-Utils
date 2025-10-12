@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Only allow access to public tournaments
-    if (tournament.status === "draft") {
+    if (tournament.status === "registration") {
       return NextResponse.json({ error: "Tournament not public" }, { status: 403 });
     }
 

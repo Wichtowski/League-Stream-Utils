@@ -20,19 +20,22 @@ export default function TournamentDetailPage() {
   const tournamentId = params.tournamentId as string;
   const pageProps = useMemo(() => {
     return {
-      title: !currentTournament?.name ? (tournamentsLoading ? "Loading Tournament" : "Tournament Not Found") : currentTournament.name,
+      title: !currentTournament?.name
+        ? tournamentsLoading
+          ? "Loading Tournament"
+          : "Tournament Not Found"
+        : currentTournament.name,
       subtitle: `Tournament details and settings ${currentTournament?.abbreviation ? "for " + currentTournament?.abbreviation : ""}`,
       breadcrumbs: [
         { label: "Tournaments", href: "/modules/tournaments" },
         { label: currentTournament?.name ?? "Loading...", href: `/modules/tournaments/${tournamentId}`, isActive: true }
-      ],
-    }
+      ]
+    };
   }, [currentTournament, tournamentId, tournamentsLoading]);
-  
-  useEffect(() => {
-    setActiveModule("tournaments");
-  }, [setActiveModule]);
 
+  useEffect(() => {
+    setActiveModule("currentTournament");
+  }, [setActiveModule]);
 
   const handleTournamentUpdated = (): void => {
     refreshCurrentTournament();
@@ -73,7 +76,7 @@ export default function TournamentDetailPage() {
   }
 
   return (
-    <PageWrapper {...pageProps} >
+    <PageWrapper {...pageProps}>
       <Suspense fallback={<LoadingSpinner text="Loading tournament editor..." />}>
         <TournamentEditor
           tournament={currentTournament}

@@ -20,7 +20,7 @@ export default function CreateTeamPage() {
         { label: "Teams", href: "/modules/teams" },
         { label: "Create Team", href: "/modules/teams/create", isActive: true }
       ]
-    }
+    };
   }, []);
 
   useEffect(() => {

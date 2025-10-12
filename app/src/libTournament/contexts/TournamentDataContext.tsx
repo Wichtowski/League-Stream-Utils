@@ -356,7 +356,7 @@ export function TournamentDataProvider({ children }: { children: ReactNode }) {
             logo: tournamentData.logo,
             registeredTeams: [],
             selectedTeams: tournamentData.selectedTeams,
-            status: "draft",
+            status: "registration",
             allowSubstitutes: true,
             maxSubstitutes: 2,
             timezone: tournamentData.timezone,

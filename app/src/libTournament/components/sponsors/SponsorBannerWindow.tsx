@@ -10,10 +10,16 @@ interface SponsorBannerWindowProps {
   fixed?: boolean;
 }
 
-export const SponsorBannerWindow = ({ currentSponsor, isVisible, fixed = true }: SponsorBannerWindowProps): React.ReactElement => {
+export const SponsorBannerWindow = ({
+  currentSponsor,
+  isVisible,
+  fixed = true
+}: SponsorBannerWindowProps): React.ReactElement => {
   if (!currentSponsor) {
     return (
-      <div className={`${fixed ? "fixed bottom-4 left-1/2 -translate-x-1/2" : ""} w-[560px] h-40 bg-black bg-opacity-60 rounded-xl`}>
+      <div
+        className={`${fixed ? "fixed bottom-4 left-1/2 -translate-x-1/2" : ""} w-[560px] h-40 bg-black bg-opacity-60 rounded-xl`}
+      >
         <div className="w-full h-full flex items-center justify-center">
           <div className="text-white text-center">
             <p className="text-sm">No sponsors available</p>
@@ -24,7 +30,9 @@ export const SponsorBannerWindow = ({ currentSponsor, isVisible, fixed = true }:
   }
 
   return (
-    <div className={`${fixed ? "fixed bottom-4 left-1/2 -translate-x-1/2" : ""} w-[560px] h-40 bg-black bg-opacity-60 rounded-xl`}>
+    <div
+      className={`${fixed ? "fixed bottom-4 left-1/2 -translate-x-1/2" : ""} w-[560px] h-40 bg-black bg-opacity-60 rounded-xl`}
+    >
       <div
         className={`w-full h-full flex items-center justify-center transition-opacity duration-1000 ${
           isVisible ? "opacity-100" : "opacity-0"
@@ -65,5 +73,3 @@ export const SponsorBannerWindow = ({ currentSponsor, isVisible, fixed = true }:
     </div>
   );
 };
-
-

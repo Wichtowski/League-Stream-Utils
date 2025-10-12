@@ -50,13 +50,13 @@ const DemoGamePage: React.FC = () => {
     <>
       <GameDataDisplay gameData={mockData} match={mockMatch} tournament={mockTournament} />
       <div className="absolute left-2 bottom-1/8 z-10 w-full">
-      <Breadcrumbs
-        className="bg-black absolute left-4 bottom-1/12 rounded z-10 p-4"
-        items={[
-          { label: "League Client", href: "/modules/leagueclient" },
-          { label: "Game", href: "/modules/leagueclient/game" },
-          { label: "Demo", href: "/modules/leagueclient/game/demo", isActive: true }
-        ]}
+        <Breadcrumbs
+          className="bg-black absolute left-4 bottom-1/12 rounded z-10 p-4"
+          items={[
+            { label: "League Client", href: "/modules/leagueclient" },
+            { label: "Game", href: "/modules/leagueclient/game" },
+            { label: "Demo", href: "/modules/leagueclient/game/demo", isActive: true }
+          ]}
         />
       </div>
     </>

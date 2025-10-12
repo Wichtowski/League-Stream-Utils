@@ -21,6 +21,8 @@ import { ChampionProvider } from "@lib/contexts/ChampionContext";
 import { NavigationGuard } from "@lib/components/navigation/NavigationGuard";
 import { ContextWrapper } from "@lib/components/navigation/ContextErrorBoundary";
 import { ChampionCacheInitializer } from "@lib/components/LCU/ChampionCacheInitializer";
+import { Sidebar } from "@lib/components/navigation/Sidebar";
+import { MainContent } from "@lib/components/layout/MainContent";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -70,7 +72,8 @@ export default function RootLayout({
         >
           <div className={`bg-black`}>
             <NavigationGuard>
-              <main className="flex-1">{children}</main>
+              <Sidebar />
+              <MainContent>{children}</MainContent>
               <ChampionCacheInitializer />
             </NavigationGuard>
           </div>

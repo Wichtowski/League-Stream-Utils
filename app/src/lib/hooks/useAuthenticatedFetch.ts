@@ -43,7 +43,7 @@ export function useAuthenticatedFetch(): {
 
           if (refreshed) {
             response = await fetch(url, defaultOptions);
-            
+
             // If still unauthorized after refresh, logout and redirect
             if (response.status === 401 || response.status === 403) {
               await logout();

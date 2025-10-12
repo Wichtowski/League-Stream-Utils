@@ -53,21 +53,38 @@ export function Footer() {
                   Login
                 </Link>
               )}
-              {visibleModules.map((module) => (
-                <Link
-                  key={module.id}
-                  href={module.path}
-                  className={`px-4 py-2 text-white rounded-lg font-medium transition-all duration-200 shadow-lg ${
-                    activeModule === module.id
-                      ? "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 shadow-purple-500/20"
-                      : "bg-gray-700 hover:bg-gray-600 hover:shadow-blue-500/20"
-                  }`}
-                  title={module.name}
-                >
-                  <span className="mr-1">{<module.icon className="w-6 h-6" />}</span>
-                  {module.name}
-                </Link>
-              ))}
+              {visibleModules.map((module) => {
+                const isUnavailable = module.status === "unavailable";
+
+                if (isUnavailable) {
+                  return (
+                    <div
+                      key={module.id}
+                      className="px-4 py-2 text-gray-500 rounded-lg font-medium opacity-50 cursor-not-allowed"
+                      title={`${module.name} - Unavailable`}
+                    >
+                      <span className="mr-1">{<module.icon className="w-6 h-6" />}</span>
+                      {module.name}
+                    </div>
+                  );
+                }
+
+                return (
+                  <Link
+                    key={module.id}
+                    href={module.path}
+                    className={`px-4 py-2 text-white rounded-lg font-medium transition-all duration-200 shadow-lg ${
+                      activeModule === module.id
+                        ? "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 shadow-purple-500/20"
+                        : "bg-gray-700 hover:bg-gray-600 hover:shadow-blue-500/20"
+                    }`}
+                    title={module.name}
+                  >
+                    <span className="mr-1">{<module.icon className="w-6 h-6" />}</span>
+                    {module.name}
+                  </Link>
+                );
+              })}
               {isElectron && (
                 <Link
                   href="/settings"

@@ -1,9 +1,6 @@
 import { DataDragonClient, RuneReforged } from "@lib/services/external/DataDragon/client";
 import { DDRAGON_CDN } from "@lib/services/common/constants";
-import {
-  getLatestVersion as getLatestDdragonVersion,
-  toLocalImageUrl
-} from "@lib/services/common/unified-asset-cache";
+import { getLatestVersion as getLatestDdragonVersion, toLocalImageUrl } from "@lib/services/common/unified-asset-cache";
 
 interface RuneTree {
   id: number;
@@ -28,7 +25,7 @@ const getLatestVersion = async (): Promise<string> => {
 async function fetchRunesFromAPI(): Promise<{ runes: RuneTree[]; version: string }> {
   const version = await getLatestVersion();
   const runesData: RuneReforged[] = await DataDragonClient.getRunes(version);
-  
+
   const runes: RuneTree[] = runesData.map((tree) => {
     const rawUrl = `${DDRAGON_CDN}/${version}/img/${tree.icon}`;
     return {
@@ -71,7 +68,7 @@ function isCacheValid(timestamp: number): boolean {
 
 async function getRunesFromCache(): Promise<RuneTree[]> {
   const latest = await getLatestVersion();
-  
+
   const cached = loadFromLocalStorage();
   if (cached && cached.version === latest && isCacheValid(cached.timestamp)) {
     return cached.data;
@@ -101,18 +98,14 @@ export const getRunesCached = (): RuneTree[] => {
 
 export const getRuneImage = (treeName?: string): string => {
   if (!treeName) return "";
-  
+
   const cached = loadFromLocalStorage();
   if (!cached?.data) return "";
-  
+
   const normalizedName = treeName.trim().toLowerCase();
   const tree = cached.data.find(
-    (r) => 
-      r.name.toLowerCase() === normalizedName || 
-      r.key.toLowerCase() === normalizedName
+    (r) => r.name.toLowerCase() === normalizedName || r.key.toLowerCase() === normalizedName
   );
-  
+
   return tree?.icon || "";
 };
-
-

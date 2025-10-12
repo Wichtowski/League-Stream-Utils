@@ -63,10 +63,7 @@ export default function MatchTickerPage(): ReactElement {
         }
 
         if (teamFetches.length > 0) {
-          await Promise.race([
-            Promise.all(teamFetches),
-            new Promise((resolve) => setTimeout(resolve, 5000))
-          ]);
+          await Promise.race([Promise.all(teamFetches), new Promise((resolve) => setTimeout(resolve, 5000))]);
         }
       } catch (err) {
         console.error("Error fetching data:", err);

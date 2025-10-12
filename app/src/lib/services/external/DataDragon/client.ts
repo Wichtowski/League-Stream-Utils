@@ -53,9 +53,7 @@ export class DataDragonClient {
       const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
       // Use proxy endpoint in browser environment to avoid CORS
-      const url = !isElectronEnvironment() 
-        ? "/api/ddragon/versions"
-        : `${DDRAGON_BASE_URL}/api/versions.json`;
+      const url = !isElectronEnvironment() ? "/api/ddragon/versions" : `${DDRAGON_BASE_URL}/api/versions.json`;
 
       const response = await fetch(url, {
         signal: controller.signal,
@@ -92,9 +90,7 @@ export class DataDragonClient {
 
     try {
       // Use proxy endpoint in browser environment to avoid CORS
-      const url = !isElectronEnvironment() 
-        ? "/api/ddragon/versions"
-        : `${DDRAGON_BASE_URL}/api/versions.json`;
+      const url = !isElectronEnvironment() ? "/api/ddragon/versions" : `${DDRAGON_BASE_URL}/api/versions.json`;
 
       const response = await fetch(url);
       if (!response.ok) {
@@ -117,11 +113,11 @@ export class DataDragonClient {
    */
   static async fetchData<T>(endpoint: string, version?: string): Promise<DataDragonResponse<T>> {
     const actualVersion = version || (await this.getLatestVersion());
-    
+
     // Use proxy endpoint in browser environment to avoid CORS
     const isBrowser = !isElectronEnvironment();
-    const url = isBrowser 
-      ? `/api/ddragon/${endpoint.replace('.json', '')}?version=${actualVersion}`
+    const url = isBrowser
+      ? `/api/ddragon/${endpoint.replace(".json", "")}?version=${actualVersion}`
       : `${DDRAGON_CDN}/${actualVersion}/data/en_US/${endpoint}`;
 
     try {
@@ -189,10 +185,10 @@ export class DataDragonClient {
    */
   static async getRunes(version?: string): Promise<RuneReforged[]> {
     const actualVersion = version || (await this.getLatestVersion());
-    
+
     // Use proxy endpoint in browser environment to avoid CORS
     const isBrowser = !isElectronEnvironment();
-    const url = isBrowser 
+    const url = isBrowser
       ? `/api/ddragon/runes?version=${actualVersion}`
       : `${DDRAGON_CDN}/${actualVersion}/data/en_US/runesReforged.json`;
 

@@ -79,11 +79,7 @@ export function setSecurityHeaders(response: NextResponse): NextResponse {
 }
 
 export function withAuth(
-  handler: (
-    request: NextRequest,
-    user: DecodedToken,
-    params: Promise<Record<string, string>>
-  ) => Promise<NextResponse>
+  handler: (request: NextRequest, user: DecodedToken, params: Promise<Record<string, string>>) => Promise<NextResponse>
 ): (request: NextRequest, context: { params: Promise<Record<string, string>> }) => Promise<NextResponse>;
 export function withAuth(
   handler: (request: NextRequest, user: DecodedToken, params: Promise<Record<string, string>>) => Promise<NextResponse>

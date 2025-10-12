@@ -17,5 +17,5 @@ export const PICK_BAN_MAPPINGS = {
 } as const;
 
 export const getPlayerIndexFromTurn = (turn: number, team: "blue" | "red"): number | undefined => {
-  return PICK_BAN_MAPPINGS[team][turn as keyof typeof PICK_BAN_MAPPINGS[typeof team]];
+  return PICK_BAN_MAPPINGS[team][turn as keyof (typeof PICK_BAN_MAPPINGS)[typeof team]];
 };

@@ -72,7 +72,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       const flatActions = processedData.actions.flat();
       const blueBans: number[] = [];
       const redBans: number[] = [];
-      
+
       // Extract completed ban actions
       flatActions.forEach((action: ChampSelectAction) => {
         if (action && action.type === "ban" && action.completed && action.championId) {
@@ -85,7 +85,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           }
         }
       });
-      
+
       // Add bans to the data structure
       processedData.bans = {
         myTeamBans: blueBans,
@@ -105,7 +105,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       inChampSelect: champSelectResult.data !== null
     });
   } catch (error) {
-    await logCsRequest({ mock: false, success: false, message: error instanceof Error ? error.message : "Unknown error" });
+    await logCsRequest({
+      mock: false,
+      success: false,
+      message: error instanceof Error ? error.message : "Unknown error"
+    });
     return NextResponse.json(
       {
         success: false,

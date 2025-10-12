@@ -70,18 +70,20 @@ const ChampSelectDisplayComponent: React.FC<ChampSelectDisplayProps> = ({
   const [centerAnimated, setCenterAnimated] = useState(false);
 
   // Derive hover state from actions when not provided by data
-  const derivedHoverState = useMemo((): {
-    isHovering: boolean;
-    isSelecting: boolean;
-    hoveredChampionId: number | null;
-    currentTeam: "blue" | "red" | null;
-    currentActionType: "pick" | "ban" | null;
-    currentTurn?: number;
-  } | undefined => {
+  const derivedHoverState = useMemo(():
+    | {
+        isHovering: boolean;
+        isSelecting: boolean;
+        hoveredChampionId: number | null;
+        currentTeam: "blue" | "red" | null;
+        currentActionType: "pick" | "ban" | null;
+        currentTurn?: number;
+      }
+    | undefined => {
     if (!data?.actions || (hoverState && hoverState.isHovering)) return hoverState;
 
     const flatActions = data.actions.flat();
-    
+
     // Find the next actionable pick/ban (first not completed)
     const nextAction = flatActions.find((a) => a && !a.completed && (a.type === "pick" || a.type === "ban"));
     if (!nextAction) return hoverState;
@@ -89,12 +91,11 @@ const ChampSelectDisplayComponent: React.FC<ChampSelectDisplayProps> = ({
     const actionIndex = flatActions.findIndex((a) => a === nextAction);
     const actorCellId = nextAction.actorCellId;
     const isBlue = myTeam.some((p) => p.cellId === actorCellId);
-    const currentTeam = isBlue ? "blue" : (theirTeam.some((p) => p.cellId === actorCellId) ? "red" : null);
+    const currentTeam = isBlue ? "blue" : theirTeam.some((p) => p.cellId === actorCellId) ? "red" : null;
 
     // Find the player index based on actorCellId in the team
     const teamPlayers = isBlue ? myTeam : theirTeam;
     const playerIndex = teamPlayers.findIndex((p) => p.cellId === actorCellId);
-    
 
     return {
       isHovering: true,
@@ -599,12 +600,10 @@ const ChampSelectDisplayComponent: React.FC<ChampSelectDisplayProps> = ({
                 // Get the most recent game's side assignment
                 const latestGame = match.games[match.games.length - 1];
                 return {
-                  blueTeamId: typeof latestGame.blueTeam === 'string' 
-                    ? latestGame.blueTeam 
-                    : latestGame.blueTeam.teamId || '',
-                  redTeamId: typeof latestGame.redTeam === 'string' 
-                    ? latestGame.redTeam 
-                    : latestGame.redTeam.teamId || ''
+                  blueTeamId:
+                    typeof latestGame.blueTeam === "string" ? latestGame.blueTeam : latestGame.blueTeam.teamId || "",
+                  redTeamId:
+                    typeof latestGame.redTeam === "string" ? latestGame.redTeam : latestGame.redTeam.teamId || ""
                 };
               })()}
               onRegisterImages={registerChildImages}

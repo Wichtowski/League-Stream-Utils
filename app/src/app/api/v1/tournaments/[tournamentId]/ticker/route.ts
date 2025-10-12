@@ -161,7 +161,7 @@ export const POST = withAuth(async (req: NextRequest, user, params: Promise<Reco
     };
 
     console.log("Updating ticker for tournament:", tournamentId, "with data:", cleanTicker);
-    
+
     const result = await updateTournamentFields(tournamentId, {
       ticker: cleanTicker
     });
@@ -196,7 +196,7 @@ export const POST = withAuth(async (req: NextRequest, user, params: Promise<Reco
     console.error("Ticker API error:", error);
     console.error("Error type:", typeof error);
     console.error("Error details:", error);
-    
+
     logError(error instanceof Error ? error : new Error(String(error)), {
       operation: "POST_TICKER",
       tournamentId: (await params) ?? "ERROR",

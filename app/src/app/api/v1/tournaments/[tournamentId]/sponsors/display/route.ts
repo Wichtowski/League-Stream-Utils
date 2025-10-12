@@ -22,7 +22,7 @@ export const GET = async (req: NextRequest, { params }: { params: Promise<{ tour
         ...s,
         timeInSeconds: s.timeInSeconds ?? 3,
         variant: s.variant ?? "corner",
-        fullwidth: s.fullwidth ?? false,
+        fullwidth: s.fullwidth ?? false
       }))
       .sort((a, b) => (b.tier as string).localeCompare(a.tier as string));
 

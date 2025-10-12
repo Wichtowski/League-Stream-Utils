@@ -28,11 +28,11 @@ export const ChampionProvider: React.FC<ChampionProviderProps> = ({ children }) 
     try {
       setLoading(true);
       setError(null);
-      
+
       getRunes().catch((err) => {
         console.warn("Failed to initialize runes cache:", err);
       });
-      
+
       // First try to get from unified cache (champions_cache)
       const cachedData = loadListFromLocal<Champion>("champions");
       if (cachedData && cachedData.data.length > 0) {

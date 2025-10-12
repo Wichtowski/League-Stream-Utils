@@ -12,6 +12,7 @@ import { PageWrapper } from "@lib/layout/PageWrapper";
 import { SpotlightCard } from "@lib/components/modules/SpotlightCard";
 import { Button } from "@lib/components/common/button/Button";
 import { LoadingSpinner } from "@lib/components/common";
+import { isHiddenBehindTournament } from "@lib/components/modules/SpotlightCard";
 
 export default function ModulesPage() {
   const router = useRouter();
@@ -45,14 +46,21 @@ export default function ModulesPage() {
   }, [user, isElectron, useLocalData, currentTournament, currentMatch]);
 
   useEffect(() => {
+    // Only redirect to download if downloads are actually in progress
     if (
       isElectron &&
       downloadState.progress &&
       downloadState.isDownloading &&
       downloadState.progress.stage !== "complete" &&
-      downloadState.progress.stage !== "error"
+      downloadState.progress.stage !== "error" &&
+      downloadState.progress.stage === "downloading"
     ) {
-      router.push("/download");
+      // Add a small delay to prevent rapid redirects
+      const timeoutId = setTimeout(() => {
+        router.push("/download");
+      }, 100);
+
+      return () => clearTimeout(timeoutId);
     }
   }, [isElectron, downloadState.progress, downloadState.isDownloading, router]);
 
@@ -68,14 +76,14 @@ export default function ModulesPage() {
 
   const handleModuleClick = (module: ModuleCard) => {
     try {
-      if (module.status === "coming-soon") {
+      if (module.status === "coming-soon" || module.status === "unavailable") {
         return;
       }
       if (isHiddenBehindTournament(module.id)) {
         if (!currentTournament) {
           return;
-        } else if (module.id === "currentMatch") {
-          router.push(`/modules/tournaments/${currentTournament._id}/matches/${currentMatch?._id}`);
+        } else if (module.id === "currentMatch" && currentMatch) {
+          router.push(`/modules/tournaments/${currentTournament._id}/matches/${currentMatch._id}`);
           return;
         } else if (module.id === "currentTournament") {
           router.push(`/modules/tournaments/${currentTournament._id}`);
@@ -100,21 +108,17 @@ export default function ModulesPage() {
     // Use context action if needed; for now, match context is authoritative
   };
 
-  const isHiddenBehindTournament = (moduleId: string) =>
-    moduleId === "matches" || moduleId === "commentators" || moduleId === "sponsors" || moduleId === "currentMatch" || moduleId === "currentTournament";
-
   const pageProps = {
     title: visibleModules.length === 0 ? (loading ? "Modules" : "Modules Not Found") : "Modules",
     subtitle: `Welcome back, ${
       user?.username ? user.username.charAt(0).toUpperCase() + user.username.slice(1) : "User"
     }! Choose a module to get started.`,
     contentClassName: "max-w-7xl mx-auto",
-    actions: (currentTournament || currentMatch) ? (
+    actions:
+      currentTournament || currentMatch ? (
         <>
           <span>Remove Last Selected:</span>
-          {currentTournament ? (
-            <Button onClick={() => handleRemoveLastSelectedTournament()}>Tournament</Button>
-          ) : null}
+          {currentTournament ? <Button onClick={() => handleRemoveLastSelectedTournament()}>Tournament</Button> : null}
           {currentMatch ? <Button onClick={() => handleRemoveLastSelectedMatch()}>Match</Button> : null}
         </>
       ) : null
@@ -135,7 +139,7 @@ export default function ModulesPage() {
           <SpotlightCard
             key={module.id}
             onClick={() => handleModuleClick(module)}
-            className={`cursor-pointer p-6 ${module.status === "coming-soon" ? "opacity-50 cursor-not-allowed" : ""}`}
+            className={`${module.status === "unavailable" ? "cursor-not-allowed" : "cursor-pointer"} p-6 ${module.status === "coming-soon" ? "opacity-50 cursor-not-allowed" : ""}`}
             spotlightColor={module.spotlightColor}
             module={module}
             isHiddenBehindTournament={isHiddenBehindTournament(module.id)}

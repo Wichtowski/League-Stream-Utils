@@ -44,7 +44,7 @@ export default function TeamCameraSetupPage(): ReactElement {
         { label: "Setup", href: `/modules/cameras/setup` },
         { label: team?.teamName || "Camera Setup", href: `/modules/cameras/setup/${teamId}`, isActive: true }
       ]
-    }
+    };
   }, [team, teamId]);
 
   useEffect(() => {
@@ -188,12 +188,7 @@ export default function TeamCameraSetupPage(): ReactElement {
     <PageWrapper {...pageProps}>
       <div className="min-h-screen p-6">
         <div className="max-w-6xl mx-auto">
-          <TeamSetupHeader
-            teamName={team.teamName}
-            teamLogo={team.teamLogo}
-            saving={saving}
-            onSave={saveSettings}
-          />
+          <TeamSetupHeader teamName={team.teamName} teamLogo={team.teamLogo} saving={saving} onSave={saveSettings} />
 
           <ProgressBar
             completed={team.players.filter((p) => p.url && p.url.trim() !== "").length}

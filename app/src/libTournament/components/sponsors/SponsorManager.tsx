@@ -282,8 +282,6 @@ export const SponsorManager = ({ tournamentId, tournament: _tournament, onSponso
               </select>
             </div>
 
-            
-
             <div className="md:col-span-2">
               <label className="block text-sm font-medium mb-2">Logo *</label>
               <div className="space-y-2">
@@ -356,7 +354,6 @@ export const SponsorManager = ({ tournamentId, tournament: _tournament, onSponso
                 >
                   {sponsor.tier.charAt(0).toUpperCase() + sponsor.tier.slice(1)}
                 </span>
-                
               </div>
 
               <div className="text-center mb-3">
@@ -384,7 +381,6 @@ export const SponsorManager = ({ tournamentId, tournament: _tournament, onSponso
               </div>
 
               <h4 className="font-semibold text-center mb-1">{sponsor.name}</h4>
-              
 
               <div className="flex justify-center space-x-2">
                 <button

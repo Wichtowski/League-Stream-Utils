@@ -31,40 +31,33 @@ interface TeamCreationFormProps {
 }
 
 export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, onCancel, isCreating }) => {
-  const {
-    formData,
-    updateFormData,
-    updatePlayer,
-    updateSubstitute,
-    addSubstitute,
-    removeSubstitute,
-    handleSubmit
-  } = useTeamForm({
-    initialData: createDefaultTeamRequest(),
-    onSubmit: async (data) => {
-      // Final sanitization before submission
-      const sanitizedFormData: CreateTeamRequest = {
-        ...data,
-        name: sanitizeTeamName(data.name || ""),
-        tag: sanitizeTeamTag(data.tag || ""),
-        region: sanitizeRegion(data.region || ""),
-        flag: (data.flag as string | undefined)?.toUpperCase(),
-        players: {
-          main: (data.players?.main || []).map((player) => ({
-            ...player,
-            inGameName: player.inGameName || "",
-            tag: player.tag || ""
-          })),
-          substitutes: (data.players?.substitutes || []).map((player) => ({
-            ...player,
-            inGameName: player.inGameName || "",
-            tag: player.tag || ""
-          }))
-        }
-      } as CreateTeamRequest;
-      await onSubmit(sanitizedFormData);
-    }
-  });
+  const { formData, updateFormData, updatePlayer, updateSubstitute, addSubstitute, removeSubstitute, handleSubmit } =
+    useTeamForm({
+      initialData: createDefaultTeamRequest(),
+      onSubmit: async (data) => {
+        // Final sanitization before submission
+        const sanitizedFormData: CreateTeamRequest = {
+          ...data,
+          name: sanitizeTeamName(data.name || ""),
+          tag: sanitizeTeamTag(data.tag || ""),
+          region: sanitizeRegion(data.region || ""),
+          flag: (data.flag as string | undefined)?.toUpperCase(),
+          players: {
+            main: (data.players?.main || []).map((player) => ({
+              ...player,
+              inGameName: player.inGameName || "",
+              tag: player.tag || ""
+            })),
+            substitutes: (data.players?.substitutes || []).map((player) => ({
+              ...player,
+              inGameName: player.inGameName || "",
+              tag: player.tag || ""
+            }))
+          }
+        } as CreateTeamRequest;
+        await onSubmit(sanitizedFormData);
+      }
+    });
 
   const {
     logoPreview,
@@ -81,16 +74,11 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
     onLogoChange: (logo) => updateFormData({ logo })
   });
 
-  const {
-    extractedColors,
-    useManualColors,
-    generateColorsFromLogo,
-    handleColorChange,
-    toggleColorMode
-  } = useTeamColors({
-    initialColors: formData.colors,
-    onColorsChange: (colors) => updateFormData({ colors })
-  });
+  const { extractedColors, useManualColors, generateColorsFromLogo, handleColorChange, toggleColorMode } =
+    useTeamColors({
+      initialColors: formData.colors,
+      onColorsChange: (colors) => updateFormData({ colors })
+    });
 
   const generateColorsFromCurrentLogo = async (): Promise<void> => {
     await generateColorsFromLogo(logoPreview);
@@ -502,19 +490,19 @@ export const TeamCreationForm: React.FC<TeamCreationFormProps> = ({ onSubmit, on
                   autoComplete="off"
                   id={`${player.role}-${index}-tag`}
                 />
-                  <select
-                    value={player.country || ""}
-                    onChange={(e) => updateSubstitute(index, "country", e.target.value)}
-                    className="bg-gray-700 rounded px-3 py-2 text-white"
-                    id={`${player.role}-${index}-country`}
-                  >
-                    <option value="">Select country</option>
-                    {COUNTRY_OPTIONS.map((country) => (
-                      <option key={country.code} value={country.code}>
-                        {country.flag} {country.name}
-                      </option>
-                    ))}
-                  </select>
+                <select
+                  value={player.country || ""}
+                  onChange={(e) => updateSubstitute(index, "country", e.target.value)}
+                  className="bg-gray-700 rounded px-3 py-2 text-white"
+                  id={`${player.role}-${index}-country`}
+                >
+                  <option value="">Select country</option>
+                  {COUNTRY_OPTIONS.map((country) => (
+                    <option key={country.code} value={country.code}>
+                      {country.flag} {country.name}
+                    </option>
+                  ))}
+                </select>
                 <button
                   type="button"
                   onClick={() => removeSubstitute(index)}

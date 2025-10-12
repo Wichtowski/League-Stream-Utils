@@ -48,5 +48,5 @@ export const COUNTRY_OPTIONS: CountryOption[] = [
 ];
 
 export const getCountryByCode = (code: string): CountryOption | undefined => {
-  return COUNTRY_OPTIONS.find(country => country.code === code);
+  return COUNTRY_OPTIONS.find((country) => country.code === code);
 };

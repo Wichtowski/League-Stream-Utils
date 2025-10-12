@@ -24,7 +24,7 @@ export const GET = withAuth(async (req: NextRequest, user: JWTPayload, params: P
     }
 
     // Public tournaments can be viewed by anyone, private tournaments only by owner
-    if (tournament.status === "draft" && tournament.userId !== user.userId && !user.isAdmin) {
+    if (tournament.status === "registration" && tournament.userId !== user.userId && !user.isAdmin) {
       return NextResponse.json({ error: "Tournament not found" }, { status: 404 });
     }
 
@@ -143,11 +143,11 @@ export const PATCH = withAuth(async (req: NextRequest, user: JWTPayload, params:
     const { status }: { status: TournamentStatus } = await req.json();
 
     // Debug logging
-    console.log("PATCH /api/v1/tournaments/[tournamentId] - Received status:", status);
-    console.log("Tournament ID:", tournamentId);
-    console.log("User ID:", user.userId);
+    // console.log("PATCH /api/v1/tournaments/[tournamentId] - Received status:", status);
+    // console.log("Tournament ID:", tournamentId);
+    // console.log("User ID:", user.userId);
 
-    if (!status || !["draft", "registration", "ongoing", "completed", "cancelled"].includes(status)) {
+    if (!status || !["registration", "ongoing", "completed", "cancelled"].includes(status)) {
       console.error("Invalid status received:", status);
       return NextResponse.json({ error: "Invalid status" }, { status: 400 });
     }

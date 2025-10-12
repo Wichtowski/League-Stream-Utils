@@ -29,7 +29,7 @@ export default function PredictionsPage(): React.ReactElement {
   const [selectedCommentator, setSelectedCommentator] = useState<string>("");
 
   useEffect(() => {
-    setActiveModule("tournaments");
+    setActiveModule("predictions");
   }, [setActiveModule]);
 
   useEffect(() => {

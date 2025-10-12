@@ -21,13 +21,14 @@ export default function CreateMatchPage(): React.ReactElement {
   const pageProps = useMemo(() => {
     return {
       title: "Create Match",
-      subtitle: "Create a new match for this tournament. You can create matches manually or from existing bracket nodes.",
+      subtitle:
+        "Create a new match for this tournament. You can create matches manually or from existing bracket nodes.",
       breadcrumbs: [
         { label: "Tournaments", href: "/modules/tournaments" },
         { label: "Matches", href: `/modules/tournaments/${tournamentId}/matches` },
         { label: "Create", href: `/modules/tournaments/${tournamentId}/matches/create`, isActive: true }
       ]
-    }
+    };
   }, [tournamentId]);
 
   useEffect(() => {

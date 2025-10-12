@@ -18,13 +18,13 @@ export default function CameraSetupListPage(): ReactElement {
   const pageProps = useMemo(() => {
     return {
       requireAuth: false,
-      title:"Camera Stream Setup",
+      title: "Camera Stream Setup",
       subtitle: "Select a team to configure stream URLs",
       breadcrumbs: [
         { label: "Camera Hub", href: "/modules/cameras" },
         { label: "Setup", href: `/modules/cameras/setup`, isActive: true }
-      ],
-    }
+      ]
+    };
   }, []);
 
   useEffect(() => {

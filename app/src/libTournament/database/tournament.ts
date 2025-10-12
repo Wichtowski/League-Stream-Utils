@@ -135,7 +135,7 @@ export const updateTournament = async (
   await connectToDatabase();
 
   // Use $set operator to ensure nested objects are properly updated
-  const updateQuery = { $set: updates };
+  const _updateQuery = { $set: updates };
 
   try {
     // Use findByIdAndUpdate with $set to avoid full document validation
@@ -219,7 +219,7 @@ export const getPublicTournaments = async (limit: number = 20, offset: number = 
   await connectToDatabase();
 
   const tournaments = await TournamentModel.find({
-    status: { $in: ["draft", "registration", "ongoing"] } // Added "draft" status
+    status: { $in: ["registration", "ongoing"] }
   })
     .sort({ createdAt: -1 })
     .limit(limit)
@@ -235,7 +235,7 @@ export const searchTournaments = async (query: string, limit: number = 20): Prom
   const searchRegex = new RegExp(query, "i");
   const tournaments = await TournamentModel.find({
     $or: [{ name: searchRegex }, { abbreviation: searchRegex }],
-    status: { $in: ["draft", "registration", "ongoing"] } // Added "draft" status
+    status: { $in: ["registration", "ongoing"] }
   })
     .sort({ createdAt: -1 })
     .limit(limit);

@@ -13,11 +13,7 @@ export default function OBSTickerPage() {
 
   return (
     <div className="w-screen h-screen bg-transparent overflow-hidden">
-      <TickerDisplay
-        tournamentId={tournamentId}
-        showDebugInfo={showDebugInfo}
-        className="w-full h-full"
-      />
+      <TickerDisplay tournamentId={tournamentId} showDebugInfo={showDebugInfo} className="w-full h-full" />
     </div>
   );
 }

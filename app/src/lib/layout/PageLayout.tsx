@@ -1,6 +1,7 @@
 import React from "react";
-import { Breadcrumbs, BreadcrumbItem, SettingsCog, LoadingSpinner, Footer } from "@lib/components/common";
-import { useElectron } from "@libElectron/contexts/ElectronContext";
+import { Breadcrumbs, BreadcrumbItem, LoadingSpinner } from "@lib/components/common";
+import { useRouter } from "next/navigation";
+import { useErrorHandling } from "../hooks/useErrorHandling";
 
 export interface PageLayoutProps {
   children: React.ReactNode;
@@ -24,15 +25,18 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
   contentClassName = "",
   loading = false
 }) => {
-  const { isElectron } = useElectron();
+  const router = useRouter();
+  const { error } = useErrorHandling();
+
+  if (error) {
+    router.push("/login");
+  }
 
   if (loading) {
     return (
-      <div className="min-h-screen text-white">
+      <div className="min-h-screen text-white bg-black">
         <div className="container mx-auto px-6 py-8">
-          <div className="mb-4 flex justify-between items-center">
-            
-          </div>
+          <div className="mb-4 flex justify-between items-center"></div>
           <div className="space-y-6">{children}</div>
           <LoadingSpinner fullscreen text="Loading Application..." />
         </div>
@@ -41,7 +45,7 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
   }
 
   return (
-    <div className={`min-h-screen text-white ${className}`}>
+    <div className={`min-h-screen text-white bg-black ${className}`}>
       <div className="container mx-auto px-6 py-8">
         {/* Breadcrumbs */}
         {breadcrumbs && breadcrumbs.length > 0 && (
@@ -58,14 +62,12 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
               {subtitle && <p className="text-gray-300">{subtitle}</p>}
             </div>
             {actions && <div className="flex items-center space-x-4">{actions}</div>}
-            {isElectron && <SettingsCog />}
           </div>
         )}
 
         {/* Content */}
         <div className={contentClassName}>{children}</div>
       </div>
-      <Footer />
     </div>
   );
 };

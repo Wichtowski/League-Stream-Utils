@@ -54,15 +54,19 @@ export default function TeamPickBanPage() {
     return {
       title: `${session?.teams[teamSide].name} - Pick & Ban`,
       subtitle: `Session: ${session?.name || sessionId} (Real-time Team Interface)`,
-      actions: <div className="flex gap-3">
-        <div className="bg-green-900/30 border border-green-600 px-3 py-2 rounded-lg text-sm">
-          Real-time Team Interface
+      actions: (
+        <div className="flex gap-3">
+          <div className="bg-green-900/30 border border-green-600 px-3 py-2 rounded-lg text-sm">
+            Real-time Team Interface
+          </div>
+          <div
+            className={`px-3 py-2 rounded-lg text-sm font-medium ${isConnected ? "bg-green-600 text-white" : "bg-red-600 text-white"}`}
+          >
+            {isConnected ? "Connected" : "Disconnected"}
+          </div>
         </div>
-        <div className={`px-3 py-2 rounded-lg text-sm font-medium ${isConnected ? "bg-green-600 text-white" : "bg-red-600 text-white"}`}>
-          {isConnected ? "Connected" : "Disconnected"}
-        </div>
-      </div>
-    }
+      )
+    };
   }, [session, sessionId, isConnected, teamSide]);
 
   const getTeamBans = useCallback(
@@ -336,7 +340,6 @@ export default function TeamPickBanPage() {
   const opponentTeam = session.teams[teamSide === "blue" ? "red" : "blue"];
   const myTeamLogoUrl = teamSide === "blue" ? blueTeamLogoUrl : redTeamLogoUrl;
   const opponentTeamLogoUrl = teamSide === "blue" ? redTeamLogoUrl : blueTeamLogoUrl;
-
 
   return (
     <PageWrapper {...pageProps}>

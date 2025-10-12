@@ -87,28 +87,41 @@ export const MatchCreationForm = ({
 
   const generateMatchName = useCallback((): string => {
     if (!formData.blueTeamId || !formData.redTeamId) return "";
-    
+
     const blueTeam = availableTeams.find((t) => t._id === formData.blueTeamId);
     const redTeam = availableTeams.find((t) => t._id === formData.redTeamId);
-    
+
     if (!blueTeam || !redTeam) return "";
-    
+
     let name = `${blueTeam.name} vs ${redTeam.name} `;
-    
+
     if (formData.isFearlessDraft) {
       name += " Fearless";
     }
-    
+
     name += `| ${formData.format} | ${formData.patchName}`;
-    
+
     return name;
-  }, [formData.blueTeamId, formData.redTeamId, formData.isFearlessDraft, formData.format, formData.patchName, availableTeams]);
+  }, [
+    formData.blueTeamId,
+    formData.redTeamId,
+    formData.isFearlessDraft,
+    formData.format,
+    formData.patchName,
+    availableTeams
+  ]);
 
   const handleInputChange = (field: keyof FormData, value: string | boolean) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-    
+
     // Auto-generate name when teams, format, fearless draft, or patch changes
-    if (field === "blueTeamId" || field === "redTeamId" || field === "format" || field === "isFearlessDraft" || field === "patchName") {
+    if (
+      field === "blueTeamId" ||
+      field === "redTeamId" ||
+      field === "format" ||
+      field === "isFearlessDraft" ||
+      field === "patchName"
+    ) {
       const newName = generateMatchName();
       if (newName) {
         setFormData((prev) => ({ ...prev, name: newName }));

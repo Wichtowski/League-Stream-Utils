@@ -53,7 +53,5 @@ export default function SponsorsCornerOBSPage(): React.ReactElement {
     return <></>;
   }
 
-  return (
-    <SponsorWindow sponsors={data.sponsors} variant="corner" />
-  );
+  return <SponsorWindow sponsors={data.sponsors} variant="corner" />;
 }

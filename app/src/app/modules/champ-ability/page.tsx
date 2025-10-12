@@ -164,13 +164,6 @@ export default function ChampAbilityPage() {
       });
   }, [selected, language]);
 
-  const scrollToFooter = useCallback(() => {
-    window.scrollTo({
-      top: document.body.scrollHeight,
-      behavior: "smooth"
-    });
-  }, []);
-
   if (loading)
     return (
       <PageWrapper requireAuth={false}>
@@ -334,23 +327,6 @@ export default function ChampAbilityPage() {
           ))}
         </div>
       </div>
-
-      {/* Scroll to Footer Button */}
-      <button
-        onClick={scrollToFooter}
-        className="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg transition-all duration-300 hover:scale-110 z-40"
-        title="Scroll to Footer"
-      >
-        <svg
-          className="w-6 h-6"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-        </svg>
-      </button>
 
       {selected && (
         <div

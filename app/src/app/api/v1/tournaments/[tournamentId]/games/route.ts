@@ -28,7 +28,7 @@ export const POST = withAuth(async (req: NextRequest, user: JWTPayload, params: 
     }
 
     // Check if team data is objects (not strings)
-    if (typeof gameResultData.blueTeam === 'string' || typeof gameResultData.redTeam === 'string') {
+    if (typeof gameResultData.blueTeam === "string" || typeof gameResultData.redTeam === "string") {
       return NextResponse.json({ error: "Team data must be objects with picks and bans" }, { status: 400 });
     }
 

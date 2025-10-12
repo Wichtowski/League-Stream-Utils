@@ -2,19 +2,18 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useUser } from "@lib/contexts";
+import { useNavigation, useUser, useCurrentTournament, useCurrentMatch } from "@lib/contexts";
 import { PageWrapper } from "@lib/layout";
 import { useAuthenticatedFetch } from "@lib/hooks/useAuthenticatedFetch";
-import { useCurrentMatch } from "@libTournament/contexts/CurrentMatchContext";
 import { Match } from "@libTournament/types";
 import { LoadingSpinner, Button } from "@lib/components/common";
 import { CurrentMatchStatus } from "@libTournament/components";
-import { useCurrentTournament } from "@libTournament/contexts/CurrentTournamentContext";
 
 export default function TournamentMatchesPage(): React.ReactElement {
   const params = useParams();
   const user = useUser();
   const router = useRouter();
+  const { setActiveModule } = useNavigation();
   const { setCurrentMatch } = useCurrentMatch();
   const { authenticatedFetch } = useAuthenticatedFetch();
   const { setCurrentTournament, currentTournament } = useCurrentTournament();
@@ -28,11 +27,18 @@ export default function TournamentMatchesPage(): React.ReactElement {
       title: !currentTournament?.name ? (loading ? "Loading Matches" : "Tournament Not Found") : "Matches",
       subtitle: `Manage matches for ${currentTournament?.abbreviation ? "for " + currentTournament?.abbreviation : ""}`,
       breadcrumbs: [
-        { label: "Tournaments", href: "/modules/tournaments" }, 
-        currentTournament?.name ? { label: currentTournament.name , href: `/modules/tournaments/${tournamentId}` } : null,
-        { label: "Matches", href: `/modules/tournaments/${tournamentId}/matches`, isActive: true }],
-    }
+        { label: "Tournaments", href: "/modules/tournaments" },
+        currentTournament?.name
+          ? { label: currentTournament.name, href: `/modules/tournaments/${tournamentId}` }
+          : null,
+        { label: "Matches", href: `/modules/tournaments/${tournamentId}/matches`, isActive: true }
+      ]
+    };
   }, [currentTournament, tournamentId, loading]);
+
+  useEffect(() => {
+    setActiveModule("matches");
+  }, [setActiveModule]);
 
   useEffect(() => {
     if (!tournamentId || !user) return;
@@ -46,13 +52,13 @@ export default function TournamentMatchesPage(): React.ReactElement {
           if (!tournamentResponse.ok) {
             throw new Error("Failed to fetch tournament");
           }
-          
+
           // Check if response is HTML (redirect to login)
           const contentType = tournamentResponse.headers.get("content-type");
           if (contentType && contentType.includes("text/html")) {
             throw new Error("Authentication required - redirecting to login");
           }
-          
+
           const tournamentData = await tournamentResponse.json();
           setCurrentTournament(tournamentData.tournament);
         }
@@ -61,13 +67,13 @@ export default function TournamentMatchesPage(): React.ReactElement {
         if (!matchesResponse.ok) {
           throw new Error("Failed to fetch matches");
         }
-        
+
         // Check if response is HTML (redirect to login)
         const contentType = matchesResponse.headers.get("content-type");
         if (contentType && contentType.includes("text/html")) {
           throw new Error("Authentication required - redirecting to login");
         }
-        
+
         const matchesData = await matchesResponse.json();
         setMatches(matchesData.matches || []);
       } catch (err) {
@@ -81,14 +87,16 @@ export default function TournamentMatchesPage(): React.ReactElement {
   }, [tournamentId, user, authenticatedFetch, currentTournament, setCurrentTournament]);
 
   if (!user) {
-    return <PageWrapper {...pageProps} requireAuth={true}>{null}</PageWrapper>;
+    return (
+      <PageWrapper {...pageProps} requireAuth={true}>
+        {null}
+      </PageWrapper>
+    );
   }
 
   if (loading) {
     return (
-      <PageWrapper
-        {...pageProps}
-      >
+      <PageWrapper {...pageProps}>
         <div className="min-h-screen p-6 max-w-6xl mx-auto">
           <div className="text-center py-12">
             <LoadingSpinner />
@@ -113,7 +121,7 @@ export default function TournamentMatchesPage(): React.ReactElement {
 
   if (!currentTournament) {
     return (
-      <PageWrapper {...pageProps} >
+      <PageWrapper {...pageProps}>
         <div className="min-h-screen p-6 max-w-6xl mx-auto">
           <div className="text-center py-12">
             <div className="text-red-400 text-lg mb-4">Tournament not found</div>
@@ -137,9 +145,7 @@ export default function TournamentMatchesPage(): React.ReactElement {
   };
 
   return (
-    <PageWrapper
-      {...pageProps}
-    >
+    <PageWrapper {...pageProps}>
       <div className="min-h-screen p-6 max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
           {/* Current Match Status */}

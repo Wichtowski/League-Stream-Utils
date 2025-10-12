@@ -59,7 +59,9 @@ export default function CamerasPage(): ReactElement {
 
     tournaments.forEach((t) => {
       const setRegistered = new Set<string>((t.registeredTeams || []).map((id) => id));
-      const teamsForTournament = mergedTeams.filter((mt) => setRegistered.has(mt._id) || (mt as unknown as Team).tournamentId === t._id);
+      const teamsForTournament = mergedTeams.filter(
+        (mt) => setRegistered.has(mt._id) || (mt as unknown as Team).tournamentId === t._id
+      );
       if (teamsForTournament.length > 0) {
         byTournament.push({ tournament: t, teams: teamsForTournament });
       }
@@ -87,14 +89,16 @@ export default function CamerasPage(): ReactElement {
     return {
       requireAuth: false,
       title: "Camera Control",
-      breadcrumbs: [
-        { label: "Camera Hub", href: "/modules/cameras", isActive: true }
-      ],
-      subtitle: cameraTeamsRaw.length > 0 ? `${mergedTeams.reduce(
-        (sum: number, team: MergedTeamWithPlayers) => sum + team.players.main.length + team.players.substitutes.length,
-        0
-      )} cameras across ${mergedTeams.length} teams` : "",
-    }
+      breadcrumbs: [{ label: "Camera Hub", href: "/modules/cameras", isActive: true }],
+      subtitle:
+        cameraTeamsRaw.length > 0
+          ? `${mergedTeams.reduce(
+              (sum: number, team: MergedTeamWithPlayers) =>
+                sum + team.players.main.length + team.players.substitutes.length,
+              0
+            )} cameras across ${mergedTeams.length} teams`
+          : ""
+    };
   }, [mergedTeams, cameraTeamsRaw.length]);
 
   if (authLoading || loading) {
@@ -152,7 +156,10 @@ export default function CamerasPage(): ReactElement {
                         currentPage={Math.min(teamsPage, totalTeamPages)}
                         totalPages={totalTeamPages}
                         onPageChange={(p: number) =>
-                          setTeamsPageByTournament((prev) => ({ ...prev, [tournament._id]: Math.max(1, Math.min(totalTeamPages, p)) }))
+                          setTeamsPageByTournament((prev) => ({
+                            ...prev,
+                            [tournament._id]: Math.max(1, Math.min(totalTeamPages, p))
+                          }))
                         }
                       />
                     )}
@@ -193,12 +200,18 @@ export default function CamerasPage(): ReactElement {
                                 <span className="font-semibold text-xs text-gray-200">Camera Status:</span>
                                 <ul className="text-xs mt-1">
                                   {team.players.main.map((p: MergedPlayer) => (
-                                    <li key={`main-${p._id}`} className={p.cameraUrl ? "text-green-300" : "text-yellow-300"}>
+                                    <li
+                                      key={`main-${p._id}`}
+                                      className={p.cameraUrl ? "text-green-300" : "text-yellow-300"}
+                                    >
                                       {p.inGameName} {p.cameraUrl ? "• Configured" : "• Not Configured"}
                                     </li>
                                   ))}
                                   {team.players.substitutes.map((p: MergedPlayer) => (
-                                    <li key={`sub-${p._id}`} className={p.cameraUrl ? "text-green-300" : "text-yellow-300"}>
+                                    <li
+                                      key={`sub-${p._id}`}
+                                      className={p.cameraUrl ? "text-green-300" : "text-yellow-300"}
+                                    >
                                       {p.inGameName} (Sub) {p.cameraUrl ? "• Configured" : "• Not Configured"}
                                     </li>
                                   ))}
@@ -209,7 +222,9 @@ export default function CamerasPage(): ReactElement {
                         ))}
                       </div>
                     }
-                    noPermission={<div className="text-gray-400 text-sm">No permission to view cameras for this tournament.</div>}
+                    noPermission={
+                      <div className="text-gray-400 text-sm">No permission to view cameras for this tournament.</div>
+                    }
                   />
                 </div>
               );
@@ -220,7 +235,9 @@ export default function CamerasPage(): ReactElement {
             <Pagination
               currentPage={paginatedTournamentGroups.currentPage}
               totalPages={paginatedTournamentGroups.totalPages}
-              onPageChange={(p: number) => setTournamentPage(Math.max(1, Math.min(paginatedTournamentGroups.totalPages, p)))}
+              onPageChange={(p: number) =>
+                setTournamentPage(Math.max(1, Math.min(paginatedTournamentGroups.totalPages, p)))
+              }
             />
           </div>
         </div>

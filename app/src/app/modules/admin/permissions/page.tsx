@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigation } from "@lib/contexts/NavigationContext";
 import { useAuth } from "@lib/contexts/AuthContext";
 import { useRouter } from "next/navigation";
@@ -15,12 +15,12 @@ export default function AdminPermissionsPage(): React.ReactElement {
   const [activeTab, setActiveTab] = useState<"permissions" | "requests">("permissions");
   const [refreshKey, setRefreshKey] = useState(0);
 
-  React.useEffect(() => {
-    setActiveModule("admin");
+  useEffect(() => {
+    setActiveModule("adminPermissions");
   }, [setActiveModule]);
 
   // Redirect non-admin users
-  React.useEffect(() => {
+  useEffect(() => {
     if (user && !user.isAdmin) {
       router.push("/modules");
     }

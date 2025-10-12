@@ -50,8 +50,9 @@ const PlayerStatsPage: React.FC = () => {
       breadcrumbs: [
         { label: "Teams", href: "/modules/teams" },
         { label: team?.name || "Team", href: `/modules/teams/${teamId}` },
-        { label: `${player?.inGameName}#${player?.tag}`, href: `/modules/teams/${teamId}/${playerId}`, isActive: true }]
-    }
+        { label: `${player?.inGameName}#${player?.tag}`, href: `/modules/teams/${teamId}/${playerId}`, isActive: true }
+      ]
+    };
   }, [player, loading, teamId, playerId, team]);
 
   useEffect(() => {

@@ -12,11 +12,6 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Tournament not found" }, { status: 404 });
     }
 
-    // Only allow access to public tournaments (not draft)
-    if (tournament.status === "draft") {
-      return NextResponse.json({ error: "Tournament not public" }, { status: 403 });
-    }
-
     const response = NextResponse.json({ tournament });
     response.headers.set("Access-Control-Allow-Origin", "*");
     response.headers.set("Access-Control-Allow-Methods", "GET");

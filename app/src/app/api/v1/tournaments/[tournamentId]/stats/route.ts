@@ -18,7 +18,7 @@ export const GET = withAuth(async (req: NextRequest, user: JWTPayload) => {
     }
 
     // Public tournaments can be viewed by anyone, private tournaments only by owner/admin
-    if (tournament.status === "draft" && tournament.userId !== user.userId && !user.isAdmin) {
+    if (tournament.status === "registration" && tournament.userId !== user.userId && !user.isAdmin) {
       return NextResponse.json({ error: "Tournament not found" }, { status: 404 });
     }
 

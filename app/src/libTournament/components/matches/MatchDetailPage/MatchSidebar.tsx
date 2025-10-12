@@ -21,7 +21,7 @@ export const MatchSidebar: React.FC<MatchSidebarProps> = ({
   redTeam,
   teamWins,
   onStatusChange,
-  onSwapTeams,
+  onSwapTeams
 }) => {
   return (
     <div className="space-y-6">

@@ -196,15 +196,13 @@ export const AdminTournamentManager = ({ onClose }: AdminTournamentManagerProps)
                       </div>
                       <span
                         className={`px-2 py-1 rounded text-xs ${
-                          tournament.status === "draft"
+                          tournament.status === "registration"
                             ? "bg-yellow-600"
-                            : tournament.status === "registration"
-                              ? "bg-blue-600"
-                              : tournament.status === "ongoing"
-                                ? "bg-green-600"
-                                : tournament.status === "completed"
-                                  ? "bg-gray-600"
-                                  : "bg-red-600"
+                            : tournament.status === "ongoing"
+                              ? "bg-green-600"
+                              : tournament.status === "completed"
+                                ? "bg-gray-600"
+                                : "bg-red-600"
                         }`}
                       >
                         {tournament.status}

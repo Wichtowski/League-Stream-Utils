@@ -16,7 +16,7 @@ export const GET = withAuth(async (req: NextRequest, user: JWTPayload, params: P
       return NextResponse.json({ error: "Tournament not found" }, { status: 404 });
     }
 
-    if (tournament.status === "draft" && tournament.userId !== user.userId && !user.isAdmin) {
+    if (tournament.status === "registration" && tournament.userId !== user.userId && !user.isAdmin) {
       return NextResponse.json({ error: "Tournament not found" }, { status: 404 });
     }
 

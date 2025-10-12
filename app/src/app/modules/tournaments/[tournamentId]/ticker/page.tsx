@@ -27,17 +27,21 @@ export default function TournamentTickerPage() {
   const pageProps = useMemo(() => {
     return {
       title: !tournament ? (tournamentsLoading ? "Ticker Management" : "Tournament Not Found") : "Ticker Management",
-      subtitle: `Manage ticker display ${tournament?.abbreviation ?  "for " + tournament?.abbreviation : ""}`,
+      subtitle: `Manage ticker display ${tournament?.abbreviation ? "for " + tournament?.abbreviation : ""}`,
       breadcrumbs: [
         { label: "Tournaments", href: "/modules/tournaments" },
-        !tournament ? (tournamentsLoading ? { label: "Loading...", href: `/modules/tournaments/${tournamentId}` } : { label: "Tournament Not Found", href: `/modules/tournaments/${tournamentId}` }) : { label: tournament?.name || "Loading...", href: `/modules/tournaments/${tournamentId}` },
-        { label: "Ticker", href: `/modules/tournaments/${tournamentId}/ticker` },
-      ],
-    }
+        !tournament
+          ? tournamentsLoading
+            ? { label: "Loading...", href: `/modules/tournaments/${tournamentId}` }
+            : { label: "Tournament Not Found", href: `/modules/tournaments/${tournamentId}` }
+          : { label: tournament?.name || "Loading...", href: `/modules/tournaments/${tournamentId}` },
+        { label: "Ticker", href: `/modules/tournaments/${tournamentId}/ticker` }
+      ]
+    };
   }, [tournament, tournamentId, tournamentsLoading]);
-  
+
   useEffect(() => {
-    setActiveModule("tournaments");
+    setActiveModule("ticker");
   }, [setActiveModule]);
 
   useEffect(() => {
@@ -100,7 +104,7 @@ export default function TournamentTickerPage() {
         subtitle="The tournament you're looking for doesn't exist or you don't have access to it."
         breadcrumbs={[
           { label: "Tournaments", href: "/modules/tournaments" },
-          { label: "Ticker", href: `/modules/tournaments/${tournamentId}/ticker`, isActive: true },
+          { label: "Ticker", href: `/modules/tournaments/${tournamentId}/ticker`, isActive: true }
         ]}
       >
         <div className="text-center">
@@ -111,9 +115,7 @@ export default function TournamentTickerPage() {
   }
 
   return (
-    <PageWrapper
-      {...pageProps}
-    >
+    <PageWrapper {...pageProps}>
       <div className="space-y-6">
         <div className="flex gap-6">
           {/* Live Preview Section */}

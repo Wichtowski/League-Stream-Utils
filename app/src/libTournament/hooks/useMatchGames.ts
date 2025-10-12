@@ -2,7 +2,12 @@ import { useState } from "react";
 import type { Match, GameResult, MatchFormat } from "@libTournament/types/matches";
 import type { Team } from "@libTeam/types";
 
-export const useMatchGames = (match: Match | null, blueTeam: Team | null, redTeam: Team | null, originalMatch?: Match | null) => {
+export const useMatchGames = (
+  match: Match | null,
+  blueTeam: Team | null,
+  redTeam: Team | null,
+  originalMatch?: Match | null
+) => {
   const [newGame, setNewGame] = useState<Partial<GameResult>>({
     gameNumber: 1,
     winner: undefined,
@@ -11,11 +16,12 @@ export const useMatchGames = (match: Match | null, blueTeam: Team | null, redTea
     blueTeam: "",
     redTeam: ""
   });
-  
+
   // Derive teamsSwapped from match data instead of managing it manually
-  const teamsSwapped = originalMatch && match ? 
-    (originalMatch.blueTeamId !== match.blueTeamId || originalMatch.redTeamId !== match.redTeamId) : 
-    false;
+  const teamsSwapped =
+    originalMatch && match
+      ? originalMatch.blueTeamId !== match.blueTeamId || originalMatch.redTeamId !== match.redTeamId
+      : false;
 
   const getMaxGamesByFormat = (format: MatchFormat): number => {
     if (format === "BO1") return 1;
@@ -154,19 +160,19 @@ export const useMatchGames = (match: Match | null, blueTeam: Team | null, redTea
     const updatedGames: GameResult[] = (match.games || []).map((g) => {
       if (g.gameNumber !== gameNumber) return { ...g, winner: g.winner as "blue" | "red" | "ongoing" };
       const newWinner = g.winner === "blue" ? "red" : "blue";
-      
+
       // Swap champion data when game sides are swapped
       const swappedChampionsPlayed: { [teamId: string]: { [playerId: string]: number } } = {};
       if (g.championsPlayed) {
         // Swap the champion data between teams for this specific game
         const blueTeamChampions = g.championsPlayed[match.blueTeamId] || {};
         const redTeamChampions = g.championsPlayed[match.redTeamId] || {};
-        
+
         // Map blue team champions to red team ID and vice versa
         swappedChampionsPlayed[match.redTeamId] = blueTeamChampions;
         swappedChampionsPlayed[match.blueTeamId] = redTeamChampions;
       }
-      
+
       return {
         ...g,
         winner: newWinner,

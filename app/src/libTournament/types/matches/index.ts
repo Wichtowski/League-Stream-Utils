@@ -70,28 +70,32 @@ export interface GameResult {
   blueScore: number;
   redScore: number;
   playerSwapOrder?: { [teamId: string]: string[] };
-  blueTeam: string | {
-    teamId?: string;
-    teamName: string;
-    won: boolean;
-    picks: {
-      championId: number;
-      role?: PlayerRole;
-      player?: string;
-    }[];
-    bans: number[];
-  };
-  redTeam: string | {
-    teamId?: string;
-    teamName: string;
-    won: boolean;
-    picks: {
-      championId: number;
-      role?: PlayerRole;
-      player?: string;
-    }[];
-    bans: number[];
-  };
+  blueTeam:
+    | string
+    | {
+        teamId?: string;
+        teamName: string;
+        won: boolean;
+        picks: {
+          championId: number;
+          role?: PlayerRole;
+          player?: string;
+        }[];
+        bans: number[];
+      };
+  redTeam:
+    | string
+    | {
+        teamId?: string;
+        teamName: string;
+        won: boolean;
+        picks: {
+          championId: number;
+          role?: PlayerRole;
+          player?: string;
+        }[];
+        bans: number[];
+      };
   championsPlayed?: {
     [teamId: string]: { [playerId: string]: number };
   };

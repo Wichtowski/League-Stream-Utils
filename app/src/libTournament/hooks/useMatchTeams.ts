@@ -41,19 +41,19 @@ export const useMatchTeams = (
 
     const swappedGames: GameResult[] = (match.games || []).map((g) => {
       const newWinner = g.winner === "blue" ? "red" : g.winner === "red" ? "blue" : "ongoing";
-      
+
       // Swap champion data when teams are swapped
       const swappedChampionsPlayed: { [teamId: string]: { [playerId: string]: number } } = {};
       if (g.championsPlayed) {
         // Swap the champion data between teams
         const blueTeamChampions = g.championsPlayed[match.blueTeamId] || {};
         const redTeamChampions = g.championsPlayed[match.redTeamId] || {};
-        
+
         // Map blue team champions to red team ID and vice versa
         swappedChampionsPlayed[match.redTeamId] = blueTeamChampions;
         swappedChampionsPlayed[match.blueTeamId] = redTeamChampions;
       }
-      
+
       return {
         ...g,
         winner: newWinner,

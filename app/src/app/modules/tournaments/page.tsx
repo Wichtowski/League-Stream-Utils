@@ -47,7 +47,15 @@ export default function TournamentsPage() {
   const pageProps = {
     title: "My Tournaments",
     breadcrumbs: [{ label: "Tournaments", href: "/modules/tournaments" }],
-    actions: tournaments.length > 0 ? <Link href="/modules/tournaments/create" className="cursor-pointer bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-lg">Create Tournament</Link> : null
+    actions:
+      tournaments.length > 0 ? (
+        <Link
+          href="/modules/tournaments/create"
+          className="cursor-pointer bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-lg"
+        >
+          Create Tournament
+        </Link>
+      ) : null
   };
 
   return (

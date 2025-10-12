@@ -11,10 +11,10 @@ interface SponsorWithinTickerProps {
   className?: string;
 }
 
-export const SponsorWithinTicker = ({ 
-  sponsors, 
-  onIndexChange, 
-  className = "" 
+export const SponsorWithinTicker = ({
+  sponsors,
+  onIndexChange,
+  className = ""
 }: SponsorWithinTickerProps): React.ReactElement => {
   const hasList = Array.isArray(sponsors) && sponsors.length > 0;
   const [index, setIndex] = useState<number>(0);
@@ -69,10 +69,7 @@ export const SponsorWithinTicker = ({
   const activeSponsor: Sponsorship | undefined = hasList ? sponsors[index] : undefined;
 
   if (!activeSponsor) {
-    return (
-      <div className="flex w-[256px] h-[128px] bg-black items-center justify-start">
-      </div>
-    );
+    return <div className="flex w-[256px] h-[128px] bg-black items-center justify-start"></div>;
   }
 
   return (
@@ -91,11 +88,11 @@ export const SponsorWithinTicker = ({
               height={128}
               src={getImageSrc(activeSponsor.logo)}
               alt={activeSponsor.name}
-              className={`${activeSponsor.fullwidth ?? false ? "w-full h-full object-cover" : "w-full h-full object-contain"}`}
-            //   onError={(e) => {
-            //     const target = e.target as HTMLImageElement;
-            //     target.style.display = "none";
-            //   }}
+              className={`${(activeSponsor.fullwidth ?? false) ? "w-full h-full object-cover" : "w-full h-full object-contain"}`}
+              //   onError={(e) => {
+              //     const target = e.target as HTMLImageElement;
+              //     target.style.display = "none";
+              //   }}
             />
           </div>
 

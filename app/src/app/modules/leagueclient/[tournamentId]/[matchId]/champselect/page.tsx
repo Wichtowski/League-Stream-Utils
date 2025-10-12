@@ -158,13 +158,12 @@ const ChampSelectOverlayPage: React.FC = () => {
 
   // Determine current sides based on latest pending game in the series
   const games: GameResult[] = (match as MatchWithTeams).games || [];
-  const pendingGame = [...games].reverse().find((g) => 
-    typeof g.blueTeam === 'object' && typeof g.redTeam === 'object' && 
-    !g.blueTeam.won && !g.redTeam.won
-  );
+  const pendingGame = [...games]
+    .reverse()
+    .find((g) => typeof g.blueTeam === "object" && typeof g.redTeam === "object" && !g.blueTeam.won && !g.redTeam.won);
   let currentBlueTeamPlayers: TeamPlayerLite[] = (match as MatchWithTeams).blueTeam?.players || [];
   let currentRedTeamPlayers: TeamPlayerLite[] = (match as MatchWithTeams).redTeam?.players || [];
-  if (pendingGame && typeof pendingGame.blueTeam === 'object' && typeof pendingGame.redTeam === 'object') {
+  if (pendingGame && typeof pendingGame.blueTeam === "object" && typeof pendingGame.redTeam === "object") {
     const blueName = pendingGame.blueTeam.teamName;
     const redName = pendingGame.redTeam.teamName;
     const blueTeamName = (match as MatchWithTeams).blueTeamName;

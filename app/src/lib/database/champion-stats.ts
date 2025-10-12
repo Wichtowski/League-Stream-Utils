@@ -131,8 +131,8 @@ export async function updateChampionStats(tournamentId: string, gameResult: Game
     tournamentStats.lastUpdated = new Date();
 
     // Type guard to ensure blueTeam and redTeam are objects with picks/bans
-    if (typeof gameResult.blueTeam === 'string' || typeof gameResult.redTeam === 'string') {
-      console.warn('GameResult teams are strings, cannot process champion stats');
+    if (typeof gameResult.blueTeam === "string" || typeof gameResult.redTeam === "string") {
+      console.warn("GameResult teams are strings, cannot process champion stats");
       return;
     }
 
@@ -144,7 +144,8 @@ export async function updateChampionStats(tournamentId: string, gameResult: Game
     for (const pick of allPicks) {
       await updateChampionStat(tournamentStatsObj, pick.championId, "pick", {
         side: allPicks.indexOf(pick) < gameResult.blueTeam.picks.length ? "blue" : "red",
-        won: allPicks.indexOf(pick) < gameResult.blueTeam.picks.length ? gameResult.blueTeam.won : gameResult.redTeam.won,
+        won:
+          allPicks.indexOf(pick) < gameResult.blueTeam.picks.length ? gameResult.blueTeam.won : gameResult.redTeam.won,
         role: pick.role
       });
     }

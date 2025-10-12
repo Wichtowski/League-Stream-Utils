@@ -60,10 +60,10 @@ export default function TeamCameraStreamPage() {
   // Load team players from camera data
   useEffect(() => {
     if (!teamId || camerasLoading) return;
-    
+
     const cameraTeams = cameraTeamsRaw as unknown as CameraTeam[];
     const team = (cameraTeams || []).find((t) => t.teamId === teamId);
-    
+
     if (team) {
       setTeamName(team.teamName);
       const basePlayers = team.players || [];
@@ -124,7 +124,7 @@ export default function TeamCameraStreamPage() {
         { label: "Camera Hub", href: "/modules/cameras" },
         { label: teamName, href: `/modules/cameras/stream/${teamId}`, isActive: true }
       ]
-    }
+    };
   }, [teamName, camerasLoading, teamId]);
 
   if (camerasLoading) {
@@ -143,10 +143,9 @@ export default function TeamCameraStreamPage() {
             {teamName ? "No Players Found" : "Team Not Found"}
           </h2>
           <p className="text-gray-400 mb-4">
-            {teamName 
-              ? `No camera feeds configured for ${teamName}` 
-              : "This team doesn't exist or you don't have access to it"
-            }
+            {teamName
+              ? `No camera feeds configured for ${teamName}`
+              : "This team doesn't exist or you don't have access to it"}
           </p>
           <div className="space-x-4">
             <button

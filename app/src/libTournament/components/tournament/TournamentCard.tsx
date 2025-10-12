@@ -35,15 +35,13 @@ export const TournamentCard = ({
         <div className="flex items-center space-x-2">
           <span
             className={`px-3 py-1 rounded text-sm ${
-              tournament.status === "draft"
+              tournament.status === "registration"
                 ? "bg-yellow-600"
-                : tournament.status === "registration"
-                  ? "bg-blue-600"
-                  : tournament.status === "ongoing"
-                    ? "bg-green-600"
-                    : tournament.status === "completed"
-                      ? "bg-gray-600"
-                      : "bg-red-600"
+                : tournament.status === "ongoing"
+                  ? "bg-green-600"
+                  : tournament.status === "completed"
+                    ? "bg-gray-600"
+                    : "bg-red-600"
             }`}
           >
             {tournament.status.charAt(0).toUpperCase() + tournament.status.slice(1)}
@@ -84,7 +82,7 @@ export const TournamentCard = ({
         >
           Tickers
         </a>
-        {tournament.status === "draft" && (
+        {tournament.status === "registration" && (
           <button
             onClick={() => onStatusUpdate(tournament._id, "registration")}
             className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-sm"
@@ -113,7 +111,7 @@ export const TournamentCard = ({
               Add Standalone Teams
             </button>
             <button
-              onClick={() => onStatusUpdate(tournament._id, "draft")}
+              onClick={() => onStatusUpdate(tournament._id, "ongoing")}
               className="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded text-sm"
             >
               Close Registration

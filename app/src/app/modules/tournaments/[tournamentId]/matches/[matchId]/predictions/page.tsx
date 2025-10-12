@@ -32,7 +32,11 @@ export default function MatchPredictionsPage(): React.ReactElement {
         { label: currentTournament?.name || "Tournament", href: `/modules/tournaments/${tournamentId}` },
         { label: "Matches", href: `/modules/tournaments/${tournamentId}/matches` },
         { label: currentMatch?.name || "Match", href: `/modules/tournaments/${tournamentId}/matches/${matchId}` },
-        { label: "Predictions", href: `/modules/tournaments/${tournamentId}/matches/${matchId}/predictions`, isActive: true }
+        {
+          label: "Predictions",
+          href: `/modules/tournaments/${tournamentId}/matches/${matchId}/predictions`,
+          isActive: true
+        }
       ]
     };
   }, [currentMatch, currentTournament, tournamentId, matchId, loading]);
@@ -129,7 +133,13 @@ export default function MatchPredictionsPage(): React.ReactElement {
       <div className="space-y-6 max-w-4xl">
         <div className="flex items-center justify-between">
           <div className="text-white text-xl font-semibold">{currentMatch.name}</div>
-          <Button onClick={() => router.push(`/modules/tournaments/${tournamentId}/matches/${matchId}`)} variant="secondary" size="sm">Back to Match</Button>
+          <Button
+            onClick={() => router.push(`/modules/tournaments/${tournamentId}/matches/${matchId}`)}
+            variant="secondary"
+            size="sm"
+          >
+            Back to Match
+          </Button>
         </div>
 
         <div className="bg-gray-800 rounded-lg p-6 space-y-6">
@@ -174,7 +184,9 @@ export default function MatchPredictionsPage(): React.ReactElement {
               </div>
             </div>
             <div>
-              <Button onClick={submitPrediction} disabled={submitting || !selectedCommentator} className="w-full">{submitting ? "Submitting..." : "Submit Prediction"}</Button>
+              <Button onClick={submitPrediction} disabled={submitting || !selectedCommentator} className="w-full">
+                {submitting ? "Submitting..." : "Submit Prediction"}
+              </Button>
             </div>
           </div>
 
@@ -184,10 +196,21 @@ export default function MatchPredictionsPage(): React.ReactElement {
               <div className="space-y-2">
                 {currentMatch.predictions.map((p: MatchPrediction, idx: number) => (
                   <div key={idx} className="flex items-center justify-between bg-gray-700 rounded p-3">
-                    <div className="text-white">{(p as unknown as { username?: string }).username || (p as unknown as { commentatorUsername?: string }).commentatorUsername || ""}</div>
+                    <div className="text-white">
+                      {(p as unknown as { username?: string }).username ||
+                        (p as unknown as { commentatorUsername?: string }).commentatorUsername ||
+                        ""}
+                    </div>
                     <div className="flex items-center gap-3">
-                      <div className="text-gray-300 text-sm">{(p as unknown as { blueScore?: number }).blueScore ?? 0} - {(p as unknown as { redScore?: number }).redScore ?? 0}</div>
-                      <div className={`px-2 py-1 rounded text-xs font-semibold ${p.prediction === "blue" ? "bg-blue-600 text-blue-100" : "bg-red-600 text-red-100"}`}>{p.prediction.toUpperCase()}</div>
+                      <div className="text-gray-300 text-sm">
+                        {(p as unknown as { blueScore?: number }).blueScore ?? 0} -{" "}
+                        {(p as unknown as { redScore?: number }).redScore ?? 0}
+                      </div>
+                      <div
+                        className={`px-2 py-1 rounded text-xs font-semibold ${p.prediction === "blue" ? "bg-blue-600 text-blue-100" : "bg-red-600 text-red-100"}`}
+                      >
+                        {p.prediction.toUpperCase()}
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -201,5 +224,3 @@ export default function MatchPredictionsPage(): React.ReactElement {
     </PageWrapper>
   );
 }
-
-

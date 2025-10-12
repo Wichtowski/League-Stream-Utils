@@ -34,9 +34,7 @@ export const HelpSection = (): React.ReactElement => {
           </div>
           <div>
             <h4 className="font-medium text-gray-300 mb-2">VDO Ninja:</h4>
-            <code className="block bg-gray-700 p-2 rounded text-green-400 text-xs">
-              https://vdo.ninja/
-            </code>
+            <code className="block bg-gray-700 p-2 rounded text-green-400 text-xs">https://vdo.ninja/</code>
           </div>
         </div>
         <div className="space-y-4">

@@ -28,9 +28,7 @@ const convertMongoDoc = (doc: Document): Team => {
 
 export const createTeam = async (userId: string, teamData: CreateTeamRequest): Promise<Team> => {
   // compute majority flag from players if possible
-  const countries = (teamData.players?.main || [])
-    .map((p) => p.country)
-    .filter((c): c is string => !!c);
+  const countries = (teamData.players?.main || []).map((p) => p.country).filter((c): c is string => !!c);
   const countryCounts = countries.reduce<Record<string, number>>((acc, c) => {
     acc[c] = (acc[c] || 0) + 1;
     return acc;
@@ -140,8 +138,8 @@ export const updateTeam = async (
     team.players = updates.players as unknown as typeof team.players;
     // recompute majority flag if player countries changed
     const countries = (team.players?.main || [])
-      .map((p: { country?: string }) => p.country)
-      .filter((c: string | undefined): c is string => !!c);
+      .map((p: { country?: string | null }) => p.country)
+      .filter((c: string | null | undefined): c is string => !!c);
     const countryCounts = countries.reduce<Record<string, number>>((acc, c) => {
       acc[c] = (acc[c] || 0) + 1;
       return acc;

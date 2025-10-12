@@ -311,6 +311,46 @@ button {
   animation: scrollLeft 20s linear infinite;
 }
 
+/* Sidebar slide-in animation */
+@keyframes slideInRight {
+  0% {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.4s ease-out forwards;
+  opacity: 0;
+}
+
+/* Fade in animation for sidebar text */
+@keyframes fadeInSidebar {
+  0% {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeInSidebar 0.3s ease-out forwards;
+  opacity: 0;
+}
+
+.animate-fade-in-delayed {
+  animation: fadeInSidebar 0.3s ease-out 0.2s forwards;
+  opacity: 0;
+}
+
 /* Prefers reduced motion support */
 @media (prefers-reduced-motion: reduce) {
   .animate-player-slot {
@@ -338,14 +378,21 @@ button {
   }
 
   .animate-fade-in,
+  .animate-fade-in-delayed,
   .animate-fade-out {
     animation: none;
     opacity: 1;
-    transform: translateX(-50%) translateY(0);
+    transform: translateX(0);
   }
 
   .animate-scroll-left {
     animation: none;
+    transform: translateX(0);
+  }
+
+  .animate-slide-in-right {
+    animation: none;
+    opacity: 1;
     transform: translateX(0);
   }
 }

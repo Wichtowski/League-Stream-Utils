@@ -44,8 +44,8 @@ export const TournamentSchema = new Schema({
 
   status: {
     type: String,
-    enum: ["draft", "registration", "ongoing", "completed", "cancelled"],
-    default: "draft"
+    enum: ["registration", "ongoing", "completed", "cancelled"],
+    default: "registration"
   },
 
   matches: [{ type: String }],

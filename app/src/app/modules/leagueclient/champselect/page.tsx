@@ -6,12 +6,10 @@ import { useNavigation } from "@lib/contexts/NavigationContext";
 import { useDownload } from "@lib/contexts/DownloadContext";
 import { ChampSelectDisplay } from "@libLeagueClient/components/champselect/ChampSelectDisplay";
 import { useLCU, useChampSelectAssets } from "@lib/services";
- 
 
 const ChampSelectOverlayPage: React.FC = () => {
   const { setActiveModule } = useNavigation();
   const { downloadState } = useDownload();
- 
 
   // Use custom hooks for LCU and assets
   const { isConnected, champSelectSession } = useLCU();
@@ -37,13 +35,7 @@ const ChampSelectOverlayPage: React.FC = () => {
 
   const data = champSelectSession as EnhancedChampSelectSession;
 
-  return (
-    <ChampSelectDisplay
-      data={data}
-      roleIcons={assets.roleIcons}
-      banPlaceholder={assets.banPlaceholder}
-    />
-  );
+  return <ChampSelectDisplay data={data} roleIcons={assets.roleIcons} banPlaceholder={assets.banPlaceholder} />;
 };
 
 export default ChampSelectOverlayPage;

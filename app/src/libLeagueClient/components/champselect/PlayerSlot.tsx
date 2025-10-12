@@ -65,11 +65,12 @@ export const PlayerSlotComponent: React.FC<PlayerSlotProps> = ({
 
   const isCurrentPickingPlayer = getCurrentPickingPlayerIndex() === index;
   const isCurrentlyPicking = hoverState?.currentActionType === "pick" && isCurrentPickingPlayer;
-  
+
   // Show hovered champion image when hovering, otherwise show picked champion
-  const image = hoverState?.isHovering && hoverState?.hoveredChampionId && isCurrentPickingPlayer 
-    ? getChampionCenteredSplashImage(hoverState.hoveredChampionId)
-    : getChampionCenteredSplashImage(player.championId);
+  const image =
+    hoverState?.isHovering && hoverState?.hoveredChampionId && isCurrentPickingPlayer
+      ? getChampionCenteredSplashImage(hoverState.hoveredChampionId)
+      : getChampionCenteredSplashImage(player.championId);
   const [recentlyPicked, setRecentlyPicked] = useState(false);
   const isPlaceholder = player.cellId < 0;
   const championPicked = player.championId > 0;
@@ -169,7 +170,13 @@ export const PlayerSlotComponent: React.FC<PlayerSlotProps> = ({
         {!isPlaceholder && image && image.trim() !== "" ? (
           <Image
             src={image}
-            alt={player.summonerName || player.playerInfo?.name || player?.gameName || getChampionName(player.championId) || ""}
+            alt={
+              player.summonerName ||
+              player.playerInfo?.name ||
+              player?.gameName ||
+              getChampionName(player.championId) ||
+              ""
+            }
             fill
             sizes="100vw"
             className="object-cover object-center absolute inset-0 z-0"
@@ -187,12 +194,12 @@ export const PlayerSlotComponent: React.FC<PlayerSlotProps> = ({
               />
             ) : (
               <Image
-              src={roleIcons[indexToRole(index)] || ""}
-              alt={indexToRole(index) || ""}
-              width={12}
-              height={12}
-              className="w-12 h-12 object-contain"
-            />
+                src={roleIcons[indexToRole(index)] || ""}
+                alt={indexToRole(index) || ""}
+                width={12}
+                height={12}
+                className="w-12 h-12 object-contain"
+              />
             )}
           </div>
         )}

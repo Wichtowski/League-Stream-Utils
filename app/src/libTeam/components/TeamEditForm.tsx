@@ -66,12 +66,7 @@ export const TeamEditForm: React.FC<TeamEditFormProps> = ({ team, onSave, onCanc
     onLogoChange: (logo) => updateFormData({ logo })
   });
 
-  const {
-    useManualColors,
-    generateColorsFromLogo,
-    handleColorChange,
-    toggleColorMode
-  } = useTeamColors({
+  const { useManualColors, generateColorsFromLogo, handleColorChange, toggleColorMode } = useTeamColors({
     initialColors: team.colors,
     onColorsChange: (colors) => updateFormData({ colors })
   });
@@ -322,9 +317,11 @@ export const TeamEditForm: React.FC<TeamEditFormProps> = ({ team, onSave, onCanc
                 <input
                   type="url"
                   value={editFormData.socialMedia?.twitter || ""}
-                  onChange={(e) => updateFormData({ 
-                    socialMedia: { ...editFormData.socialMedia, twitter: e.target.value }
-                  })}
+                  onChange={(e) =>
+                    updateFormData({
+                      socialMedia: { ...editFormData.socialMedia, twitter: e.target.value }
+                    })
+                  }
                   className="w-full bg-gray-700 rounded px-3 py-2 text-white"
                   placeholder="https://twitter.com/team"
                 />
@@ -334,9 +331,11 @@ export const TeamEditForm: React.FC<TeamEditFormProps> = ({ team, onSave, onCanc
                 <input
                   type="text"
                   value={editFormData.socialMedia?.discord || ""}
-                  onChange={(e) => updateFormData({ 
-                    socialMedia: { ...editFormData.socialMedia, discord: e.target.value }
-                  })}
+                  onChange={(e) =>
+                    updateFormData({
+                      socialMedia: { ...editFormData.socialMedia, discord: e.target.value }
+                    })
+                  }
                   className="w-full bg-gray-700 rounded px-3 py-2 text-white"
                   placeholder="Discord server invite"
                 />
@@ -346,9 +345,11 @@ export const TeamEditForm: React.FC<TeamEditFormProps> = ({ team, onSave, onCanc
                 <input
                   type="url"
                   value={editFormData.socialMedia?.website || ""}
-                  onChange={(e) => updateFormData({ 
+                  onChange={(e) =>
+                    updateFormData({
                       socialMedia: { ...editFormData.socialMedia, website: e.target.value }
-                  })}
+                    })
+                  }
                   className="w-full bg-gray-700 rounded px-3 py-2 text-white"
                   placeholder="https://team-website.com"
                 />

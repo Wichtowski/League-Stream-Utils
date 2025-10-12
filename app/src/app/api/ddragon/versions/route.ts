@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
 const DDRAGON_BASE_URL = "https://ddragon.leagueoflegends.com";
 
@@ -15,19 +15,16 @@ export async function GET(): Promise<NextResponse> {
     }
 
     const versions = await response.json();
-    
+
     return NextResponse.json(versions, {
       headers: {
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "GET",
-        "Access-Control-Allow-Headers": "Content-Type",
-      },
+        "Access-Control-Allow-Headers": "Content-Type"
+      }
     });
   } catch (error) {
     console.error("Failed to fetch Data Dragon versions:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch versions" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to fetch versions" }, { status: 500 });
   }
 }
