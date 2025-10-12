@@ -2,7 +2,7 @@
 
 import { useElectron } from "@libElectron/contexts/ElectronContext";
 import { useRouter } from "next/navigation";
-import { Cog6ToothIcon } from "@heroicons/react/24/outline";
+import { HiOutlineCog6Tooth } from "react-icons/hi2";
 
 export const SettingsCog = ({ blured }: { blured?: boolean }) => {
   const { isElectron, useLocalData } = useElectron();
@@ -23,7 +23,7 @@ export const SettingsCog = ({ blured }: { blured?: boolean }) => {
         className="p-2 bg-gray-800/50 hover:bg-gray-700/50 rounded-lg border border-gray-600/50 hover:border-gray-500/50 transition-colors"
         title="Settings"
       >
-        <Cog6ToothIcon className="w-5 h-5 text-gray-400 hover:text-gray-300" />
+        <HiOutlineCog6Tooth  className="w-5 h-5 text-gray-400 hover:text-gray-300" />
       </button>
     </div>
   ) : undefined;

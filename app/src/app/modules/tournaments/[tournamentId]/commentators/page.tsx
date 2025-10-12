@@ -8,6 +8,7 @@ import { LoadingSpinner } from "@lib/components/common";
 import { Tournament } from "@libTournament/types";
 import { PageWrapper } from "@lib/layout";
 import { Match, Commentator } from "@libTournament/types";
+import { TbDeviceTvFilled } from "react-icons/tb";
 
 export default function CommentatorsPage(): React.ReactElement {
   const router = useRouter();
@@ -320,7 +321,7 @@ export default function CommentatorsPage(): React.ReactElement {
                     )}
                     {commentator.twitchHandle && (
                       <span key="twitch" className="text-purple-400 text-sm">
-                        📺 {commentator.twitchHandle}
+                        <TbDeviceTvFilled className="w-4 h-4" /> {commentator.twitchHandle}
                       </span>
                     )}
                   </div>

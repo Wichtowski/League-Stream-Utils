@@ -4,11 +4,19 @@ import React, { useEffect, useMemo } from "react";
 import { useNavigation } from "@lib/contexts/NavigationContext";
 import { useAuth } from "@lib/contexts/AuthContext";
 import { PageWrapper } from "@lib/layout";
+import { useCurrentTournament, useCurrentMatch } from "@lib/contexts";
 import Link from "next/link";
+import { Match, Tournament } from "@/libTournament/types";
+import { useElectron } from "@/libElectron/contexts/ElectronContext";
+
 
 export default function LeagueClientPage(): React.ReactElement {
   const { setActiveModule } = useNavigation();
   const { user: _user, isLoading: _authLoading } = useAuth();
+  const { currentTournament } = useCurrentTournament();
+  const { currentMatch } = useCurrentMatch();
+  const { isElectron } = useElectron();
+  
   const pageProps = useMemo(() => {
     return {
       title: "League Client Integration",
@@ -24,12 +32,14 @@ export default function LeagueClientPage(): React.ReactElement {
   interface LeagueClientCardProps {
     title: string;
     description: string;
-    url: string;
+    routeKey: string;
     icon: React.ReactNode;
     accent: "blue" | "green";
+    currentTournament: Tournament | null;
+    currentMatch: Match | null;
   }
 
-  const LeagueClientCard = ({ title, description, url, icon, accent }: LeagueClientCardProps): React.ReactElement => {
+  const LeagueClientCard = ({ title, description, routeKey, icon, accent, currentTournament, currentMatch }: LeagueClientCardProps): React.ReactElement => {
     const accentStyles =
       accent === "blue"
         ? {
@@ -53,13 +63,24 @@ export default function LeagueClientPage(): React.ReactElement {
           <p className="text-sm text-gray-400 mb-4">{description}</p>
           <div className="flex items-stretch justify-between gap-4">
             <Link
-              href={`${url}/demo`}
+              href={`/modules/leagueclient/${routeKey}/demo`}
               target="_blank"
               className={`inline-flex items-center justify-center px-5 h-10 text-sm md:text-base font-medium rounded-md border ${accentStyles.btn} min-w-[180px]`}
             >
               Open Demo
             </Link>
           </div>
+          {isElectron && currentTournament && currentMatch && (
+            <>
+              <Link
+                href={`/modules/leagueclient/${currentTournament?._id}/${currentMatch?._id}/${routeKey}`}
+                target="_blank"
+                className={`inline-flex items-center justify-center px-5 h-10 text-sm md:text-base font-medium rounded-md border ${accentStyles.btn} min-w-[180px]`}
+              >
+                Live Game
+              </Link>
+            </>
+          )}
         </div>
       </div>
     );
@@ -72,29 +93,33 @@ export default function LeagueClientPage(): React.ReactElement {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Champion Select */}
             <LeagueClientCard
-              key="champion-select"
+              key="champselect"
+              routeKey="champselect"
               title="Champion Select"
               description="Dynamic picks/bans and team composition"
-              url="/modules/leagueclient/champselect"
               icon={
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
               }
               accent="blue"
+              currentTournament={currentTournament}
+              currentMatch={currentMatch}
             />
 
             <LeagueClientCard
-              key="live-game"
+              key="game"
+              routeKey="game"
               title="Live Game"
               description="In-game overlay with real-time stats"
-              url="/modules/leagueclient/game"
               icon={
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
               }
               accent="green"
+              currentTournament={currentTournament}
+              currentMatch={currentMatch}
             />
           </div>
 

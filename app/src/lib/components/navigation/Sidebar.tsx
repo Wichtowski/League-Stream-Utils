@@ -8,10 +8,11 @@ import { useAuth } from "@lib/contexts/AuthContext";
 import { useElectron } from "@libElectron/contexts/ElectronContext";
 import { useCurrentMatch, useCurrentTournament } from "@lib/contexts";
 import { getVisibleModules, ModuleCard } from "@lib/navigation";
-import { Bars3Icon, XMarkIcon, Cog6ToothIcon, ArrowRightStartOnRectangleIcon } from "@heroicons/react/24/outline";
+import { Bars3Icon, XMarkIcon, ArrowRightStartOnRectangleIcon } from "@heroicons/react/24/outline";
 import { isHiddenBehindTournament } from "@lib/components/modules/SpotlightCard";
 import { AiOutlineHome, AiFillHome } from "react-icons/ai";
 import { CiCoffeeCup } from "react-icons/ci";
+import { HiOutlineCog6Tooth } from "react-icons/hi2";
 
 export const Sidebar = (): React.ReactElement => {
   const { activeModule, sidebarCollapsed, toggleSidebar, setSidebarCollapsed } = useNavigation();
@@ -387,7 +388,7 @@ export const Sidebar = (): React.ReactElement => {
                   }
                 }}
               >
-                <Cog6ToothIcon
+                <HiOutlineCog6Tooth
                   className={`flex-shrink-0 w-8 h-8  transition-all duration-200 ${
                     activeModule === "settings" ? "text-white" : `${useLocalData ? "text-green-400" : "text-blue-400"}`
                   }`}
