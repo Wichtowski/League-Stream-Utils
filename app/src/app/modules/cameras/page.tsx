@@ -30,6 +30,7 @@ export default function CamerasPage(): ReactElement {
   const { tournaments, loading: tournamentsLoading, refreshTournaments } = useTournaments();
   const [tournamentPage, setTournamentPage] = useState(1);
   const [teamsPageByTournament, setTeamsPageByTournament] = useState<Record<string, number>>({});
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     setActiveModule("cameras");
@@ -54,7 +55,7 @@ export default function CamerasPage(): ReactElement {
   const TOURNAMENTS_PER_PAGE = 2;
   const TEAMS_PER_TOURNAMENT = 4;
 
-  const { tournamentsWithTeams, unassignedTeams } = useMemo(() => {
+  const { filteredTournamentsWithTeams, filteredUnassignedTeams } = useMemo(() => {
     const byTournament: { tournament: Tournament; teams: MergedTeamWithPlayers[] }[] = [];
 
     tournaments.forEach((t) => {
@@ -70,36 +71,62 @@ export default function CamerasPage(): ReactElement {
     const assignedIds = new Set(byTournament.flatMap((x) => x.teams.map((tt) => tt._id)));
     const unassigned = mergedTeams.filter((mt) => !assignedIds.has(mt._id));
 
-    return { tournamentsWithTeams: byTournament, unassignedTeams: unassigned };
-  }, [tournaments, mergedTeams]);
+    // Apply search filter
+    const searchLower = searchQuery.toLowerCase().trim();
+    let filteredTournaments = byTournament;
+    let filteredUnassigned = unassigned;
+
+    if (searchLower) {
+      filteredTournaments = byTournament.filter(({ tournament, teams }) => {
+        const tournamentMatches = tournament.name.toLowerCase().includes(searchLower);
+        const teamMatches = teams.some(team => 
+          team.name.toLowerCase().includes(searchLower) ||
+          team.players.main.some(p => p.inGameName.toLowerCase().includes(searchLower)) ||
+          team.players.substitutes.some(p => p.inGameName.toLowerCase().includes(searchLower))
+        );
+        return tournamentMatches || teamMatches;
+      });
+
+      filteredUnassigned = unassigned.filter(team =>
+        team.name.toLowerCase().includes(searchLower) ||
+        team.players.main.some(p => p.inGameName.toLowerCase().includes(searchLower)) ||
+        team.players.substitutes.some(p => p.inGameName.toLowerCase().includes(searchLower))
+      );
+    }
+
+    return { 
+      filteredTournamentsWithTeams: filteredTournaments,
+      filteredUnassignedTeams: filteredUnassigned
+    };
+  }, [tournaments, mergedTeams, searchQuery]);
 
   const paginatedTournamentGroups = useMemo(() => {
-    const totalPages = Math.max(1, Math.ceil(tournamentsWithTeams.length / TOURNAMENTS_PER_PAGE));
+    const totalPages = Math.max(1, Math.ceil(filteredTournamentsWithTeams.length / TOURNAMENTS_PER_PAGE));
     const currentPage = Math.min(Math.max(1, tournamentPage), totalPages);
     const startIndex = (currentPage - 1) * TOURNAMENTS_PER_PAGE;
     const endIndex = startIndex + TOURNAMENTS_PER_PAGE;
     return {
-      groups: tournamentsWithTeams.slice(startIndex, endIndex),
+      groups: filteredTournamentsWithTeams.slice(startIndex, endIndex),
       totalPages,
       currentPage
     };
-  }, [tournamentsWithTeams, tournamentPage]);
+  }, [filteredTournamentsWithTeams, tournamentPage]);
 
   const pageProps = useMemo(() => {
     return {
       requireAuth: false,
       title: "Camera Control",
-      breadcrumbs: [{ label: "Camera Hub", href: "/modules/cameras", isActive: true }],
+      breadcrumbs: [{ label: "Cameras", href: "/modules/cameras", isActive: true }],
       subtitle:
         cameraTeamsRaw.length > 0
           ? `${mergedTeams.reduce(
               (sum: number, team: MergedTeamWithPlayers) =>
                 sum + team.players.main.length + team.players.substitutes.length,
               0
-            )} cameras across ${mergedTeams.length} teams`
+            )} cameras across ${mergedTeams.length} teams across ${tournaments.length} tournaments`
           : ""
     };
-  }, [mergedTeams, cameraTeamsRaw.length]);
+  }, [mergedTeams, cameraTeamsRaw.length, tournaments.length]);
 
   if (authLoading || loading) {
     return (
@@ -111,36 +138,34 @@ export default function CamerasPage(): ReactElement {
 
   return (
     <PageWrapper {...pageProps}>
-      <div className={`grid grid-cols-1 gap-6 mb-8 md:grid-cols-2`}>
-        <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-          <h2 className="text-xl font-bold text-white mb-3">📺 Team Streams</h2>
-          <p className="text-gray-400 mb-4">Team-based camera switching with keyboard controls</p>
-          <button
-            onClick={() => router.push("/modules/cameras/setup")}
-            className="cursor-pointer w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg transition-colors"
-          >
-            Team Stream Configuration
-          </button>
+      <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-bold text-white">Tournaments Overview</h2>
+          <div className="flex items-center space-x-2">
+            <input
+              type="text"
+              placeholder="Search tournaments and teams..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="px-3 py-2 w-80 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            <div className={`w-full center justify-center transition-all duration-300 ease-in-out overflow-hidden ${
+              searchQuery ? 'max-w-20 opacity-100' : 'max-w-0 opacity-0'
+            }`}>
+              <button
+                onClick={() => setSearchQuery("")}
+                className="px-3 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded-lg transition-colors whitespace-nowrap"
+              >
+                Clear
+              </button>
+            </div>
+          </div>
         </div>
 
-        <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-          <h2 className="text-xl font-bold text-white mb-3">📱 Multi View</h2>
-          <p className="text-gray-400 mb-4">Grid layout showing all cameras simultaneously</p>
-          <button
-            onClick={() => router.push("/modules/cameras/all")}
-            className="cursor-pointer w-full bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-lg transition-colors"
-          >
-            All Cameras Grid
-          </button>
-        </div>
-      </div>
-
-      {paginatedTournamentGroups.groups.length > 0 && (
-        <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-          <h2 className="text-xl font-bold text-white mb-4">Teams Overview</h2>
-
-          <div className="space-y-6">
-            {paginatedTournamentGroups.groups.map(({ tournament, teams }) => {
+        {paginatedTournamentGroups.groups.length > 0 ? (
+          <>
+            <div className="space-y-6">
+              {paginatedTournamentGroups.groups.map(({ tournament, teams }) => {
               const teamsPage = teamsPageByTournament[tournament._id] || 1;
               const totalTeamPages = Math.max(1, Math.ceil(teams.length / TEAMS_PER_TOURNAMENT));
               const teamsStart = (Math.min(teamsPage, totalTeamPages) - 1) * TEAMS_PER_TOURNAMENT;
@@ -172,7 +197,7 @@ export default function CamerasPage(): ReactElement {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {teamsSlice.map((team: MergedTeamWithPlayers) => (
                           <div key={team._id} className="bg-gray-600 rounded-lg p-4">
-                            <Link href={`/modules/cameras/setup/${team._id}`} className="cursor-pointer">
+                            <Link href={`/modules/cameras/${team._id}`} className="cursor-pointer">
                               <div className="flex justify-between items-center mb-2">
                                 <h3 className="font-semibold text-white flex items-center gap-2">
                                   {team.logo?.data ? (
@@ -231,23 +256,42 @@ export default function CamerasPage(): ReactElement {
             })}
           </div>
 
-          <div className="mt-6">
-            <Pagination
-              currentPage={paginatedTournamentGroups.currentPage}
-              totalPages={paginatedTournamentGroups.totalPages}
-              onPageChange={(p: number) =>
-                setTournamentPage(Math.max(1, Math.min(paginatedTournamentGroups.totalPages, p)))
-              }
-            />
+            <div>
+              <Pagination
+                currentPage={paginatedTournamentGroups.currentPage}
+                totalPages={paginatedTournamentGroups.totalPages}
+                onPageChange={(p: number) =>
+                  setTournamentPage(Math.max(1, Math.min(paginatedTournamentGroups.totalPages, p)))
+                }
+              />
+            </div>
+          </>
+        ) : (
+          <div className="text-center py-8">
+            <div className="text-gray-400 text-lg mb-2">
+              {searchQuery ? "No tournaments or teams found matching your search" : "No tournaments available"}
+            </div>
+            <div className="flex justify-center">
+              <div className={`transition-all duration-300 ease-in-out overflow-hidden ${
+                searchQuery ? 'max-w-32 opacity-100' : 'max-w-0 opacity-0'
+              }`}>
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="text-blue-400 hover:text-blue-300 underline"
+                >
+                  Clear search
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
-      {unassignedTeams.length > 0 && (
-        <div className="mt-6 bg-gray-800 rounded-lg p-6 border border-gray-700">
-          <h2 className="text-lg font-semibold text-white mb-4">Unassigned Teams</h2>
+      <div className="mt-6 bg-gray-800 rounded-lg p-6 border border-gray-700">
+        <h2 className="text-lg font-semibold text-white mb-4">Unassigned Teams</h2>
+        {filteredUnassignedTeams.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {unassignedTeams.map((team: MergedTeamWithPlayers) => (
+            {filteredUnassignedTeams.map((team: MergedTeamWithPlayers) => (
               <div key={team._id} className="bg-gray-700 rounded-lg p-4">
                 <Link href={`/modules/teams/${team._id}`} className="cursor-pointer">
                   <div className="flex justify-between items-center mb-2">
@@ -292,8 +336,39 @@ export default function CamerasPage(): ReactElement {
               </div>
             ))}
           </div>
+        ) : (
+          <div className="text-center py-8">
+            <div className="text-gray-400 text-lg mb-2">
+              {searchQuery ? "No unassigned teams found matching your search" : "No unassigned teams available"}
+            </div>
+            <div className="flex justify-center">
+              <div className={`transition-all duration-300 ease-in-out overflow-hidden ${
+                searchQuery ? 'max-w-32 opacity-100' : 'max-w-0 opacity-0'
+              }`}>
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="text-blue-400 hover:text-blue-300 underline whitespace-nowrap"
+                >
+                  Clear search
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className={`grid grid-cols-1 gap-6 mb-8 mt-8`}>
+        <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+          <h2 className="text-xl font-bold text-white mb-3">📱 Multi View</h2>
+          <p className="text-gray-400 mb-4">Grid layout showing all cameras within current tournament simultaneously</p>
+          <button
+            onClick={() => router.push("/modules/cameras/all")}
+            className="cursor-pointer w-full bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-lg transition-colors"
+          >
+            All Cameras Grid
+          </button>
         </div>
-      )}
+      </div>
 
       <div className="mt-8 bg-gray-800 rounded-lg p-4 border border-gray-700">
         <h3 className="text-lg font-semibold text-white mb-2">Keyboard Controls</h3>

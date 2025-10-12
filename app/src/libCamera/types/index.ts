@@ -1,6 +1,6 @@
 export interface CameraPlayer {
   playerId?: string;
-  playerName?: string;
+  playerName: string;
   inGameName?: string;
   name?: string;
   url?: string;

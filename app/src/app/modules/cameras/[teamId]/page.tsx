@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, type ReactElement, useMemo } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useNavigation } from "@lib/contexts/NavigationContext";
 import { useModal } from "@lib/contexts/ModalContext";
 import { useAuth } from "@lib/contexts/AuthContext";
@@ -11,17 +11,16 @@ import { CameraPlayer, CameraTeam } from "@libCamera/types";
 import {
   TeamSetupHeader,
   ProgressBar,
-  TeamStreamSection,
-  PlayerStreamCard,
+  StreamUrlInput,
   QuickActions,
   HelpSection
 } from "@libCamera/components";
 import { useMergedCameraTeams } from "@lib/hooks/useMergedCameraTeams";
 import { PageWrapper } from "@lib/layout/PageWrapper";
 import { LoadingSpinner } from "@lib/components/common";
+import { validateStreamUrl } from "@libCamera/utils/urlValidation";
 
 export default function TeamCameraSetupPage(): ReactElement {
-  const router = useRouter();
   const params = useParams();
   const teamId = params.teamId as string;
   const { setActiveModule } = useNavigation();
@@ -33,16 +32,15 @@ export default function TeamCameraSetupPage(): ReactElement {
 
   const [team, setTeam] = useState<CameraTeam | null>(null);
   const [saving, setSaving] = useState(false);
-
+  const [isMobile, setIsMobile] = useState(false);
   const baseTeam = mergedTeams.find((t) => t._id === teamId);
 
   const pageProps = useMemo(() => {
     return {
       title: "Manage camera stream settings",
       breadcrumbs: [
-        { label: "Camera Hub", href: "/modules/cameras" },
-        { label: "Setup", href: `/modules/cameras/setup` },
-        { label: team?.teamName || "Camera Setup", href: `/modules/cameras/setup/${teamId}`, isActive: true }
+        { label: "Cameras", href: "/modules/cameras" },
+        { label: team?.teamName || "Camera Setup", href: `/modules/cameras/${teamId}`, isActive: true }
       ]
     };
   }, [team, teamId]);
@@ -51,12 +49,22 @@ export default function TeamCameraSetupPage(): ReactElement {
     setActiveModule("cameras");
   }, [setActiveModule]);
 
+  useEffect(() => {
+    const updateWindowWidth = (): void => {
+      setIsMobile(window.innerWidth <= 1280 && window.innerWidth > 0);
+    };
+    
+    updateWindowWidth();
+    window.addEventListener('resize', updateWindowWidth);
+    
+    return () => {
+      window.removeEventListener('resize', updateWindowWidth);
+    };
+  }, []);
+
   // Build team data when baseTeam is available
   useEffect(() => {
     if (!baseTeam) return;
-
-    console.log("Building team data for:", baseTeam.name);
-    console.log("Base team allPlayers:", baseTeam.allPlayers);
 
     const cameraTeams = (cameraTeamsRaw as unknown as CameraTeam[]) || [];
     const foundTeam = cameraTeams.find((t) => t.teamId === teamId) || null;
@@ -74,8 +82,6 @@ export default function TeamCameraSetupPage(): ReactElement {
         imagePath: cameraPlayer?.imagePath || ""
       };
     });
-
-    console.log("Mapped players:", allPlayers);
 
     setTeam({
       teamId: baseTeam._id,
@@ -104,6 +110,35 @@ export default function TeamCameraSetupPage(): ReactElement {
 
   const saveSettings = async () => {
     if (!team) return;
+
+    const invalidUrls: string[] = [];
+    
+    // Check team stream URL
+    if (team.teamStreamUrl && team.teamStreamUrl.trim() !== "") {
+      const teamValidation = validateStreamUrl(team.teamStreamUrl);
+      if (!teamValidation.isValid) {
+        invalidUrls.push(`Team Stream: ${teamValidation.error}`);
+      }
+    }
+    
+    // Check player URLs
+    team.players.forEach((player) => {
+      if (player.url && player.url.trim() !== "") {
+        const playerValidation = validateStreamUrl(player.url);
+        if (!playerValidation.isValid) {
+          invalidUrls.push(`${player.playerName || player.inGameName || "Player"}: ${playerValidation.error}`);
+        }
+      }
+    });
+    
+    // Show error if any URLs are invalid
+    if (invalidUrls.length > 0) {
+      await showAlert({
+        type: "error",
+        message: `Invalid URLs found:\n${invalidUrls.join("\n")}`
+      });
+      return;
+    }
 
     try {
       setSaving(true);
@@ -163,12 +198,6 @@ export default function TeamCameraSetupPage(): ReactElement {
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
             <h2 className="text-2xl font-bold text-white mb-4">Team Not Found</h2>
-            <button
-              onClick={() => router.push("/modules/cameras/setup")}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg"
-            >
-              Back to Setup
-            </button>
           </div>
         </div>
       </PageWrapper>
@@ -195,14 +224,64 @@ export default function TeamCameraSetupPage(): ReactElement {
             total={team.players.length}
           />
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
-            <TeamStreamSection teamStreamUrl={team.teamStreamUrl || ""} onChange={updateTeamStreamUrl} />
-            {team.players.map((player) => (
-              <PlayerStreamCard key={player.playerId} player={player} onChange={updatePlayerUrl} />
-            ))}
+          <div className="space-y-6 mb-8">
+            <StreamUrlInput
+              title="Team Stream"
+              description="Single stream representing the whole team"
+              url={team.teamStreamUrl || ""}
+              onChange={updateTeamStreamUrl}
+              placeholder="https://twitch.tv/team or OBS Stream URL"
+              className="w-full"
+            />
+            {!isMobile ? (
+              <>
+                {/* Top row - 3 players */}
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {team.players.slice(0, 3).map((player) => (
+                    <StreamUrlInput
+                      key={player.playerId}
+                      title={player.playerName || player.inGameName || "Unknown Player"}
+                      url={player.url || ""}
+                      onChange={(url) => updatePlayerUrl(player.playerId || "", url)}
+                      placeholder="https://twitch.tv/player or OBS Stream URL"
+                    />
+                  ))}
+                </div>
+                
+                {/* Bottom row - 2 players centered */}
+                {team.players.length > 3 && (
+                  <div className="flex justify-center w-full">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {team.players.slice(3, 5).map((player) => (
+                        <StreamUrlInput
+                          key={player.playerId}
+                          title={player.playerName || player.inGameName || "Unknown Player"}
+                          url={player.url || ""}
+                          onChange={(url) => updatePlayerUrl(player.playerId || "", url)}
+                          className="min-w-[334px] min-h-[184px]"
+                          placeholder="https://twitch.tv/player or OBS Stream URL"
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                {team.players.map((player) => (
+                  <StreamUrlInput
+                    key={player.playerId}
+                    title={player.playerName || player.inGameName || "Unknown Player"}
+                    url={player.url || ""}
+                    onChange={(url) => updatePlayerUrl(player.playerId || "", url)}
+                    placeholder="https://twitch.tv/player or OBS Stream URL"
+                  />
+                ))}
+              </div>
+            )}
           </div>
 
-          <QuickActions teamId={teamId} />
+          <QuickActions teamId={teamId} players={team.players} isMobile={isMobile} />
 
           <HelpSection />
         </div>

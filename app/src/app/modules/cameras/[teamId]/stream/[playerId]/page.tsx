@@ -13,7 +13,8 @@ export default function PlayerCameraStreamPage() {
   const router = useRouter();
   const params = useParams();
   const teamId = params.teamId as string;
-  const playerName = decodeURIComponent(params.player as string);
+  const playerId = params.playerId as string;
+
   const { setActiveModule } = useNavigation();
   const { authenticatedFetch } = useAuthenticatedFetch();
   const [player, setPlayer] = useState<CameraPlayer | null>(null);
@@ -54,7 +55,7 @@ export default function PlayerCameraStreamPage() {
             setTeamName(team.teamName);
 
             // Find the specific player
-            const foundPlayer = team.players.find((p: CameraPlayer) => p.playerName === playerName);
+            const foundPlayer = team.players.find((p: CameraPlayer) => p.playerName === playerId);
 
             if (foundPlayer) {
               setPlayer({
@@ -65,7 +66,7 @@ export default function PlayerCameraStreamPage() {
               });
             } else {
               console.error("Player not found");
-              router.push(`/modules/cameras/stream/${teamId}`);
+              router.push(`/modules/cameras/${teamId}`);
             }
           } else {
             console.error("Team not found");
@@ -81,10 +82,10 @@ export default function PlayerCameraStreamPage() {
       }
     };
 
-    if (teamId && playerName) {
+    if (teamId && playerId) {
       checkAccessAndFetchPlayer();
     }
-  }, [teamId, playerName, router, setActiveModule, authenticatedFetch]);
+  }, [teamId, playerId, router, setActiveModule, authenticatedFetch]);
 
   return (
     <AuthGuard>
@@ -108,7 +109,7 @@ export default function PlayerCameraStreamPage() {
                   onClick={() => router.push("/modules/cameras")}
                   className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg transition-colors"
                 >
-                  Camera Hub
+                  Cameras Hub
                 </button>
               </div>
             </div>
@@ -120,11 +121,11 @@ export default function PlayerCameraStreamPage() {
             <div className="text-center">
               <h2 className="text-2xl font-bold text-white mb-4">Player Not Found</h2>
               <p className="text-gray-400 mb-6">
-                {teamName ? `Player "${playerName}" not found in ${teamName}` : "Player or team not found"}
+                {teamName ? `Player "${playerId}" not found in ${teamName}` : "Player or team not found"}
               </p>
               <div className="space-x-4">
                 <button
-                  onClick={() => router.push(`/modules/cameras/stream/${teamId}`)}
+                  onClick={() => router.push(`/modules/cameras/${teamId}`)}
                   className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors"
                 >
                   Back to Team
@@ -133,7 +134,7 @@ export default function PlayerCameraStreamPage() {
                   onClick={() => router.push("/modules/cameras")}
                   className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg transition-colors"
                 >
-                  Camera Hub
+                  Cameras Hub
                 </button>
               </div>
             </div>

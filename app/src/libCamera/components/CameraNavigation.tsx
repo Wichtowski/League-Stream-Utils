@@ -40,7 +40,7 @@ export const CameraNavigation = ({
     <div className={`${positionClasses[position]} flex space-x-2`}>
       {showTeamView && teamId && (
         <button
-          onClick={() => router.push(`/modules/cameras/stream/${teamId}`)}
+          onClick={() => router.push(`/modules/cameras/${teamId}/stream/whole`)}
           className="bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded-lg text-sm transition-colors"
         >
           Team View
@@ -52,7 +52,7 @@ export const CameraNavigation = ({
           onClick={() => router.push("/modules/cameras")}
           className="bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded-lg text-sm transition-colors"
         >
-          Camera Hub
+          Cameras Hub
         </button>
       )}
 

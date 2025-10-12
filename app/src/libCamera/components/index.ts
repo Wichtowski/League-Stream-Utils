@@ -4,8 +4,7 @@ import { PlayerInfoHeader } from "./PlayerInfoHeader";
 import { CameraLayout } from "./CameraLayout";
 import { TeamSetupHeader } from "./TeamSetupHeader";
 import { ProgressBar } from "./ProgressBar";
-import { TeamStreamSection } from "./TeamStreamSection";
-import { PlayerStreamCard } from "./PlayerStreamCard";
+import { StreamUrlInput } from "./StreamUrlInput";
 import { QuickActions } from "./QuickActions";
 import { HelpSection } from "./HelpSection";
 
@@ -16,8 +15,7 @@ export {
   CameraLayout,
   TeamSetupHeader,
   ProgressBar,
-  TeamStreamSection,
-  PlayerStreamCard,
+  StreamUrlInput,
   QuickActions,
   HelpSection
 };

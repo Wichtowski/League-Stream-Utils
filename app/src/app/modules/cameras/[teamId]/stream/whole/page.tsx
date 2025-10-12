@@ -66,8 +66,8 @@ export default function TeamCameraStreamPage() {
     return {
       title: !teamName ? (loading ? "Loading..." : "Team not found") : teamName,
       breadcrumbs: [
-        { label: "Camera Hub", href: "/modules/cameras" },
-        { label: teamName, href: `/modules/cameras/stream/${teamId}`, isActive: true }
+        { label: "Cameras", href: "/modules/cameras" },
+        { label: teamName, href: `/modules/cameras/${teamId}/stream`, isActive: true }
       ]
     };
   }, [teamName, loading, teamId]);
@@ -97,7 +97,7 @@ export default function TeamCameraStreamPage() {
               onClick={() => router.push("/modules/cameras")}
               className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors"
             >
-              Camera Hub
+              Cameras Hub
             </button>
             <button
               onClick={() => router.push("/modules/teams")}
