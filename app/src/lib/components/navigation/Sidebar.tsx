@@ -8,14 +8,10 @@ import { useAuth } from "@lib/contexts/AuthContext";
 import { useElectron } from "@libElectron/contexts/ElectronContext";
 import { useCurrentMatch, useCurrentTournament } from "@lib/contexts";
 import { getVisibleModules, ModuleCard } from "@lib/navigation";
-import {
-  Bars3Icon,
-  XMarkIcon,
-  Cog6ToothIcon,
-  HomeIcon,
-  ArrowRightStartOnRectangleIcon
-} from "@heroicons/react/24/outline";
+import { Bars3Icon, XMarkIcon, Cog6ToothIcon, ArrowRightStartOnRectangleIcon } from "@heroicons/react/24/outline";
 import { isHiddenBehindTournament } from "@lib/components/modules/SpotlightCard";
+import { AiOutlineHome, AiFillHome } from "react-icons/ai";
+import { CiCoffeeCup } from "react-icons/ci";
 
 export const Sidebar = (): React.ReactElement => {
   const { activeModule, sidebarCollapsed, toggleSidebar, setSidebarCollapsed } = useNavigation();
@@ -30,6 +26,7 @@ export const Sidebar = (): React.ReactElement => {
   const [isDragging, setIsDragging] = useState(false);
   const [startY, setStartY] = useState(0);
   const [scrollStart, setScrollStart] = useState(0);
+  const [showCoffeeTooltip, setShowCoffeeTooltip] = useState(false);
 
   const isAuthenticated = !!user;
   const isAdmin = Boolean(user?.isAdmin);
@@ -92,6 +89,10 @@ export const Sidebar = (): React.ReactElement => {
           setSidebarCollapsed(true);
         }
       }
+      // Close coffee tooltip when clicking outside
+      if (showCoffeeTooltip) {
+        setShowCoffeeTooltip(false);
+      }
     };
 
     if (!sidebarCollapsed && window.innerWidth < 768) {
@@ -100,7 +101,7 @@ export const Sidebar = (): React.ReactElement => {
         document.removeEventListener("mousedown", handleClickOutside);
       };
     }
-  }, [sidebarCollapsed, setSidebarCollapsed]);
+  }, [sidebarCollapsed, setSidebarCollapsed, showCoffeeTooltip]);
 
   useEffect(() => {
     if (isDragging) {
@@ -191,9 +192,26 @@ export const Sidebar = (): React.ReactElement => {
               </div>
             </button>
             {!sidebarCollapsed && (
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg flex items-center justify-center">
+              <div className="flex items-center space-x-2 relative">
+                <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg flex items-center justify-center cursor-pointer hover:from-blue-400 hover:to-purple-400 transition-all duration-200">
                   <span className="text-white font-bold text-sm">LSU</span>
+                </div>
+                <div
+                  className="relative"
+                  onMouseEnter={() => setShowCoffeeTooltip(true)}
+                  onMouseLeave={() => setShowCoffeeTooltip(false)}
+                >
+                  <Link href="https://buymeacoffee.com/wichtowski" target="_blank">
+                    <CiCoffeeCup className="w-7 h-7 text-yellow-400 cursor-pointer hover:text-yellow-300 transition-colors duration-200" />
+                  </Link>
+                  {showCoffeeTooltip && (
+                    <div className="absolute top-0 left-8 bg-gray-800 border border-gray-600 rounded-lg p-4 shadow-xl z-50 min-w-[220px]">
+                      <div className="flex items-center space-x-2 text-white">
+                        <span className="text-base font-medium">Buy me coffee!</span>
+                      </div>
+                      <div className="text-sm text-gray-300 mt-2">And support the development</div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -226,11 +244,11 @@ export const Sidebar = (): React.ReactElement => {
                   }
                 }}
               >
-                <HomeIcon
-                  className={`text-white flex-shrink-0 transition-all duration-200 w-8 h-8 ${
-                    activeModule === "modules" ? "w-8 h-8" : "w-8 h-8"
-                  }`}
-                />
+                {activeModule === "modules" ? (
+                  <AiOutlineHome className="text-white flex-shrink-0 transition-all duration-200 w-8 h-8" />
+                ) : (
+                  <AiFillHome className="text-white flex-shrink-0 transition-all duration-200 w-8 h-8" />
+                )}
                 {!sidebarCollapsed && (
                   <span className="ml-3 text-white font-medium animate-fade-in-delayed">Modules</span>
                 )}
