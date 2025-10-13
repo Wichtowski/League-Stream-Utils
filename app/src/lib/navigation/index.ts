@@ -198,7 +198,8 @@ export function getVisibleModules({
   needsMatchSelected = false
 }: ModuleVisibilityParams): ModuleCard[] {
   const isElectronLocal = isElectron && useLocalData;
-  const showLeagueClient = isElectron && (isElectronLocal || isAuthenticated);
+  // Show League Client on web as well (only demo routes will be accessible there)
+  const showLeagueClient = (isElectron && (isElectronLocal || isAuthenticated)) || !isElectron;
   const showFullNav = isAuthenticated || isElectronLocal;
 
   return MODULES.filter((module) => {

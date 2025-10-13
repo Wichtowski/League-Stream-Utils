@@ -1,6 +1,5 @@
 import { DataDragonClient, RuneReforged } from "@lib/services/external/DataDragon/client";
-import { DDRAGON_CDN } from "@lib/services/common/constants";
-import { getLatestVersion as getLatestDdragonVersion, toLocalImageUrl } from "@lib/services/common/unified-asset-cache";
+import { getLatestVersion as getLatestDdragonVersion } from "@lib/services/common/unified-asset-cache";
 
 interface RuneTree {
   id: number;
@@ -9,11 +8,37 @@ interface RuneTree {
   name: string;
 }
 
-interface StoredRunes {
+interface KeystoneRune {
+  id: number;
+  key: string;
+  icon: string;
+  name: string;
+  treeKey: string;
+  treeName: string;
+}
+
+interface StoredRunesDataV2 {
+  trees: RuneTree[];
+  keystones: KeystoneRune[];
+}
+
+interface StoredRunesV1 {
   data: RuneTree[];
   version: string;
   timestamp: number;
 }
+
+interface StoredRunesV1WithKeystones extends StoredRunesV1 {
+  keystones?: KeystoneRune[];
+}
+
+interface StoredRunesV2 {
+  data: StoredRunesDataV2;
+  version: string;
+  timestamp: number;
+}
+
+type StoredRunes = StoredRunesV2 | StoredRunesV1 | StoredRunesV1WithKeystones;
 
 const CACHE_KEY = "runes_cache";
 const CACHE_DURATION_MS = 24 * 60 * 60 * 1000;
@@ -22,21 +47,39 @@ const getLatestVersion = async (): Promise<string> => {
   return await getLatestDdragonVersion();
 };
 
-async function fetchRunesFromAPI(): Promise<{ runes: RuneTree[]; version: string }> {
+async function fetchRunesFromAPI(): Promise<{ trees: RuneTree[]; keystones: KeystoneRune[]; version: string }> {
   const version = await getLatestVersion();
   const runesData: RuneReforged[] = await DataDragonClient.getRunes(version);
 
-  const runes: RuneTree[] = runesData.map((tree) => {
-    const rawUrl = `${DDRAGON_CDN}/${version}/img/${tree.icon}`;
+  const trees: RuneTree[] = runesData.map((tree) => {
+    const fileName = (tree.icon.split("/").pop() || "").toLowerCase();
+    const localPath = `assets/${version}/runes/${fileName}`;
     return {
       id: tree.id,
       key: tree.key,
-      icon: toLocalImageUrl(rawUrl),
+      icon: `/api/local-image?path=${encodeURIComponent(localPath)}`,
       name: tree.name
     };
   });
 
-  return { runes, version };
+  const keystones: KeystoneRune[] = runesData.flatMap((tree) => {
+    const firstSlot = tree.slots?.[0];
+    const runesInSlot = firstSlot?.runes || [];
+    return runesInSlot.map((r) => {
+      const fileName = (r.icon.split("/").pop() || "").toLowerCase();
+      const localPath = `assets/${version}/runes/${fileName}`;
+      return {
+        id: r.id,
+        key: r.key,
+        icon: `/api/local-image?path=${encodeURIComponent(localPath)}`,
+        name: r.name,
+        treeKey: tree.key,
+        treeName: tree.name
+      } as KeystoneRune;
+    });
+  });
+
+  return { trees, keystones, version };
 }
 
 function loadFromLocalStorage(): StoredRunes | null {
@@ -45,19 +88,23 @@ function loadFromLocalStorage(): StoredRunes | null {
   if (!raw) return null;
   try {
     const parsed = JSON.parse(raw) as StoredRunes;
-    if (!Array.isArray(parsed.data) || !parsed.timestamp) return null;
+    if ((parsed as StoredRunesV2).data && (parsed as StoredRunesV2).data.trees && parsed.timestamp) return parsed;
+    if ((parsed as StoredRunesV1).data && parsed.timestamp) return parsed;
     return parsed;
   } catch {
     return null;
   }
 }
 
-function saveToLocalStorage(runes: RuneTree[], version: string): void {
+function saveToLocalStorage(trees: RuneTree[], version: string, keystones?: KeystoneRune[]): void {
   if (typeof localStorage === "undefined") return;
-  const payload: StoredRunes = {
-    data: runes,
+  const payload: StoredRunesV2 = {
+    data: {
+      trees,
+      keystones: keystones || []
+    },
     version,
-    timestamp: Date.now()
+    timestamp: Date.now(),
   };
   localStorage.setItem(CACHE_KEY, JSON.stringify(payload));
 }
@@ -71,17 +118,23 @@ async function getRunesFromCache(): Promise<RuneTree[]> {
 
   const cached = loadFromLocalStorage();
   if (cached && cached.version === latest && isCacheValid(cached.timestamp)) {
-    return cached.data;
+    if ((cached as StoredRunesV2).data && (cached as StoredRunesV2).data.trees) {
+      return (cached as StoredRunesV2).data.trees;
+    }
+    return (cached as StoredRunesV1).data;
   }
 
   try {
-    const { runes, version } = await fetchRunesFromAPI();
-    saveToLocalStorage(runes, version);
-    return runes;
+    const { trees, keystones, version } = await fetchRunesFromAPI();
+    saveToLocalStorage(trees, version, keystones);
+    return trees;
   } catch (error) {
     console.error("Error fetching runes from API:", error);
     if (cached) {
-      return cached.data;
+      if ((cached as StoredRunesV2).data && (cached as StoredRunesV2).data.trees) {
+        return (cached as StoredRunesV2).data.trees;
+      }
+      return (cached as StoredRunesV1).data;
     }
     return [];
   }
@@ -93,19 +146,42 @@ export async function getRunes(): Promise<RuneTree[]> {
 
 export const getRunesCached = (): RuneTree[] => {
   const cached = loadFromLocalStorage();
-  return cached?.data || [];
+  if (!cached) return [];
+  if ((cached as StoredRunesV2).data && (cached as StoredRunesV2).data.trees) {
+    return (cached as StoredRunesV2).data.trees;
+  }
+  return (cached as StoredRunesV1).data || [];
 };
 
-export const getRuneImage = (treeName?: string): string => {
-  if (!treeName) return "";
+export const getKeystonesCached = (): KeystoneRune[] => {
+  const cached = loadFromLocalStorage();
+  if (!cached) return [];
+  if ((cached as StoredRunesV2).data && (cached as StoredRunesV2).data.keystones) {
+    return (cached as StoredRunesV2).data.keystones;
+  }
+  return ((cached as StoredRunesV1WithKeystones).keystones || []);
+};
+
+export const getRuneImage = (nameOrKey?: string): string => {
+  if (!nameOrKey) return "";
 
   const cached = loadFromLocalStorage();
-  if (!cached?.data) return "";
+  if (!cached) return "";
 
-  const normalizedName = treeName.trim().toLowerCase();
-  const tree = cached.data.find(
-    (r) => r.name.toLowerCase() === normalizedName || r.key.toLowerCase() === normalizedName
-  );
+  const normalized = nameOrKey.trim();
 
-  return tree?.icon || "";
+  const trees = (cached as StoredRunesV2).data && (cached as StoredRunesV2).data.trees
+    ? (cached as StoredRunesV2).data.trees
+    : (cached as StoredRunesV1).data;
+  const keystones = (cached as StoredRunesV2).data && (cached as StoredRunesV2).data.keystones
+    ? (cached as StoredRunesV2).data.keystones
+    : (cached as StoredRunesV1WithKeystones).keystones || [];
+
+  const tree = trees?.find((r) => r.name === normalized || r.key === normalized);
+  if (tree?.icon) return tree.icon;
+
+  const ks = keystones?.find((k) => k.name === normalized || k.key === normalized);
+  if (ks?.icon) return ks.icon;
+
+  return "";
 };

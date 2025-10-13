@@ -6,8 +6,8 @@ import { useAuth } from "@lib/contexts/AuthContext";
 import { PageWrapper } from "@lib/layout";
 import { useCurrentTournament, useCurrentMatch } from "@lib/contexts";
 import Link from "next/link";
-import { Match, Tournament } from "@/libTournament/types";
-import { useElectron } from "@/libElectron/contexts/ElectronContext";
+import { Match, Tournament } from "@libTournament/types";
+import { useElectron } from "@libElectron/contexts/ElectronContext";
 
 
 export default function LeagueClientPage(): React.ReactElement {
@@ -58,7 +58,7 @@ export default function LeagueClientPage(): React.ReactElement {
         <div className={`w-12 h-12 ${accentStyles.iconBg} border rounded-xl flex items-center justify-center`}>
           {icon}
         </div>
-        <div className="flex-1">
+        <div className={`flex-1 ${isElectron ? "gap-1" : ""}`}>
           <h3 className="text-lg font-semibold mb-1">{title}</h3>
           <p className="text-sm text-gray-400 mb-4">{description}</p>
           <div className="flex items-stretch justify-between gap-4">
@@ -77,7 +77,7 @@ export default function LeagueClientPage(): React.ReactElement {
                 target="_blank"
                 className={`inline-flex items-center justify-center px-5 h-10 text-sm md:text-base font-medium rounded-md border ${accentStyles.btn} min-w-[180px]`}
               >
-                Live Game
+                Live {routeKey.charAt(0).toUpperCase() + routeKey.slice(1)}
               </Link>
             </>
           )}
