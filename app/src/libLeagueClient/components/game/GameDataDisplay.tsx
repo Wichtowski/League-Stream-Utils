@@ -323,7 +323,7 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({
       </motion.div>
 
       {/* Left Side Panel - Blue Team Players */}
-      <motion.div
+      {/* <motion.div
         initial={{ x: -80, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
         transition={{ type: "spring", stiffness: 140, damping: 18, delay: 0.1 }}
@@ -349,10 +349,10 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({
             })}
           </div>
         </div>
-      </motion.div>
+      </motion.div> */}
 
       {/* Right Side Panel - Red Team Players */}
-      <motion.div
+      {/* <motion.div
         initial={{ x: 80, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
         transition={{ type: "spring", stiffness: 140, damping: 18, delay: 0.1 }}
@@ -378,7 +378,7 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({
             })}
           </div>
         </div>
-      </motion.div>
+      </motion.div> */}
 
       <LaneHud gameData={gameData} gameVersion={gameVersion} />
     </div>

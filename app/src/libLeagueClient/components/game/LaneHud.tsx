@@ -118,9 +118,8 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
               </div>
             );
           };
-
           const renderRunes = (runes: (typeof gameData.allPlayers)[number]["runes"]) => {
-            const r1 = runes?.primaryRuneTree;
+            const r1 = runes?.keystone;
             const r2 = runes?.secondaryRuneTree;
             return (
               <div className="flex flex-col">

@@ -1,7 +1,7 @@
 "use client";
 
 import { useTournaments } from "@libTournament/contexts/TournamentsContext";
-import { usePickban } from "@libPickban/contexts/PickbanContext";
+import { usePickban, PickbanProvider } from "@libPickban/contexts/PickbanContext";
 import { useSettings } from "@lib/contexts/SettingsContext";
 import { useAuth } from "@lib/contexts/AuthContext";
 import { PageWrapper } from "@lib/layout/PageWrapper";
@@ -16,7 +16,9 @@ export default function DebugContextsPage() {
       <AuthDebug />
       <SettingsDebug />
       <TournamentsDebug />
-      <PickbanDebug />
+      <PickbanProvider>
+        <PickbanDebug />
+      </PickbanProvider>
     </PageWrapper>
   );
 }

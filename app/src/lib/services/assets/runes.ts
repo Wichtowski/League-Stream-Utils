@@ -162,91 +162,66 @@ export class RunesBlueprintDownloader extends BaseCacheService<CommunityDragonRu
     const runeDir = `${this.version}/runes`;
     const totalRunes = validRunes.length;
 
-    // Filter out runes that have already been downloaded
     const runesToDownload = validRunes.filter((rune) => !completedRunes.includes(rune.id.toString()));
 
     const alreadyDownloaded = completedRunes.length;
     let downloadedCount = alreadyDownloaded;
     const currentCompletedRunes = [...completedRunes];
 
-    console.log(`Found ${alreadyDownloaded} runes already downloaded, ${runesToDownload.length} runes to download`);
-
-    // If all runes are already downloaded, skip the download process
     if (runesToDownload.length === 0) {
-      console.log("All rune icons already downloaded");
       return totalRunes;
     }
 
-    for (const rune of runesToDownload) {
-      try {
-        // Convert icon path to DataDragon CDN URL
-        const iconPath = rune.iconPath.replace("/lol-game-data/assets/v1/perk-images/", "");
-        const iconUrl = `${this.DDRAGON_CDN}/img/perk-images/${iconPath}`;
+    const toTask = (rune: CommunityDragonRune) => {
+      const iconPath = rune.iconPath.replace("/lol-game-data/assets/v1/perk-images/", "");
+      const iconUrl = `${this.DDRAGON_CDN}/img/perk-images/${iconPath}`;
+      const iconFileName = iconPath.split("/").pop() || `${rune.name}.png`;
+      const iconKey = `${runeDir}/${iconFileName}`.toLowerCase();
+      return { url: iconUrl, category: "assets", assetKey: iconKey, id: rune.id.toString(), name: rune.name };
+    };
 
-        // Determine style (color) from rune.key (e.g., Domination, Precision, etc.)
-        // If rune.key is undefined, try to extract from icon path or use a default
-        let style = rune.key;
-        if (!style) {
-          // Try to extract style from icon path
-          const pathParts = iconPath.split("/");
-          if (pathParts.length > 0) {
-            style = pathParts[0]; // Use first part of path as style
-          } else {
-            style = "Unknown"; // Fallback
-          }
-        }
+    const tasks = runesToDownload.map(toTask);
+    const chunkSize = 24;
+    for (let i = 0; i < tasks.length; i += chunkSize) {
+      const chunk = tasks.slice(i, i + chunkSize);
 
-        // Use the last part of the iconPath as the file name
-        const iconFileName = iconPath.split("/").pop() || `${rune.name}.png`;
-        const iconKey = `${runeDir}/${iconFileName}`.toLowerCase();
-        // console.log(iconKey, "assets", iconKey);
+      this.updateProgress({
+        current: downloadedCount,
+        total: totalRunes,
+        itemName: "runes",
+        stage: "downloading",
+        assetType: "rune-images",
+        currentAsset: `Downloading ${chunk.length} rune icons...`
+      });
 
-        // Update progress for current rune
-        this.updateProgress({
-          current: downloadedCount,
-          total: totalRunes,
-          itemName: "runes",
-          stage: "downloading",
-          currentAsset: `Downloading ${rune.name}...`,
-          assetType: "rune-images"
-        });
+      const parallelResult = await this.downloadAssetsParallel(
+        chunk.map((c) => ({ url: c.url, category: c.category, assetKey: c.assetKey }))
+      );
 
-        await this.downloadAsset(iconUrl, "assets", iconKey);
-        downloadedCount++;
-        currentCompletedRunes.push(rune.id.toString());
-
-        // Update category progress
-        await this.updateCategoryProgress(
-          "runes",
-          this.version,
-          rune.id.toString(),
-          totalRunes,
-          downloadedCount,
-          currentCompletedRunes
-        );
-
-        // Update progress after successful download
-        this.updateProgress({
-          current: downloadedCount,
-          total: totalRunes,
-          itemName: "runes",
-          stage: "downloading",
-          currentAsset: `Downloaded ${rune.name}`,
-          assetType: "rune-images"
-        });
-      } catch (error) {
-        console.error(`Failed to download rune icon for ${rune.name}:`, error);
-
-        // Update progress even on error to show which rune failed
-        this.updateProgress({
-          current: downloadedCount,
-          total: totalRunes,
-          itemName: "runes",
-          stage: "downloading",
-          currentAsset: `Failed to download ${rune.name}`,
-          assetType: "rune-images"
-        });
+      const succeeded = parallelResult.downloaded;
+      const succeededTasks = chunk.slice(0, succeeded);
+      downloadedCount += succeeded;
+      for (const st of succeededTasks) {
+        currentCompletedRunes.push(st.id);
       }
+
+      await this.updateCategoryProgress(
+        "runes",
+        this.version,
+        currentCompletedRunes[currentCompletedRunes.length - 1] || "0",
+        totalRunes,
+        downloadedCount,
+        currentCompletedRunes
+      );
+
+      this.updateProgress({
+        current: downloadedCount,
+        total: totalRunes,
+        itemName: "runes",
+        stage: "downloading",
+        assetType: "rune-images",
+        currentAsset: `Batch complete: ${downloadedCount}/${totalRunes}`
+      });
     }
 
     return downloadedCount;

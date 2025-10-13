@@ -3,6 +3,7 @@ import { itemCacheService } from "./item";
 import { gameUIBlueprintDownloader } from "./game-ui";
 import { itemsBlueprintDownloader } from "./item";
 import { runesBlueprintDownloader } from "./runes";
+import { runeStylesDownloader } from "./rune-styles";
 import { summonerSpellCacheService } from "./summoner-spell";
 import { assetCounterService, AssetCounts } from "./asset-counter";
 import { DownloadProgress } from "./base";
@@ -422,7 +423,7 @@ export const downloadAllAssets = async (onProgress?: (progress: BootstrapProgres
     console.log("Starting rune task...");
     const tracker = categoryTrackers.get("rune")!;
 
-    runesBlueprintDownloader.onProgress((p) => {
+    const handleProgress = (p: DownloadProgress): void => {
       tracker.current = p.current;
       tracker.total = p.total;
       tracker.stage = p.stage;
@@ -444,7 +445,10 @@ export const downloadAllAssets = async (onProgress?: (progress: BootstrapProgres
           : undefined
       });
       updateOverallProgress();
-    });
+    };
+
+    runesBlueprintDownloader.onProgress(handleProgress);
+    runeStylesDownloader.onProgress(handleProgress);
 
     tracker.stage = "checking";
     tracker.currentAsset = "Checking runes...";
@@ -466,7 +470,10 @@ export const downloadAllAssets = async (onProgress?: (progress: BootstrapProgres
     });
 
     try {
+      // Download rune trees (all perk icons)
       await runesBlueprintDownloader.downloadBlueprintForCurrentVersion();
+      // Download rune style tree badges (7200_* files)
+      await runeStylesDownloader.download();
       console.log("Runes download completed successfully");
 
       // Don't override the final progress - let the service report it
