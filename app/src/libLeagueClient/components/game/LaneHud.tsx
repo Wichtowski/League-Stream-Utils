@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { LiveGameData } from "@libLeagueClient/types";
 import {
@@ -15,8 +15,28 @@ interface LaneHudProps {
 }
 
 export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): React.ReactElement => {
+  const [levelAnimations, setLevelAnimations] = useState<Record<string, boolean>>({});
+  const [previousLevels, setPreviousLevels] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    gameData.allPlayers.forEach((p) => {
+      const playerKey = p.summonerName;
+      const currentLevel = p.level || 1;
+      const previousLevel = previousLevels[playerKey] || 1;
+      
+      if (currentLevel !== previousLevel && currentLevel !== 1) {
+        setLevelAnimations(prev => ({ ...prev, [playerKey]: true }));
+        setPreviousLevels(prev => ({ ...prev, [playerKey]: currentLevel }));
+        
+        setTimeout(() => {
+          setLevelAnimations(prev => ({ ...prev, [playerKey]: false }));
+        }, 4000);
+      }
+    });
+  }, [gameData.allPlayers, previousLevels]);
+
   return (
-    <div className="absolute bottom-0 left-0 right-0 h-56 bg-gray-900/95 border-t-2 border-gray-600">
+    <div className="absolute bottom-0 left-0 right-0 h-60">
       <div className="h-full w-full px-3">
         {(() => {
           const laneOrder = ["TOP", "JUNGLE", "MID", "BOTTOM", "SUPPORT"] as const;
@@ -82,49 +102,69 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
               </div>
             );
           };
-
-          const renderSpells = (p: (typeof gameData.allPlayers)[number]) => {
-            const s1 = p.summonerSpells?.summonerSpellOne?.displayName;
-            const s2 = p.summonerSpells?.summonerSpellTwo?.displayName;
+          const runeAndSpellStyle = "w-6 h-6 bg-gray-700 border border-black flex items-center justify-center"
+          
+          const renderSpells = (spell: (typeof gameData.allPlayers)[number]["summonerSpells"]) => {
+            const s1 = spell?.summonerSpellOne?.displayName;
+            const s2 = spell?.summonerSpellTwo?.displayName;
             return (
               <div className="flex flex-col">
-                <div className="w-5 h-5 bg-gray-700 rounded border border-gray-600 flex items-center justify-center">
-                  {s1 ? <Image src={getSummonerSpellImageByName(s1)} alt={s1} width={20} height={20} /> : null}
+                <div className={runeAndSpellStyle}>
+                  {s1 ? <Image src={getSummonerSpellImageByName(s1)} alt={s1} width={22} height={22} /> : null}
                 </div>
-                <div className="w-5 h-5 bg-gray-700 rounded border border-gray-600 flex items-center justify-center">
-                  {s2 ? <Image src={getSummonerSpellImageByName(s2)} alt={s2} width={20} height={20} /> : null}
+                <div className={runeAndSpellStyle}>
+                  {s2 ? <Image src={getSummonerSpellImageByName(s2)} alt={s2} width={22} height={22} /> : null}
                 </div>
               </div>
             );
           };
 
-          const renderRunes = (p: (typeof gameData.allPlayers)[number]) => {
-            const r1 = p.runes?.primaryRuneTree;
-            const r2 = p.runes?.secondaryRuneTree;
+          const renderRunes = (runes: (typeof gameData.allPlayers)[number]["runes"]) => {
+            const r1 = runes?.primaryRuneTree;
+            const r2 = runes?.secondaryRuneTree;
             return (
-              <div className="flex gap-1">
-                <div className="w-5 h-5 bg-gray-700 rounded border border-gray-600">
-                  {r1 ? <Image src={getRuneImage(r1)} alt={r1} width={20} height={20} /> : null}
+              <div className="flex flex-col">
+                <div className={runeAndSpellStyle}>
+                  {r1 ? <Image src={getRuneImage(r1)} alt={r1} width={22} height={22} /> : null}
                 </div>
-                <div className="w-5 h-5 bg-gray-700 rounded border border-gray-600">
-                  {r2 ? <Image src={getRuneImage(r2)} alt={r2} width={20} height={20} /> : null}
+                <div className={runeAndSpellStyle}>
+                  {r2 ? <Image src={getRuneImage(r2)} alt={r2} width={22} height={22} /> : null}
                 </div>
               </div>
             );
           };
 
-          const renderTrinket = () => {
+          const renderTrinket = (trinketType: number, visionScore: number) => {
             return <div className="w-5 h-5 bg-gray-700 rounded border border-gray-600" />;
           };
 
-          const renderImage = (p: (typeof gameData.allPlayers)[number]) => {
+          const renderImage = (p: (typeof gameData.allPlayers)[number], align: "left" | "right") => {
+            const playerKey = p.summonerName;
+            const showLevelAnimation = levelAnimations[playerKey] || false;
+            const alignmentClass = align === "left" ? "justify-end" : "justify-start";
+            
             return (
-              <Image
-                src={getChampionSquareImage(p.championName) || getDefaultAsset(gameVersion, "player.png")}
-                alt={p.championName}
-                width={40}
-                height={40}
-              />
+              <div className={`relative border-1/2 black rounded flex ${alignmentClass}`}>
+                <Image
+                  src={getChampionSquareImage(p.championName) || getDefaultAsset(gameVersion, "player.png")}
+                  alt={p.championName}
+                  width={48}
+                  height={48}
+                  className={showLevelAnimation ? "opacity-0" : "opacity-100 transition-opacity duration-300"}
+                />
+                {showLevelAnimation ? (
+                  <div className="absolute inset-0 bg-black flex items-center justify-center">
+                    <div className="text-white text-3xl font-bold animate-pulse">
+                      {p.level || 1}
+                    </div>
+                  </div>
+                ) : (
+                  <div className={`absolute bottom-0 ${align === "left" ? "left-[-6px]" : "right-[-6px]"} bg-black/80 text-white text-sm font-bold px-1 ${align === "left" ? "rounded-br" : "rounded-bl"} shadow-lg`}>
+                    {p.level || 1}
+                    <div className={`absolute ${align === "left" ? "left-0 top-0" : "right-0 top-0"} w-0 h-0 ${align === "left" ? "border-l-0 border-r-4 border-b-4 border-t-0 border-l-transparent border-r-black/80 border-b-black/80 border-t-transparent" : "border-l-4 border-r-0 border-b-4 border-t-0 border-l-black/80 border-r-transparent border-b-black/80 border-t-transparent"}`}></div>
+                  </div>
+                )}
+              </div>
             );
           };
 
@@ -133,9 +173,9 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
               <div className={`flex direction-${align} flex-row gap-1`}>
                 <div className="text-xs">
                   <div className="font-semibold truncate max-w-[120px]">{p.summonerName || p.championName}</div>
-                  <div className="text-gray-300">CS {p.scores?.creepScore ?? 0}</div>
                 </div>
-                <div>
+                <div className={`flex flex-col items-end ${align === "left" ? "items-start" : "items-end"}`}>
+                  <div className="text-orange-200 font-bold text-sm">{p.scores?.creepScore ?? 0}</div>
                   {p.scores?.kills}/{p.scores?.deaths}/{p.scores?.assists}
                 </div>
               </div>
@@ -151,21 +191,21 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
               <div className={`flex items-center gap-2 ${align === "left" ? "justify-end" : "justify-start"} flex-1`}>
                 {align === "left" ? (
                   <>
-                    {renderTrinket()}
+                    {renderTrinket(p.items[0].itemID, p.scores.visionScore)}
                     {renderItems(p.items, "left")}
-                    {renderRunes(p)}
-                    {renderSpells(p)}
+                    {renderRunes(p.runes)}
+                    {renderSpells(p.summonerSpells)}
                     {renderTexts(p, "left")}
-                    {renderImage(p)}
+                    {renderImage(p, "left")}
                   </>
                 ) : (
                   <>
-                    {renderImage(p)}
+                    {renderImage(p, "right")}
                     {renderTexts(p, "right")}
-                    {renderSpells(p)}
+                    {renderSpells(p.summonerSpells)}
+                    {renderRunes(p.runes)}
                     {renderItems(p.items, "right")}
-                    {renderRunes(p)}
-                    {renderTrinket()}
+                    {renderTrinket(p.items[0].itemID, p.scores.visionScore)}
                   </>
                 )}
               </div>
@@ -193,7 +233,7 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
             const diff = Math.round(l - r);
             const abs = Math.abs(diff);
             return (
-              <div className="w-28 relative text-center text-sm font-bold">
+              <div className="w-16 relative text-center flex items-center justify-center text-sm font-bold bg-black/80 border border-gray-600 h-full">
                 {diff > 0 && (
                   <div className="absolute left-0 top-1/2 -translate-y-1/2 text-blue-300">
                     <ChevronLeft />
@@ -210,7 +250,7 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
           };
 
           return (
-            <div className="flex flex-col justify-center h-full gap-1">
+            <div className="flex flex-col justify-center h-full border border-gray-600">
               {(() => {
                 const usedOrder = new Set<string>();
                 const usedChaos = new Set<string>();
@@ -220,7 +260,7 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
                   const rightPlayer = pickByLaneWithFallback(chaosPlayers, lane, usedChaos);
                   if (rightPlayer) usedChaos.add(rightPlayer.summonerName);
                   return (
-                    <div key={lane} className="flex items-center">
+                    <div key={lane} className="flex items-center h-full border border-solid border-gray-600">
                       {renderPlayerSide(leftPlayer, "left")}
                       {renderGoldDiff(leftPlayer, rightPlayer)}
                       {renderPlayerSide(rightPlayer, "right")}

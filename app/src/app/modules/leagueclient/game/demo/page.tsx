@@ -49,7 +49,7 @@ const DemoGamePage: React.FC = () => {
   return (
     <>
       <GameDataDisplay gameData={mockData} match={mockMatch} tournament={mockTournament} />
-      <div className="absolute left-2 bottom-1/8 z-10 w-full">
+      <div className="absolute left-2 bottom-1/4 z-200 w-[600px]">
         <Breadcrumbs
           className="bg-black absolute left-4 bottom-1/12 rounded z-10 p-4"
           items={[

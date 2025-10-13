@@ -126,15 +126,18 @@ const LiveGamePage: React.FC = () => {
   if (loading || !isConnected || !gameData || !currentMatch || !currentTournament) {
     return <></>;
   }
+  
 
   return (
-    <GameDataDisplay
-      gameData={gameData}
-      match={currentMatch}
-      tournament={currentTournament}
-      blueTeamData={blueTeamData}
-      redTeamData={redTeamData}
-    />
+    <>
+      <GameDataDisplay
+        gameData={gameData}
+        match={currentMatch}
+        tournament={currentTournament}
+        blueTeamData={blueTeamData}
+        redTeamData={redTeamData}
+        />
+    </>
   );
 };
 
