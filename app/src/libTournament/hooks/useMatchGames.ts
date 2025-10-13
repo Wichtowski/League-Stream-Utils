@@ -37,6 +37,12 @@ export const useMatchGames = (
 
   const getTeamIdForSide = (game: GameResult, side: "blue" | "red"): string => {
     if (!match) return "";
+    
+    // If game team data is empty, use match's default team assignments
+    if (!game.blueTeam || game.blueTeam === '' || !game.redTeam || game.redTeam === '') {
+      return side === "blue" ? match.blueTeamId : match.redTeamId;
+    }
+    
     const isBlueTeamMatchBlue = blueTeam?.name && game.blueTeam === blueTeam.name;
     if (side === "blue") {
       return isBlueTeamMatchBlue ? match.blueTeamId : match.redTeamId;
@@ -158,19 +164,38 @@ export const useMatchGames = (
     if (!match) return;
 
     const updatedGames: GameResult[] = (match.games || []).map((g) => {
-      if (g.gameNumber !== gameNumber) return { ...g, winner: g.winner as "blue" | "red" | "ongoing" };
+      // Only update the target game, leave others completely unchanged
+      if (g.gameNumber !== gameNumber) return g;
+      
       const newWinner = g.winner === "blue" ? "red" : "blue";
+
+      // Get current team assignments before swapping
+      const currentBlueTeamId = getTeamIdForSide(g, "blue");
+      const currentRedTeamId = getTeamIdForSide(g, "red");
 
       // Swap champion data when game sides are swapped
       const swappedChampionsPlayed: { [teamId: string]: { [playerId: string]: number } } = {};
       if (g.championsPlayed) {
-        // Swap the champion data between teams for this specific game
-        const blueTeamChampions = g.championsPlayed[match.blueTeamId] || {};
-        const redTeamChampions = g.championsPlayed[match.redTeamId] || {};
+        // Get the current champion data for each team
+        const blueTeamChampions = g.championsPlayed[currentBlueTeamId] || {};
+        const redTeamChampions = g.championsPlayed[currentRedTeamId] || {};
 
-        // Map blue team champions to red team ID and vice versa
-        swappedChampionsPlayed[match.redTeamId] = blueTeamChampions;
-        swappedChampionsPlayed[match.blueTeamId] = redTeamChampions;
+        // After swapping sides, the team IDs will be reversed
+        // So we need to map the champion data to the new team assignments
+        swappedChampionsPlayed[currentRedTeamId] = blueTeamChampions;
+        swappedChampionsPlayed[currentBlueTeamId] = redTeamChampions;
+      }
+
+      // For games with empty team data, we need to set the team names properly
+      let newBlueTeam = g.redTeam;
+      let newRedTeam = g.blueTeam;
+      
+      // If the game has empty team data, use the match team names
+      if (!g.blueTeam || g.blueTeam === '' || !g.redTeam || g.redTeam === '') {
+        // Determine which team should be on which side after the swap
+        const shouldBlueTeamBeOnBlue = currentBlueTeamId === match.blueTeamId;
+        newBlueTeam = shouldBlueTeamBeOnBlue ? match.blueTeamId : match.redTeamId;
+        newRedTeam = shouldBlueTeamBeOnBlue ? match.redTeamId : match.blueTeamId;
       }
 
       return {
@@ -178,8 +203,8 @@ export const useMatchGames = (
         winner: newWinner,
         blueScore: newWinner === "blue" ? 1 : 0,
         redScore: newWinner === "red" ? 1 : 0,
-        blueTeam: g.redTeam,
-        redTeam: g.blueTeam,
+        blueTeam: newBlueTeam,
+        redTeam: newRedTeam,
         championsPlayed: swappedChampionsPlayed
       } as GameResult;
     });

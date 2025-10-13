@@ -60,8 +60,8 @@ export const MatchDetailPage: React.FC<MatchDetailPageProps> = ({ match, tournam
   // Memoized team wins calculation
   const teamWins = useMemo(() => {
     if (!currentMatch?.games || currentMatch.games.length === 0) return { team1Wins: 0, team2Wins: 0 };
-    return getTeamWins(currentMatch.games);
-  }, [currentMatch?.games]);
+    return getTeamWins(currentMatch.games, currentMatch);
+  }, [currentMatch]);
 
   // Handlers
   const handleSaveWithUpdate = async () => {
@@ -160,13 +160,8 @@ export const MatchDetailPage: React.FC<MatchDetailPageProps> = ({ match, tournam
         {/* Sidebar */}
         <MatchSidebar
           match={currentMatch}
-          editing={editing}
-          saving={saving}
-          blueTeam={blueTeam}
-          redTeam={redTeam}
           teamWins={teamWins}
           onStatusChange={handleStatusChangeWithUpdate}
-          onSwapTeams={handleSwapTeamsWithUpdate}
         />
       </div>
 

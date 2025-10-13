@@ -13,13 +13,18 @@ export interface LivePlayer {
     deaths: number;
     assists: number;
     creepScore: number;
-    visionScore: number;
+    wardScore: number;
   };
   items: LiveItem[];
   level: number;
   gold: number;
   health?: number;
   maxHealth?: number;
+  respawnTimer: number;
+  isDead: boolean;
+  resourceType?: string;
+  resourceValue?: number;
+  resourceMax?: number;
   summonerSpells: {
     summonerSpellOne: SummonerSpell;
     summonerSpellTwo: SummonerSpell;

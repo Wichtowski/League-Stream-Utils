@@ -1,27 +1,17 @@
 import React from "react";
 import { Button } from "@lib/components/common";
 import { Match, MatchStatus } from "@libTournament/types";
-import { Team } from "@libTeam/types";
 
 interface MatchSidebarProps {
   match: Match;
-  editing: boolean;
-  saving: boolean;
-  blueTeam: Team | null;
-  redTeam: Team | null;
   teamWins: { team1Wins: number; team2Wins: number };
   onStatusChange: (status: MatchStatus) => Promise<boolean>;
-  onSwapTeams: () => void;
 }
 
 export const MatchSidebar: React.FC<MatchSidebarProps> = ({
   match,
-  saving,
-  blueTeam,
-  redTeam,
   teamWins,
   onStatusChange,
-  onSwapTeams
 }) => {
   return (
     <div className="space-y-6">
@@ -77,25 +67,6 @@ export const MatchSidebar: React.FC<MatchSidebarProps> = ({
             <span className="text-white font-mono">
               {teamWins.team1Wins} - {teamWins.team2Wins}
             </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Teams */}
-      <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-        <div className="flex row items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-white">Teams</h3>
-          <Button onClick={onSwapTeams} variant="secondary" size="sm" disabled={saving || !match}>
-            ⇄
-          </Button>
-        </div>
-        <div className="space-y-4">
-          <div className="text-center">
-            <div className="text-sm text-gray-300">{blueTeam?.name}</div>
-          </div>
-          <div className="text-center text-2xl font-bold text-gray-400">VS</div>
-          <div className="text-center">
-            <div className="text-sm text-gray-300">{redTeam?.name}</div>
           </div>
         </div>
       </div>

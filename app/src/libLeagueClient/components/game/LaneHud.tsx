@@ -18,6 +18,8 @@ interface LaneHudProps {
 export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): React.ReactElement => {
   const [levelAnimations, setLevelAnimations] = useState<Record<string, boolean>>({});
   const [previousLevels, setPreviousLevels] = useState<Record<string, number>>({});
+  const borderColor = "border-gray-700";
+  const bgColor = "bg-black/78";
 
   useEffect(() => {
     gameData.allPlayers.forEach((p) => {
@@ -37,8 +39,8 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
   }, [gameData.allPlayers, previousLevels]);
 
   return (
-    <div className="absolute bottom-0 left-0 right-0 h-60">
-      <div className="h-full w-full px-3">
+    <div className="absolute bottom-0 left-1/2 -translate-x-1/2">
+      <div className="px-3">
         {(() => {
           const laneOrder = ["TOP", "JUNGLE", "MID", "BOTTOM", "SUPPORT"] as const;
           type LaneKey = (typeof laneOrder)[number];
@@ -78,16 +80,18 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
             const first = players.find((p) => !used.has(p.summonerName));
             return first || null;
           };
+          
+          const itemStyle = "w-5 h-5 bg-zinc-900 rounded flex items-center justify-center";
 
           const renderItems = (items: (typeof gameData.allPlayers)[number]["items"], align: "left" | "right") => {
             const six = Array.from({ length: 6 }).map((_, i) => items?.[i] || null);
             return (
-              <div className="flex gap-1">
+              <div className="flex gap-1 h-full">
                 {align === "left"
                   ? six.reverse().map((it, idx) => (
                       <div
                         key={idx}
-                        className="w-5 h-5 bg-gray-700 rounded border border-gray-600 flex items-center justify-center"
+                        className={itemStyle}
                       >
                         {it ? <Image src={getItemImage(it.itemID)} alt={it.name} width={20} height={20} /> : null}
                       </div>
@@ -95,7 +99,7 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
                   : six.map((it, idx) => (
                       <div
                         key={idx}
-                        className="w-5 h-5 bg-gray-700 rounded border border-gray-600 flex items-center justify-center"
+                        className={itemStyle}
                       >
                         {it ? <Image src={getItemImage(it.itemID)} alt={it.name} width={20} height={20} /> : null}
                       </div>
@@ -103,7 +107,7 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
               </div>
             );
           };
-          const runeAndSpellStyle = "w-6 h-6 bg-gray-700 border border-black flex items-center justify-center"
+          const runeAndSpellStyle = "w-6 h-6 border border-black flex items-center justify-center";
           
           const renderSpells = (spell: (typeof gameData.allPlayers)[number]["summonerSpells"]) => {
             const s1 = spell?.summonerSpellOne?.displayName;
@@ -124,55 +128,59 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
             const r2 = runes?.secondaryRuneTree;
             return (
               <div className="flex flex-col">
-                <div className={runeAndSpellStyle}>
+                <div className={`${runeAndSpellStyle} bg-zinc-900`}>
                   {r1 ? <Image src={getRuneImage(r1)} alt={r1} width={22} height={22} /> : null}
                 </div>
-                <div className={runeAndSpellStyle}>
-                  {r2 ? <Image src={getRuneImage(r2)} alt={r2} width={22} height={22} /> : null}
+                <div className={`${runeAndSpellStyle} bg-zinc-900`}>
+                  {r2 ? <Image src={getRuneImage(r2)} alt={r2} width={18} height={18} /> : null}
                 </div>
               </div>
             );
           };
 
-          const renderTrinket = (trinketType: number, visionScore: number) => {
+          const renderTrinket = (_trinketType: number, _wardScore: number) => {
             return <div className="w-5 h-5 bg-gray-700 rounded border border-gray-600" />;
           };
 
-          const renderImage = (p: (typeof gameData.allPlayers)[number], align: "left" | "right") => {
-            const playerKey = p.summonerName;
-            const showLevelAnimation = levelAnimations[playerKey] || false;
+          const renderImage = (summonerName: string, championName: string, level: number, isDead: boolean, respawnTimer: number, align: "left" | "right") => {
+            const showLevelAnimation = levelAnimations[summonerName] || false;
             const alignmentClass = align === "left" ? "justify-end" : "justify-start";
             
             return (
               <div className={`relative border-1/2 black rounded flex ${alignmentClass}`}>
                 <Image
-                  src={getChampionSquareImage(p.championName) || getDefaultAsset(gameVersion, "player.png")}
-                  alt={p.championName}
-                  width={45}
-                  height={45}
-                  className={showLevelAnimation ? "opacity-0" : "opacity-100 transition-opacity duration-300"}
+                  src={getChampionSquareImage(championName) || getDefaultAsset(gameVersion, "player.png")}
+                  alt={championName}
+                  width={48}
+                  height={48}
+                  className={showLevelAnimation ? "opacity-0" : `${isDead ? "grayscale brightness-50" : ""} opacity-100 transition-opacity duration-300`}
                 />
                 {showLevelAnimation ? (
                   <div className="absolute inset-0 bg-black flex items-center justify-center">
                     <div className="text-white text-3xl font-bold animate-pulse">
-                      {p.level || 1}
+                      {level || 1}
                     </div>
                   </div>
                 ) : (
                   <div className={`absolute bottom-0 ${align === "left" ? "left-[-6px]" : "right-[-6px]"} bg-black/80 text-white text-sm font-bold px-1 ${align === "left" ? "rounded-br" : "rounded-bl"} shadow-lg`}>
-                    {p.level || 1}
+                    {level || 1}
                     <div className={`absolute ${align === "left" ? "left-0 top-0" : "right-0 top-0"} w-0 h-0 ${align === "left" ? "border-l-0 border-r-4 border-b-4 border-t-0 border-l-transparent border-r-black/80 border-b-black/80 border-t-transparent" : "border-l-4 border-r-0 border-b-4 border-t-0 border-l-black/80 border-r-transparent border-b-black/80 border-t-transparent"}`}></div>
                   </div>
                 )}
+                {isDead && respawnTimer > 0 ? (
+                  <div className={`absolute top-1/2 -translate-y-1/2 ${align === "left" ? "left-[-14px]" : "right-[-14px]"} bg-black/90 text-white text-2xl font-extrabold leading-none px-2 py-1 rounded ${align === "left" ? "rounded-tr rounded-br" : "rounded-tl rounded-bl"} shadow-lg`}> 
+                    {Math.ceil(respawnTimer)}
+                  </div>
+                ) : null}
               </div>
             );
           };
 
           const renderTexts = (playerScore: (typeof gameData.allPlayers)[number]["scores"], summonerName: string, align: "left" | "right") => {
             return (
-              <div className={`flex direction-${align} flex-row gap-1`}>
-                <div className="text-xs">
-                  <div className="font-semibold truncate max-w-[120px]">{summonerName}</div>
+              <div className={`flex direction-${align} flex-row${align === "left" ? "-reverse" : ""} gap-1 ${bgColor} w-28 h-full`}>
+                <div className="text-xs flex-shrink-0">
+                  <div className="font-semibold truncate max-w-[80px]">{summonerName}</div>
                 </div>
                 <div className={`flex flex-col items-end ${align === "left" ? "items-start" : "items-end"}`}>
                   <div className="text-orange-200 font-bold text-sm">{playerScore.creepScore ?? 0}</div>
@@ -188,24 +196,24 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
           ) => {
             if (!p) return <div className="flex-1" />;
             return (
-              <div className={`flex items-center ${align === "left" ? "justify-end" : "justify-start"} flex-1`}>
+              <div className={`flex items-center border-2 border-solid ${borderColor} ${align === "left" ? "justify-end" : "justify-start"} flex-1`}>
                 {align === "left" ? (
                   <>
-                    {renderTrinket(p.items[0].itemID, p.scores.visionScore)}
+                    {renderTrinket(p.items[0].itemID, p.scores.wardScore)}
                     {renderItems(p.items, "left")}
                     {renderRunes(p.runes)}
                     {renderSpells(p.summonerSpells)}
                     {renderTexts(p.scores, p.summonerName, "left")}
-                    {renderImage(p, "left")}
+                    {renderImage(p.summonerName, p.championName, p.level, p.isDead, p.respawnTimer, "left")}
                   </>
                 ) : (
                   <>
-                    {renderImage(p, "right")}
+                    {renderImage(p.summonerName, p.championName, p.level, p.isDead, p.respawnTimer, "right")}
                     {renderTexts(p.scores, p.summonerName, "right")}
                     {renderSpells(p.summonerSpells)}
                     {renderRunes(p.runes)}
                     {renderItems(p.items, "right")}
-                    {renderTrinket(p.items[0].itemID, p.scores.visionScore)}
+                    {renderTrinket(p.items[0].itemID, p.scores.wardScore)}
                   </>
                 )}
               </div>
@@ -229,7 +237,7 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
             const diff = Math.round(l - r);
             const abs = Math.abs(diff);
             return (
-              <div className="w-16 relative text-center flex items-center justify-center text-sm font-bold bg-black/80 border border-gray-600 h-full">
+              <div className={`w-16 h-[52px] relative text-center flex items-center justify-center text-sm font-bold bg-black/60 border-y-2 ${borderColor}`}>
                 {diff > 0 && (
                   <div className="absolute left-0 top-1/2 -translate-y-1/2 text-blue-300">
                     <ChevronLeft />
@@ -246,7 +254,7 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
           };
 
           return (
-            <div className="flex flex-col justify-center h-full border-2 border-gray-600">
+            <div className="flex flex-col">
               {(() => {
                 const usedOrder = new Set<string>();
                 const usedChaos = new Set<string>();
@@ -256,7 +264,7 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
                   const rightPlayer = pickByLaneWithFallback(chaosPlayers, lane, usedChaos);
                   if (rightPlayer) usedChaos.add(rightPlayer.summonerName);
                   return (
-                    <div key={lane} className="flex items-center h-[48px] border border-solid border-gray-600">
+                    <div key={lane} className={`flex items-center h-[52px] border-2 border-solid ${borderColor} ${lane === "TOP" ? "border-t-4" : ""}`}>
                       {renderPlayerSide(leftPlayer, "left")}
                       {renderGoldDiff(leftPlayer, rightPlayer)}
                       {renderPlayerSide(rightPlayer, "right")}

@@ -22,14 +22,15 @@ import { ContextWrapper } from "@lib/components/navigation/ContextErrorBoundary"
 import { ChampionCacheInitializer } from "@lib/components/LCU/ChampionCacheInitializer";
 import { Sidebar } from "@lib/components/navigation/Sidebar";
 import { MainContent } from "@lib/components/layout/MainContent";
+import { ConditionalLayout } from "./components/ConditionalLayout";
 import "./globals.css";
 
-const geistSans = Geist({
+export const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"]
 });
 
-const geistMono = Geist_Mono({
+export const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"]
 });
@@ -49,33 +50,37 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}>
-        <ContextWrapper
-          contexts={[
-            { name: "Electron", provider: ElectronProvider },
-            { name: "Auth", provider: AuthProvider },
-            { name: "Champions", provider: ChampionProvider },
-            { name: "Predictions", provider: PredictionsProvider },
-            { name: "Download", provider: DownloadProvider },
-            { name: "Cameras", provider: CamerasProvider },
-            { name: "Settings", provider: SettingsProvider },
-            { name: "TournamentData", provider: TournamentDataProvider },
-            { name: "TournamentBracket", provider: TournamentBracketProvider },
-            { name: "TournamentStats", provider: TournamentStatsProvider },
-            { name: "Tournaments", provider: TournamentsProvider },
-            { name: "CurrentTournament", provider: CurrentTournamentProvider },
-            { name: "CurrentMatch", provider: CurrentMatchProvider },
-            { name: "Navigation", provider: NavigationProvider },
-            { name: "Modal", provider: ModalProvider }
-          ]}
+        <ConditionalLayout
+          obsContent={children}
         >
-          <div className={`bg-black`}>
-            <NavigationGuard>
-              <Sidebar />
-              <MainContent>{children}</MainContent>
-              <ChampionCacheInitializer />
-            </NavigationGuard>
-          </div>
-        </ContextWrapper>
+          <ContextWrapper
+            contexts={[
+              { name: "Electron", provider: ElectronProvider },
+              { name: "Auth", provider: AuthProvider },
+              { name: "Champions", provider: ChampionProvider },
+              { name: "Predictions", provider: PredictionsProvider },
+              { name: "Download", provider: DownloadProvider },
+              { name: "Cameras", provider: CamerasProvider },
+              { name: "Settings", provider: SettingsProvider },
+              { name: "TournamentData", provider: TournamentDataProvider },
+              { name: "TournamentBracket", provider: TournamentBracketProvider },
+              { name: "TournamentStats", provider: TournamentStatsProvider },
+              { name: "Tournaments", provider: TournamentsProvider },
+              { name: "CurrentTournament", provider: CurrentTournamentProvider },
+              { name: "CurrentMatch", provider: CurrentMatchProvider },
+              { name: "Navigation", provider: NavigationProvider },
+              { name: "Modal", provider: ModalProvider }
+            ]}
+          >
+            <div className={`bg-black background-to-change`}>
+              <NavigationGuard>
+                <Sidebar />
+                <MainContent>{children}</MainContent>
+                <ChampionCacheInitializer />
+              </NavigationGuard>
+            </div>
+          </ContextWrapper>
+        </ConditionalLayout>
       </body>
     </html>
   );

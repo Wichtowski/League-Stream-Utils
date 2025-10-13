@@ -7,6 +7,7 @@ import { useUser } from "@lib/contexts";
 import { PageWrapper } from "@lib/layout";
 import { MatchCreationForm } from "@libTournament/components";
 import { LoadingSpinner } from "@lib/components/common";
+import { useCurrentTournament } from "@libTournament/contexts/CurrentTournamentContext";
 
 export default function CreateMatchPage(): React.ReactElement {
   const user = useUser();
@@ -18,6 +19,8 @@ export default function CreateMatchPage(): React.ReactElement {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const tournamentId = params.tournamentId as string;
+  const { currentTournament } = useCurrentTournament();
+
   const pageProps = useMemo(() => {
     return {
       title: "Create Match",
@@ -25,11 +28,14 @@ export default function CreateMatchPage(): React.ReactElement {
         "Create a new match for this tournament. You can create matches manually or from existing bracket nodes.",
       breadcrumbs: [
         { label: "Tournaments", href: "/modules/tournaments" },
-        { label: "Matches", href: `/modules/tournaments/${tournamentId}/matches` },
+        currentTournament?.name
+          ? { label: currentTournament.name, href: `/modules/tournaments/${tournamentId}` }
+          : null,
+          { label: "Matches", href: `/modules/tournaments/${tournamentId}/matches` },
         { label: "Create", href: `/modules/tournaments/${tournamentId}/matches/create`, isActive: true }
       ]
     };
-  }, [tournamentId]);
+  }, [tournamentId, currentTournament?.name]);
 
   useEffect(() => {
     if (!tournamentId) return;
@@ -123,13 +129,6 @@ export default function CreateMatchPage(): React.ReactElement {
   return (
     <PageWrapper {...pageProps}>
       <div className="min-h-screen p-6 max-w-6xl mx-auto">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-white mt-4">Create Match - {tournament.name}</h1>
-          <p className="text-gray-400 mt-2">
-            Create a new match for this tournament. You can create matches manually or from existing bracket nodes.
-          </p>
-        </div>
-
         <MatchCreationForm
           tournament={tournament}
           bracketNodes={bracketStructure?.nodes}
