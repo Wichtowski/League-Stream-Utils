@@ -8,6 +8,7 @@ import {
 } from "@libLeagueClient/components/common";
 import { getItemImage } from "@lib/items";
 import { getRuneImage } from "@lib/runes";
+import { MdPlayArrow } from "react-icons/md";
 
 interface LaneHudProps {
   gameData: LiveGameData;
@@ -148,8 +149,8 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
                 <Image
                   src={getChampionSquareImage(p.championName) || getDefaultAsset(gameVersion, "player.png")}
                   alt={p.championName}
-                  width={48}
-                  height={48}
+                  width={45}
+                  height={45}
                   className={showLevelAnimation ? "opacity-0" : "opacity-100 transition-opacity duration-300"}
                 />
                 {showLevelAnimation ? (
@@ -168,15 +169,15 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
             );
           };
 
-          const renderTexts = (p: (typeof gameData.allPlayers)[number], align: "left" | "right") => {
+          const renderTexts = (playerScore: (typeof gameData.allPlayers)[number]["scores"], summonerName: string, align: "left" | "right") => {
             return (
               <div className={`flex direction-${align} flex-row gap-1`}>
                 <div className="text-xs">
-                  <div className="font-semibold truncate max-w-[120px]">{p.summonerName || p.championName}</div>
+                  <div className="font-semibold truncate max-w-[120px]">{summonerName}</div>
                 </div>
                 <div className={`flex flex-col items-end ${align === "left" ? "items-start" : "items-end"}`}>
-                  <div className="text-orange-200 font-bold text-sm">{p.scores?.creepScore ?? 0}</div>
-                  {p.scores?.kills}/{p.scores?.deaths}/{p.scores?.assists}
+                  <div className="text-orange-200 font-bold text-sm">{playerScore.creepScore ?? 0}</div>
+                  {playerScore.kills}/{playerScore.deaths}/{playerScore.assists}
                 </div>
               </div>
             );
@@ -188,20 +189,20 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
           ) => {
             if (!p) return <div className="flex-1" />;
             return (
-              <div className={`flex items-center gap-2 ${align === "left" ? "justify-end" : "justify-start"} flex-1`}>
+              <div className={`flex items-center ${align === "left" ? "justify-end" : "justify-start"} flex-1`}>
                 {align === "left" ? (
                   <>
                     {renderTrinket(p.items[0].itemID, p.scores.visionScore)}
                     {renderItems(p.items, "left")}
                     {renderRunes(p.runes)}
                     {renderSpells(p.summonerSpells)}
-                    {renderTexts(p, "left")}
+                    {renderTexts(p.scores, p.summonerName, "left")}
                     {renderImage(p, "left")}
                   </>
                 ) : (
                   <>
                     {renderImage(p, "right")}
-                    {renderTexts(p, "right")}
+                    {renderTexts(p.scores, p.summonerName, "right")}
                     {renderSpells(p.summonerSpells)}
                     {renderRunes(p.runes)}
                     {renderItems(p.items, "right")}
@@ -213,15 +214,11 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
           };
 
           const ChevronLeft = (): React.ReactElement => (
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-              <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12l4.58-4.59z" />
-            </svg>
+            <MdPlayArrow className="text-blue-500 rotate-180" />
           );
 
           const ChevronRight = (): React.ReactElement => (
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-              <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z" />
-            </svg>
+            <MdPlayArrow className="text-red-500" />
           );
 
           const renderGoldDiff = (
@@ -250,7 +247,7 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
           };
 
           return (
-            <div className="flex flex-col justify-center h-full border border-gray-600">
+            <div className="flex flex-col justify-center h-full border-2 border-gray-600">
               {(() => {
                 const usedOrder = new Set<string>();
                 const usedChaos = new Set<string>();
@@ -260,7 +257,7 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
                   const rightPlayer = pickByLaneWithFallback(chaosPlayers, lane, usedChaos);
                   if (rightPlayer) usedChaos.add(rightPlayer.summonerName);
                   return (
-                    <div key={lane} className="flex items-center h-full border border-solid border-gray-600">
+                    <div key={lane} className="flex items-center h-[48px] border border-solid border-gray-600">
                       {renderPlayerSide(leftPlayer, "left")}
                       {renderGoldDiff(leftPlayer, rightPlayer)}
                       {renderPlayerSide(rightPlayer, "right")}
