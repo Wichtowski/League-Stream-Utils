@@ -18,7 +18,7 @@ interface LaneHudProps {
 export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): React.ReactElement => {
   const [levelAnimations, setLevelAnimations] = useState<Record<string, boolean>>({});
   const [previousLevels, setPreviousLevels] = useState<Record<string, number>>({});
-  const borderColor = "border-gray-700";
+  const borderColor = "border-zinc-600/50";
   const bgColor = "bg-black/78";
 
   useEffect(() => {
@@ -86,7 +86,7 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
           const renderItems = (items: (typeof gameData.allPlayers)[number]["items"], align: "left" | "right") => {
             const six = Array.from({ length: 6 }).map((_, i) => items?.[i] || null);
             return (
-              <div className="flex gap-1 h-full">
+              <div className={`flex gap-1 h-full ${bgColor}`}>
                 {align === "left"
                   ? six.reverse().map((it, idx) => (
                       <div
@@ -139,7 +139,7 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
           };
 
           const renderTrinket = (_trinketType: number, _wardScore: number) => {
-            return <div className="w-5 h-5 bg-gray-700 rounded border border-gray-600" />;
+            return <div className={runeAndSpellStyle} />;
           };
 
           const renderImage = (summonerName: string, championName: string, level: number, isDead: boolean, respawnTimer: number, align: "left" | "right") => {
@@ -147,7 +147,7 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
             const alignmentClass = align === "left" ? "justify-end" : "justify-start";
             
             return (
-              <div className={`relative border-1/2 black rounded flex ${alignmentClass}`}>
+              <div className={`relative rounded flex ${alignmentClass}`}>
                 <Image
                   src={getChampionSquareImage(championName) || getDefaultAsset(gameVersion, "player.png")}
                   alt={championName}
@@ -176,15 +176,78 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
             );
           };
 
-          const renderTexts = (playerScore: (typeof gameData.allPlayers)[number]["scores"], summonerName: string, align: "left" | "right") => {
+          const renderResource = (align: "left" | "right", resourceType?: string, resourceValue?: number, resourceMax?: number) => {
+            if (!resourceType || resourceType === "none" || !resourceValue || !resourceMax) return null;
+            
+            const percentage = (resourceValue / resourceMax) * 100;
+            let barColor = "bg-blue-500";
+            
+            switch (resourceType) {
+              case "mana":
+                barColor = "bg-blue-500";
+                break;
+              case "energy":
+                barColor = "bg-yellow-500";
+                break;
+              case "fury":
+              case "battlefury":
+              case "dragonfury":
+              case "rage":
+              case "gnarfury":
+                barColor = "bg-red-500";
+                break;
+              case "heat":
+                barColor = "bg-orange-500";
+                break;
+              case "ferocity":
+                barColor = "bg-purple-500";
+                break;
+              case "bloodwell":
+                barColor = "bg-red-600";
+                break;
+              case "wind":
+                barColor = "bg-cyan-400";
+                break;
+              case "moonlight":
+                barColor = "bg-indigo-400";
+                break;
+              default:
+                barColor = "bg-gray-500";
+            }
+            
+            const isMana = resourceType === "mana";
+            const gradientClass = isMana ? "bg-gradient-to-r from-blue-400 to-blue-600" : barColor;
+            
             return (
-              <div className={`flex direction-${align} flex-row${align === "left" ? "-reverse" : ""} gap-1 ${bgColor} w-28 h-full`}>
-                <div className="text-xs flex-shrink-0">
-                  <div className="font-semibold truncate max-w-[80px]">{summonerName}</div>
-                </div>
-                <div className={`flex flex-col items-end ${align === "left" ? "items-start" : "items-end"}`}>
+              <div className={`w-24 h-2 bg-gray-700 ${align === "right" ? "transform scale-x-[-1]" : ""}`}>
+                <div 
+                  className={`h-full ${gradientClass} transition-all duration-300`}
+                  style={{ width: `${percentage}%` }}
+                />
+              </div>
+            );
+          };
+
+          const renderTexts = (playerScore: (typeof gameData.allPlayers)[number]["scores"], summonerName: string, currentHealth: number, maxHealth: number, align: "left" | "right", resourceType?: string, resourceValue?: number, resourceMax?: number) => {
+            const healthPercentage = (currentHealth / maxHealth) * 100;
+            
+            return (
+              <div className={`flex direction-${align} justify-between flex-row${align === "left" ? "-reverse" : ""} ${bgColor} w-38 h-full py-1`}>
+                <div className={`flex flex-col items-end ${align === "left" ? "items-start" : "items-end"} h-full`}>
                   <div className="text-orange-200 font-bold text-sm">{playerScore.creepScore ?? 0}</div>
-                  {playerScore.kills}/{playerScore.deaths}/{playerScore.assists}
+                  <div className="text-white font-bold text-sm">{playerScore.kills}/{playerScore.deaths}/{playerScore.assists}</div>
+                </div>
+                <div className="text-xs flex-shrink-0 h-full flex flex-col justify-between">
+                  <div className="font-semibold truncate max-w-[80px]">{summonerName}</div>
+                  <div className="w-full">
+                    <div className={`w-24 h-2 bg-green-900 mb-0.5 ${align === "right" ? "transform scale-x-[-1]" : ""}`}>
+                      <div 
+                        className="h-full bg-gradient-to-r from-green-400 to-green-600 transition-all duration-300"
+                        style={{ width: `${healthPercentage}%` }}
+                      />
+                    </div>
+                    {renderResource(align, resourceType, resourceValue, resourceMax)}
+                  </div>
                 </div>
               </div>
             );
@@ -196,21 +259,21 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
           ) => {
             if (!p) return <div className="flex-1" />;
             return (
-              <div className={`flex items-center border-2 border-solid ${borderColor} ${align === "left" ? "justify-end" : "justify-start"} flex-1`}>
+              <div className={`flex items-center border-solid ${borderColor} ${align === "left" ? "justify-end border-r-2" : "justify-start border-l-2"} flex-1`}>
                 {align === "left" ? (
                   <>
                     {renderTrinket(p.items[0].itemID, p.scores.wardScore)}
                     {renderItems(p.items, "left")}
                     {renderRunes(p.runes)}
+                    {renderTexts(p.scores, p.summonerName, p.currentHealth, p.maxHealth, "left", p.resourceType, p.resourceValue, p.resourceMax)}
                     {renderSpells(p.summonerSpells)}
-                    {renderTexts(p.scores, p.summonerName, "left")}
                     {renderImage(p.summonerName, p.championName, p.level, p.isDead, p.respawnTimer, "left")}
                   </>
                 ) : (
                   <>
                     {renderImage(p.summonerName, p.championName, p.level, p.isDead, p.respawnTimer, "right")}
-                    {renderTexts(p.scores, p.summonerName, "right")}
                     {renderSpells(p.summonerSpells)}
+                    {renderTexts(p.scores, p.summonerName, p.currentHealth, p.maxHealth, "right", p.resourceType, p.resourceValue, p.resourceMax)}
                     {renderRunes(p.runes)}
                     {renderItems(p.items, "right")}
                     {renderTrinket(p.items[0].itemID, p.scores.wardScore)}
@@ -237,7 +300,7 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
             const diff = Math.round(l - r);
             const abs = Math.abs(diff);
             return (
-              <div className={`w-16 h-[52px] relative text-center flex items-center justify-center text-sm font-bold bg-black/60 border-y-2 ${borderColor}`}>
+              <div className={`w-16 h-full relative text-center flex items-center justify-center text-sm font-bold ${bgColor}`}>
                 {diff > 0 && (
                   <div className="absolute left-0 top-1/2 -translate-y-1/2 text-blue-300">
                     <ChevronLeft />
@@ -264,7 +327,7 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
                   const rightPlayer = pickByLaneWithFallback(chaosPlayers, lane, usedChaos);
                   if (rightPlayer) usedChaos.add(rightPlayer.summonerName);
                   return (
-                    <div key={lane} className={`flex items-center h-[52px] border-2 border-solid ${borderColor} ${lane === "TOP" ? "border-t-4" : ""}`}>
+                    <div key={lane} className={`flex items-center h-[50px] border-x-2 border-y-1 border-b-0 border-solid ${borderColor} ${lane === "TOP" ? "border-t-2" : ""}`}>
                       {renderPlayerSide(leftPlayer, "left")}
                       {renderGoldDiff(leftPlayer, rightPlayer)}
                       {renderPlayerSide(rightPlayer, "right")}

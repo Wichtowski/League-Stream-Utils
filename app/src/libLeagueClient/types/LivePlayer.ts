@@ -18,8 +18,8 @@ export interface LivePlayer {
   items: LiveItem[];
   level: number;
   gold: number;
-  health?: number;
-  maxHealth?: number;
+  currentHealth: number;
+  maxHealth: number;
   respawnTimer: number;
   isDead: boolean;
   resourceType?: string;

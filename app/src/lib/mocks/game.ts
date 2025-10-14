@@ -20,13 +20,18 @@ export const staticPlayersOrderMock: LivePlayer[] = [
       deaths: getRandomValue(),
       assists: getRandomValue(),
       creepScore: getRandomValue(250),
-      visionScore: getRandomValue(30)
+      wardScore: getRandomValue(30)
     },
     items: [{ itemID: 1001, name: "Boots", count: 1, price: 300 }],
     level: getRandomValue(18),
     gold: getRandomValue(10000),
-    health: getRandomValue(2259),
-    maxHealth: getRandomValue(2259),
+    currentHealth: getRandomValue(2259),
+    maxHealth: 2259,
+    resourceType: "mana",
+    resourceValue: getRandomValue(1000),
+    resourceMax: 1000,
+    respawnTimer: 0,
+    isDead: false,
     summonerSpells: { summonerSpellOne: initialSpell("Flash"), summonerSpellTwo: initialSpell("Teleport") },
     runes: { keystone: "Conqueror", primaryRuneTree: "Precision", secondaryRuneTree: "Resolve" }
   },
@@ -40,13 +45,18 @@ export const staticPlayersOrderMock: LivePlayer[] = [
       deaths: getRandomValue(),
       assists: getRandomValue(),
       creepScore: getRandomValue(250),
-      visionScore: getRandomValue(30)
+      wardScore: getRandomValue(30)
     },
     items: [{ itemID: 1001, name: "Boots", count: 1, price: 300 }],
     level: getRandomValue(18),
     gold: getRandomValue(10000),
-    health: getRandomValue(2259),
-    maxHealth: getRandomValue(2259),
+    currentHealth: getRandomValue(2259),
+    maxHealth: 2259,
+    resourceType: "mana",
+    resourceValue: getRandomValue(1000),
+    resourceMax: 1000,
+    respawnTimer: 0,
+    isDead: false,
     summonerSpells: { summonerSpellOne: initialSpell("Smite"), summonerSpellTwo: initialSpell("Flash") },
     runes: { keystone: "Conqueror", primaryRuneTree: "Precision", secondaryRuneTree: "Resolve" }
   },
@@ -60,13 +70,18 @@ export const staticPlayersOrderMock: LivePlayer[] = [
       deaths: getRandomValue(),
       assists: getRandomValue(),
       creepScore: getRandomValue(250),
-      visionScore: getRandomValue(30)
+      wardScore: getRandomValue(30)
     },
     items: [{ itemID: 1056, name: "Doran's Ring", count: 1, price: 400 }],
     level: getRandomValue(18),
     gold: getRandomValue(10000),
-    health: getRandomValue(2259),
-    maxHealth: getRandomValue(2259),
+    currentHealth: getRandomValue(2259),
+    maxHealth: 2259,
+    resourceType: "mana",
+    resourceValue: getRandomValue(1000),
+    resourceMax: 1000,
+    respawnTimer: 0,
+    isDead: false,
     summonerSpells: { summonerSpellOne: initialSpell("Flash"), summonerSpellTwo: initialSpell("Ignite") },
     runes: { keystone: "Electrocute", primaryRuneTree: "Domination", secondaryRuneTree: "Sorcery" }
   },
@@ -80,13 +95,18 @@ export const staticPlayersOrderMock: LivePlayer[] = [
       deaths: getRandomValue(),
       assists: getRandomValue(),
       creepScore: getRandomValue(250),
-      visionScore: getRandomValue(30)
+      wardScore: getRandomValue(30)
     },
     items: [{ itemID: 1055, name: "Doran's Blade", count: 1, price: 450 }],
     level: getRandomValue(18),
     gold: getRandomValue(10000),
-    health: getRandomValue(2259),
-    maxHealth: getRandomValue(2259),
+    currentHealth: getRandomValue(2259),
+    maxHealth: 2259,
+    resourceType: "mana",
+    resourceValue: getRandomValue(1000),
+    resourceMax: 1000,
+    respawnTimer: 0,
+    isDead: false,
     summonerSpells: { summonerSpellOne: initialSpell("Flash"), summonerSpellTwo: initialSpell("Heal") },
     runes: { keystone: "Lethal Tempo", primaryRuneTree: "Precision", secondaryRuneTree: "Inspiration" }
   },
@@ -100,13 +120,18 @@ export const staticPlayersOrderMock: LivePlayer[] = [
       deaths: getRandomValue(),
       assists: getRandomValue(),
       creepScore: getRandomValue(250),
-      visionScore: getRandomValue(30)
+      wardScore: getRandomValue(30)
     },
     items: [{ itemID: 3855, name: "Relic Shield", count: 1, price: 400 }],
     level: getRandomValue(18),
     gold: getRandomValue(10000),
-    health: getRandomValue(2259),
-    maxHealth: getRandomValue(2259),
+    currentHealth: getRandomValue(2259),
+    maxHealth: 2259,
+    resourceType: "mana",
+    resourceValue: getRandomValue(1000),
+    resourceMax: 1000,
+    respawnTimer: 0,
+    isDead: false,
     summonerSpells: { summonerSpellOne: initialSpell("Flash"), summonerSpellTwo: initialSpell("Exhaust") },
     runes: { keystone: "Aftershock", primaryRuneTree: "Resolve", secondaryRuneTree: "Inspiration" }
   }
@@ -123,13 +148,18 @@ export const staticPlayersChaosMock: LivePlayer[] = [
       deaths: getRandomValue(),
       assists: getRandomValue(),
       creepScore: getRandomValue(250),
-      visionScore: getRandomValue(30)
+      wardScore: getRandomValue(30)
     },
     items: [{ itemID: 1036, name: "Long Sword", count: 1, price: 350 }],
     level: getRandomValue(18),
     gold: getRandomValue(10000),
-    health: getRandomValue(2259),
-    maxHealth: getRandomValue(2259),
+    currentHealth: getRandomValue(2259),
+    maxHealth: 2259,
+    resourceType: "mana",
+    resourceValue: getRandomValue(1000),
+    resourceMax: 1000,
+    respawnTimer: 0,
+    isDead: false,
     summonerSpells: { summonerSpellOne: initialSpell("Flash"), summonerSpellTwo: initialSpell("Teleport") },
     runes: { keystone: "Conqueror", primaryRuneTree: "Precision", secondaryRuneTree: "Resolve" }
   },
@@ -143,13 +173,18 @@ export const staticPlayersChaosMock: LivePlayer[] = [
       deaths: getRandomValue(),
       assists: getRandomValue(),
       creepScore: getRandomValue(250),
-      visionScore: getRandomValue(30)
+      wardScore: getRandomValue(30)
     },
     items: [{ itemID: 1039, name: "Hunter's Talisman", count: 1, price: 350 }],
     level: getRandomValue(18),
     gold: getRandomValue(10000),
-    health: getRandomValue(2259),
-    maxHealth: getRandomValue(2259),
+    currentHealth: getRandomValue(2259),
+    maxHealth: 2259,
+    resourceType: "mana",
+    resourceValue: getRandomValue(1000),
+    resourceMax: 1000,
+    respawnTimer: 0,
+    isDead: false,
     summonerSpells: { summonerSpellOne: initialSpell("Smite"), summonerSpellTwo: initialSpell("Flash") },
     runes: { keystone: "Electrocute", primaryRuneTree: "Domination", secondaryRuneTree: "Sorcery" }
   },
@@ -163,7 +198,7 @@ export const staticPlayersChaosMock: LivePlayer[] = [
       deaths: getRandomValue(),
       assists: getRandomValue(),
       creepScore: getRandomValue(250),
-      visionScore: getRandomValue(30)
+      wardScore: getRandomValue(30)
     },
     items: [
       { itemID: 3072, name: "Bloodthirster", count: 1, price: 350 },
@@ -173,8 +208,13 @@ export const staticPlayersChaosMock: LivePlayer[] = [
     ],
     level: getRandomValue(18),
     gold: getRandomValue(10000),
-    health: getRandomValue(2259),
-    maxHealth: getRandomValue(2259),
+    currentHealth: getRandomValue(2259),
+    maxHealth: 2259,
+    resourceType: "mana",
+    resourceValue: getRandomValue(1000),
+    resourceMax: 1000,
+    respawnTimer: 0,
+    isDead: false,
     summonerSpells: { summonerSpellOne: initialSpell("Flash"), summonerSpellTwo: initialSpell("Ignite") },
     runes: { keystone: "Electrocute", primaryRuneTree: "Domination", secondaryRuneTree: "Precision" }
   },
@@ -182,13 +222,13 @@ export const staticPlayersChaosMock: LivePlayer[] = [
     summonerName: "Crownie",
     championName: "Kai'Sa",
     team: "CHAOS",
-    position: "UTILITY",
+    position: "BOTTOM",
     scores: {
       kills: getRandomValue(),
       deaths: getRandomValue(),
       assists: getRandomValue(),
       creepScore: getRandomValue(250),
-      visionScore: getRandomValue(30)
+      wardScore: getRandomValue(30)
     },
     items: [
       { itemID: 3072, name: "Bloodthirster", count: 1, price: 3400 },
@@ -198,8 +238,13 @@ export const staticPlayersChaosMock: LivePlayer[] = [
     ],
     level: getRandomValue(18),
     gold: getRandomValue(10000),
-    health: getRandomValue(2259),
-    maxHealth: getRandomValue(2259),
+    currentHealth: getRandomValue(2259),
+    maxHealth: 2259,
+    resourceType: "mana",
+    resourceValue: getRandomValue(1000),
+    resourceMax: 1000,
+    respawnTimer: 0,
+    isDead: false,
     summonerSpells: { summonerSpellOne: initialSpell("Flash"), summonerSpellTwo: initialSpell("Heal") },
     runes: { keystone: "Fleet Footwork", primaryRuneTree: "Precision", secondaryRuneTree: "Inspiration" }
   },
@@ -207,19 +252,24 @@ export const staticPlayersChaosMock: LivePlayer[] = [
     summonerName: "Rekkles",
     championName: "Leona",
     team: "CHAOS",
-    position: "BOTTOM",
+    position: "UTILITY",
     scores: {
       kills: getRandomValue(),
       deaths: getRandomValue(),
       assists: getRandomValue(),
       creepScore: getRandomValue(250),
-      visionScore: getRandomValue(30)
+      wardScore: getRandomValue(30)
     },
     items: [{ itemID: 3859, name: "Steel Shoulderguards", count: 1, price: 400 }],
     level: getRandomValue(18),
     gold: getRandomValue(10000),
-    health: getRandomValue(2259),
-    maxHealth: getRandomValue(2259),
+    currentHealth: getRandomValue(2259),
+    maxHealth: 2259,
+    resourceType: "mana",
+    resourceValue: getRandomValue(1000),
+    resourceMax: 1000,
+    respawnTimer: 0,
+    isDead: false,
     summonerSpells: { summonerSpellOne: initialSpell("Flash"), summonerSpellTwo: initialSpell("Exhaust") },
     runes: { keystone: "Aftershock", primaryRuneTree: "Resolve", secondaryRuneTree: "Inspiration" }
   }
