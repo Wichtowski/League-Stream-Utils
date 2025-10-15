@@ -54,6 +54,7 @@ export const useLiveGameData = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPolling, setIsPolling] = useState(false);
+  const [uiControlled, setUIControlled] = useState(false);
 
   const checkGameStatus = useCallback(async (): Promise<boolean> => {
     try {
@@ -210,6 +211,28 @@ export const useLiveGameData = () => {
       console.log("useLiveGameData: Final transformed data:", transformedData);
       setGameData(transformedData);
       setError(null);
+
+      // Automatically hide UI but keep essentials when game data is received (only once)
+      if (!uiControlled) {
+        try {
+          console.log("useLiveGameData: Automatically hiding UI but keeping essentials...");
+          const uiResponse = await fetch("/api/v1/leagueclient/ui-control", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "hideKeepEssentials" })
+          });
+          
+          if (uiResponse.ok) {
+            const uiResult = await uiResponse.json();
+            console.log("useLiveGameData: UI control successful:", uiResult.message);
+            setUIControlled(true);
+          } else {
+            console.warn("useLiveGameData: UI control failed:", uiResponse.status);
+          }
+        } catch (uiError) {
+          console.warn("useLiveGameData: UI control error (non-critical):", uiError);
+        }
+      }
     } catch (err) {
       console.error("useLiveGameData: Error fetching game data:", err);
 
@@ -257,6 +280,7 @@ export const useLiveGameData = () => {
           console.log("useLiveGameData: Game no longer running, stopping polling...");
           setIsConnected(false);
           setGameData(null);
+          setUIControlled(false); // Reset UI control state when game ends
           clearInterval(interval);
           setIsPolling(false);
           return;
@@ -270,12 +294,14 @@ export const useLiveGameData = () => {
       return () => {
         console.log("useLiveGameData: Cleaning up polling interval...");
         clearInterval(interval);
+        setUIControlled(false); // Reset UI control state when cleanup
         setIsPolling(false);
       };
     } else {
       console.log("useLiveGameData: Game is not running, not starting polling");
       setIsConnected(false);
       setGameData(null);
+      setUIControlled(false); // Reset UI control state when game is not running
       setIsPolling(false);
     }
   }, [checkGameStatus, fetchGameData, isPolling]);

@@ -41,4 +41,5 @@ export interface LiveItem {
   name: string;
   count: number;
   price: number;
+  slot: number;
 }

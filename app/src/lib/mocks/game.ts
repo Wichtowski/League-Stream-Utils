@@ -9,6 +9,47 @@ const getRandomValue = (between: number = 10): number => {
   return Math.floor(Math.random() * between);
 };
 
+const getRandomItem = (slot: number): { itemID: number; name: string; count: number; price: number; slot: number } => {
+  const items = [
+    { itemID: 1001, name: "Boots", count: 1, price: 300 },
+    { itemID: 1055, name: "Doran's Blade", count: 1, price: 450 },
+    { itemID: 1056, name: "Doran's Ring", count: 1, price: 400 },
+    { itemID: 1036, name: "Long Sword", count: 1, price: 350 },
+    { itemID: 1037, name: "Pickaxe", count: 1, price: 875 },
+    { itemID: 3006, name: "Berserker's Greaves", count: 1, price: 1100 },
+    { itemID: 3072, name: "Bloodthirster", count: 1, price: 3400 },
+    { itemID: 3032, name: "Yun Tal's", count: 1, price: 3000 },
+    { itemID: 3031, name: "Infinity Edge", count: 1, price: 3450 },
+    { itemID: 3855, name: "Relic Shield", count: 1, price: 400 },
+    { itemID: 3859, name: "Steel Shoulderguards", count: 1, price: 400 },
+    { itemID: 1039, name: "Hunter's Talisman", count: 1, price: 350 }
+  ];
+  
+  const randomItem = items[Math.floor(Math.random() * items.length)];
+  return { ...randomItem, slot };
+};
+
+const getRandomItems = (): { itemID: number; name: string; count: number; price: number; slot: number }[] => {
+  const itemCount = Math.floor(Math.random() * 4) + 1; // 1-4 items
+  const items = [];
+  
+  for (let i = 0; i < itemCount; i++) {
+    items.push(getRandomItem(i));
+  }
+  
+  // Add trinket in slot 6
+  const trinkets = [
+    { itemID: 3363, name: "Farsight Alteration", count: 1, price: 0, slot: 6 },
+    { itemID: 3364, name: "Oracle Lens", count: 1, price: 0, slot: 6 },
+    { itemID: 3340, name: "Stealth Ward", count: 1, price: 0, slot: 6 }
+  ];
+  
+  const randomTrinket = trinkets[Math.floor(Math.random() * trinkets.length)];
+  items.push(randomTrinket);
+  
+  return items;
+};
+
 export const staticPlayersOrderMock: LivePlayer[] = [
   {
     summonerName: "frajgo",
@@ -22,7 +63,7 @@ export const staticPlayersOrderMock: LivePlayer[] = [
       creepScore: getRandomValue(250),
       wardScore: getRandomValue(30)
     },
-    items: [{ itemID: 1001, name: "Boots", count: 1, price: 300 }],
+    items: getRandomItems(),
     level: getRandomValue(18),
     gold: getRandomValue(10000),
     currentHealth: getRandomValue(2259),
@@ -47,7 +88,7 @@ export const staticPlayersOrderMock: LivePlayer[] = [
       creepScore: getRandomValue(250),
       wardScore: getRandomValue(30)
     },
-    items: [{ itemID: 1001, name: "Boots", count: 1, price: 300 }],
+    items: getRandomItems(),
     level: getRandomValue(18),
     gold: getRandomValue(10000),
     currentHealth: getRandomValue(2259),
@@ -72,7 +113,7 @@ export const staticPlayersOrderMock: LivePlayer[] = [
       creepScore: getRandomValue(250),
       wardScore: getRandomValue(30)
     },
-    items: [{ itemID: 1056, name: "Doran's Ring", count: 1, price: 400 }],
+    items: getRandomItems(),
     level: getRandomValue(18),
     gold: getRandomValue(10000),
     currentHealth: getRandomValue(2259),
@@ -97,7 +138,7 @@ export const staticPlayersOrderMock: LivePlayer[] = [
       creepScore: getRandomValue(250),
       wardScore: getRandomValue(30)
     },
-    items: [{ itemID: 1055, name: "Doran's Blade", count: 1, price: 450 }],
+    items: getRandomItems(),
     level: getRandomValue(18),
     gold: getRandomValue(10000),
     currentHealth: getRandomValue(2259),
@@ -122,7 +163,7 @@ export const staticPlayersOrderMock: LivePlayer[] = [
       creepScore: getRandomValue(250),
       wardScore: getRandomValue(30)
     },
-    items: [{ itemID: 3855, name: "Relic Shield", count: 1, price: 400 }],
+    items: getRandomItems(),
     level: getRandomValue(18),
     gold: getRandomValue(10000),
     currentHealth: getRandomValue(2259),
@@ -150,7 +191,7 @@ export const staticPlayersChaosMock: LivePlayer[] = [
       creepScore: getRandomValue(250),
       wardScore: getRandomValue(30)
     },
-    items: [{ itemID: 1036, name: "Long Sword", count: 1, price: 350 }],
+    items: getRandomItems(),
     level: getRandomValue(18),
     gold: getRandomValue(10000),
     currentHealth: getRandomValue(2259),
@@ -175,7 +216,7 @@ export const staticPlayersChaosMock: LivePlayer[] = [
       creepScore: getRandomValue(250),
       wardScore: getRandomValue(30)
     },
-    items: [{ itemID: 1039, name: "Hunter's Talisman", count: 1, price: 350 }],
+    items: getRandomItems(),
     level: getRandomValue(18),
     gold: getRandomValue(10000),
     currentHealth: getRandomValue(2259),
@@ -200,12 +241,7 @@ export const staticPlayersChaosMock: LivePlayer[] = [
       creepScore: getRandomValue(250),
       wardScore: getRandomValue(30)
     },
-    items: [
-      { itemID: 3072, name: "Bloodthirster", count: 1, price: 350 },
-      { itemID: 3032, name: "Yun Tal's", count: 1, price: 350 },
-      { itemID: 3031, name: "Infinity Edge", count: 1, price: 350 },
-      { itemID: 3006, name: "Berserker's Greaves", count: 1, price: 350 }
-    ],
+    items: getRandomItems(),
     level: getRandomValue(18),
     gold: getRandomValue(10000),
     currentHealth: getRandomValue(2259),
@@ -230,12 +266,7 @@ export const staticPlayersChaosMock: LivePlayer[] = [
       creepScore: getRandomValue(250),
       wardScore: getRandomValue(30)
     },
-    items: [
-      { itemID: 3072, name: "Bloodthirster", count: 1, price: 3400 },
-      { itemID: 3032, name: "Yun Tal's", count: 1, price: 3000 },
-      { itemID: 3031, name: "Infinity Edge", count: 1, price: 3450 },
-      { itemID: 3006, name: "Berserker's Greaves", count: 1, price: 1100 }
-    ],
+    items: getRandomItems(),
     level: getRandomValue(18),
     gold: getRandomValue(10000),
     currentHealth: getRandomValue(2259),
@@ -260,7 +291,7 @@ export const staticPlayersChaosMock: LivePlayer[] = [
       creepScore: getRandomValue(250),
       wardScore: getRandomValue(30)
     },
-    items: [{ itemID: 3859, name: "Steel Shoulderguards", count: 1, price: 400 }],
+    items: getRandomItems(),
     level: getRandomValue(18),
     gold: getRandomValue(10000),
     currentHealth: getRandomValue(2259),

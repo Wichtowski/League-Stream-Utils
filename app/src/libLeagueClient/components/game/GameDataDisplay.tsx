@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { LiveGameData } from "@libLeagueClient/types";
 import { TeamScoreDisplay } from "@libLeagueClient/components/game/TeamScoreDisplay";
-import { PlayerCard } from "@libLeagueClient/components/game/PlayerCard";
 import { Tournament, Match, GameResult } from "@libTournament/types";
 import Image from "next/image";
 import { motion } from "framer-motion";
@@ -19,7 +18,7 @@ import {
 import { getItems } from "@lib/items";
 import { getChampions } from "@lib/champions";
 import { getSummonerSpells } from "@lib/summoner-spells";
-import { bindLivePlayersToMatch, createFallbackLivePlayer } from "@lib/services/game/live-binding";
+import { bindLivePlayersToMatch } from "@lib/services/game/live-binding";
 import { getLatestVersion } from "@lib/services/common/unified-asset-cache";
 import { useImagePreload } from "@lib/hooks/useImagePreload";
 import { Team } from "@libTeam/types";
@@ -241,8 +240,8 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({
     blueTeamPlayers.reduce((sum, player) => sum + (player.gold || 0), 0);
 
   const bound = bindLivePlayersToMatch(gameData.allPlayers, match);
-  const orderedBlue = bound.blue.filter(Boolean);
-  const orderedRed = bound.red.filter(Boolean);
+  const _orderedBlue = bound.blue.filter(Boolean);
+  const _orderedRed = bound.red.filter(Boolean);
 
   // Calculate team stats
   const blueTeamStats = {
@@ -333,8 +332,7 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({
           <h3 className="text-lg font-bold mb-4 text-center">{orderTeam?.name || "ORDER"}</h3>
           <div className="space-y-3">
             {orderedBlue.map((bp, index) => {
-              const fallback = bp.rosterPlayer ? createFallbackLivePlayer(bp.rosterPlayer, "ORDER") : null;
-              const p = bp.livePlayer || fallback;
+              const p = bp.livePlayer;
               if (!p) return null;
               return (
                 <motion.div
@@ -362,8 +360,7 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({
           <h3 className="text-lg font-bold mb-4 text-center">{chaosTeam?.name || "CHAOS"}</h3>
           <div className="space-y-3">
             {orderedRed.map((bp, index) => {
-              const fallback = bp.rosterPlayer ? createFallbackLivePlayer(bp.rosterPlayer, "CHAOS") : null;
-              const p = bp.livePlayer || fallback;
+              const p = bp.livePlayer;
               if (!p) return null;
               return (
                 <motion.div

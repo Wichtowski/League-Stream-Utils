@@ -24,7 +24,7 @@ export const livePositionToRole = (position: string): PlayerRole | null => {
   return null;
 };
 
-const roleToLivePosition = (role: PlayerRole): string => {
+export const roleToLivePosition = (role: PlayerRole): string => {
   if (role === "TOP") return "TOP";
   if (role === "JUNGLE") return "JUNGLE";
   if (role === "MID") return "MIDDLE";
@@ -94,27 +94,5 @@ export const bindLivePlayersToMatch = (
 
   return { blue, red, unbound };
 };
-
-export const createFallbackLivePlayer = (player: Player, team: "ORDER" | "CHAOS"): LivePlayer => ({
-  summonerName: player.inGameName,
-  championName: "Unknown",
-  team,
-  position: roleToLivePosition(player.role),
-  scores: { kills: 0, deaths: 0, assists: 0, creepScore: 0, visionScore: 0 },
-  items: [],
-  level: 1,
-  gold: 0,
-  health: 0,
-  maxHealth: 1,
-  summonerSpells: {
-    summonerSpellOne: { displayName: "", rawDescription: "" },
-    summonerSpellTwo: { displayName: "", rawDescription: "" }
-  },
-  runes: {
-    keystone: "",
-    primaryRuneTree: "",
-    secondaryRuneTree: ""
-  }
-});
 
 export const getRoleOrder = (): PlayerRole[] => ROLE_ORDER;

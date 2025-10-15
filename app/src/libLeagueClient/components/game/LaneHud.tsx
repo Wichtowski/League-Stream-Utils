@@ -81,27 +81,70 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
             return first || null;
           };
           
-          const itemStyle = "w-5 h-5 bg-zinc-900 rounded flex items-center justify-center";
+          const itemStyle = "w-7 h-7 bg-zinc-900 rounded relative overflow-hidden flex items-center justify-center";
 
-          const renderItems = (items: (typeof gameData.allPlayers)[number]["items"], align: "left" | "right") => {
-            const six = Array.from({ length: 6 }).map((_, i) => items?.[i] || null);
+          const renderItems = (items: (typeof gameData.allPlayers)[number]["items"], trinketItemID: number, visionScore: number, align: "left" | "right") => {
+            // Create array of 7 slots (0-6) with proper typing
+            const slots: (typeof items[0] | null)[] = Array.from({ length: 7 }).map(() => null);
+            
+            // Trinket items that should always be in slot 6 (last position)
+            const trinketItems = [3363, 3364, 3340]; // Farsight Alteration, Oracle Lens, Stealth Ward
+            
+            // First, try to fill slots based on slot property
+            items?.forEach(item => {
+              if (item && typeof item.slot === 'number' && item.slot >= 0 && item.slot < 7) {
+                // If it's a trinket item, only put it in slot 6, skip if in other slots
+                if (trinketItems.includes(item.itemID)) {
+                  if (item.slot === 6) {
+                    slots[6] = item;
+                  }
+                  // Skip trinkets in slots 0-5
+                } else {
+                  // For non-trinket items, use their original slot
+                  slots[item.slot] = item;
+                }
+              }
+            });
+            
+            // If no items were placed using slot property, fall back to array index
+            if (slots.every(slot => slot === null)) {
+              items?.forEach((item, index) => {
+                if (item && index < 6 && !trinketItems.includes(item.itemID)) {
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  (slots as any)[index] = item;
+                }
+              });
+            }
+            
+            // Handle trinket in slot 6
+            const trinketItem = items?.find(item => trinketItems.includes(item.itemID));
+            if (trinketItem) {
+              slots[6] = trinketItem;
+            } else if (trinketItemID) {
+              slots[6] = { itemID: trinketItemID, name: "Trinket", count: 1, price: 0, slot: 6 };
+            }
+            
             return (
-              <div className={`flex gap-1 h-full ${bgColor}`}>
+              <div className={`flex ${align === "left" ? "pr-0.5" : "pl-0.5"} gap-0.5 h-full py-2.5 ${bgColor}`}>
                 {align === "left"
-                  ? six.reverse().map((it, idx) => (
+                  ? slots.reverse().map((it, idx) => (
                       <div
                         key={idx}
                         className={itemStyle}
                       >
-                        {it ? <Image src={getItemImage(it.itemID)} alt={it.name} width={20} height={20} /> : null}
+                        {it ? (
+                          <Image src={getItemImage(it.itemID)} alt={it.name} fill sizes="30px" className="object-cover" />
+                        ) : null}
                       </div>
                     ))
-                  : six.map((it, idx) => (
+                  : slots.map((it, idx) => (
                       <div
                         key={idx}
                         className={itemStyle}
                       >
-                        {it ? <Image src={getItemImage(it.itemID)} alt={it.name} width={20} height={20} /> : null}
+                        {it ? (
+                          <Image src={getItemImage(it.itemID)} alt={it.name} fill sizes="30px" className="object-cover" />
+                        ) : null}
                       </div>
                     ))}
               </div>
@@ -138,22 +181,19 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
             );
           };
 
-          const renderTrinket = (_trinketType: number, _wardScore: number) => {
-            return <div className={runeAndSpellStyle} />;
-          };
 
           const renderImage = (summonerName: string, championName: string, level: number, isDead: boolean, respawnTimer: number, align: "left" | "right") => {
             const showLevelAnimation = levelAnimations[summonerName] || false;
             const alignmentClass = align === "left" ? "justify-end" : "justify-start";
             
             return (
-              <div className={`relative rounded flex ${alignmentClass}`}>
+              <div className={`relative flex ${alignmentClass}`}>
                 <Image
                   src={getChampionSquareImage(championName) || getDefaultAsset(gameVersion, "player.png")}
                   alt={championName}
                   width={48}
                   height={48}
-                  className={showLevelAnimation ? "opacity-0" : `${isDead ? "grayscale brightness-50" : ""} opacity-100 transition-opacity duration-300`}
+                  className={showLevelAnimation ? "opacity-0 w-12 h-12" : `${isDead ? "grayscale brightness-50" : ""} opacity-100 transition-opacity duration-300 w-12 h-12`}
                 />
                 {showLevelAnimation ? (
                   <div className="absolute inset-0 bg-black flex items-center justify-center">
@@ -262,8 +302,7 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
               <div className={`flex items-center border-solid ${borderColor} ${align === "left" ? "justify-end border-r-2" : "justify-start border-l-2"} flex-1`}>
                 {align === "left" ? (
                   <>
-                    {renderTrinket(p.items[0].itemID, p.scores.wardScore)}
-                    {renderItems(p.items, "left")}
+                    {renderItems(p.items, p.items[0].itemID, p.scores.wardScore, "left")}
                     {renderRunes(p.runes)}
                     {renderTexts(p.scores, p.summonerName, p.currentHealth, p.maxHealth, "left", p.resourceType, p.resourceValue, p.resourceMax)}
                     {renderSpells(p.summonerSpells)}
@@ -275,8 +314,7 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
                     {renderSpells(p.summonerSpells)}
                     {renderTexts(p.scores, p.summonerName, p.currentHealth, p.maxHealth, "right", p.resourceType, p.resourceValue, p.resourceMax)}
                     {renderRunes(p.runes)}
-                    {renderItems(p.items, "right")}
-                    {renderTrinket(p.items[0].itemID, p.scores.wardScore)}
+                    {renderItems(p.items, p.items[0].itemID, p.scores.wardScore, "right")}
                   </>
                 )}
               </div>
