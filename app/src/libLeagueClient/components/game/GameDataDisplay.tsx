@@ -61,6 +61,7 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({
   const seenSpellNamesRef = useRef<Set<string>>(new Set());
   const [initialPreloadUrls, setInitialPreloadUrls] = useState<string[]>([]);
   const setupDoneRef = useRef<boolean>(false);
+  const uiControlTriggeredRef = useRef<boolean>(false);
 
   // Set game version and assets when tournament data is available
   useEffect(() => {
@@ -225,6 +226,22 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({
     }
   }, [gameData, championsLoaded, summonerSpellsLoaded, itemsLoaded, initialPreloadUrls, initialImagesLoaded]);
 
+  // Trigger LCU UI control: hide most UI and keep essentials when the display is ready
+  useEffect(() => {
+    if (!uiReady || uiControlTriggeredRef.current) return;
+    uiControlTriggeredRef.current = true;
+    (async (): Promise<void> => {
+      try {
+        await fetch("/api/v1/leagueclient/ui-control", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "hideKeepEssentials" })
+        });
+      } catch (_err) {
+      }
+    })();
+  }, [uiReady]);
+
   if (!uiReady || !match) {
     return <></>;
   }
@@ -250,9 +267,12 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({
     assists: blueTeamPlayers.reduce((sum, player) => sum + (player.scores?.assists || 0), 0),
     gold: blueTeamPlayers.reduce((sum, player) => sum + (player.gold || 0), 0),
     towers: 0, // You'll need to get this from game data
-    dragons: 0,
+    dragons: [],
     barons: 0,
-    inhibitors: 0
+    grubs: 0,
+    heralds: 0,
+    atakhan: 0,
+    petal: 0,
   };
 
   const redTeamStats = {
