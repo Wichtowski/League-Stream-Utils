@@ -125,28 +125,35 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
             }
             
             return (
-              <div className={`flex ${align === "left" ? "pr-0.5" : "pl-0.5"} gap-0.5 h-full py-2.5 ${bgColor}`}>
-                {align === "left"
-                  ? slots.reverse().map((it, idx) => (
-                      <div
-                        key={idx}
-                        className={itemStyle}
-                      >
-                        {it ? (
-                          <Image src={getItemImage(it.itemID)} alt={it.name} fill sizes="30px" className="object-cover" />
-                        ) : null}
-                      </div>
-                    ))
-                  : slots.map((it, idx) => (
-                      <div
-                        key={idx}
-                        className={itemStyle}
-                      >
-                        {it ? (
-                          <Image src={getItemImage(it.itemID)} alt={it.name} fill sizes="30px" className="object-cover" />
-                        ) : null}
-                      </div>
-                    ))}
+              <div className="relative">
+                {visionScore > 0 && (
+                  <div className={`absolute -top-1 z-10 ${align === "right" ? "right-0" : "left-0"} text-white text-xs font-bold px-1 rounded min-w-[16px] text-center`}>
+                    {visionScore}
+                  </div>
+                )}
+                <div className={`flex ${align === "left" ? "pr-0.5" : "pl-0.5"} gap-0.5 h-full py-2.5 ${bgColor}`}>
+                  {align === "left"
+                    ? slots.reverse().map((it, idx) => (
+                        <div
+                          key={idx}
+                          className={itemStyle}
+                        >
+                          {it ? (
+                            <Image src={getItemImage(it.itemID)} alt={it.name} fill sizes="30px" className="object-cover" />
+                          ) : null}
+                        </div>
+                      ))
+                    : slots.map((it, idx) => (
+                        <div
+                          key={idx}
+                          className={itemStyle}
+                        >
+                          {it ? (
+                            <Image src={getItemImage(it.itemID)} alt={it.name} fill sizes="30px" className="object-cover" />
+                          ) : null}
+                        </div>
+                      ))}
+                </div>
               </div>
             );
           };
@@ -259,12 +266,10 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
             const gradientClass = isMana ? "bg-gradient-to-r from-blue-400 to-blue-600" : barColor;
             
             return (
-              <div className={`w-24 h-2 bg-gray-700 ${align === "right" ? "transform scale-x-[-1]" : ""}`}>
                 <div 
                   className={`h-full ${gradientClass} transition-all duration-300`}
                   style={{ width: `${percentage}%` }}
                 />
-              </div>
             );
           };
 
@@ -273,20 +278,22 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
             
             return (
               <div className={`flex direction-${align} justify-between flex-row${align === "left" ? "-reverse" : ""} ${bgColor} w-38 h-full py-1`}>
-                <div className={`flex flex-col items-end ${align === "left" ? "items-start" : "items-end"} h-full`}>
+                <div className={`flex flex-col items-end min-w-14 min-h-10 ${align === "left" ? "items-end" : "items-start"} h-full`}>
                   <div className="text-orange-200 font-bold text-sm">{playerScore.creepScore ?? 0}</div>
                   <div className="text-white font-bold text-sm">{playerScore.kills}/{playerScore.deaths}/{playerScore.assists}</div>
                 </div>
-                <div className="text-xs flex-shrink-0 h-full flex flex-col justify-between">
-                  <div className="font-semibold truncate max-w-[80px]">{summonerName}</div>
+                <div className="text-xs flex-shrink-0 h-full flex flex-col justify-between px-1">
+                  <div className="font-semibold truncate max-w-[100px]">{summonerName}</div>
                   <div className="w-full">
-                    <div className={`w-24 h-2 bg-green-900 mb-0.5 ${align === "right" ? "transform scale-x-[-1]" : ""}`}>
+                    <div className={`w-20 h-2 bg-green-900 mb-0.5 ${align === "right" ? "transform scale-x-[-1]" : ""}`}>
                       <div 
                         className="h-full bg-gradient-to-r from-green-400 to-green-600 transition-all duration-300"
                         style={{ width: `${healthPercentage}%` }}
                       />
                     </div>
-                    {renderResource(align, resourceType, resourceValue, resourceMax)}
+                    <div className={`w-20 h-2 bg-gray-700 ${align === "right" ? "transform scale-x-[-1]" : ""}`}>
+                      {renderResource(align, resourceType, resourceValue, resourceMax)}
+                    </div>
                   </div>
                 </div>
               </div>
