@@ -6,7 +6,6 @@ export { useGameData } from "./useGameData";
 export { useGridItems } from "./useGridItems";
 export { useImagePreload } from "./useImagePreload";
 export { useLCU } from "./useLCU";
-export { useLiveGameData } from "./useLiveGameData";
 export { useMergedCameraTeams } from "./useMergedCameraTeams";
 export { usePermissions } from "./usePermissions";
 export { useRequestCancellation } from "./useRequestCancellation";
