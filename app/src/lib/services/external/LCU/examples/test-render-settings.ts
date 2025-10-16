@@ -120,3 +120,4 @@ export const testAPIEndpoints = async (): Promise<void> => {
     console.error("❌ API endpoint test error:", error);
   }
 };
+

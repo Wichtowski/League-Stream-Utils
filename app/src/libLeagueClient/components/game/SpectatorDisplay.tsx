@@ -52,3 +52,4 @@ export const SpectatorDisplay: React.FC<SpectatorDisplayProps> = ({
     </div>
   );
 };
+
