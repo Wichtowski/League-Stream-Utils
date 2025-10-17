@@ -81,7 +81,7 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
             return first || null;
           };
           
-          const itemStyle = "w-7 h-7 bg-zinc-900 rounded relative overflow-hidden flex items-center justify-center";
+          const itemStyle = "w-6 h-6 bg-zinc-900 rounded relative overflow-hidden flex items-center justify-center";
 
           const renderItems = (items: (typeof gameData.allPlayers)[number]["items"], trinketItemID: number, visionScore: number, align: "left" | "right") => {
             // Create array of 7 slots (0-6) with proper typing
@@ -124,14 +124,10 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
               slots[6] = { itemID: trinketItemID, name: "Trinket", count: 1, price: 0, slot: 6 };
             }
             
+            const trinketCenterLeftPx = align === "right" ? 170 : 14;
             return (
               <div className="relative">
-                {visionScore > 0 && (
-                  <div className={`absolute -top-1 z-10 ${align === "right" ? "right-0" : "left-0"} text-white text-xs font-bold px-1 rounded min-w-[16px] text-center`}>
-                    {visionScore}
-                  </div>
-                )}
-                <div className={`flex ${align === "left" ? "pr-0.5" : "pl-0.5"} gap-0.5 h-full py-2.5 ${bgColor}`}>
+                <div className={`flex px-0.5 gap-0.5 h-full py-3 ${bgColor}`}>
                   {align === "left"
                     ? slots.reverse().map((it, idx) => (
                         <div
@@ -139,7 +135,7 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
                           className={itemStyle}
                         >
                           {it ? (
-                            <Image src={getItemImage(it.itemID)} alt={it.name} fill sizes="30px" className="object-cover" />
+                            <Image src={getItemImage(it.itemID)} alt={it.name} fill sizes="24px" className="object-cover" />
                           ) : null}
                         </div>
                       ))
@@ -149,81 +145,96 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
                           className={itemStyle}
                         >
                           {it ? (
-                            <Image src={getItemImage(it.itemID)} alt={it.name} fill sizes="30px" className="object-cover" />
+                            <Image src={getItemImage(it.itemID)} alt={it.name} fill sizes="24px" className="object-cover" />
                           ) : null}
                         </div>
                       ))}
                 </div>
+                {visionScore !== undefined && visionScore !== null && (
+                  <div className="absolute -top-0.5 z-30 pointer-events-none text-white text-xs font-bold px-2 rounded min-w-[16px] text-center -translate-x-1/2" style={{ left: `${trinketCenterLeftPx}px` }}>
+                    {visionScore || "0"}
+                  </div>
+                )}
               </div>
             );
           };
-          const runeAndSpellStyle = "w-6 h-6 border border-black flex items-center justify-center";
+
+          const runeAndSpellStyle = "w-6 h-6 flex items-center justify-center";
           
           const renderSpells = (spell: (typeof gameData.allPlayers)[number]["summonerSpells"]) => {
             const s1 = spell?.summonerSpellOne?.displayName;
             const s2 = spell?.summonerSpellTwo?.displayName;
             return (
               <div className="flex flex-col">
-                <div className={runeAndSpellStyle}>
+                <div className={`${runeAndSpellStyle} p-0.5 ${bgColor}`}>
                   {s1 ? <Image src={getSummonerSpellImageByName(s1)} alt={s1} width={22} height={22} /> : null}
                 </div>
-                <div className={runeAndSpellStyle}>
+                <div className={`${runeAndSpellStyle} p-0.5 ${bgColor}`}>
                   {s2 ? <Image src={getSummonerSpellImageByName(s2)} alt={s2} width={22} height={22} /> : null}
                 </div>
               </div>
             );
           };
+
+          const isSmallerRune = (rune: string) => {
+            return rune.includes("7202_sorcery.png") ;
+          };
+
           const renderRunes = (runes: (typeof gameData.allPlayers)[number]["runes"]) => {
             const r1 = runes?.keystone;
             const r2 = runes?.secondaryRuneTree;
+            const rune1Image = getRuneImage(r1);
+            const rune2Image = getRuneImage(r2);
             return (
               <div className="flex flex-col">
                 <div className={`${runeAndSpellStyle} bg-zinc-900`}>
-                  {r1 ? <Image src={getRuneImage(r1)} alt={r1} width={22} height={22} /> : null}
+                  {rune1Image ? <Image src={rune1Image} alt={r1} width={22} height={22} /> : null}
                 </div>
-                <div className={`${runeAndSpellStyle} bg-zinc-900`}>
-                  {r2 ? <Image src={getRuneImage(r2)} alt={r2} width={18} height={18} /> : null}
+                <div className={`${runeAndSpellStyle} bg-zinc-900 ${isSmallerRune(rune2Image) ? "p-0.75" : "p-1.25"}`}>
+                  {rune2Image ? <Image src={rune2Image} alt={r2} width={18} height={18} /> : null}
                 </div>
               </div>
             );
           };
 
 
-          const renderImage = (summonerName: string, championName: string, level: number, isDead: boolean, respawnTimer: number, align: "left" | "right") => {
+          const renderChampImage = (summonerName: string, championName: string, level: number, isDead: boolean, respawnTimer: number, align: "left" | "right") => {
             const showLevelAnimation = levelAnimations[summonerName] || false;
             const alignmentClass = align === "left" ? "justify-end" : "justify-start";
             
             return (
               <div className={`relative flex ${alignmentClass}`}>
-                <Image
-                  src={getChampionSquareImage(championName) || getDefaultAsset(gameVersion, "player.png")}
-                  alt={championName}
-                  width={48}
-                  height={48}
-                  className={showLevelAnimation ? "opacity-0 w-12 h-12" : `${isDead ? "grayscale brightness-50" : ""} opacity-100 transition-opacity duration-300 w-12 h-12`}
-                />
-                {showLevelAnimation ? (
-                  <div className="absolute inset-0 bg-black flex items-center justify-center">
-                    <div className="text-white text-3xl font-bold animate-pulse">
-                      {level || 1}
+                <div className="relative w-12 h-12">
+                  <Image
+                    src={getChampionSquareImage(championName) || getDefaultAsset(gameVersion, "player.png")}
+                    alt={championName}
+                    fill
+                    sizes="48px"
+                    className={`${isDead ? "grayscale brightness-50" : ""} ${showLevelAnimation ? "opacity-0" : "opacity-100 transition-opacity duration-300"} object-cover`}
+                  />
+                  {showLevelAnimation ? (
+                    <div className="absolute inset-0 bg-black flex items-center justify-center">
+                      <div className="text-white text-3xl font-bold animate-pulse">
+                        {level || 1}
+                      </div>
                     </div>
-                  </div>
-                ) : (
-                  <div className={`absolute bottom-0 ${align === "left" ? "left-[-6px]" : "right-[-6px]"} bg-black/80 text-white text-sm font-bold px-1 ${align === "left" ? "rounded-br" : "rounded-bl"} shadow-lg`}>
-                    {level || 1}
-                    <div className={`absolute ${align === "left" ? "left-0 top-0" : "right-0 top-0"} w-0 h-0 ${align === "left" ? "border-l-0 border-r-4 border-b-4 border-t-0 border-l-transparent border-r-black/80 border-b-black/80 border-t-transparent" : "border-l-4 border-r-0 border-b-4 border-t-0 border-l-black/80 border-r-transparent border-b-black/80 border-t-transparent"}`}></div>
-                  </div>
-                )}
-                {isDead && respawnTimer > 0 ? (
-                  <div className={`absolute top-1/2 -translate-y-1/2 ${align === "left" ? "left-[-14px]" : "right-[-14px]"} bg-black/90 text-white text-2xl font-extrabold leading-none px-2 py-1 rounded ${align === "left" ? "rounded-tr rounded-br" : "rounded-tl rounded-bl"} shadow-lg`}> 
-                    {Math.ceil(respawnTimer)}
-                  </div>
-                ) : null}
+                  ) : (
+                    <div className={`absolute bottom-0 ${align === "left" ? "left-[-6px]" : "right-[-6px]"} bg-black/60 text-white text-sm font-bold px-1 ${align === "left" ? "rounded-br" : "rounded-bl"} shadow-lg`}>
+                      {level || 1}
+                      <div className={`absolute ${align === "left" ? "left-0 top-0" : "right-0 top-0"} w-0 h-0 ${align === "left" ? "border-l-0 border-r-4 border-b-4 border-t-0 border-l-transparent border-r-black/80 border-b-black/80 border-t-transparent" : "border-l-4 border-r-0 border-b-4 border-t-0 border-l-black/80 border-r-transparent border-b-black/80 border-t-transparent"}`}></div>
+                    </div>
+                  )}
+                  {isDead && respawnTimer > 0 ? (
+                    <div className={`absolute top-1/2 -translate-y-1/2 ${align === "left" ? "left-[-14px]" : "right-[-14px]"} bg-black/90 text-white text-2xl font-extrabold leading-none px-2 py-1 rounded ${align === "left" ? "rounded-tr rounded-br" : "rounded-tl rounded-bl"} shadow-lg`}> 
+                      {Math.ceil(respawnTimer)}
+                    </div>
+                  ) : null}
+                </div>
               </div>
             );
           };
 
-          const renderResource = (align: "left" | "right", resourceType?: string, resourceValue?: number, resourceMax?: number) => {
+          const renderResource = (resourceType?: string, resourceValue?: number, resourceMax?: number) => {
             if (!resourceType || resourceType === "none" || !resourceValue || !resourceMax) return null;
             
             const percentage = (resourceValue / resourceMax) * 100;
@@ -283,7 +294,7 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
                   <div className="text-white font-bold text-sm">{playerScore.kills}/{playerScore.deaths}/{playerScore.assists}</div>
                 </div>
                 <div className="text-xs flex-shrink-0 h-full flex flex-col justify-between px-1">
-                  <div className="font-semibold truncate max-w-[100px]">{summonerName}</div>
+                  <div className={`font-semibold truncate max-w-[100px] ${align === "left" ? "text-left" : "text-right"}`}>{summonerName}</div>
                   <div className="w-full">
                     <div className={`w-20 h-2 bg-green-900 mb-0.5 ${align === "right" ? "transform scale-x-[-1]" : ""}`}>
                       <div 
@@ -292,7 +303,7 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
                       />
                     </div>
                     <div className={`w-20 h-2 bg-gray-700 ${align === "right" ? "transform scale-x-[-1]" : ""}`}>
-                      {renderResource(align, resourceType, resourceValue, resourceMax)}
+                      {renderResource(resourceType, resourceValue, resourceMax)}
                     </div>
                   </div>
                 </div>
@@ -306,18 +317,18 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
           ) => {
             if (!p) return <div className="flex-1" />;
             return (
-              <div className={`flex items-center border-solid ${borderColor} ${align === "left" ? "justify-end border-r-2" : "justify-start border-l-2"} flex-1`}>
+              <div className={`flex items-center ${borderColor} ${align === "left" ? "justify-end border-r-2" : "justify-start border-l-2"} flex-1`}>
                 {align === "left" ? (
                   <>
                     {renderItems(p.items, p.items[0].itemID, p.scores.wardScore, "left")}
                     {renderRunes(p.runes)}
                     {renderTexts(p.scores, p.summonerName, p.currentHealth, p.maxHealth, "left", p.resourceType, p.resourceValue, p.resourceMax)}
                     {renderSpells(p.summonerSpells)}
-                    {renderImage(p.summonerName, p.championName, p.level, p.isDead, p.respawnTimer, "left")}
+                    {renderChampImage(p.summonerName, p.championName, p.level, p.isDead, p.respawnTimer, "left")}
                   </>
                 ) : (
                   <>
-                    {renderImage(p.summonerName, p.championName, p.level, p.isDead, p.respawnTimer, "right")}
+                    {renderChampImage(p.summonerName, p.championName, p.level, p.isDead, p.respawnTimer, "right")}
                     {renderSpells(p.summonerSpells)}
                     {renderTexts(p.scores, p.summonerName, p.currentHealth, p.maxHealth, "right", p.resourceType, p.resourceValue, p.resourceMax)}
                     {renderRunes(p.runes)}
@@ -372,7 +383,7 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
                   const rightPlayer = pickByLaneWithFallback(chaosPlayers, lane, usedChaos);
                   if (rightPlayer) usedChaos.add(rightPlayer.summonerName);
                   return (
-                    <div key={lane} className={`flex items-center h-[50px] border-x-2 border-y-1 border-b-0 border-solid ${borderColor} ${lane === "TOP" ? "border-t-2" : ""}`}>
+                    <div key={lane} className={`flex items-center h-[50px] border-x-2 border-y-2 border-b-0 ${borderColor} ${lane === "TOP" ? "border-t-2" : ""}`}>
                       {renderPlayerSide(leftPlayer, "left")}
                       {renderGoldDiff(leftPlayer, rightPlayer)}
                       {renderPlayerSide(rightPlayer, "right")}
