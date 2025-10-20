@@ -55,6 +55,31 @@ async function fetchSummonerSpellsFromAPI(): Promise<{
   return { spells, version };
 }
 
+// Fetch CommunityDragon spells via API for browser environment
+async function fetchCommunityDragonSpellsFromAPI(): Promise<SummonerSpell[]> {
+  try {
+    const version = await getLatestVersion();
+    const { CommunityDragonSpellsService } = await import("@lib/services/assets/community-dragon-spells");
+    
+    const communitySpells = await CommunityDragonSpellsService.getAvailableSpells(version);
+    
+    return communitySpells.map((spell) => ({
+      _id: spell.filename,
+      name: spell.name,
+      key: spell.filename.replace('.png', ''),
+      description: `CommunityDragon spell: ${spell.name}`,
+      maxrank: 1,
+      cooldown: [0],
+      cost: [0],
+      range: [0],
+      image: `/api/local-image?path=${encodeURIComponent(`assets/${version}/summoner-spells/${spell.filename}`)}`
+    }));
+  } catch (error) {
+    console.warn("Failed to fetch CommunityDragon spells from API:", error);
+    return [];
+  }
+}
+
 // Electron file cache
 async function loadFromElectronCache(): Promise<{
   spells: SummonerSpell[];
@@ -81,7 +106,14 @@ async function getSummonerSpellsFromComprehensiveCache(): Promise<SummonerSpell[
   try {
     // Check if we're in Electron environment
     if (typeof window === "undefined" || !window.electronAPI) {
-      return await fetchSummonerSpellsFromAPI().then((data) => data.spells);
+      // In browser environment, fetch both DataDragon and CommunityDragon spells
+      const [dataDragonResult, communityDragonSpells] = await Promise.all([
+        fetchSummonerSpellsFromAPI(),
+        fetchCommunityDragonSpellsFromAPI()
+      ]);
+      
+      // Combine both spell sources
+      return [...dataDragonResult.spells, ...communityDragonSpells];
     }
 
     // const latest = await getLatestVersion();
@@ -115,10 +147,16 @@ async function getSummonerSpellsFromBasicCache(): Promise<SummonerSpell[]> {
     return electronCache.spells;
   }
 
-  // Try DataDragon API
+  // Try DataDragon API and CommunityDragon spells
   try {
-    const { spells } = await fetchSummonerSpellsFromAPI();
-    return spells.map((s) => ({ ...s, image: toLocalImageUrl(s.image) }));
+    const [dataDragonResult, communityDragonSpells] = await Promise.all([
+      fetchSummonerSpellsFromAPI(),
+      fetchCommunityDragonSpellsFromAPI()
+    ]);
+    
+    // Combine both spell sources and apply image URL transformation
+    const allSpells = [...dataDragonResult.spells, ...communityDragonSpells];
+    return allSpells.map((s) => ({ ...s, image: toLocalImageUrl(s.image) }));
   } catch (error) {
     console.error("Failed to fetch summoner spells from DataDragon:", error);
     return [];

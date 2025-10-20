@@ -403,6 +403,12 @@ button {
   border: 1px solid white;
 }
 
+.score-rectangle-vertical {
+  @apply w-3 h-6 rounded-sm border transition-all duration-200;
+  background: transparent;
+  border: 1px solid white;
+}
+
 .score-rectangle-blue {
   background: rgba(59, 130, 246, 0.8);
   border-color: #3b82f6;

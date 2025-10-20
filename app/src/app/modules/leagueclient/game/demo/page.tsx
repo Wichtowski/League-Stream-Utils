@@ -6,7 +6,7 @@ import { GameDataDisplay } from "@libLeagueClient/components/game/GameDataDispla
 import { Breadcrumbs } from "@lib/components/common";
 import { getChampions } from "@lib/champions";
 import { getSummonerSpells } from "@lib/summoner-spells";
-import { staticPlayersOrderMock, staticPlayersChaosMock, MockedEvents } from "@lib/mocks/game";
+import { staticPlayersOrderMock, staticPlayersChaosMock, MockedRiotEvents } from "@lib/mocks/game";
 import { mockMatch, mockTournament } from "@lib/mocks/game";
 
 const makeLiveGameData = (elapsedSeconds: number): LiveGameData => {
@@ -19,7 +19,7 @@ const makeLiveGameData = (elapsedSeconds: number): LiveGameData => {
       gameStartTime: Math.floor(Date.now() / 1000) - elapsedSeconds
     },
     allPlayers: [...staticPlayersOrderMock, ...staticPlayersChaosMock],
-    events: MockedEvents
+    events: MockedRiotEvents
   };
 };
 

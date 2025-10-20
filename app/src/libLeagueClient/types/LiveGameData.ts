@@ -13,16 +13,20 @@ export interface LiveGameData {
 }
 
 export interface GameEvent {
+  EventID: number;
   EventName: string;
   EventTime: number;
   KillerName?: string;
+  TurretKilled?: string;
+  Assisters?: string[];
+  InhibKilled?: string;
+  Stolen?: "False" | "True";
   KillerTeam?: "ORDER" | "CHAOS";
   VictimName?: string;
-  VictimTeam?: "ORDER" | "CHAOS";
-  Position?: {
-    x: number;
-    y: number;
-  };
+  Acer?: string;
+  AcingTeam?: "ORDER" | "CHAOS";
+  KillStreak?: number;
+  DragonType?: "Earth" | "Elder" | "Fire" | "Water" | "Air" | "Chemtech" | "Hextech";
 }
 
 export interface GameStatus {

@@ -75,7 +75,7 @@ export const staticPlayersOrderMock: LivePlayer[] = [
     resourceMax: 1000,
     respawnTimer: 0,
     isDead: false,
-    summonerSpells: { summonerSpellOne: initialSpell("Flash"), summonerSpellTwo: initialSpell("Teleport") },
+    summonerSpells: { summonerSpellOne: initialSpell("Flash"), summonerSpellTwo: initialSpell("Teleport Unleashed") },
     runes: { keystone: "Conqueror", primaryRuneTree: "Precision", secondaryRuneTree: "Resolve" }
   },
   {
@@ -326,51 +326,143 @@ export const staticPlayersChaosMock: LivePlayer[] = [
   }
 ];
 
-export const MockedEvents: GameEvent[] = [
+
+export const MockedRiotEvents: GameEvent[] = [
   {
-    EventName: "KILL",
-    EventTime: 10,
-    KillerName: "frajgo",
-    KillerTeam: "ORDER",
-    VictimName: "Bausffs",
-    VictimTeam: "CHAOS",
-    Position: { x: 100, y: 100 }
+    EventID: 0,
+    EventName: "GameStart",
+    EventTime: 0.0
   },
   {
-    EventName: "KILL",
-    EventTime: 10,
-    KillerName: "Rybson",
-    KillerTeam: "ORDER",
-    VictimName: "Velja",
-    VictimTeam: "CHAOS",
-    Position: { x: 100, y: 100 }
+    EventID: 1,
+    EventName: "MinionsSpawning",
+    EventTime: 0.0
   },
   {
-    EventName: "KILL",
-    EventTime: 10,
-    KillerName: "Mrozku",
-    KillerTeam: "ORDER",
-    VictimName: "Nemesis",
-    VictimTeam: "CHAOS",
-    Position: { x: 100, y: 100 }
+    EventID: 2,
+    EventName: "FirstBrick",
+    EventTime: 120.0,
+    KillerName: "frajgo#FMS"
   },
   {
-    EventName: "KILL",
-    EventTime: 10,
-    KillerName: "zamulek",
-    KillerTeam: "ORDER",
-    VictimName: "Crownie",
-    VictimTeam: "CHAOS",
-    Position: { x: 100, y: 100 }
+    EventID: 3,
+    EventName: "TurretKilled",
+    EventTime: 180.0,
+    TurretKilled: "Turret_T2_L_03_A",
+    KillerName: "frajgo#FMS",
+    Assisters: ["Rybson#FMS"]
   },
   {
-    EventName: "KILL",
-    EventTime: 10,
-    KillerName: "minemaciek",
-    KillerTeam: "ORDER",
-    VictimName: "Rekkles",
-    VictimTeam: "CHAOS",
-    Position: { x: 100, y: 100 }
+    EventID: 4,
+    EventName: "InhibKilled",
+    EventTime: 300.0,
+    InhibKilled: "Barracks_T2_R1",
+    KillerName: "frajgo#FMS",
+    Assisters: ["Rybson#FMS"]
+  },
+  {
+    EventID: 5,
+    EventName: "DragonKill",
+    EventTime: 420.0,
+    DragonType: "Earth",
+    Stolen: "False",
+    KillerName: "Rybson#FMS",
+    Assisters: ["frajgo#FMS"]
+  },
+  {
+    EventID: 5,
+    EventName: "DragonKill",
+    EventTime: 420.0,
+    DragonType: "Fire",
+    Stolen: "False",
+    KillerName: "Rybson#FMS",
+    Assisters: ["frajgo#FMS"]
+  },
+  {
+    EventID: 5,
+    EventName: "DragonKill",
+    EventTime: 420.0,
+    DragonType: "Air",
+    Stolen: "False",
+    KillerName: "Rybson#FMS",
+    Assisters: ["frajgo#FMS"]
+  },
+  {
+    EventID: 5,
+    EventName: "DragonKill",
+    EventTime: 420.0,
+    DragonType: "Air",
+    Stolen: "False",
+    KillerName: "Rybson#FMS",
+    Assisters: ["frajgo#FMS"]
+  },
+  {
+    EventID: 6,
+    EventName: "DragonKill",
+    EventTime: 600.0,
+    DragonType: "Elder",
+    Stolen: "False",
+    KillerName: "Rybson#FMS",
+    Assisters: ["frajgo#FMS", "Mrozku#FMS"]
+  },
+  {
+    EventID: 7,
+    EventName: "HeraldKill",
+    EventTime: 480.0,
+    Stolen: "False",
+    KillerName: "Rybson#FMS",
+    Assisters: ["frajgo#FMS"]
+  },
+  {
+    EventID: 8,
+    EventName: "BaronKill",
+    EventTime: 900.0,
+    Stolen: "False",
+    KillerName: "Rybson#FMS",
+    Assisters: ["frajgo#FMS", "Mrozku#FMS", "zamulek#FMS"]
+  },
+  {
+    EventID: 9,
+    EventName: "ChampionKill",
+    EventTime: 150.0,
+    VictimName: "Bausffs#LR",
+    KillerName: "frajgo#FMS",
+    Assisters: ["Rybson#FMS"]
+  },
+  {
+    EventID: 10,
+    EventName: "Multikill",
+    EventTime: 200.0,
+    KillerName: "frajgo#FMS",
+    KillStreak: 2
+  },
+  {
+    EventID: 11,
+    EventName: "Multikill",
+    EventTime: 250.0,
+    KillerName: "frajgo#FMS",
+    KillStreak: 3
+  },
+  {
+    EventID: 12,
+    EventName: "Multikill",
+    EventTime: 300.0,
+    KillerName: "frajgo#FMS",
+    KillStreak: 4
+  },
+  {
+    EventID: 13,
+    EventName: "Multikill",
+    EventTime: 350.0,
+    KillerName: "frajgo#FMS",
+    KillStreak: 5
+  },
+  {
+    EventID: 14,
+    EventName: "Ace",
+    EventTime: 400.0,
+    Acer: "frajgo#FMS",
+    AcingTeam: "ORDER"
   }
 ];
 

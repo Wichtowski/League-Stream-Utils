@@ -127,11 +127,34 @@ export interface RiotAllPlayer {
   team: TeamSideLCU;
 }
 
-export interface RiotGameEvent {
+
+
+interface BaseGameEvent {
   EventID: number;
-  EventName: string;
   EventTime: number;
 }
+
+interface ObjectiveGameEvent extends BaseGameEvent {
+  EventName: "DragonKill" | "HeraldKill" | "BaronKill" | "InhibKilled" | "FirstBrick" | "TurretKilled" | "GameStart" | "MinionsSpawning";
+  DragonType?: "Earth" | "Elder" | "Fire" | "Water" | "Air" | "Chemtech" | "Hextech";
+  Stolen?: boolean | string;
+  KillerName?: string;
+  Assisters?: string[];
+  TurretKilled?: string;
+  InhibKilled?: string;
+}
+
+interface KDAGameEvents extends BaseGameEvent {
+  EventName: "Multikill" | "Ace" | "ChampionKill";
+  KillerName?: string;
+  KillStreak?: number;
+  Assisters?: string[];
+  VictimName?: string;
+  Acer?: string;
+  AcingTeam?: "ORDER" | "CHAOS";
+}
+
+export type RiotGameEvent = ObjectiveGameEvent | KDAGameEvents;
 
 export interface RiotEventsWrapper {
   Events: RiotGameEvent[];

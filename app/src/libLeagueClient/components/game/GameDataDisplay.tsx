@@ -1,10 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { LiveGameData } from "@libLeagueClient/types";
-import { TeamScoreDisplay } from "@libLeagueClient/components/game/TeamScoreDisplay";
-import { Tournament, Match, GameResult } from "@libTournament/types";
-import Image from "next/image";
 import { motion } from "framer-motion";
+import { Tournament, Match, GameResult } from "@libTournament/types";
 import { LaneHud } from "@libLeagueClient/components/game/LaneHud";
+import { TopBar } from "@libLeagueClient/components/game/TopBar";
 import {
   getChampionSquareImage,
   getSummonerSpellImageByName,
@@ -22,7 +21,7 @@ import { bindLivePlayersToMatch } from "@lib/services/game/live-binding";
 import { getLatestVersion } from "@lib/services/common/unified-asset-cache";
 import { useImagePreload } from "@lib/hooks/useImagePreload";
 import { Team } from "@libTeam/types";
-import { getTeamWins } from "@libLeagueClient/utils/teamWins";
+import { SubTopBar } from "./SubTopBar";
 // import { CameraStream } from "@libCamera/components/CameraStream";
 
 export type Resolutions = "FHD" | "WQHD" | "4K";
@@ -66,7 +65,7 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({
   const [_grubsIcon, setGrubsIcon] = useState<string>("");
   const [_heraldIcon, setHeraldIcon] = useState<string>("");
   const [_atakhanIcons, setAtakhanIcons] = useState<string[]>([]);
-  const [_dragonIcons, setDragonIcons] = useState<string[]>([]);
+  const [dragonIcons, setDragonIcons] = useState<{ [key: string]: string }>({});
   const [tournamentLogo, setTournamentLogo] = useState<string>("");
   const [orderLogo, setOrderLogo] = useState<string>("");
   const [chaosLogo, setChaosLogo] = useState<string>("");
@@ -121,15 +120,15 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({
           getAtakhanAsset(resolvedVersion, "atakhan_ruinous.png"),
           getAtakhanAsset(resolvedVersion, "atakhan_voracious.png")
         ]);
-        setDragonIcons([
-          getDragonPitAsset(resolvedVersion, "chemtech.png"),
-          getDragonPitAsset(resolvedVersion, "cloud.png"),
-          getDragonPitAsset(resolvedVersion, "elder.png"),
-          getDragonPitAsset(resolvedVersion, "hextech.png"),
-          getDragonPitAsset(resolvedVersion, "infernal.png"),
-          getDragonPitAsset(resolvedVersion, "mountain.png"),
-          getDragonPitAsset(resolvedVersion, "ocean.png")
-        ]);
+        setDragonIcons({
+          chemtech: getDragonPitAsset(resolvedVersion, "chemtech.png"),
+          cloud: getDragonPitAsset(resolvedVersion, "cloud.png"),
+          elder: getDragonPitAsset(resolvedVersion, "elder.png"),
+          hextech: getDragonPitAsset(resolvedVersion, "hextech.png"),
+          infernal: getDragonPitAsset(resolvedVersion, "infernal.png"),
+          mountain: getDragonPitAsset(resolvedVersion, "mountain.png"),
+          ocean: getDragonPitAsset(resolvedVersion, "ocean.png")
+        });
       } catch (error) {
         console.error("Failed to setup game assets:", error);
         setupDoneRef.current = false; // Reset on error so it can retry
@@ -284,15 +283,53 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({
   const _orderedBlue = bound.blue.filter(Boolean);
   const _orderedRed = bound.red.filter(Boolean);
 
+  const firstBrick = gameData.events?.find((event) => event.EventName === "FirstBrick");
+  
+  // Determine which team got the first brick by checking KillerName
+  const _firstBrickTeam = firstBrick?.KillerName 
+    ? (blueTeamPlayers.some(player => player.summonerName === firstBrick.KillerName) ? "ORDER" : "CHAOS")
+    : null;
+  const dragonsKilled = gameData.events?.filter((event) => event.EventName === "DragonKill") || [];
+
+  const blueTeamDragonsKilled = dragonsKilled.filter((event) => event.KillerName === blueTeamPlayers.find((player) => player.summonerName === event.KillerName)?.summonerName);
+  const redTeamDragonsKilled = dragonsKilled.filter((event) => event.KillerName === redTeamPlayers.find((player) => player.summonerName === event.KillerName)?.summonerName);
+
+  // Baron buff logic - check if baron was killed in the last 180 seconds (3 minutes)
+  const currentGameTime = gameData.gameData.gameTime;
+  const baronKills = gameData.events?.filter((event) => event.EventName === "BaronKill") || [];
+  
+  const blueTeamBaronKills = baronKills.filter((event) => 
+    event.KillerName && blueTeamPlayers.some(player => player.summonerName === event.KillerName)
+  );
+  const redTeamBaronKills = baronKills.filter((event) => 
+    event.KillerName && redTeamPlayers.some(player => player.summonerName === event.KillerName)
+  );
+
+  const blueTeamHasBaronBuff = blueTeamBaronKills.some((event) => 
+    currentGameTime - event.EventTime <= 180
+  );
+  const redTeamHasBaronBuff = redTeamBaronKills.some((event) => 
+    currentGameTime - event.EventTime <= 180
+  );
+
   // Calculate team stats
   const blueTeamStats = {
     kills: blueTeamPlayers.reduce((sum, player) => sum + (player.scores?.kills || 0), 0),
     deaths: blueTeamPlayers.reduce((sum, player) => sum + (player.scores?.deaths || 0), 0),
     assists: blueTeamPlayers.reduce((sum, player) => sum + (player.scores?.assists || 0), 0),
     gold: blueTeamPlayers.reduce((sum, player) => sum + (player.gold || 0), 0),
-    towers: 0, // You'll need to get this from game data
-    dragons: [],
-    barons: 0,
+    towers: gameData.events?.filter((event) => event.EventName === "TurretKilled" ).length || 0,
+    dragonsSlained: {
+      earth: blueTeamDragonsKilled.filter((event) => event.DragonType === "Earth").length,
+      elder: blueTeamDragonsKilled.filter((event) => event.DragonType === "Elder").length,
+      fire: blueTeamDragonsKilled.filter((event) => event.DragonType === "Fire").length,
+      water: blueTeamDragonsKilled.filter((event) => event.DragonType === "Water").length,
+      air: blueTeamDragonsKilled.filter((event) => event.DragonType === "Air").length,
+      chemtech: blueTeamDragonsKilled.filter((event) => event.DragonType === "Chemtech").length,
+      hextech: blueTeamDragonsKilled.filter((event) => event.DragonType === "Hextech").length,
+    },
+    baronsSlained: blueTeamBaronKills.length,
+    hasBaronBuff: blueTeamHasBaronBuff,
     grubs: 0,
     heralds: 0,
     atakhan: 0,
@@ -304,24 +341,19 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({
     deaths: redTeamPlayers.reduce((sum, player) => sum + (player.scores?.deaths || 0), 0),
     assists: redTeamPlayers.reduce((sum, player) => sum + (player.scores?.assists || 0), 0),
     gold: redTeamPlayers.reduce((sum, player) => sum + (player.gold || 0), 0),
-    towers: 0,
-    dragons: 0,
-    barons: 0,
-    inhibitors: 0
+    towers: gameData.events?.filter((event) => event.EventName === "TurretKilled" ).length || 0,
+    dragonsSlained: {
+      earth: redTeamDragonsKilled.filter((event) => event.DragonType === "Earth").length,
+      elder: redTeamDragonsKilled.filter((event) => event.DragonType === "Elder").length,
+      fire: redTeamDragonsKilled.filter((event) => event.DragonType === "Fire").length,
+      water: redTeamDragonsKilled.filter((event) => event.DragonType === "Water").length,
+      air: redTeamDragonsKilled.filter((event) => event.DragonType === "Air").length,
+      chemtech: redTeamDragonsKilled.filter((event) => event.DragonType === "Chemtech").length,
+      hextech: redTeamDragonsKilled.filter((event) => event.DragonType === "Hextech").length,
+    },
+    hasBaronBuff: redTeamHasBaronBuff,
   };
 
-  // Calculate team wins for series score display
-  const teamWins = getTeamWins(match?.games || [], match!);
-  const showSeriesScore = match?.format !== "BO1";
-  
-  // Determine max wins based on match format
-  const getMaxWins = (): number => {
-    if (match?.format === "BO5") return 3; // Best of 5: first to 3 wins
-    if (match?.format === "BO3") return 2; // Best of 3: first to 2 wins
-    return 1; // Single game
-  };
-  
-  const maxWins = getMaxWins();
 
 
   const getResolutionStyles = (): {
@@ -347,88 +379,38 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({
 
 
   return (
+    
     <div className="fixed inset-0 text-white font-sans">
       {/* Top Bar - Team Scores & Game Info */}
       <motion.div
         initial={{ y: -80, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ type: "spring", stiffness: 140, damping: 18 }}
-        className="absolute top-0 left-0 right-0 h-20 bg-gray-600"
+        className="absolute top-0 left-0 right-0 h-20 w-[60%] mx-auto bg-black/90"
       >
-        <div className="flex justify-between items-center h-full px-8">
-          {/* Blue Team (Left) */}
-          <div className="flex flex-col items-center">
-            {/* Series Score Rectangles for Blue Team */}
-            {showSeriesScore && (
-              <div className="flex gap-1 mb-2">
-                {Array.from({ length: maxWins }, (_, index) => (
-                  <div
-                    key={index}
-                    className={`score-rectangle ${
-                      index < teamWins.team1Wins ? "score-rectangle-point" : "score-rectangle-empty"
-                    }`}
-                  />
-                ))}
-              </div>
-            )}
-            <TeamScoreDisplay
-              logo={orderLogo}
-              tag={orderTeam?.tag || "ORDER"}
-              kills={blueTeamStats.kills}
-              towers={blueTeamStats.towers}
-              towerIcon={towerIcon}
-              goldDiff={orderGoldDiff}
-              goldIcon={goldIcon}
-              teamGold={blueTeamStats.gold}
-              reverse={true}
-            />
-          </div>
-
-          {/* Center - Game Info */}
-          <div className="text-center h-full flex flex-col items-center justify-center">
-            <Image src={tournamentLogo} alt={`${tournament?.name} logo`} width={128} height={128} className="mb-2" />
-            <div className="text-3xl font-bold text-white mb-1 font-mono">
-              {formatGameTime(gameData.gameData.gameTime)}
-            </div>
-            {/* {currentGame && (
-              <div className="text-lg text-gray-300 font-semibold">
-                Game {currentGame.gameNumber} of {match?.format === "BO1" ? 1 : match?.format === "BO3" ? 3 : 5}
-              </div>
-            )}
-            {match?.score && (
-              <div className="text-sm text-gray-400">
-                Series: {match.score.blue} - {match.score.red}
-              </div>
-            )} */}
-          </div>
-
-          {/* Red Team (Right) */}
-          <div className="flex flex-col items-center">
-            {/* Series Score Rectangles for Red Team */}
-            {showSeriesScore && (
-              <div className="flex gap-1 mb-2">
-                {Array.from({ length: maxWins }, (_, index) => (
-                  <div
-                    key={index}
-                    className={`score-rectangle ${
-                      index < teamWins.team2Wins ? "score-rectangle-point" : "score-rectangle-empty"
-                    }`}
-                  />
-                ))}
-              </div>
-            )}
-            <TeamScoreDisplay
-              logo={chaosLogo}
-              tag={chaosTeam?.tag || "CHAOS"}
-              kills={redTeamStats.kills}
-              towers={redTeamStats.towers}
-              towerIcon={towerIcon}
-              goldDiff={chaosGoldDiff}
-              goldIcon={goldIcon}
-              teamGold={redTeamStats.gold}
-            />
-          </div>
-        </div>
+        <div className="flex flex-col justify-between items-center w-full h-full px-8">
+          <TopBar
+            orderTeam={orderTeam}
+            chaosTeam={chaosTeam}
+            orderLogo={orderLogo}
+            chaosLogo={chaosLogo}
+            blueTeamStats={blueTeamStats}
+            redTeamStats={redTeamStats}
+            orderGoldDiff={orderGoldDiff}
+            chaosGoldDiff={chaosGoldDiff}
+            towerIcon={towerIcon}
+            goldIcon={goldIcon}
+            match={match}
+            tournamentLogo={tournamentLogo}
+          />
+          <SubTopBar
+            gameTime={gameData.gameData.gameTime}
+            formatGameTime={formatGameTime}
+            blueTeamDragons={blueTeamDragonsKilled}
+            redTeamDragons={redTeamDragonsKilled}
+            dragonIcons={dragonIcons}
+          />
+         </div>
       </motion.div>
 
       {/* Left Side Panel - Blue Team Players */}

@@ -27,6 +27,9 @@ interface TeamScoreDisplayProps extends GoldDisplayProps {
   towers: number;
   towerIcon: string;
   reverse?: boolean;
+  showSeriesScore?: boolean;
+  teamWins?: number;
+  maxWins?: number;
 }
 
 export const TeamScoreDisplay: React.FC<TeamScoreDisplayProps> = ({
@@ -38,7 +41,10 @@ export const TeamScoreDisplay: React.FC<TeamScoreDisplayProps> = ({
   goldDiff,
   goldIcon,
   teamGold,
-  reverse = false
+  reverse = false,
+  showSeriesScore = false,
+  teamWins = 0,
+  maxWins = 1
 }) => {
   return (
     <div className={`flex items-center gap-12 ${reverse ? "flex-row-reverse" : "flex-row"}`}>
@@ -56,6 +62,19 @@ export const TeamScoreDisplay: React.FC<TeamScoreDisplayProps> = ({
         <SafeImage src={logo} alt="Team Logo" width={48} height={48} />
         <div className={`text-xl font-bold`}>{tag}</div>
       </div>
+      {/* Series Score Rectangles - Vertical */}
+      {showSeriesScore && (
+        <div className="flex flex-col gap-1">
+          {Array.from({ length: maxWins }, (_, index) => (
+            <div
+              key={index}
+              className={`score-rectangle-vertical ${
+                index < teamWins ? "score-rectangle-point" : "score-rectangle-empty"
+              }`}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 };

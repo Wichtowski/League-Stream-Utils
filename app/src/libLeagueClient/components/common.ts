@@ -17,8 +17,14 @@ if (typeof window !== "undefined" && window.electronAPI?.getUserDataPath) {
 export const getSummonerSpellImageByName = (summonerSpellName: string): string => {
   // Trim all spaces and add "Summoner" prefix
   const original = (summonerSpellName || "").trim();
+  let normalizedName = "";
+  
   if (!original) return "";
-  const normalizedName = `Summoner${original.replace(/\s+/g, "")}`;
+  if (original === "Teleport Unleashed") {
+    normalizedName = "unleashed_teleport_new.png";
+  } else {
+    normalizedName = `Summoner${original.replace(/\s+/g, "")}`;
+  }
 
   // Get the spell from memory cache
   const spell = getSummonerSpellById(normalizedName);
