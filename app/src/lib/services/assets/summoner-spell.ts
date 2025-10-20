@@ -130,10 +130,15 @@ class SummonerSpellCacheService extends BaseCacheService<SummonerSpell> {
       const summonerData = await this.getSummonerData(version);
       const spellKeys = Object.keys(summonerData.data);
 
+      // Get CommunityDragon spells from category progress
+      const communityDragonSpells = await this.getCommunityDragonSpellsFromCache(version);
+
+      const totalSpells = spellKeys.length + communityDragonSpells.length;
+
       if (!suppressProgress) {
         this.updateProgress({
           current: 0,
-          total: spellKeys.length,
+          total: totalSpells,
           itemName: "summoner-spells",
           stage: "checking",
           assetType: "spell-data"
@@ -142,6 +147,7 @@ class SummonerSpellCacheService extends BaseCacheService<SummonerSpell> {
 
       const spells: SummonerSpell[] = [];
 
+      // Add regular DataDragon spells
       for (let i = 0; i < spellKeys.length; i++) {
         const spellKey = spellKeys[i];
         try {
@@ -156,11 +162,30 @@ class SummonerSpellCacheService extends BaseCacheService<SummonerSpell> {
         if (!suppressProgress) {
           this.updateProgress({
             current: i + 1,
-            total: spellKeys.length,
+            total: totalSpells,
             itemName: spellKey,
             stage: "checking",
             assetType: "spell-data",
             currentAsset: spellKey
+          });
+        }
+      }
+
+      // Add CommunityDragon spells
+      for (let i = 0; i < communityDragonSpells.length; i++) {
+        const spell = communityDragonSpells[i];
+        if (spell) {
+          spells.push(spell);
+        }
+
+        if (!suppressProgress) {
+          this.updateProgress({
+            current: spellKeys.length + i + 1,
+            total: totalSpells,
+            itemName: "CommunityDragon spells",
+            stage: "checking",
+            assetType: "spell-data",
+            currentAsset: spell?.name || `CommunityDragon spell ${i + 1}`
           });
         }
       }
@@ -596,6 +621,49 @@ class SummonerSpellCacheService extends BaseCacheService<SummonerSpell> {
     this.summonerDataCache = null;
     this.summonerDataVersion = null;
     await super.clearCache();
+  }
+
+  private async getCommunityDragonSpellsFromCache(version: string): Promise<SummonerSpell[]> {
+    try {
+      const communityDragonProgress = await this.getCategoryProgress("community-dragon-spells", version);
+      const completedSpells = communityDragonProgress.completedItems;
+      
+      if (completedSpells.length === 0) {
+        return [];
+      }
+
+      const spells: SummonerSpell[] = [];
+      
+      for (const spellFilename of completedSpells) {
+        try {
+          // Create a spell object from the CommunityDragon spell filename
+          // The filename format is typically like "spell_name.png"
+          const spellName = spellFilename.replace('.png', '').replace(/_/g, ' ');
+          const imagePath = `${version}/summoner-spells/${spellFilename}`;
+          
+          const spell: SummonerSpell = {
+            _id: spellFilename, // Use filename as ID
+            name: spellName,
+            key: spellFilename.replace('.png', ''), // Use filename without extension as key
+            description: `CommunityDragon spell: ${spellName}`,
+            maxrank: 1,
+            cooldown: [0], // Default cooldown
+            cost: [0], // Default cost
+            range: [0], // Default range
+            image: imagePath
+          };
+          
+          spells.push(spell);
+        } catch (error) {
+          console.error(`Failed to process CommunityDragon spell ${spellFilename}:`, error);
+        }
+      }
+      
+      return spells;
+    } catch (error) {
+      console.error("Failed to get CommunityDragon spells from cache:", error);
+      return [];
+    }
   }
 }
 

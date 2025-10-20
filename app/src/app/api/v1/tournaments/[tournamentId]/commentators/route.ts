@@ -54,8 +54,6 @@ export const POST = withAuth(async (req: NextRequest, user: JWTPayload, params: 
       return NextResponse.json({ error: "Tournament ID is required" }, { status: 400 });
     }
 
-    await connectToDatabase();
-
     // Get the commentator details from the global commentators collection
     const commentator = (await CommentatorModel.findById(commentatorId)) as CommentatorDoc | null;
     if (!commentator) {
@@ -128,8 +126,6 @@ export const PUT = withAuth(async (req: NextRequest, user: JWTPayload, params: P
       return NextResponse.json({ error: "Commentator ID and name are required" }, { status: 400 });
     }
 
-    await connectToDatabase();
-
     // Get all matches for this tournament
     const matches = await MatchModel.find({ tournamentId });
 
@@ -198,8 +194,6 @@ export const DELETE = withAuth(async (req: NextRequest, _user: JWTPayload, param
     if (!commentatorId) {
       return NextResponse.json({ error: "Commentator ID is required" }, { status: 400 });
     }
-
-    await connectToDatabase();
 
     // Remove commentator from all matches in the tournament
     await MatchModel.updateMany(

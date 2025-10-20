@@ -7,6 +7,8 @@ export interface LivePlayer {
   summonerName: string;
   championName: string;
   team: "ORDER" | "CHAOS";
+  riotIdGameName: string;
+  riotIdTag: string;
   position: string;
   scores: {
     kills: number;
@@ -33,6 +35,16 @@ export interface LivePlayer {
     keystone: string;
     primaryRuneTree: string;
     secondaryRuneTree: string;
+  };
+  liveInfo?: {
+    currentGold?: number;
+    championStats?: {
+      resourceType?: string;
+      resourceValue?: number;
+      maxHealth?: number;
+      currentHealth?: number;
+    };
+    timestamp?: number;
   };
 }
 

@@ -13,7 +13,7 @@ export interface UseGameDataReturn {
   disconnect: () => Promise<void>;
 }
 
-export const useGameData = (pollingInterval = 1000): UseGameDataReturn => {
+export const useGameData = (pollingInterval = 1000, matchId?: string): UseGameDataReturn => {
   const [gameData, setGameData] = useState<LiveGameData | null>(null);
   const [gameStatus, setGameStatus] = useState<GameStatus | null>(null);
   const [isConnected, setIsConnected] = useState(false);
@@ -59,7 +59,7 @@ export const useGameData = (pollingInterval = 1000): UseGameDataReturn => {
 
         // If in game, get live game data
         if (statusResult.data.isInGame) {
-          const gameDataResult = await gameService.getLiveGameData();
+          const gameDataResult = await gameService.getLiveGameData(matchId);
           if (gameDataResult.success && gameDataResult.data) {
             setGameData(gameDataResult.data);
           } else if (gameDataResult.error) {

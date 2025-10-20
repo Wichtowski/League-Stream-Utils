@@ -93,8 +93,6 @@ const TournamentChampionStatsModel =
 const GameResultModel = (models && models.GameResult) || model("GameResult", GameResultSchema);
 
 export async function recordGameResult(gameResult: GameResult): Promise<void> {
-  await connectToDatabase();
-
   try {
     await GameResultModel.findOneAndUpdate({ sessionId: gameResult.sessionId }, gameResult, {
       upsert: true,
@@ -111,8 +109,6 @@ export async function recordGameResult(gameResult: GameResult): Promise<void> {
 }
 
 export async function updateChampionStats(tournamentId: string, gameResult: GameResult): Promise<void> {
-  await connectToDatabase();
-
   try {
     let tournamentStats = await TournamentChampionStatsModel.findOne({
       tournamentId
@@ -232,8 +228,6 @@ async function updateChampionStat(
 }
 
 export async function getTournamentChampionStats(tournamentId: string): Promise<TournamentChampionStats | null> {
-  await connectToDatabase();
-
   try {
     const statsDoc = await TournamentChampionStatsModel.findOne({
       tournamentId

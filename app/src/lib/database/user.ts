@@ -1,10 +1,7 @@
-import { connectToDatabase } from "./connection";
 import { UserModel } from "./models";
 import type { User as UserType, UserRegistration, UserQueryResult } from "@lib/types";
 
 export async function createUser(userData: UserRegistration & { passwordHistory?: string[] }): Promise<UserType> {
-  await connectToDatabase();
-
   const newUser = new UserModel({
     username: userData.username,
     password: userData.password,
@@ -23,44 +20,36 @@ export async function createUser(userData: UserRegistration & { passwordHistory?
 }
 
 export async function getUserByUsername(username: string): Promise<UserQueryResult> {
-  await connectToDatabase();
   const user = await UserModel.findOne({ username }).lean<UserType>().exec();
   return user as unknown as UserQueryResult;
 }
 
 export async function getUserById(userId: string): Promise<UserQueryResult> {
-  await connectToDatabase();
   const user = await UserModel.findById(userId).lean<UserType>().exec();
   return user as unknown as UserQueryResult;
 }
 
 export async function getUserByEmail(email: string): Promise<UserQueryResult> {
-  await connectToDatabase();
   const user = await UserModel.findOne({ email }).lean<UserType>().exec();
   return user as unknown as UserQueryResult;
 }
 
 export async function updateUser(userId: string, updates: Partial<UserType>): Promise<UserType | null> {
-  await connectToDatabase();
   const updatedUser = await UserModel.findByIdAndUpdate(userId, updates, { new: true }).lean<UserType>().exec();
   return (updatedUser as UserType) || null;
 }
 
 export async function deleteUser(userId: string): Promise<boolean> {
-  await connectToDatabase();
   const result = await UserModel.findByIdAndDelete(userId);
   return !!result;
 }
 
 export async function getAllUsers(): Promise<UserType[]> {
-  await connectToDatabase();
   const users = await UserModel.find({}).lean<UserType[]>().exec();
   return users as UserType[];
 }
 
 export async function updateUserSessionCount(userId: string): Promise<void> {
-  await connectToDatabase();
-
   const today = new Date();
   const user = await UserModel.findOne({ id: userId }).lean<UserType>().exec();
 
@@ -84,8 +73,6 @@ export async function updateUserSessionCount(userId: string): Promise<void> {
 }
 
 export async function canUserCreateSession(userId: string): Promise<boolean> {
-  await connectToDatabase();
-
   const user: UserQueryResult = await UserModel.findOne({ id: userId });
 
   if (!user) {
@@ -106,8 +93,6 @@ export async function canUserCreateSession(userId: string): Promise<boolean> {
 }
 
 export async function lockUserAccount(userId: string, lockDurationMs: number): Promise<void> {
-  await connectToDatabase();
-
   const lockedUntil = new Date(Date.now() + lockDurationMs);
 
   await UserModel.updateOne(
@@ -122,8 +107,6 @@ export async function lockUserAccount(userId: string, lockDurationMs: number): P
 }
 
 export async function unlockUserAccount(userId: string): Promise<void> {
-  await connectToDatabase();
-
   await UserModel.updateOne(
     { id: userId },
     {
@@ -136,8 +119,6 @@ export async function unlockUserAccount(userId: string): Promise<void> {
 }
 
 export async function updateUserLoginInfo(userId: string, ip: string): Promise<void> {
-  await connectToDatabase();
-
   await UserModel.updateOne(
     { id: userId },
     {

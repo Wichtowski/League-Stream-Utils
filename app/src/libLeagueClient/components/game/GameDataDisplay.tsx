@@ -22,6 +22,10 @@ import { bindLivePlayersToMatch } from "@lib/services/game/live-binding";
 import { getLatestVersion } from "@lib/services/common/unified-asset-cache";
 import { useImagePreload } from "@lib/hooks/useImagePreload";
 import { Team } from "@libTeam/types";
+import { getTeamWins } from "@libLeagueClient/utils/teamWins";
+// import { CameraStream } from "@libCamera/components/CameraStream";
+
+export type Resolutions = "FHD" | "WQHD" | "4K";
 
 interface GameDataDisplayProps {
   gameData: LiveGameData;
@@ -29,14 +33,28 @@ interface GameDataDisplayProps {
   tournament?: Tournament;
   blueTeamData?: Team;
   redTeamData?: Team;
+  resolution?: Resolutions;
 }
+
+const MapBackground: React.FC = () => {
+  const mapHeight = 250 + (11 * 2);
+  const mapWidth = 250 + (12 * 2);
+
+  return (
+    <div
+      className="absolute bottom-0 right-0 bg-black"
+      style={{ width: mapWidth, height: mapHeight }}
+    />
+  );
+};
 
 export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({
   gameData,
   match,
   tournament,
   blueTeamData,
-  redTeamData
+  redTeamData,
+  resolution = "WQHD"
 }) => {
   const [championsLoaded, setChampionsLoaded] = useState(false);
   const [summonerSpellsLoaded, setSummonerSpellsLoaded] = useState(false);
@@ -62,6 +80,7 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({
   const [initialPreloadUrls, setInitialPreloadUrls] = useState<string[]>([]);
   const setupDoneRef = useRef<boolean>(false);
   const uiControlTriggeredRef = useRef<boolean>(false);
+  // Camera settings are now used directly from team.cameras.players
 
   // Set game version and assets when tournament data is available
   useEffect(() => {
@@ -120,11 +139,16 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({
     setupGameAssets();
   }, [tournament, match, blueTeamData, redTeamData]);
 
+  // Fetch camera settings when teams are available
+  // Camera settings are now available directly from team data - no need to fetch 
+
   const formatGameTime = (seconds: number): string => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = Math.floor(seconds % 60);
     return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
   };
+
+  // Player URLs are now directly available in team.cameras.players
 
   // Compute initial preload set once when base data and assets are ready
   useEffect(() => {
@@ -286,6 +310,42 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({
     inhibitors: 0
   };
 
+  // Calculate team wins for series score display
+  const teamWins = getTeamWins(match?.games || [], match!);
+  const showSeriesScore = match?.format !== "BO1";
+  
+  // Determine max wins based on match format
+  const getMaxWins = (): number => {
+    if (match?.format === "BO5") return 3; // Best of 5: first to 3 wins
+    if (match?.format === "BO3") return 2; // Best of 3: first to 2 wins
+    return 1; // Single game
+  };
+  
+  const maxWins = getMaxWins();
+
+
+  const getResolutionStyles = (): {
+    maxWidth: string;
+  } => {
+    switch (resolution) {
+      case "WQHD":
+        return {
+          maxWidth: "max-w-[1000px]",
+        };
+      case "4K":
+        return {
+          maxWidth: "max-w-[1280px]",
+        };
+      default: // FHD
+        return {
+          maxWidth: "max-w-[936px]",
+        };
+    }
+  };
+
+  const resolutionStyles = getResolutionStyles();
+
+
   return (
     <div className="fixed inset-0 text-white font-sans">
       {/* Top Bar - Team Scores & Game Info */}
@@ -297,17 +357,32 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({
       >
         <div className="flex justify-between items-center h-full px-8">
           {/* Blue Team (Left) */}
-          <TeamScoreDisplay
-            logo={orderLogo}
-            tag={orderTeam?.tag || "ORDER"}
-            kills={blueTeamStats.kills}
-            towers={blueTeamStats.towers}
-            towerIcon={towerIcon}
-            goldDiff={orderGoldDiff}
-            goldIcon={goldIcon}
-            teamGold={blueTeamStats.gold}
-            reverse={true}
-          />
+          <div className="flex flex-col items-center">
+            {/* Series Score Rectangles for Blue Team */}
+            {showSeriesScore && (
+              <div className="flex gap-1 mb-2">
+                {Array.from({ length: maxWins }, (_, index) => (
+                  <div
+                    key={index}
+                    className={`score-rectangle ${
+                      index < teamWins.team1Wins ? "score-rectangle-point" : "score-rectangle-empty"
+                    }`}
+                  />
+                ))}
+              </div>
+            )}
+            <TeamScoreDisplay
+              logo={orderLogo}
+              tag={orderTeam?.tag || "ORDER"}
+              kills={blueTeamStats.kills}
+              towers={blueTeamStats.towers}
+              towerIcon={towerIcon}
+              goldDiff={orderGoldDiff}
+              goldIcon={goldIcon}
+              teamGold={blueTeamStats.gold}
+              reverse={true}
+            />
+          </div>
 
           {/* Center - Game Info */}
           <div className="text-center h-full flex flex-col items-center justify-center">
@@ -328,16 +403,31 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({
           </div>
 
           {/* Red Team (Right) */}
-          <TeamScoreDisplay
-            logo={chaosLogo}
-            tag={chaosTeam?.tag || "CHAOS"}
-            kills={redTeamStats.kills}
-            towers={redTeamStats.towers}
-            towerIcon={towerIcon}
-            goldDiff={chaosGoldDiff}
-            goldIcon={goldIcon}
-            teamGold={redTeamStats.gold}
-          />
+          <div className="flex flex-col items-center">
+            {/* Series Score Rectangles for Red Team */}
+            {showSeriesScore && (
+              <div className="flex gap-1 mb-2">
+                {Array.from({ length: maxWins }, (_, index) => (
+                  <div
+                    key={index}
+                    className={`score-rectangle ${
+                      index < teamWins.team2Wins ? "score-rectangle-point" : "score-rectangle-empty"
+                    }`}
+                  />
+                ))}
+              </div>
+            )}
+            <TeamScoreDisplay
+              logo={chaosLogo}
+              tag={chaosTeam?.tag || "CHAOS"}
+              kills={redTeamStats.kills}
+              towers={redTeamStats.towers}
+              towerIcon={towerIcon}
+              goldDiff={chaosGoldDiff}
+              goldIcon={goldIcon}
+              teamGold={redTeamStats.gold}
+            />
+          </div>
         </div>
       </motion.div>
 
@@ -397,7 +487,49 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({
         </div>
       </motion.div> */}
 
-      <LaneHud gameData={gameData} gameVersion={gameVersion} />
+      {/* HUD && camera streams */}
+      <div className="absolute bottom-0 left-0 right-0 flex items-end justify-center">
+        {/* left side camera stream */}
+        {/* <div className="shrink-0" style={{ width: "220px", height: "250px" }}>
+          <CameraStream
+            players={blueTeamData?.cameras?.players || []}
+            teamName={blueTeamData?.name || "ORDER"}
+            width="100%"
+            height="250px"
+            showPlayerName={true}
+            showRandomModeIndicator={false}
+            enableKeyboardControls={false}
+            objectFit="cover"
+            enableRandomMode={true}
+            playerNameSize="small"
+            className="w-full"
+          />
+        </div> */}
+
+        {/* center lane HUD */}
+        <div className={`${resolutionStyles.maxWidth}`}>
+          <LaneHud gameData={gameData} gameVersion={gameVersion} resolution={resolution} />
+        </div>
+
+        {/* right side camera stream */}
+        {/* <div className="shrink-0" style={{ width: "220px", height: "250px" }}>
+          <CameraStream
+            players={redTeamData?.cameras?.players || []}
+            teamName={redTeamData?.name || "CHAOS"}
+            width="100%"
+            height="250px"
+            showPlayerName={true}
+            showRandomModeIndicator={false}
+            enableKeyboardControls={false}
+            objectFit="cover"
+            enableRandomMode={true}
+            playerNameSize="small"
+            className="w-full"
+          />
+        </div> */}
+      </div>
+      <MapBackground />
+
     </div>
   );
 };

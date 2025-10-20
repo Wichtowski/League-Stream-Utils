@@ -29,6 +29,8 @@ interface NavigationContextType {
   setActiveModule: (module: NavigationModule) => void;
   sidebarCollapsed: boolean;
   setSidebarCollapsed: (collapsed: boolean) => void;
+  removeSidebar: boolean;
+  setRemoveSidebar: (remove: boolean) => void;
   toggleSidebar: () => void;
 }
 
@@ -37,6 +39,7 @@ const NavigationContext = createContext<NavigationContextType | undefined>(undef
 export function NavigationProvider({ children }: { children: ReactNode }) {
   const [activeModule, setActiveModule] = useState<NavigationModule>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
+  const [removeSidebar, setRemoveSidebar] = useState<boolean>(false);
 
   const toggleSidebar = (): void => {
     setSidebarCollapsed((prev) => !prev);
@@ -44,7 +47,7 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
 
   return (
     <NavigationContext.Provider
-      value={{ activeModule, setActiveModule, sidebarCollapsed, setSidebarCollapsed, toggleSidebar }}
+      value={{ activeModule, setActiveModule, sidebarCollapsed, setSidebarCollapsed, removeSidebar, setRemoveSidebar, toggleSidebar }}
     >
       {children}
     </NavigationContext.Provider>

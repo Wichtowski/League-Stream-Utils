@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import https from "https";
+import { PlayerLiveInfoModel } from "@lib/database/models";
+import { connectToDatabase } from "@lib/database";
 
-export async function GET(_request: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
     // Use Node.js https module with proper SSL handling
     const response = await new Promise<{ statusCode: number; data: string }>((resolve, reject) => {
@@ -47,12 +49,55 @@ export async function GET(_request: NextRequest) {
       try {
         const gameData = JSON.parse(response.data);
 
+        // Check for matchId header to enhance data with player live info
+        const matchId = request.headers.get("x-match-id");
+        
+        if (matchId) {
+          try {
+            // Connect to database
+            await connectToDatabase();
+            
+            // Query player live info for this match
+            const playerLiveInfo = await PlayerLiveInfoModel.find({ matchId }).lean();
+            
+            if (playerLiveInfo && playerLiveInfo.length > 0) {
+              // Enhance gameData with player live info
+              if (gameData.allPlayers && Array.isArray(gameData.allPlayers)) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                gameData.allPlayers = gameData.allPlayers.map((player: any) => {
+                  // Find matching player live info by riotId
+                  const liveInfo = playerLiveInfo.find(
+                    (info) => info.riotId === player.riotId
+                  );
+                  
+                  if (liveInfo) {
+                    // Merge live info into player data
+                    return {
+                      ...player,
+                      liveInfo: {
+                        currentGold: liveInfo.currentGold,
+                        championStats: liveInfo.championStats,
+                        timestamp: liveInfo.timestamp
+                      }
+                    };
+                  }
+                  
+                  return player;
+                });
+              }
+            }
+          } catch (dbError) {
+            console.warn("Failed to fetch player live info:", dbError);
+            // Continue without live info if database query fails
+          }
+        }
+
         // Return the game data with CORS headers
         return NextResponse.json(gameData, {
           headers: {
             "Access-Control-Allow-Origin": "*",
             "Access-Control-Allow-Methods": "GET, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type"
+            "Access-Control-Allow-Headers": "Content-Type, x-match-id"
           }
         });
       } catch (parseError) {
@@ -81,7 +126,7 @@ export async function GET(_request: NextRequest) {
         error: "Live Client Data API is not running",
         details: "The API is not running"
       },
-      { status: 212 }
+      { status: 312 }
     );
   }
 }
@@ -93,7 +138,7 @@ export async function OPTIONS() {
     headers: {
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "GET, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type"
+      "Access-Control-Allow-Headers": "Content-Type, x-match-id"
     }
   });
 }

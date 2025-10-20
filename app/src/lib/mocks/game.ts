@@ -52,16 +52,18 @@ const getRandomItems = (): { itemID: number; name: string; count: number; price:
 
 export const staticPlayersOrderMock: LivePlayer[] = [
   {
-    summonerName: "frajgo",
+    summonerName: "frajgo#FMS",
     championName: "Darius",
     team: "ORDER",
+    riotIdGameName: "frajgo",
+    riotIdTag: "FMS",
     position: "TOP",
     scores: {
       kills: getRandomValue(),
       deaths: getRandomValue(),
       assists: getRandomValue(),
       creepScore: getRandomValue(250),
-      wardScore: getRandomValue(30)
+      wardScore: getRandomValue(30),
     },
     items: getRandomItems(),
     level: getRandomValue(18),
@@ -77,16 +79,18 @@ export const staticPlayersOrderMock: LivePlayer[] = [
     runes: { keystone: "Conqueror", primaryRuneTree: "Precision", secondaryRuneTree: "Resolve" }
   },
   {
-    summonerName: "Rybson",
+    summonerName: "Rybson#FMS",
     championName: "Olaf",
     team: "ORDER",
+    riotIdGameName: "Rybson",
+    riotIdTag: "FMS",
     position: "JUNGLE",
     scores: {
       kills: getRandomValue(),
       deaths: getRandomValue(),
       assists: getRandomValue(),
       creepScore: getRandomValue(250),
-      wardScore: getRandomValue(30)
+      wardScore: getRandomValue(30),
     },
     items: getRandomItems(),
     level: getRandomValue(18),
@@ -102,16 +106,18 @@ export const staticPlayersOrderMock: LivePlayer[] = [
     runes: { keystone: "Conqueror", primaryRuneTree: "Precision", secondaryRuneTree: "Resolve" }
   },
   {
-    summonerName: "Mrozku",
+    summonerName: "Mrozku#FMS",
     championName: "Ahri",
     team: "ORDER",
+    riotIdGameName: "Mrozku",
+    riotIdTag: "FMS",
     position: "MID",
     scores: {
       kills: getRandomValue(),
       deaths: getRandomValue(),
       assists: getRandomValue(),
       creepScore: getRandomValue(250),
-      wardScore: getRandomValue(30)
+      wardScore: getRandomValue(30),
     },
     items: getRandomItems(),
     level: getRandomValue(18),
@@ -127,16 +133,18 @@ export const staticPlayersOrderMock: LivePlayer[] = [
     runes: { keystone: "Electrocute", primaryRuneTree: "Domination", secondaryRuneTree: "Sorcery" }
   },
   {
-    summonerName: "zamulek",
+    summonerName: "zamulek#FMS",
     championName: "Lucian",
     team: "ORDER",
+    riotIdGameName: "zamulek",
+    riotIdTag: "FMS",
     position: "BOTTOM",
     scores: {
       kills: getRandomValue(),
       deaths: getRandomValue(),
       assists: getRandomValue(),
       creepScore: getRandomValue(250),
-      wardScore: getRandomValue(30)
+      wardScore: getRandomValue(30),
     },
     items: getRandomItems(),
     level: getRandomValue(18),
@@ -152,16 +160,18 @@ export const staticPlayersOrderMock: LivePlayer[] = [
     runes: { keystone: "Lethal Tempo", primaryRuneTree: "Precision", secondaryRuneTree: "Inspiration" }
   },
   {
-    summonerName: "minemaciek",
+    summonerName: "minemaciek#FMS",
     championName: "Nami",
     team: "ORDER",
+    riotIdGameName: "minemaciek",
+    riotIdTag: "FMS",
     position: "UTILITY",
     scores: {
       kills: getRandomValue(),
       deaths: getRandomValue(),
       assists: getRandomValue(),
       creepScore: getRandomValue(250),
-      wardScore: getRandomValue(30)
+      wardScore: getRandomValue(30),
     },
     items: getRandomItems(),
     level: getRandomValue(18),
@@ -180,16 +190,18 @@ export const staticPlayersOrderMock: LivePlayer[] = [
 
 export const staticPlayersChaosMock: LivePlayer[] = [
   {
-    summonerName: "Bausffs",
+    summonerName: "Bausffs#LR",
     championName: "Sion",
     team: "CHAOS",
+    riotIdGameName: "Bausffs",
+    riotIdTag: "LR",
     position: "TOP",
     scores: {
       kills: getRandomValue(),
       deaths: getRandomValue(),
       assists: getRandomValue(),
       creepScore: getRandomValue(250),
-      wardScore: getRandomValue(30)
+      wardScore: getRandomValue(30),
     },
     items: getRandomItems(),
     level: getRandomValue(18),
@@ -205,16 +217,18 @@ export const staticPlayersChaosMock: LivePlayer[] = [
     runes: { keystone: "Conqueror", primaryRuneTree: "Precision", secondaryRuneTree: "Resolve" }
   },
   {
-    summonerName: "Velja",
+    summonerName: "Velja#LR",
     championName: "Naafiri",
     team: "CHAOS",
+    riotIdGameName: "Velja",
+    riotIdTag: "LR",
     position: "JUNGLE",
     scores: {
       kills: getRandomValue(),
       deaths: getRandomValue(),
       assists: getRandomValue(),
       creepScore: getRandomValue(250),
-      wardScore: getRandomValue(30)
+      wardScore: getRandomValue(30),
     },
     items: getRandomItems(),
     level: getRandomValue(18),
@@ -230,16 +244,18 @@ export const staticPlayersChaosMock: LivePlayer[] = [
     runes: { keystone: "Electrocute", primaryRuneTree: "Domination", secondaryRuneTree: "Sorcery" }
   },
   {
-    summonerName: "Nemesis",
+    summonerName: "Nemesis#LR",
     championName: "Aurelion Sol",
     team: "CHAOS",
+    riotIdGameName: "Nemesis",
+    riotIdTag: "LR",
     position: "MID",
     scores: {
       kills: getRandomValue(),
       deaths: getRandomValue(),
       assists: getRandomValue(),
       creepScore: getRandomValue(250),
-      wardScore: getRandomValue(30)
+      wardScore: getRandomValue(30),
     },
     items: getRandomItems(),
     level: getRandomValue(18),
@@ -255,16 +271,18 @@ export const staticPlayersChaosMock: LivePlayer[] = [
     runes: { keystone: "Electrocute", primaryRuneTree: "Domination", secondaryRuneTree: "Precision" }
   },
   {
-    summonerName: "Crownie",
+    summonerName: "Crownie#LR",
     championName: "Kai'Sa",
     team: "CHAOS",
+    riotIdGameName: "Crownie",
+    riotIdTag: "LR",
     position: "BOTTOM",
     scores: {
       kills: getRandomValue(),
       deaths: getRandomValue(),
       assists: getRandomValue(),
       creepScore: getRandomValue(250),
-      wardScore: getRandomValue(30)
+      wardScore: getRandomValue(30),
     },
     items: getRandomItems(),
     level: getRandomValue(18),
@@ -280,16 +298,18 @@ export const staticPlayersChaosMock: LivePlayer[] = [
     runes: { keystone: "Fleet Footwork", primaryRuneTree: "Precision", secondaryRuneTree: "Inspiration" }
   },
   {
-    summonerName: "Rekkles",
+    summonerName: "Rekkles#LR",
     championName: "Leona",
     team: "CHAOS",
+    riotIdGameName: "Rekkles",
+    riotIdTag: "LR",
     position: "UTILITY",
     scores: {
       kills: getRandomValue(),
       deaths: getRandomValue(),
       assists: getRandomValue(),
       creepScore: getRandomValue(250),
-      wardScore: getRandomValue(30)
+      wardScore: getRandomValue(30),
     },
     items: getRandomItems(),
     level: getRandomValue(18),
@@ -312,7 +332,7 @@ export const MockedEvents: GameEvent[] = [
     EventTime: 10,
     KillerName: "frajgo",
     KillerTeam: "ORDER",
-    VictimName: "Baus",
+    VictimName: "Bausffs",
     VictimTeam: "CHAOS",
     Position: { x: 100, y: 100 }
   },

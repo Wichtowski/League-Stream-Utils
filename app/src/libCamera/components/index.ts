@@ -7,6 +7,8 @@ import { ProgressBar } from "./ProgressBar";
 import { StreamUrlInput } from "./StreamUrlInput";
 import { QuickActions } from "./QuickActions";
 import { HelpSection } from "./HelpSection";
+import { GameCamera } from "./GameCamera";
+import { CameraStream } from "./CameraStream";
 
 export {
   CameraFeed,
@@ -17,5 +19,7 @@ export {
   ProgressBar,
   StreamUrlInput,
   QuickActions,
-  HelpSection
+  HelpSection,
+  GameCamera,
+  CameraStream
 };

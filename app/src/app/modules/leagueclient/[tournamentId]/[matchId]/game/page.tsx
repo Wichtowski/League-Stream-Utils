@@ -1,25 +1,30 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import { useParams, useSearchParams } from "next/navigation";
 import { useNavigation } from "@lib/contexts/NavigationContext";
 import { GameDataDisplay } from "@libLeagueClient/components/game/GameDataDisplay";
 import { useGameData } from "@lib/hooks/useGameData";
 import { Tournament, Match } from "@libTournament/types";
 import { Team } from "@libTeam/types";
-import { useParams } from "next/navigation";
+import { Resolutions } from "@libLeagueClient/components/game/GameDataDisplay";
 
 const LiveGamePage: React.FC = () => {
   const { setActiveModule } = useNavigation();
-  const { gameData, isConnected, isLoading: useGameDataLoading } = useGameData();
+  const params = useParams();
+  const tournamentId = params.tournamentId as string;
+  const matchId = params.matchId as string;
+  const { gameData, isConnected, isLoading: useGameDataLoading } = useGameData(1000, matchId);
   const [loading, setLoading] = useState(true);
   const [currentMatch, setCurrentMatch] = useState<Match | null>(null);
   const [currentTournament, setCurrentTournament] = useState<Tournament | null>(null);
   const [blueTeamData, setBlueTeamData] = useState<Team | undefined>(undefined);
   const [redTeamData, setRedTeamData] = useState<Team | undefined>(undefined);
-  const params = useParams();
-  const tournamentId = params.tournamentId as string;
-  const matchId = params.matchId as string;
   const processedMatchRef = useRef<string | null>(null);
+
+  // Get resolution from query params, default to WQHD
+  const searchParams = useSearchParams();
+  const resolution = (searchParams.get('resolution') as Resolutions) || "WQHD";
 
   useEffect(() => {
     setActiveModule(null);
@@ -136,6 +141,7 @@ const LiveGamePage: React.FC = () => {
         tournament={currentTournament}
         blueTeamData={blueTeamData}
         redTeamData={redTeamData}
+        resolution={resolution}
         />
     </>
   );

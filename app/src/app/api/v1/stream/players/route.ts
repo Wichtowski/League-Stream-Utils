@@ -1,53 +1,25 @@
 import { NextResponse } from "next/server";
-import { connectToDatabase } from "@lib/database/connection";
-import { Schema, models, model } from "mongoose";
-import { CameraPlayer, CameraTeam } from "@libCamera/types";
-
-// Reference the CameraSettings model (should match the one in settings/route.ts)
-const CameraSettingsSchema = new Schema({
-  userId: { type: String, required: true, unique: true },
-  teams: [
-    {
-      teamId: { type: String, required: true },
-      teamName: { type: String, required: true },
-      teamLogo: { type: String },
-      players: [
-        {
-          playerId: { type: String, required: true },
-          playerName: { type: String, required: true },
-          role: { type: String, required: true },
-          url: { type: String, default: "" },
-          imagePath: { type: String, default: "" }
-        }
-      ]
-    }
-  ],
-  createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now }
-});
-
-const CameraSettings = models.CameraSettings || model("CameraSettings", CameraSettingsSchema);
+import { TeamModel } from "@libTeam/database/models";
 
 export async function GET() {
   try {
-    await connectToDatabase();
+    // Get all teams with camera settings
+    const teams = await TeamModel.find({ 
+      "cameras.players": { $exists: true, $not: { $size: 0 } }
+    });
 
-    // Get all camera settings from all users
-    const allSettings = await CameraSettings.find();
-
-    // Extract all players from all camera settings
-    const allPlayers = allSettings.flatMap((settings) =>
-      settings.teams.flatMap((team: CameraTeam) =>
-        team.players
-          .filter((player: CameraPlayer) => player.playerName)
-          .map((player: CameraPlayer) => ({
-            name: player.playerName,
-            url: player.url,
-            imagePath: player.imagePath,
-            role: player.role,
-            teamName: team.teamName
-          }))
-      )
+    // Extract all players from team camera settings
+    const allPlayers = teams.flatMap((team) =>
+      (team.cameras?.players || [])
+        .filter((player) => player.playerName)
+        .map((player) => ({
+          name: player.playerName,
+          url: player.url,
+          imagePath: player.imagePath,
+          role: player.role,
+          teamName: team.name,
+          teamId: team._id.toString()
+        }))
     );
 
     return NextResponse.json(allPlayers);

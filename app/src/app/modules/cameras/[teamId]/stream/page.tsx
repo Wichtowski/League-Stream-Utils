@@ -1,50 +1,30 @@
 "use client";
 
-import React, { useEffect, useState, Suspense, useCallback, useMemo } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useNavigation } from "@lib/contexts/NavigationContext";
 import { CameraPlayer, CameraTeam } from "@libCamera/types";
 import { PageWrapper } from "@lib/layout/PageWrapper";
 import { useCameras } from "@libCamera/context/CamerasContext";
-import { SafeImage } from "@lib/components/common/SafeImage";
 import { LoadingSpinner } from "@lib/components/common";
+import { CameraStream } from "@libCamera/components";
 
 export default function TeamCameraStreamPage() {
   const router = useRouter();
   const params = useParams();
   const teamId = params.teamId as string;
-  const { setActiveModule } = useNavigation();
+  const { setActiveModule, setRemoveSidebar } = useNavigation();
   const { teams: cameraTeamsRaw, loading: camerasLoading, refreshCameras } = useCameras();
   const [players, setPlayers] = useState<CameraPlayer[]>([]);
-  const [currentPlayer, setCurrentPlayer] = useState<CameraPlayer | null>(null);
-  const [randomMode, setRandomMode] = useState(true);
   const [teamName, setTeamName] = useState<string>("");
 
-  const getRandomPlayer = useCallback((): CameraPlayer | null => {
-    if (players.length === 0) return null;
-    const randomIndex = Math.floor(Math.random() * players.length);
-    return players[randomIndex];
-  }, [players]);
-
-  const handleKeyPress = useCallback(
-    (e: KeyboardEvent) => {
-      if (e.key === " ") {
-        const nextPlayer = getRandomPlayer();
-        if (nextPlayer) {
-          setCurrentPlayer(nextPlayer);
-        }
-      } else if (e.key.toLowerCase() === "r") {
-        setRandomMode((prev) => !prev);
-      } else if (e.key >= "1" && e.key <= "9") {
-        const playerIndex = parseInt(e.key) - 1;
-        if (playerIndex >= 0 && playerIndex < players.length) {
-          setCurrentPlayer(players[playerIndex]);
-          setRandomMode(false);
-        }
-      }
-    },
-    [players, getRandomPlayer]
-  );
+  useEffect(() => {
+    setRemoveSidebar(true);
+    
+    return () => {
+      setRemoveSidebar(false);
+    };
+  }, [setRemoveSidebar]);
 
   // Load team data and players
   useEffect(() => {
@@ -86,36 +66,6 @@ export default function TeamCameraStreamPage() {
       setTeamName("");
     }
   }, [teamId, cameraTeamsRaw, camerasLoading]);
-
-  // Set initial player when players are loaded
-  useEffect(() => {
-    if (players.length > 0 && !currentPlayer) {
-      const initialPlayer = getRandomPlayer();
-      if (initialPlayer) {
-        setCurrentPlayer(initialPlayer);
-      }
-    }
-  }, [players, currentPlayer, getRandomPlayer]);
-
-  // Keyboard event listeners
-  useEffect(() => {
-    window.addEventListener("keydown", handleKeyPress);
-    return () => window.removeEventListener("keydown", handleKeyPress);
-  }, [handleKeyPress]);
-
-  // Random mode timer
-  useEffect(() => {
-    if (!randomMode || players.length <= 1) return;
-
-    const interval = setInterval(() => {
-      const nextPlayer = getRandomPlayer();
-      if (nextPlayer) {
-        setCurrentPlayer(nextPlayer);
-      }
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, [randomMode, players.length, getRandomPlayer]);
 
   const pageProps = useMemo(() => {
     return {
@@ -167,55 +117,18 @@ export default function TeamCameraStreamPage() {
   }
 
   return (
-    <Suspense fallback={<LoadingSpinner fullscreen text="Loading..." />}>
-      <div className="relative w-full aspect-video">
-        {/* Main Stream Display */}
-        {currentPlayer && (
-          <div className="absolute inset-0 w-full h-full block">
-            {currentPlayer.url ? (
-              <iframe
-                src={currentPlayer.url}
-                className="w-full h-full"
-                allow="autoplay; fullscreen"
-                title={`${currentPlayer.inGameName || currentPlayer.playerName} camera feed`}
-              />
-            ) : currentPlayer.imagePath ? (
-              <SafeImage
-                src={currentPlayer.imagePath}
-                alt={currentPlayer.inGameName || currentPlayer.playerName || "Player"}
-                fill={true}
-                className="object-cover"
-              />
-            ) : (
-              <div className="w-full h-full bg-gray-800 flex items-center justify-center">
-                <div className="text-center text-gray-400">
-                  <div className="text-2xl mb-2">📹</div>
-                  <p className="text-sm">No feed</p>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Player Name Overlay */}
-        {currentPlayer && (
-          <div className="absolute bottom-0 left-0 right-0 z-10 bg-gradient-to-t from-black via-black/70 to-transparent py-8 px-4">
-            <div className="text-center">
-              <h2 className="text-4xl font-bold text-white drop-shadow-lg">
-                {currentPlayer.inGameName || currentPlayer.playerName || "Unknown Player"}
-              </h2>
-            </div>
-          </div>
-        )}
-      </div>
-      {/* Random Mode Indicator */}
-      {randomMode && (
-        <div className="flex justify-center mt-4">
-          <div className="bg-red-600 text-white px-4 py-2 rounded-full text-sm font-medium animate-pulse">
-            🔄 Random Mode Active
-          </div>
-        </div>
-      )}
-    </Suspense>
+    <CameraStream
+      players={players}
+      teamName={teamName}
+      width="100%"
+      height="auto"
+      aspectRatio="16/9"
+      showPlayerName={true}
+      showRandomModeIndicator={true}
+      enableKeyboardControls={true}
+      enableRandomMode={true}
+      randomModeInterval={5000}
+      className="w-full"
+    />
   );
 }

@@ -19,8 +19,6 @@ const transformToMatch = (doc: any): Match => {
 };
 
 export async function createMatch(userId: string, matchData: CreateMatchRequest): Promise<Match> {
-  await connectToDatabase();
-
   // Fetch team data
   const blueTeam = await TeamModel.findOne({ _id: matchData.blueTeamId });
   const redTeam = await TeamModel.findOne({ _id: matchData.redTeamId });
@@ -67,7 +65,6 @@ export async function createMatch(userId: string, matchData: CreateMatchRequest)
 }
 
 export async function getMatchById(matchId: string): Promise<Match | null> {
-  await connectToDatabase();
   const match = await MatchModel.findOne({ _id: matchId }).lean();
   if (!match) return null;
 
@@ -75,7 +72,6 @@ export async function getMatchById(matchId: string): Promise<Match | null> {
 }
 
 export async function getMatchesByTournament(tournamentId: string): Promise<Match[]> {
-  await connectToDatabase();
   const matches = await MatchModel.find({ tournamentId })
     .populate("blueTeamId", "name tag logo colors")
     .populate("redTeamId", "name tag logo colors")
@@ -87,7 +83,6 @@ export async function getMatchesByTournament(tournamentId: string): Promise<Matc
 }
 
 export async function getStandaloneMatches(): Promise<Match[]> {
-  await connectToDatabase();
   const matches = await MatchModel.find({ type: "standalone" })
     .sort({
       scheduledTime: 1
@@ -97,7 +92,6 @@ export async function getStandaloneMatches(): Promise<Match[]> {
 }
 
 export async function getMatchesByCommentator(commentatorId: string): Promise<Match[]> {
-  await connectToDatabase();
   const matches = await MatchModel.find({
     "commentators.id": commentatorId
   })
@@ -107,8 +101,6 @@ export async function getMatchesByCommentator(commentatorId: string): Promise<Ma
 }
 
 export async function updateMatch(matchId: string, userId: string, updates: UpdateMatchRequest): Promise<Match | null> {
-  await connectToDatabase();
-
   const match = await MatchModel.findOne({ _id: matchId });
   if (!match) {
     return null;
@@ -147,8 +139,6 @@ export async function assignCommentator(
   userId: string,
   request: AssignCommentatorRequest
 ): Promise<Match | null> {
-  await connectToDatabase();
-
   const match = await MatchModel.findOne({ _id: matchId });
   if (!match) {
     return null;
@@ -185,8 +175,6 @@ export async function submitPrediction(
   commentatorId: string,
   request: SubmitPredictionRequest
 ): Promise<Match | null> {
-  await connectToDatabase();
-
   const match = await MatchModel.findOne({ _id: matchId });
   if (!match) {
     return null;
@@ -223,8 +211,6 @@ export async function submitPrediction(
 }
 
 export async function deleteMatch(matchId: string, userId: string): Promise<boolean> {
-  await connectToDatabase();
-
   const match = await MatchModel.findOne({ _id: matchId });
   if (!match) {
     return false;

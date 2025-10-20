@@ -1,4 +1,13 @@
 import { LiveGameData, LivePlayer, GameStatus } from "@libLeagueClient/types";
+import { getItemById } from "@lib/items";
+import { RiotLiveClientData } from "@lib/types/live-client";
+
+const normalizeSummonerSpellName = (spellName: string): string => {
+  if (spellName === "unleashed_teleport_new") {
+    return "Teleport Unleashed";
+  }
+  return spellName;
+};
 
 export interface LCURequestResult<T = unknown> {
   success: boolean;
@@ -64,10 +73,15 @@ export class GameService {
     }
   }
 
-  async getLiveGameData(): Promise<LCURequestResult<LiveGameData>> {
+  async getLiveGameData(matchId?: string): Promise<LCURequestResult<LiveGameData>> {
     try {
       // Use our proxy API endpoint to avoid SSL certificate issues
-      const response = await fetch("/api/game");
+      const headers: HeadersInit = {};
+      if (matchId) {
+        headers["x-match-id"] = matchId;
+      }
+      
+      const response = await fetch("/api/game", { headers });
 
       if (!response.ok) {
         return {
@@ -76,7 +90,7 @@ export class GameService {
         };
       }
 
-      const riotData: import("@lib/types/live-client").RiotLiveClientData = await response.json();
+      const riotData: RiotLiveClientData = await response.json();
 
       const transformed: LiveGameData = transformRiotToLiveGameData(riotData);
 
@@ -156,7 +170,75 @@ export class GameService {
 // Export singleton instance
 export const gameService = new GameService();
 
-function transformRiotToLiveGameData(riot: import("@lib/types/live-client").RiotLiveClientData): LiveGameData {
+// Cache for item costs to avoid repeated API calls
+const itemCostCache = new Map<number, number>();
+
+function getItemCost(itemId: number): number {
+  if (itemId === 0) return 0; // No item
+  
+  // Check cache first
+  if (itemCostCache.has(itemId)) {
+    return itemCostCache.get(itemId)!;
+  }
+  
+  try {
+    // Get item data from browser localStorage cache
+    const itemData = getItemById(itemId.toString());
+    const cost = itemData?.cost || 0;
+    
+    // Cache the result
+    itemCostCache.set(itemId, cost);
+    return cost;
+  } catch (error) {
+    console.warn(`Failed to get cost for item ${itemId}:`, error);
+    return 0;
+  }
+}
+
+function calculateSimulatedGold(
+  player: LivePlayer, 
+  gameTime: number
+): number {
+  // Calculate current gold (what player has in pocket)
+  let currentGold = 500; // Starting gold
+  
+  // Add passive gold generation: 20.4 gold per 10 seconds, starts at 1:50
+  if (gameTime > 110) { // 1:50 in seconds
+    const passiveGoldTime = gameTime - 110;
+    const passiveGoldPeriods = Math.floor(passiveGoldTime / 10);
+    currentGold += passiveGoldPeriods * 20.4;
+  }
+  
+  // Add minion gold (scaled for realistic farming)
+  if (gameTime > 90) { // Minions spawn at 1:30
+    const minionTime = gameTime - 90;
+    const waveInterval = 30; // New wave every 30 seconds
+    const waves = Math.floor(minionTime / waveInterval);
+    
+    if (waves > 0) {
+      const timeInMinutes = gameTime / 60;
+      const goldPerWave = 125 + ((195 - 125) * Math.min(timeInMinutes, 25) / 25);
+      const farmEfficiency = 0.6; // Assume 60% of minions are farmed
+      currentGold += waves * goldPerWave * farmEfficiency;
+    }
+  }
+  
+  // Calculate total item value (what player has spent)
+  let totalItemValue = 0;
+  for (const item of player.items) {
+    if (item.itemID !== 0) {
+      const itemCost = getItemCost(item.itemID);
+      totalItemValue += itemCost * item.count;
+    }
+  }
+  
+  const totalGold = currentGold + totalItemValue;
+  
+  
+  return totalGold;
+}
+
+function transformRiotToLiveGameData(riot: RiotLiveClientData): LiveGameData {
   const nowSeconds = Math.floor(Date.now() / 1000);
   const gameTime = riot.gameData?.gameTime ?? 0;
 
@@ -165,31 +247,36 @@ function transformRiotToLiveGameData(riot: import("@lib/types/live-client").Riot
       summonerName: p.summonerName,
       championName: p.championName,
       team: p.team,
+      riotIdTag: p.summonerName.split('#')[1],
+      riotIdGameName: p.summonerName.split('#')[0], // Extract game name without Riot tag
       position: p.position,
       scores: {
         kills: p.scores?.kills ?? 0,
         deaths: p.scores?.deaths ?? 0,
         assists: p.scores?.assists ?? 0,
         creepScore: p.scores?.creepScore ?? 0,
-        visionScore: p.scores?.wardScore ?? 0
+        wardScore: p.scores?.wardScore ?? 0,
       },
-      items: (p.items || []).map((it) => ({
+      items: (p.items || []).map((it, index) => ({
         itemID: it.itemID ?? 0,
         name: it.name ?? "",
         count: it.count ?? 0,
-        price: 0
+        price: (it as { price?: number }).price ?? 0, // Use the price from allgamedata as fallback
+        slot: index
       })),
       level: p.level ?? 1,
       gold: 0, // Will be updated below for active player
-      health: 0,
+      currentHealth: 0,
+      respawnTimer: p.respawnTimer ?? 0, // Use actual respawn timer from riot data
+      isDead: p.isDead ?? false, // Use actual isDead from riot data
       maxHealth: 1,
       summonerSpells: {
         summonerSpellOne: {
-          displayName: p.summonerSpells?.summonerSpellOne?.displayName ?? "",
+          displayName: normalizeSummonerSpellName(p.summonerSpells?.summonerSpellOne?.displayName ?? ""),
           rawDescription: p.summonerSpells?.summonerSpellOne?.rawDescription ?? ""
         },
         summonerSpellTwo: {
-          displayName: p.summonerSpells?.summonerSpellTwo?.displayName ?? "",
+          displayName: normalizeSummonerSpellName(p.summonerSpells?.summonerSpellTwo?.displayName ?? ""),
           rawDescription: p.summonerSpells?.summonerSpellTwo?.rawDescription ?? ""
         }
       },
@@ -204,30 +291,65 @@ function transformRiotToLiveGameData(riot: import("@lib/types/live-client").Riot
   const activeName = riot.activePlayer?.summonerName;
   const active = allPlayers.find((x) => x.summonerName === activeName);
   if (active && riot.activePlayer?.championStats) {
-    active.health = riot.activePlayer.championStats.currentHealth ?? 0;
+    active.currentHealth = riot.activePlayer.championStats.currentHealth ?? 0;
     active.maxHealth = riot.activePlayer.championStats.maxHealth ?? 0;
-    // Set gold for active player
-    active.gold = riot.activePlayer.currentGold ?? 0;
+    // Don't set gold here - we'll set it properly in the loop below
   }
 
-  // Estimate gold for other players based on items and level
+  // Use live player data for gold calculation when available
   allPlayers.forEach((player) => {
-    if (player.gold === 0 && player.summonerName !== activeName) {
-      // Simple estimation: base gold + level bonus + item value estimation
-      const baseGold = 500; // Starting gold
-      const levelGold = player.level * 100; // Rough gold per level
-      const itemGold = player.items.reduce((sum, item) => {
-        // Rough item value estimation based on common item prices
-        if (item.itemID === 0) return sum; // No item
-        if (item.itemID < 2000) return sum + 300; // Basic items
-        if (item.itemID < 3000) return sum + 800; // Intermediate items
-        if (item.itemID < 4000) return sum + 1500; // Advanced items
-        return sum + 2500; // Legendary items
-      }, 0);
-
-      player.gold = baseGold + levelGold + itemGold;
+    // Calculate item value for all players
+    let totalItemValue = 0;
+    for (const item of player.items) {
+      if (item.itemID !== 0) {
+        const itemCost = getItemCost(item.itemID);
+        totalItemValue += itemCost * item.count;
+      }
+    }
+    
+    // Check if we have live data for this player
+    if (player.liveInfo?.currentGold !== undefined) {
+      // Live data: current gold + item value
+      player.gold = player.liveInfo.currentGold + totalItemValue;
+    } else if (player.summonerName === activeName) {
+      // Active player: use currentGold from League client + item value
+      // Reset gold first to avoid double counting
+      const currentGold = riot.activePlayer?.currentGold || 0;
+      player.gold = currentGold + totalItemValue;
+    } else {
+      // For non-active players without live data, use simulation
+      player.gold = calculateSimulatedGold(player, gameTime);
     }
   });
+
+  // Debug: Log gold values for debugging
+  console.log("🔍 Gold Calculation Debug:", {
+    gameTime,
+    activeName,
+    totalPlayers: allPlayers.length
+  });
+  
+  const blueTeam = allPlayers.filter(p => p.team === "ORDER");
+  const redTeam = allPlayers.filter(p => p.team === "CHAOS");
+  const blueGold = blueTeam.reduce((sum, p) => sum + (p.gold || 0), 0);
+  const redGold = redTeam.reduce((sum, p) => sum + (p.gold || 0), 0);
+  
+  console.log("💰 Team Gold Totals:", {
+    blueTeamGold: blueGold,
+    redTeamGold: redGold,
+    blueTeamCount: blueTeam.length,
+    redTeamCount: redTeam.length
+  });
+  
+  console.log("👥 Player Details:", allPlayers.map(p => ({
+    name: p.summonerName,
+    team: p.team,
+    gold: p.gold,
+    hasLiveInfo: !!p.liveInfo?.currentGold,
+    liveGold: p.liveInfo?.currentGold,
+    isActive: p.summonerName === activeName
+  })));
+
 
   return {
     gameData: {

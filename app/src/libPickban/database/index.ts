@@ -1,5 +1,4 @@
 import { v4 as uuidv4 } from "uuid";
-import { connectToDatabase } from "@lib/database/connection";
 import { GameSessionModel } from "@lib/database/models";
 import { GameSession as GameSessionType, Champion } from "@lib/types";
 
@@ -10,8 +9,6 @@ function transformToGameSession(doc: unknown): GameSessionType {
 }
 
 export async function createGameSession(sessionData: Partial<GameSessionType>): Promise<GameSessionType> {
-  await connectToDatabase();
-
   const defaultTeam = {
     id: "",
     name: "",
@@ -80,8 +77,6 @@ export async function createGameSession(sessionData: Partial<GameSessionType>): 
 }
 
 export async function saveGameSession(session: GameSessionType): Promise<GameSessionType> {
-  await connectToDatabase();
-
   try {
     const existingSession = await GameSessionModel.findOne({ id: session._id });
 
@@ -104,8 +99,6 @@ export async function saveGameSession(session: GameSessionType): Promise<GameSes
 }
 
 export async function getGameSession(sessionId: string): Promise<GameSessionType | null> {
-  await connectToDatabase();
-
   try {
     const session = await GameSessionModel.findOne({ id: sessionId }).lean();
     if (!session) return null;
@@ -119,8 +112,6 @@ export async function updateGameSession(
   sessionId: string,
   updateData: Partial<GameSessionType>
 ): Promise<GameSessionType | null> {
-  await connectToDatabase();
-
   const session = await GameSessionModel.findOneAndUpdate(
     { id: sessionId },
     { ...updateData, lastActivity: new Date() },
@@ -131,8 +122,6 @@ export async function updateGameSession(
 }
 
 export async function deleteGameSession(sessionId: string): Promise<boolean> {
-  await connectToDatabase();
-
   try {
     const result = await GameSessionModel.deleteOne({ id: sessionId });
     return result.deletedCount > 0;
@@ -142,8 +131,6 @@ export async function deleteGameSession(sessionId: string): Promise<boolean> {
 }
 
 export async function getAllGameSessions(): Promise<GameSessionType[]> {
-  await connectToDatabase();
-
   try {
     const sessions = await GameSessionModel.find({}).lean();
     return sessions.map((doc) => transformToGameSession(doc));
@@ -153,8 +140,6 @@ export async function getAllGameSessions(): Promise<GameSessionType[]> {
 }
 
 export async function cleanupOldSessions(olderThanHours: number = 24): Promise<number> {
-  await connectToDatabase();
-
   try {
     const cutoffDate = new Date(Date.now() - olderThanHours * 60 * 60 * 1000);
     const result = await GameSessionModel.deleteMany({
@@ -170,8 +155,6 @@ export async function cleanupOldSessions(olderThanHours: number = 24): Promise<n
 
 // Fearless draft helpers
 export async function getUsedChampionsInSeries(sessionId: string): Promise<Champion[]> {
-  await connectToDatabase();
-
   try {
     const session = await GameSessionModel.findOne({ id: sessionId }).lean();
     if (!session) return [];
@@ -195,8 +178,6 @@ export async function getUsedChampionsInSeries(sessionId: string): Promise<Champ
 }
 
 export async function addUsedChampion(sessionId: string, teamSide: "blue" | "red", champion: Champion): Promise<void> {
-  await connectToDatabase();
-
   try {
     await GameSessionModel.findOneAndUpdate(
       { id: sessionId },

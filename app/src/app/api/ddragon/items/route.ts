@@ -5,7 +5,7 @@ const DDRAGON_CDN = "https://ddragon.leagueoflegends.com/cdn";
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     const { searchParams } = new URL(request.url);
-    const version = searchParams.get("version") || "15.17.1";
+    const version = searchParams.get("version") || "15.20.1";
 
     const response = await fetch(`${DDRAGON_CDN}/${version}/data/en_US/item.json`, {
       headers: {

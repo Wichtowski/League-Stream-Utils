@@ -144,7 +144,8 @@ const nextConfig: NextConfig = {
   // Enable compression
   compress: true,
   // Enable source maps in development only
-  productionBrowserSourceMaps: false
+  productionBrowserSourceMaps: false,
+  devIndicators: false
 };
 
 if (process.env.NODE_ENV === "development") delete nextConfig.output; // for HMR

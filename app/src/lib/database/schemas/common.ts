@@ -64,3 +64,21 @@ export const ChampionSchema = new Schema({
 export const CoachSchema = new Schema({
   name: { type: String, required: true }
 });
+
+export const PlayerLiveInfoSchema = new Schema({
+  riotId: { type: String, required: true },
+  riotIdGameName: { type: String, required: false },
+  riotIdTagLine: { type: String, required: false },
+  summonerName: { type: String, required: false },
+  currentGold: { type: Number, required: false },
+  championStats: {
+    resourceType: { type: String, required: false },
+    resourceValue: { type: Number, required: false },
+    maxHealth: { type: Number, required: false },
+    currentHealth: { type: Number, required: false }
+  },
+  timestamp: { type: Number, required: true },
+  matchId: { type: String, required: true, index: true }
+}, {
+  timestamps: true
+});

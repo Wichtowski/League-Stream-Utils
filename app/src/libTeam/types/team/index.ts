@@ -52,6 +52,22 @@ export interface Team {
   isReady?: boolean;
   usedChampions?: Champion[];
   coach?: Coach;
+
+  // Camera settings for streaming
+  cameras?: {
+    teamStreamUrl?: string;
+    players: Array<{
+      playerId: string;
+      playerName: string;
+      role: string;
+      url?: string;
+      imagePath?: string;
+      delayedUrl?: string;
+      useDelay?: boolean;
+    }>;
+    globalTournamentMode?: boolean;
+    updatedAt?: Date;
+  };
 }
 
 export interface TeamColors {

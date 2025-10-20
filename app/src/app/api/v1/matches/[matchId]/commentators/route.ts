@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@lib/auth";
-import { connectToDatabase } from "@lib/database/connection";
 import { MatchModel, CommentatorModel, type MatchDoc, type CommentatorDoc } from "@libTournament/database/models";
 
 // Remove the interface since we're using the typed CommentatorDoc
@@ -9,7 +8,6 @@ import { MatchModel, CommentatorModel, type MatchDoc, type CommentatorDoc } from
 export const GET = withAuth(async (req: NextRequest) => {
   try {
     const matchId = req.nextUrl.pathname.split("/")[4];
-    await connectToDatabase();
 
     const match = (await MatchModel.findById(matchId)) as MatchDoc | null;
     if (!match) {
@@ -32,8 +30,6 @@ export const POST = withAuth(async (req: NextRequest, user) => {
     if (!commentatorId) {
       return NextResponse.json({ error: "Commentator ID is required" }, { status: 400 });
     }
-
-    await connectToDatabase();
 
     // Get the commentator details from global commentators
     const commentator = (await CommentatorModel.findById(commentatorId)) as CommentatorDoc | null;
@@ -92,8 +88,6 @@ export const DELETE = withAuth(async (req: NextRequest) => {
     if (!commentatorId) {
       return NextResponse.json({ error: "Commentator ID is required" }, { status: 400 });
     }
-
-    await connectToDatabase();
 
     const updatedMatch = (await MatchModel.findByIdAndUpdate(
       matchId,

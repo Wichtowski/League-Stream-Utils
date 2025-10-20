@@ -190,7 +190,6 @@ export const DELETE = withAuth(async (req: NextRequest, user: JWTPayload, params
       return NextResponse.json({ error: "Forbidden: Only tournament organizer can delete brackets" }, { status: 403 });
     }
 
-    await connectToDatabase();
     await BracketModel.deleteOne({ tournamentId });
 
     return NextResponse.json({

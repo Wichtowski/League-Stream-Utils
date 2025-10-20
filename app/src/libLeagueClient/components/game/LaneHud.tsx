@@ -9,17 +9,93 @@ import {
 import { getItemImage } from "@lib/items";
 import { getRuneImage } from "@lib/runes";
 import { MdPlayArrow } from "react-icons/md";
+import { Resolutions } from "@libLeagueClient/components/game/GameDataDisplay";
 
 interface LaneHudProps {
   gameData: LiveGameData;
   gameVersion: string;
+  resolution?: Resolutions;
 }
 
-export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): React.ReactElement => {
+export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion, resolution = "WQHD" }): React.ReactElement => {
   const [levelAnimations, setLevelAnimations] = useState<Record<string, boolean>>({});
   const [previousLevels, setPreviousLevels] = useState<Record<string, number>>({});
   const borderColor = "border-zinc-600/50";
-  const bgColor = "bg-black/78";
+  const bgColor = "bg-black/85";
+
+  // Resolution-based styling adjustments
+  const getResolutionStyles = (): {
+    maxWidth: string;
+    height: string; 
+    fontSize: string; 
+    spacing: string; 
+    itemSize: string; 
+    itemPadding: string;
+    championSize: string; 
+    visionScorePosition: number;
+    goldDiffFontSize: string;
+    goldDiffWidth: string;
+    playerTextPadding: string;
+    trinketSize: string;
+    playerTextWidth: string;
+    spellAndRuneSize: string;
+  } => {
+    switch (resolution) {
+      case "4K":
+        return {
+          maxWidth: "max-w-[1280px]",
+          height: "h-[80px]", // Even taller for 4K
+          fontSize: "text-lg", // Larger text
+          spacing: "gap-2.5", // More spacing
+          itemSize: "w-10 h-10", // Even larger items
+          itemPadding: "px-1 py-0.5",
+          championSize: "w-16 h-16", // 64x64px champions
+          visionScorePosition: 220, // Adjusted for 4K
+          goldDiffFontSize: "text-xl", // Even larger gold diff text
+          playerTextPadding: "py-3",
+          trinketSize: "w-10.5 h-10.5",
+          playerTextWidth: "w-46",
+          spellAndRuneSize: "w-10 h-10",
+          goldDiffWidth: "w-16",
+        };
+      case "WQHD":
+        return {
+          maxWidth: "max-w-[1200px]",
+          height: "h-[70px]", // Much taller for WQHD
+          fontSize: "text-base", // Larger text
+          spacing: "gap-1", // More spacing
+          spellAndRuneSize: "w-8.5 h-8.5",
+          itemSize: "w-7.5 h-7.5", // Larger items
+          itemPadding: "px-1 py-0.5",
+          trinketSize: "w-8.5 h-8.5",
+          championSize: "w-17 h-17", // 60x60px champions
+          visionScorePosition: 200, // Adjusted for right side positioning
+          goldDiffFontSize: "text-lg", // Larger gold diff text
+          playerTextPadding: "py-2.5",
+          playerTextWidth: "w-42",
+          goldDiffWidth: "w-22",
+        };
+      default: // FHD
+        return {
+          maxWidth: "max-w-[936px]",
+          height: "h-[50px]", // Current height
+          fontSize: "text-xs", // Current text size
+          spacing: "gap-0.5", // Current spacing
+          itemSize: "w-6 h-6", // Current item size
+          itemPadding: "px-0.5 py-3",
+          championSize: "w-12 h-12", // Current champion size (48x48)
+          visionScorePosition: 170, // Current position
+          goldDiffFontSize: "text-sm", // Current gold diff text
+          playerTextPadding: "py-1",
+          trinketSize: "w-6 h-6",
+          playerTextWidth: "w-38",
+          spellAndRuneSize: "w-7.5 h-7.5",
+          goldDiffWidth: "w-16",
+        };
+    }
+  };
+
+  const resolutionStyles = getResolutionStyles();
 
   useEffect(() => {
     gameData.allPlayers.forEach((p) => {
@@ -39,8 +115,7 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
   }, [gameData.allPlayers, previousLevels]);
 
   return (
-    <div className="absolute bottom-0 left-1/2 -translate-x-1/2">
-      <div className="px-3">
+      <div>
         {(() => {
           const laneOrder = ["TOP", "JUNGLE", "MID", "BOTTOM", "SUPPORT"] as const;
           type LaneKey = (typeof laneOrder)[number];
@@ -81,20 +156,20 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
             return first || null;
           };
           
-          const itemStyle = "w-6 h-6 bg-zinc-900 rounded relative overflow-hidden flex items-center justify-center";
+          const itemStyle = `${resolutionStyles.itemSize} bg-zinc-900 rounded relative overflow-hidden flex items-center justify-center`;
 
-          const renderItems = (items: (typeof gameData.allPlayers)[number]["items"], trinketItemID: number, visionScore: number, align: "left" | "right") => {
+          const renderItems = (items: (typeof gameData.allPlayers)[number]["items"], trinketItemID: number, visionScore: number, align: "left" | "right", isDead: boolean = false) => {
             // Create array of 7 slots (0-6) with proper typing
             const slots: (typeof items[0] | null)[] = Array.from({ length: 7 }).map(() => null);
             
             // Trinket items that should always be in slot 6 (last position)
-            const trinketItems = [3363, 3364, 3340]; // Farsight Alteration, Oracle Lens, Stealth Ward
+            const gameTrinkets = [3363, 3364, 3340]; // Farsight Alteration, Oracle Lens, Stealth Ward
             
             // First, try to fill slots based on slot property
             items?.forEach(item => {
               if (item && typeof item.slot === 'number' && item.slot >= 0 && item.slot < 7) {
                 // If it's a trinket item, only put it in slot 6, skip if in other slots
-                if (trinketItems.includes(item.itemID)) {
+                if (gameTrinkets.includes(item.itemID)) {
                   if (item.slot === 6) {
                     slots[6] = item;
                   }
@@ -109,7 +184,7 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
             // If no items were placed using slot property, fall back to array index
             if (slots.every(slot => slot === null)) {
               items?.forEach((item, index) => {
-                if (item && index < 6 && !trinketItems.includes(item.itemID)) {
+                if (item && index < 6 && !gameTrinkets.includes(item.itemID)) {
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   (slots as any)[index] = item;
                 }
@@ -117,60 +192,128 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
             }
             
             // Handle trinket in slot 6
-            const trinketItem = items?.find(item => trinketItems.includes(item.itemID));
+            const trinketItem = items?.find(item => gameTrinkets.includes(item.itemID));
             if (trinketItem) {
               slots[6] = trinketItem;
             } else if (trinketItemID) {
               slots[6] = { itemID: trinketItemID, name: "Trinket", count: 1, price: 0, slot: 6 };
             }
             
-            const trinketCenterLeftPx = align === "right" ? 170 : 14;
+            const fixedWardScore = parseInt(visionScore.toFixed(0)) || 0;
+            const trinketCenterLeftPx = align === "right" ? resolutionStyles.visionScorePosition : 14;
+            
+            // For WQHD and 4K, use 2-row layout
+            if (resolution === "WQHD" || resolution === "4K") {
+              // Split items: first 3 items in top row, last 3 items in bottom row, trinket on the right side
+              const topRowItems = slots.slice(0, 3);
+              const bottomRowItems = slots.slice(3, 6);
+              const trinketItem = slots[6];
+              
+              return (
+                <div className="relative">
+                  <div className={`flex ${align === "left" ? "flex-row-reverse" : "flex-row"} ${resolutionStyles.itemPadding} ${resolutionStyles.spacing} h-full bg-black/85`}>
+                    {/* Left side - 2 rows of items */}
+                    <div className="flex flex-col flex-1">
+                       {/* Top row - first 3 items */}
+                       <div className={`flex ${resolutionStyles.spacing} mb-1`}>
+                         {align === "left"
+                           ? topRowItems.reverse().map((it, idx) => (
+                               <div key={idx} className={itemStyle}>
+                                 {it ? (
+                                   <Image src={getItemImage(it.itemID)} alt={it.name} fill sizes="32px" className={`object-cover ${isDead ? "grayscale brightness-50" : ""}`} />
+                                 ) : null}
+                               </div>
+                             ))
+                           : topRowItems.map((it, idx) => (
+                               <div key={idx} className={itemStyle}>
+                                 {it ? (
+                                   <Image src={getItemImage(it.itemID)} alt={it.name} fill sizes="32px" className={`object-cover ${isDead ? "grayscale brightness-50" : ""}`} />
+                                 ) : null}
+                               </div>
+                             ))}
+                       </div>
+                      
+                      {/* Bottom row - last 3 items */}
+                      <div className={`flex ${resolutionStyles.spacing}`}>
+                        {align === "left"
+                          ? bottomRowItems.reverse().map((it, idx) => (
+                              <div key={idx + 3} className={itemStyle}>
+                                {it ? (
+                                  <Image src={getItemImage(it.itemID)} alt={it.name} fill sizes="32px" className={`object-cover ${isDead ? "grayscale brightness-50" : ""}`} />
+                                ) : null}
+                              </div>
+                            ))
+                          : bottomRowItems.map((it, idx) => (
+                              <div key={idx + 3} className={itemStyle}>
+                                {it ? (
+                                  <Image src={getItemImage(it.itemID)} alt={it.name} fill sizes="32px" className={`object-cover ${isDead ? "grayscale brightness-50" : ""}`} />
+                                ) : null}
+                              </div>
+                            ))}
+                      </div>
+                    </div>
+                    
+                     {/* Center - trinket with vision score on top */}
+                     <div className="flex items-center justify-center relative">
+                       <div className="flex flex-col items-center">
+                         <div className={`text-white ${resolutionStyles.fontSize} mt-[-6px] font-bold rounded min-w-[16px] text-center mb-1 z-30 bg-transpa `}>
+                           {fixedWardScore}
+                         </div>
+                           <div className={`${itemStyle} ${resolutionStyles.trinketSize} mt-[-12px] `}>
+                            {gameTrinkets.includes(trinketItem?.itemID || 0) && trinketItem ? (
+                              <Image src={getItemImage(trinketItem.itemID)} alt={trinketItem.name} fill sizes="32px" className={`object-cover ${isDead ? "grayscale brightness-50" : ""}`} />
+                            ) : null}
+                         </div>
+                       </div>
+                     </div>
+                  </div>
+                </div>
+              );
+            }
             return (
               <div className="relative">
-                <div className={`flex px-0.5 gap-0.5 h-full py-3 ${bgColor}`}>
-                  {align === "left"
-                    ? slots.reverse().map((it, idx) => (
-                        <div
-                          key={idx}
-                          className={itemStyle}
-                        >
-                          {it ? (
-                            <Image src={getItemImage(it.itemID)} alt={it.name} fill sizes="24px" className="object-cover" />
-                          ) : null}
-                        </div>
-                      ))
-                    : slots.map((it, idx) => (
-                        <div
-                          key={idx}
-                          className={itemStyle}
-                        >
-                          {it ? (
-                            <Image src={getItemImage(it.itemID)} alt={it.name} fill sizes="24px" className="object-cover" />
-                          ) : null}
-                        </div>
-                      ))}
+                <div className={`flex ${resolutionStyles.itemPadding} ${resolutionStyles.spacing} h-full bg-black/85`}>
+                   {align === "left"
+                     ? slots.reverse().map((it, idx) => (
+                         <div
+                           key={idx}
+                           className={itemStyle}
+                         >
+                           {it ? (
+                             <Image src={getItemImage(it.itemID)} alt={it.name} fill sizes="32px" className={`object-cover ${isDead ? "grayscale brightness-50" : ""}`} />
+                           ) : null}
+                         </div>
+                       ))
+                     : slots.map((it, idx) => (
+                         <div
+                           key={idx}
+                           className={itemStyle}
+                         >
+                           {it ? (
+                             <Image src={getItemImage(it.itemID)} alt={it.name} fill sizes="32px" className={`object-cover ${isDead ? "grayscale brightness-50" : ""}`} />
+                           ) : null}
+                         </div>
+                       ))}
                 </div>
-                {visionScore !== undefined && visionScore !== null && (
-                  <div className="absolute -top-0.5 z-30 pointer-events-none text-white text-xs font-bold px-2 rounded min-w-[16px] text-center -translate-x-1/2" style={{ left: `${trinketCenterLeftPx}px` }}>
-                    {visionScore || "0"}
-                  </div>
-                )}
+                <div className={`absolute -top-0.5 z-30 pointer-events-none text-white ${resolutionStyles.fontSize} font-bold px-2 rounded min-w-[16px] text-center -translate-x-1/2`} style={{ left: `${trinketCenterLeftPx}px` }}>
+                  {fixedWardScore}
+                </div>
               </div>
             );
           };
 
-          const runeAndSpellStyle = "w-6 h-6 flex items-center justify-center";
+          const runeAndSpellStyle = `${resolutionStyles.spellAndRuneSize} flex items-center justify-center`;
           
-          const renderSpells = (spell: (typeof gameData.allPlayers)[number]["summonerSpells"]) => {
+          const renderSpells = (spell: (typeof gameData.allPlayers)[number]["summonerSpells"], isDead: boolean = false, flexDir: "row" | "col" = "col") => {
             const s1 = spell?.summonerSpellOne?.displayName;
             const s2 = spell?.summonerSpellTwo?.displayName;
             return (
-              <div className="flex flex-col">
-                <div className={`${runeAndSpellStyle} p-0.5 ${bgColor}`}>
-                  {s1 ? <Image src={getSummonerSpellImageByName(s1)} alt={s1} width={22} height={22} /> : null}
+              <div className={`flex ${flexDir === "row" ? "flex-row" : "flex-col"}`}>
+                <div className={`${runeAndSpellStyle} ${bgColor}`}>
+                  {s1 ? <Image src={getSummonerSpellImageByName(s1)} alt={s1} width={32} height={32} className={isDead ? "grayscale brightness-50" : ""} /> : null}
                 </div>
-                <div className={`${runeAndSpellStyle} p-0.5 ${bgColor}`}>
-                  {s2 ? <Image src={getSummonerSpellImageByName(s2)} alt={s2} width={22} height={22} /> : null}
+                <div className={`${runeAndSpellStyle} ${bgColor}`}>
+                  {s2 ? <Image src={getSummonerSpellImageByName(s2)} alt={s2} width={32} height={32} className={isDead ? "grayscale brightness-50" : ""} /> : null}
                 </div>
               </div>
             );
@@ -180,18 +323,18 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
             return rune.includes("7202_sorcery.png") ;
           };
 
-          const renderRunes = (runes: (typeof gameData.allPlayers)[number]["runes"]) => {
+          const renderRunes = (runes: (typeof gameData.allPlayers)[number]["runes"], isDead: boolean = false, flexDir: "row" | "col" = "col") => {
             const r1 = runes?.keystone;
             const r2 = runes?.secondaryRuneTree;
             const rune1Image = getRuneImage(r1);
             const rune2Image = getRuneImage(r2);
             return (
-              <div className="flex flex-col">
+              <div className={`flex ${flexDir === "row" ? "flex-row" : "flex-col"}`}>
                 <div className={`${runeAndSpellStyle} bg-zinc-900`}>
-                  {rune1Image ? <Image src={rune1Image} alt={r1} width={22} height={22} /> : null}
+                  {rune1Image ? <Image src={rune1Image} alt={r1} width={28} height={28} className={isDead ? "grayscale brightness-50" : ""} /> : null}
                 </div>
                 <div className={`${runeAndSpellStyle} bg-zinc-900 ${isSmallerRune(rune2Image) ? "p-0.75" : "p-1.25"}`}>
-                  {rune2Image ? <Image src={rune2Image} alt={r2} width={18} height={18} /> : null}
+                  {rune2Image ? <Image src={rune2Image} alt={r2} width={24} height={24} className={isDead ? "grayscale brightness-50" : ""} /> : null}
                 </div>
               </div>
             );
@@ -201,15 +344,14 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
           const renderChampImage = (summonerName: string, championName: string, level: number, isDead: boolean, respawnTimer: number, align: "left" | "right") => {
             const showLevelAnimation = levelAnimations[summonerName] || false;
             const alignmentClass = align === "left" ? "justify-end" : "justify-start";
-            
             return (
               <div className={`relative flex ${alignmentClass}`}>
-                <div className="relative w-12 h-12">
+                <div className={`relative ${resolutionStyles.championSize}`}>
                   <Image
                     src={getChampionSquareImage(championName) || getDefaultAsset(gameVersion, "player.png")}
                     alt={championName}
                     fill
-                    sizes="48px"
+                    sizes="60px"
                     className={`${isDead ? "grayscale brightness-50" : ""} ${showLevelAnimation ? "opacity-0" : "opacity-100 transition-opacity duration-300"} object-cover`}
                   />
                   {showLevelAnimation ? (
@@ -225,8 +367,12 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
                     </div>
                   )}
                   {isDead && respawnTimer > 0 ? (
-                    <div className={`absolute top-1/2 -translate-y-1/2 ${align === "left" ? "left-[-14px]" : "right-[-14px]"} bg-black/90 text-white text-2xl font-extrabold leading-none px-2 py-1 rounded ${align === "left" ? "rounded-tr rounded-br" : "rounded-tl rounded-bl"} shadow-lg`}> 
+                     <div className="absolute inset-0 flex items-center justify-center">
+                       <div className="text-white text-3xl font-extrabold leading-none text-center" style={{ 
+                         textShadow: '2px 2px 0px #000, -2px -2px 0px #000, 2px -2px 0px #000, -2px 2px 0px #000'
+                       }}>
                       {Math.ceil(respawnTimer)}
+                       </div>
                     </div>
                   ) : null}
                 </div>
@@ -288,23 +434,27 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
             const healthPercentage = (currentHealth / maxHealth) * 100;
             
             return (
-              <div className={`flex direction-${align} justify-between flex-row${align === "left" ? "-reverse" : ""} ${bgColor} w-38 h-full py-1`}>
-                <div className={`flex flex-col items-end min-w-14 min-h-10 ${align === "left" ? "items-end" : "items-start"} h-full`}>
-                  <div className="text-orange-200 font-bold text-sm">{playerScore.creepScore ?? 0}</div>
-                  <div className="text-white font-bold text-sm">{playerScore.kills}/{playerScore.deaths}/{playerScore.assists}</div>
+                <div className={`flex direction-${align} justify-between flex-row${align === "left" ? "-reverse" : ""} ${bgColor} ${resolutionStyles.playerTextWidth} h-full ${resolutionStyles.playerTextPadding}`}>
+                <div className={`flex flex-col items-end min-w-10 min-h-10 ${align === "left" ? "pr-0.5 items-end" : "pl-0.5 items-start"} h-full`}>
+                  <div className={`text-orange-200 font-bold ${resolutionStyles.fontSize}`}>{playerScore.creepScore ?? 0}</div>
+                  <div className={`text-white font-bold ${resolutionStyles.fontSize}`}>{playerScore.kills}/{playerScore.deaths}/{playerScore.assists}</div>
                 </div>
-                <div className="text-xs flex-shrink-0 h-full flex flex-col justify-between px-1">
+                <div className={`${resolutionStyles.fontSize} flex-shrink-0 h-full flex flex-col justify-between px-1`}>
                   <div className={`font-semibold truncate max-w-[100px] ${align === "left" ? "text-left" : "text-right"}`}>{summonerName}</div>
                   <div className="w-full">
+                    {healthPercentage > 0 && (
                     <div className={`w-20 h-2 bg-green-900 mb-0.5 ${align === "right" ? "transform scale-x-[-1]" : ""}`}>
                       <div 
                         className="h-full bg-gradient-to-r from-green-400 to-green-600 transition-all duration-300"
                         style={{ width: `${healthPercentage}%` }}
                       />
                     </div>
+                    )}
+                    {!resourceType || !resourceValue || !resourceMax ? null : (
                     <div className={`w-20 h-2 bg-gray-700 ${align === "right" ? "transform scale-x-[-1]" : ""}`}>
                       {renderResource(resourceType, resourceValue, resourceMax)}
                     </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -318,21 +468,71 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
             if (!p) return <div className="flex-1" />;
             return (
               <div className={`flex items-center ${borderColor} ${align === "left" ? "justify-end border-r-2" : "justify-start border-l-2"} flex-1`}>
-                {align === "left" ? (
+                {resolution === "4K" && (
                   <>
-                    {renderItems(p.items, p.items[0].itemID, p.scores.wardScore, "left")}
-                    {renderRunes(p.runes)}
-                    {renderTexts(p.scores, p.summonerName, p.currentHealth, p.maxHealth, "left", p.resourceType, p.resourceValue, p.resourceMax)}
-                    {renderSpells(p.summonerSpells)}
-                    {renderChampImage(p.summonerName, p.championName, p.level, p.isDead, p.respawnTimer, "left")}
+                    {align === "left" ? (
+                      <>
+                        {renderItems(p.items, p.items?.[0]?.itemID || 0, p.scores.wardScore, "left", p.isDead)}
+                        {renderRunes(p.runes, p.isDead)}
+                        {renderTexts(p.scores, p.riotIdGameName, p.currentHealth, p.maxHealth, "left", p.resourceType, p.resourceValue, p.resourceMax)}
+                        {renderSpells(p.summonerSpells, p.isDead)}
+                        {renderChampImage(p.summonerName, p.championName, p.level, p.isDead, p.respawnTimer, "left")}
+                      </>
+                    ) : (
+                      <>
+                        {renderChampImage(p.summonerName, p.championName, p.level, p.isDead, p.respawnTimer, "right")}
+                        {renderSpells(p.summonerSpells, p.isDead)}
+                        {renderTexts(p.scores, p.riotIdGameName, p.currentHealth, p.maxHealth, "right", p.resourceType, p.resourceValue, p.resourceMax)}
+                        {renderRunes(p.runes, p.isDead)}
+                        {renderItems(p.items, p.items?.[0]?.itemID || 0, p.scores.wardScore, "right", p.isDead)}
+                      </>
+                    )}
                   </>
-                ) : (
+                )}
+                {resolution === "WQHD" && (
                   <>
-                    {renderChampImage(p.summonerName, p.championName, p.level, p.isDead, p.respawnTimer, "right")}
-                    {renderSpells(p.summonerSpells)}
-                    {renderTexts(p.scores, p.summonerName, p.currentHealth, p.maxHealth, "right", p.resourceType, p.resourceValue, p.resourceMax)}
-                    {renderRunes(p.runes)}
-                    {renderItems(p.items, p.items[0].itemID, p.scores.wardScore, "right")}
+                    {align === "left" ? (
+                      <>
+                        {renderItems(p.items, p.items?.[0]?.itemID || 0, p.scores.wardScore, "left", p.isDead)}
+                        {renderTexts(p.scores, p.riotIdGameName, p.currentHealth, p.maxHealth, "left", p.resourceType, p.resourceValue, p.resourceMax)}
+                        <div className="flex flex-col">
+                          {renderSpells(p.summonerSpells, p.isDead, "row")}
+                          {renderRunes(p.runes, p.isDead, "row")}
+                        </div>
+                        {renderChampImage(p.summonerName, p.championName, p.level, p.isDead, p.respawnTimer, "left")}
+                      </>
+                    ) : (
+                      <>
+                        {renderChampImage(p.summonerName, p.championName, p.level, p.isDead, p.respawnTimer, "right")}
+                        <div className="flex flex-col">
+                          {renderSpells(p.summonerSpells, p.isDead, "row")}
+                          {renderRunes(p.runes, p.isDead, "row")}
+                        </div>
+                        {renderTexts(p.scores, p.riotIdGameName, p.currentHealth, p.maxHealth, "right", p.resourceType, p.resourceValue, p.resourceMax)}
+                        {renderItems(p.items, p.items?.[0]?.itemID || 0, p.scores.wardScore, "right", p.isDead)}
+                      </>
+                    )}
+                  </>
+                )} 
+                {resolution === "FHD" && (
+                  <>
+                    {align === "left" ? (
+                      <>
+                        {renderItems(p.items, p.items?.[0]?.itemID || 0, p.scores.wardScore, "left", p.isDead)}
+                        {renderRunes(p.runes, p.isDead)}
+                        {renderTexts(p.scores, p.riotIdGameName, p.currentHealth, p.maxHealth, "left", p.resourceType, p.resourceValue, p.resourceMax)}
+                        {renderSpells(p.summonerSpells, p.isDead)}
+                        {renderChampImage(p.summonerName, p.championName, p.level, p.isDead, p.respawnTimer, "left")}
+                      </>
+                    ) : (
+                      <>
+                        {renderChampImage(p.summonerName, p.championName, p.level, p.isDead, p.respawnTimer, "right")}
+                        {renderSpells(p.summonerSpells, p.isDead)}
+                        {renderTexts(p.scores, p.riotIdGameName, p.currentHealth, p.maxHealth, "right", p.resourceType, p.resourceValue, p.resourceMax)}
+                        {renderRunes(p.runes, p.isDead)}
+                        {renderItems(p.items, p.items?.[0]?.itemID || 0, p.scores.wardScore, "right", p.isDead)}
+                      </>
+                    )}
                   </>
                 )}
               </div>
@@ -356,7 +556,7 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
             const diff = Math.round(l - r);
             const abs = Math.abs(diff);
             return (
-              <div className={`w-16 h-full relative text-center flex items-center justify-center text-sm font-bold ${bgColor}`}>
+              <div className={`${resolutionStyles.goldDiffWidth} h-full relative text-center flex items-center justify-center ${resolutionStyles.goldDiffFontSize} font-bold ${bgColor}`}>
                 {diff > 0 && (
                   <div className="absolute left-0 top-1/2 -translate-y-1/2 text-blue-300">
                     <ChevronLeft />
@@ -383,7 +583,7 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
                   const rightPlayer = pickByLaneWithFallback(chaosPlayers, lane, usedChaos);
                   if (rightPlayer) usedChaos.add(rightPlayer.summonerName);
                   return (
-                    <div key={lane} className={`flex items-center h-[50px] border-x-2 border-y-2 border-b-0 ${borderColor} ${lane === "TOP" ? "border-t-2" : ""}`}>
+                    <div key={lane} className={`flex items-center ${resolutionStyles.height} border-x-2 border-y-2 border-b-0 ${borderColor} ${lane === "TOP" ? "border-t-2" : ""}`}>
                       {renderPlayerSide(leftPlayer, "left")}
                       {renderGoldDiff(leftPlayer, rightPlayer)}
                       {renderPlayerSide(rightPlayer, "right")}
@@ -395,6 +595,5 @@ export const LaneHud: React.FC<LaneHudProps> = ({ gameData, gameVersion }): Reac
           );
         })()}
       </div>
-    </div>
   );
 };

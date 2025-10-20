@@ -270,6 +270,5 @@ export const getAllRoleIconAssets = (version: string): { [key: string]: string }
 };
 
 const getAsset = (version: string, type: string, asset: string): string => {
-  console.log(`assets/${version}/${type}/${asset}`);
   return `/api/local-image?path=${encodeURIComponent(`assets/${version}/overlay/${type}/${asset}`)}`;
 };

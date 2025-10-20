@@ -33,7 +33,7 @@ interface CacheStats {
   version: string;
 }
 
-const VERSION = "15.17.1";
+const VERSION = "15.20.1";
 
 const languages = [
   { code: "en_US", name: "English" },

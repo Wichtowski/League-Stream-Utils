@@ -48,8 +48,9 @@ export const SpectatorDisplay: React.FC<SpectatorDisplayProps> = ({
       </div>
 
       {/* Lane HUD */}
-      <LaneHud gameData={gameData} gameVersion="15.17.1" />
+      <LaneHud gameData={gameData} gameVersion="15.20.1" />
     </div>
   );
 };
+
 

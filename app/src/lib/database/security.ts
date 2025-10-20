@@ -10,7 +10,6 @@ function transformToSecurityEvent(doc: { _id?: unknown; __v?: number; [key: stri
 
 export async function recordLoginAttempt(attempt: LoginAttempt): Promise<void> {
   await connectToDatabase();
-
   await LoginAttemptModel.create({
     ...attempt,
     timestamp: new Date()
@@ -25,7 +24,6 @@ export async function recordLoginAttempt(attempt: LoginAttempt): Promise<void> {
 
 export async function getFailedLoginAttempts(identifier: string, windowMs: number): Promise<number> {
   await connectToDatabase();
-
   const since = new Date(Date.now() - windowMs);
 
   const count = await LoginAttemptModel.countDocuments({
@@ -44,13 +42,11 @@ export async function isAccountLocked(identifier: string): Promise<boolean> {
 
 export async function clearLoginAttempts(identifier: string): Promise<void> {
   await connectToDatabase();
-
   await LoginAttemptModel.deleteMany({ identifier });
 }
 
 export async function logSecurityEvent(event: SecurityEvent): Promise<void> {
   await connectToDatabase();
-
   await SecurityEventModel.create({
     ...event,
     timestamp: new Date()
@@ -65,7 +61,6 @@ export async function logSecurityEvent(event: SecurityEvent): Promise<void> {
 
 export async function getSecurityEvents(userId?: string, limit: number = 100): Promise<SecurityEvent[]> {
   await connectToDatabase();
-
   const query = userId ? { userId } : {};
 
   const results = await SecurityEventModel.find(query).sort({ timestamp: -1 }).limit(limit).lean();

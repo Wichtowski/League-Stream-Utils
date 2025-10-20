@@ -1,4 +1,3 @@
-import { connectToDatabase } from "@lib/database";
 import { TournamentModel } from "@libTournament/database/models";
 
 import { Tournament as TournamentType, CreateTournamentRequest } from "@libTournament/types";
@@ -23,8 +22,6 @@ export const createTournament = async (
   userId: string,
   tournamentData: CreateTournamentRequest
 ): Promise<TournamentType> => {
-  await connectToDatabase();
-
   const newTournament = new TournamentModel({
     name: tournamentData.name,
     abbreviation: tournamentData.abbreviation,
@@ -77,8 +74,6 @@ export const createTournament = async (
 
 // Get tournaments for a specific user (including tournaments they have permissions for)
 export const getUserTournaments = async (userId: string): Promise<TournamentType[]> => {
-  await connectToDatabase();
-
   try {
     // Get tournaments where user is the owner
     const ownedTournaments = await TournamentModel.find({ userId }).sort({ createdAt: -1 });
@@ -119,8 +114,6 @@ export const getAllTournaments = async (): Promise<TournamentType[]> => {
 
 // Get tournament by ID
 export const getTournamentById = async (tournamentId: string): Promise<TournamentType | null> => {
-  await connectToDatabase();
-
   const tournament = await TournamentModel.findById(tournamentId);
   if (!tournament) return null;
 
@@ -132,8 +125,6 @@ export const updateTournament = async (
   tournamentId: string,
   updates: Partial<TournamentType>
 ): Promise<TournamentType | null> => {
-  await connectToDatabase();
-
   // Use $set operator to ensure nested objects are properly updated
   const _updateQuery = { $set: updates };
 
@@ -171,8 +162,6 @@ export const updateTournament = async (
 
 // Delete tournament
 export const deleteTournament = async (tournamentId: string): Promise<boolean> => {
-  await connectToDatabase();
-
   const result = await TournamentModel.findByIdAndDelete(tournamentId);
   return !!result;
 };
@@ -183,8 +172,6 @@ export const registerTeamForTournament = async (
   teamId: string,
   _bypassConstraints: boolean = false
 ): Promise<TournamentType | null> => {
-  await connectToDatabase();
-
   const tournament = await TournamentModel.findById(tournamentId);
   if (!tournament) return null;
 
@@ -202,8 +189,6 @@ export const unregisterTeamFromTournament = async (
   tournamentId: string,
   teamId: string
 ): Promise<TournamentType | null> => {
-  await connectToDatabase();
-
   const tournament = await TournamentModel.findById(tournamentId);
   if (!tournament) return null;
 
@@ -216,8 +201,6 @@ export const unregisterTeamFromTournament = async (
 
 // Get public tournaments (for display)
 export const getPublicTournaments = async (limit: number = 20, offset: number = 0): Promise<TournamentType[]> => {
-  await connectToDatabase();
-
   const tournaments = await TournamentModel.find({
     status: { $in: ["registration", "ongoing"] }
   })
@@ -230,8 +213,6 @@ export const getPublicTournaments = async (limit: number = 20, offset: number = 
 
 // Search tournaments
 export const searchTournaments = async (query: string, limit: number = 20): Promise<TournamentType[]> => {
-  await connectToDatabase();
-
   const searchRegex = new RegExp(query, "i");
   const tournaments = await TournamentModel.find({
     $or: [{ name: searchRegex }, { abbreviation: searchRegex }],
@@ -253,8 +234,6 @@ export const getTournamentStats = async (
   completedMatches: number;
   pendingMatches: number;
 } | null> => {
-  await connectToDatabase();
-
   const tournament = await TournamentModel.findById(tournamentId);
   if (!tournament) return null;
 
@@ -273,8 +252,6 @@ export const checkTournamentAvailability = async (
   abbreviation: string,
   excludeTournamentId?: string
 ): Promise<{ nameAvailable: boolean; abbreviationAvailable: boolean }> => {
-  await connectToDatabase();
-
   const query = excludeTournamentId ? { _id: { $ne: excludeTournamentId } } : {};
 
   const nameExists = await TournamentModel.findOne({ ...query, name });

@@ -15,7 +15,7 @@ import { CiCoffeeCup } from "react-icons/ci";
 import { HiOutlineCog6Tooth } from "react-icons/hi2";
 
 export const Sidebar = (): React.ReactElement => {
-  const { activeModule, sidebarCollapsed, toggleSidebar, setSidebarCollapsed } = useNavigation();
+  const { activeModule, sidebarCollapsed, removeSidebar, toggleSidebar, setSidebarCollapsed } = useNavigation();
   const { user, logout } = useAuth();
   const { isElectron, useLocalData } = useElectron();
   const { currentTournament } = useCurrentTournament();
@@ -147,7 +147,7 @@ export const Sidebar = (): React.ReactElement => {
     }
   };
 
-  if (activeModule === null) {
+  if (activeModule === null || removeSidebar) {
     return <></>;
   }
 

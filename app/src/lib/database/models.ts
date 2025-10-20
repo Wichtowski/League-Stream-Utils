@@ -4,10 +4,10 @@ import {
   UserSchema,
   CameraTeamSchema,
   BracketSchema,
-  CameraSettingsSchema,
   LoginAttemptSchema,
   SecurityEventSchema,
-  PlayerStatsSchema
+  PlayerStatsSchema,
+  PlayerLiveInfoSchema
 } from "./schemas";
 import {
   TournamentPermissionSchema,
@@ -42,7 +42,7 @@ export const CameraTeamModel = getModel("CameraTeam", CameraTeamSchema);
 
 export const BracketModel = getModel("Bracket", BracketSchema);
 
-export const CameraSettingsModel = getModel("CameraSettings", CameraSettingsSchema);
+// CameraSettings model removed - camera data now stored in Team.cameras field
 
 export const ChampionModel = getModel(
   "Champion",
@@ -59,6 +59,9 @@ export const SecurityEventModel = getModel("SecurityEvent", SecurityEventSchema)
 
 export type PlayerStatsDoc = InferSchemaType<typeof PlayerStatsSchema>;
 export const PlayerStatsModel = getModel<PlayerStatsDoc>("PlayerStats", PlayerStatsSchema);
+
+export type PlayerLiveInfoDoc = InferSchemaType<typeof PlayerLiveInfoSchema>;
+export const PlayerLiveInfoModel = getModel<PlayerLiveInfoDoc>("PlayerLiveInfo", PlayerLiveInfoSchema);
 
 // Permission models
 export type TournamentPermissionDoc = InferSchemaType<typeof TournamentPermissionSchema>;

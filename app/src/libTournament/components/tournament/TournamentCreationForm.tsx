@@ -33,7 +33,7 @@ export const TournamentCreationForm = ({ onTournamentCreated, onCancel }: Tourna
     timezone: "UTC",
     matchDays: [""],
     defaultMatchTime: "19:00",
-    apiVersion: "15.17.1",
+    apiVersion: "15.20.1",
     patchVersion: "25.17",
     logo: {
       type: "url",
@@ -95,7 +95,7 @@ export const TournamentCreationForm = ({ onTournamentCreated, onCancel }: Tourna
           timezone: "UTC",
           matchDays: [],
           defaultMatchTime: "19:00",
-          apiVersion: "15.17.1",
+          apiVersion: "15.20.1",
           patchVersion: "25.17",
           logo: {
             type: "url",
@@ -132,7 +132,7 @@ export const TournamentCreationForm = ({ onTournamentCreated, onCancel }: Tourna
               value={formData.apiVersion || ""}
               onChange={(e) => setFormData({ ...formData, apiVersion: e.target.value })}
               className="w-full bg-gray-700 rounded px-3 py-2"
-              placeholder="e.g., 15.17.1"
+              placeholder="e.g., 15.20.1"
               required
             />
             <p className="text-sm text-gray-400 mt-1">API version for the game</p>

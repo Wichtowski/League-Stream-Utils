@@ -80,8 +80,6 @@ const convertMongoDoc = (doc: Document): Record<string, unknown> => {
 };
 
 export const createPlayerStats = async (statsData: CreatePlayerStatsRequest): Promise<Record<string, unknown>> => {
-  await connectToDatabase();
-
   const newStats = new PlayerStatsModel({
     ...statsData,
     recordedAt: new Date(),
@@ -97,8 +95,6 @@ export const updatePlayerStats = async (
   id: string,
   updates: Partial<CreatePlayerStatsRequest>
 ): Promise<Record<string, unknown> | null> => {
-  await connectToDatabase();
-
   const updatedStats = await PlayerStatsModel.findByIdAndUpdate(
     id,
     {
@@ -113,23 +109,17 @@ export const updatePlayerStats = async (
 };
 
 export const deletePlayerStats = async (id: string): Promise<boolean> => {
-  await connectToDatabase();
-
   const result = await PlayerStatsModel.findByIdAndDelete(id);
   return !!result;
 };
 
 export const getPlayerStatsById = async (id: string): Promise<Record<string, unknown> | null> => {
-  await connectToDatabase();
-
   const stats = await PlayerStatsModel.findById(id);
   if (!stats) return null;
   return convertMongoDoc(stats);
 };
 
 export const getPlayerStats = async (query: PlayerStatsQuery): Promise<Record<string, unknown>[]> => {
-  await connectToDatabase();
-
   const filter: Record<string, unknown> = {};
 
   if (query.playerId) filter.playerId = query.playerId;
@@ -185,8 +175,6 @@ export const getPlayerChampionStats = async (
 };
 
 export const getPlayerCareerStats = async (playerId: string): Promise<Record<string, unknown> | null> => {
-  await connectToDatabase();
-
   const pipeline = [
     { $match: { playerId } },
     {
@@ -246,8 +234,6 @@ export const getPlayerCareerStats = async (playerId: string): Promise<Record<str
 };
 
 export const getPlayerChampionMastery = async (playerId: string): Promise<Record<string, unknown>[]> => {
-  await connectToDatabase();
-
   const pipeline: PipelineStage[] = [
     { $match: { playerId } },
     {
@@ -301,8 +287,6 @@ export const getPlayerChampionMastery = async (playerId: string): Promise<Record
 export const bulkCreatePlayerStats = async (
   statsArray: CreatePlayerStatsRequest[]
 ): Promise<Record<string, unknown>[]> => {
-  await connectToDatabase();
-
   const statsWithTimestamps = statsArray.map((stats) => ({
     ...stats,
     recordedAt: new Date(),
@@ -315,15 +299,11 @@ export const bulkCreatePlayerStats = async (
 };
 
 export const deletePlayerStatsByGame = async (gameId: string): Promise<boolean> => {
-  await connectToDatabase();
-
   const result = await PlayerStatsModel.deleteMany({ gameId });
   return result.deletedCount > 0;
 };
 
 export const deletePlayerStatsByMatch = async (matchId: string): Promise<boolean> => {
-  await connectToDatabase();
-
   const result = await PlayerStatsModel.deleteMany({ matchId });
   return result.deletedCount > 0;
 };

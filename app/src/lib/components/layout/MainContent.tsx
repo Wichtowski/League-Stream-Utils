@@ -8,9 +8,9 @@ interface MainContentProps {
 }
 
 export const MainContent = ({ children }: MainContentProps): React.ReactNode => {
-  const { activeModule, sidebarCollapsed } = useNavigation();
+  const { activeModule, sidebarCollapsed, removeSidebar } = useNavigation();
 
-  const shouldShowSidebar = activeModule !== null;
+  const shouldShowSidebar = activeModule !== null && !removeSidebar;
 
   return (
     <main

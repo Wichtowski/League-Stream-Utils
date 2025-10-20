@@ -27,10 +27,4 @@ export const CameraPlayerSchema = new mongoose.Schema({
   useDelay: { type: Boolean, default: false }
 });
 
-export const CameraSettingsSchema = new mongoose.Schema({
-  userId: { type: String, required: true, unique: true },
-  teams: [CameraTeamSchema],
-  globalTournamentMode: { type: Boolean, default: false },
-  createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now }
-});
+// CameraSettingsSchema removed - camera data now stored in Team.cameras field

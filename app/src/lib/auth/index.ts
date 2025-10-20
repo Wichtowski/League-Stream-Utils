@@ -5,6 +5,7 @@ import { JWTPayload, SessionData } from "../types/auth";
 import { config } from "@lib/services/system/config";
 import { checkRateLimit, getClientIP } from "@lib/services/common/security";
 import { logSecurityEvent } from "../database/security";
+import { initializeDatabase } from "../middleware/database-init";
 
 const CSP_RULES = [
   "default-src 'self'",
@@ -85,6 +86,14 @@ export function withAuth(
   handler: (request: NextRequest, user: DecodedToken, params: Promise<Record<string, string>>) => Promise<NextResponse>
 ): (request: NextRequest, context: { params: Promise<Record<string, string>> }) => Promise<NextResponse> {
   return async (request: NextRequest, { params }: { params: Promise<Record<string, string>> }) => {
+    // Initialize database connection first
+    try {
+      await initializeDatabase();
+    } catch (error) {
+      console.error("Database initialization failed:", error);
+      return setSecurityHeaders(NextResponse.json({ error: "Database connection failed" }, { status: 500 }));
+    }
+
     const ip = getClientIP(request);
     const userAgent = request.headers.get("user-agent") || "unknown";
 
