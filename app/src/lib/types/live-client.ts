@@ -135,26 +135,23 @@ interface BaseGameEvent {
 }
 
 interface ObjectiveGameEvent extends BaseGameEvent {
-  EventName: "DragonKill" | "HeraldKill" | "BaronKill" | "InhibKilled" | "FirstBrick" | "TurretKilled" | "GameStart" | "MinionsSpawning";
+  EventName: "DragonKill" | "HeraldKill" | "BaronKill" | "InhibKilled" | "FirstBrick" | "TurretKilled" | "GameStart" | "MinionsSpawning" | "HordeKill" | "Multikill" | "Ace" | "ChampionKill" | "AtakhanKill";
   DragonType?: "Earth" | "Elder" | "Fire" | "Water" | "Air" | "Chemtech" | "Hextech";
   Stolen?: boolean | string;
   KillerName?: string;
   Assisters?: string[];
   TurretKilled?: string;
   InhibKilled?: string;
-}
-
-interface KDAGameEvents extends BaseGameEvent {
-  EventName: "Multikill" | "Ace" | "ChampionKill";
-  KillerName?: string;
+  Multikill?: number;
   KillStreak?: number;
-  Assisters?: string[];
-  VictimName?: string;
-  Acer?: string;
+  Ace?: string;
   AcingTeam?: "ORDER" | "CHAOS";
+  ChampionKill?: string;
+  VictimName?: string;
 }
 
-export type RiotGameEvent = ObjectiveGameEvent | KDAGameEvents;
+
+export type RiotGameEvent = ObjectiveGameEvent;
 
 export interface RiotEventsWrapper {
   Events: RiotGameEvent[];

@@ -30,12 +30,13 @@ const DemoGamePage: React.FC = () => {
   useEffect(() => {
     const init = async (): Promise<void> => {
       await Promise.allSettled([getChampions(), getSummonerSpells()]);
-      setMockData(makeLiveGameData(0));
+      // Start demo at minute 7 (420 seconds) - voidgrubs are about to spawn
+      setMockData(makeLiveGameData(420));
     };
     init().catch(console.error);
 
     const interval = setInterval(() => {
-      const elapsed = Math.max(0, Math.floor((Date.now() - startTime) / 1000));
+      const elapsed = Math.max(420, Math.floor((Date.now() - startTime) / 1000) + 420);
       setMockData(makeLiveGameData(elapsed));
     }, 1000);
 

@@ -27,10 +27,10 @@ interface GameUIDownloadResult {
 
 class GameUIBlueprintDownloader extends BaseCacheService<GameUIAsset> {
   private isDownloading = false;
-  private assetCategories = {
+  public readonly assetCategories = {
     atakhan: ["atakhan.png", "atakhan_grey.png"],
-    baronpit: ["baron.png", "grubs.png", "herald.png"],
-    dragonpit: ["infernal.png", "ocean.png", "hextech.png", "chemtech.png", "mountain.png", "elder.png", "cloud.png"],
+    baronpit: ["baron.png", "grubs_gray.png", "grubs.png", "herald.png"],
+    dragonpit: ["infernal.svg", "ocean.svg", "hextech.svg", "chemtech.svg", "mountain.svg", "elder.png", "elder_2.png", "cloud.svg"],
     default: ["player.png", "tournament.png", "default_ban_placeholder.svg"],
     common: [
       "crossed_swords.png",

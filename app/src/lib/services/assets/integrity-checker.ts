@@ -1,6 +1,9 @@
 import { championCacheService } from "./champion";
 import { DataDragonClient } from "@lib/services/external/DataDragon/client";
 import { assetCounterService } from "./asset-counter";
+import { gameUIBlueprintDownloader } from "./game-ui";
+
+const gameUIAssetCategories = gameUIBlueprintDownloader.assetCategories;
 
 export interface AssetIntegrityResult {
   isValid: boolean;
@@ -246,27 +249,10 @@ class AssetIntegrityChecker {
       const version = await DataDragonClient.getLatestVersion();
 
       // Expected: 16 game UI assets
-      const gameUIAssets = [
-        "dragonpit/infernal.png",
-        "dragonpit/ocean.png",
-        "dragonpit/hextech.png",
-        "dragonpit/chemtech.png",
-        "dragonpit/mountain.png",
-        "dragonpit/elder.png",
-        "dragonpit/cloud.png",
-        "default/player.png",
-        "scoreboard/gold.png",
-        "scoreboard/grubs.png",
-        "scoreboard/tower.png",
-        "atakhan/atakhan_ruinous.png",
-        "atakhan/atakhan_voracious.png",
-        "baronpit/baron.png",
-        "baronpit/grubs.png",
-        "baronpit/herald.png"
-      ];
+      const gameUIAssets = Object.values(gameUIAssetCategories).flat() as string[];
 
-      for (const assetPath of gameUIAssets) {
-        const assetKey = `${version}/overlay/${assetPath}`;
+      for (const asset of gameUIAssets) {
+        const assetKey = `${version}/overlay/${asset}`;
         const result = await this.checkAsset(assetKey);
         if (result === "missing") {
           missing.push(assetKey);

@@ -224,13 +224,13 @@ export const getDefaultAsset = (version: string, asset: string): string => {
 };
 
 type DragonPitAsset =
-  | "chemtech.png"
-  | "cloud.png"
+  | "chemtech.svg"
+  | "cloud.svg"
   | "elder.png"
-  | "hextech.png"
-  | "infernal.png"
-  | "mountain.png"
-  | "ocean.png";
+  | "hextech.svg"
+  | "infernal.svg"
+  | "mountain.svg"
+  | "ocean.svg";
 export const getDragonPitAsset = (version: string, asset: DragonPitAsset): string => {
   return getAsset(version, "dragonpit", asset);
 };

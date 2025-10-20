@@ -1,5 +1,5 @@
 import React from "react";
-import Image from "next/image";
+import { SafeImage } from "@lib/components/common/SafeImage";
 import { GameEvent } from "@libLeagueClient/types";
 
 interface SubTopBarProps {
@@ -39,19 +39,22 @@ export const SubTopBar: React.FC<SubTopBarProps> = ({
   };
 
   const renderDragonIcons = (dragons: GameEvent[], _teamColor: "blue" | "red"): React.ReactNode => {
-    if (dragons.length === 0) {
+    // Filter out elder dragons as they will be used elsewhere
+    const filteredDragons = dragons.filter(dragon => dragon.DragonType !== "Elder");
+
+    if (filteredDragons.length === 0) {
       return null; // Don't show anything if no dragons
     }
 
     return (
       <div className="flex flex-row-reverse gap-1 bg-black/90 w-full">
-        {dragons.map((dragon, index) => (
-          <Image
+        {filteredDragons.map((dragon, index) => (
+          <SafeImage
             key={`${dragon.DragonType}-${index}`}
             src={getDragonIcon(dragon.DragonType || "")}
             alt={`${dragon.DragonType} dragon`}
-            width={20}
-            height={20}
+            width={26}
+            height={26}
             className="rounded-sm"
           />
         ))}

@@ -339,88 +339,124 @@ export const MockedRiotEvents: GameEvent[] = [
     EventTime: 0.0
   },
   {
+    EventID: 6,
+    EventName: "DragonKill",
+    EventTime: 350.0, // 5:50
+    DragonType: "Chemtech",
+    Stolen: "False",
+    KillerName: "Rybson#FMS",
+    Assisters: ["frajgo#FMS", "Mrozku#FMS"]
+  },
+  {
     EventID: 2,
     EventName: "FirstBrick",
-    EventTime: 120.0,
-    KillerName: "frajgo#FMS"
+    EventTime: 508.4645080566406,
+    KillerName: "Minion_T200L2S12N0070"
   },
   {
     EventID: 3,
     EventName: "TurretKilled",
-    EventTime: 180.0,
-    TurretKilled: "Turret_T2_L_03_A",
-    KillerName: "frajgo#FMS",
-    Assisters: ["Rybson#FMS"]
+    EventTime: 508.4645080566406,
+    TurretKilled: "Turret_TOrder_L2_P3_1509986696",
+    KillerName: "Minion_T200L2S12N0070",
+    Assisters: []
   },
   {
     EventID: 4,
     EventName: "InhibKilled",
-    EventTime: 300.0,
+    EventTime: 600.0,
     InhibKilled: "Barracks_T2_R1",
     KillerName: "frajgo#FMS",
     Assisters: ["Rybson#FMS"]
   },
   {
     EventID: 5,
-    EventName: "DragonKill",
-    EventTime: 420.0,
-    DragonType: "Earth",
-    Stolen: "False",
-    KillerName: "Rybson#FMS",
-    Assisters: ["frajgo#FMS"]
+    EventName: "HordeKill",
+    EventTime: 651.75537109375, // 10:51
+    KillerName: "Niskrojs",
+    Assisters: [],
+    Stolen: "False"
   },
-  {
-    EventID: 5,
-    EventName: "DragonKill",
-    EventTime: 420.0,
-    DragonType: "Fire",
-    Stolen: "False",
-    KillerName: "Rybson#FMS",
-    Assisters: ["frajgo#FMS"]
-  },
-  {
-    EventID: 5,
-    EventName: "DragonKill",
-    EventTime: 420.0,
-    DragonType: "Air",
-    Stolen: "False",
-    KillerName: "Rybson#FMS",
-    Assisters: ["frajgo#FMS"]
-  },
-  {
-    EventID: 5,
-    EventName: "DragonKill",
-    EventTime: 420.0,
-    DragonType: "Air",
-    Stolen: "False",
-    KillerName: "Rybson#FMS",
-    Assisters: ["frajgo#FMS"]
-  },
-  {
-    EventID: 6,
-    EventName: "DragonKill",
-    EventTime: 600.0,
-    DragonType: "Elder",
-    Stolen: "False",
-    KillerName: "Rybson#FMS",
-    Assisters: ["frajgo#FMS", "Mrozku#FMS"]
-  },
-  {
-    EventID: 7,
-    EventName: "HeraldKill",
-    EventTime: 480.0,
-    Stolen: "False",
-    KillerName: "Rybson#FMS",
-    Assisters: ["frajgo#FMS"]
-  },
-  {
-    EventID: 8,
-    EventName: "BaronKill",
-    EventTime: 900.0,
-    Stolen: "False",
-    KillerName: "Rybson#FMS",
-    Assisters: ["frajgo#FMS", "Mrozku#FMS", "zamulek#FMS"]
-  },
+  // Commented out 2 voidgrub kills for demo - only 1 killed so voidgrubs are still alive
+  // {
+  //   EventID: 5.1,
+  //   EventName: "HordeKill",
+  //   EventTime: 680.0, // 11:20
+  //   KillerName: "Niskrojs",
+  //   Assisters: [],
+  //   Stolen: "False"
+  // },
+  // {
+  //   EventID: 5.2,
+  //   EventName: "HordeKill",
+  //   EventTime: 710.0, // 11:50
+  //   KillerName: "Niskrojs",
+  //   Assisters: [],
+  //   Stolen: "False"
+  // },
+  // {
+  //   EventID: 10,
+  //   EventName: "AtakhanKill",
+  //   EventTime: 1200.0,
+  //   KillerName: "Niskrojs",
+  //   Assisters: [],
+  //   Stolen: "False"
+  // },
+  // Commented out 3 dragon kills for demo - start with 0 dragons killed
+  // {
+  //   EventID: 6,
+  //   EventName: "DragonKill",
+  //   EventTime: 420.0,
+  //   DragonType: "Earth",
+  //   Stolen: "False",
+  //   KillerName: "Rybson#FMS",
+  //   Assisters: ["frajgo#FMS"]
+  // },
+  // {
+  //   EventID: 7,
+  //   EventName: "DragonKill",
+  //   EventTime: 420.0,
+  //   DragonType: "Fire",
+  //   Stolen: "False",
+  //   KillerName: "Rybson#FMS",
+  //   Assisters: ["frajgo#FMS"]
+  // },
+  // {
+  //   EventID: 8,
+  //   EventName: "DragonKill",
+  //   EventTime: 420.0,
+  //   DragonType: "Air",
+  //   Stolen: "False",
+  //   KillerName: "Rybson#FMS",
+  //   Assisters: ["frajgo#FMS"]
+  // },
+  // {
+  //   EventID: 9,
+  //   EventName: "DragonKill",
+  //   EventTime: 420.0,
+  //   DragonType: "Air",
+  //   Stolen: "False",
+  //   KillerName: "Rybson#FMS",
+  //   Assisters: ["frajgo#FMS"]
+  // },
+  // Commented out herald kill for demo - herald should only spawn after voidgrubs are slain
+  // {
+  //   EventID: 7,
+  //   EventName: "HeraldKill",
+  //   EventTime: 480.0,
+  //   Stolen: "False",
+  //   KillerName: "Rybson#FMS",
+  //   Assisters: ["frajgo#FMS"]
+  // },
+  // Commented out baron kill for demo - baron should only spawn after herald dies
+  // {
+  //   EventID: 8,
+  //   EventName: "BaronKill",
+  //   EventTime: 900.0,
+  //   Stolen: "False",
+  //   KillerName: "Rybson#FMS",
+  //   Assisters: ["frajgo#FMS", "Mrozku#FMS", "zamulek#FMS"]
+  // },
   {
     EventID: 9,
     EventName: "ChampionKill",
