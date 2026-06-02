@@ -27,10 +27,7 @@ export async function downloadAllAssets(
   // Run champions first (largest), then the rest in parallel
   const [champions, ...rest] = managers;
 
-  await Promise.all([
-    champions!.download(version),
-    ...rest.map((m) => m.download(version)),
-  ]);
+  await Promise.all([champions!.download(version), ...rest.map((m) => m.download(version))]);
 
   console.log('[download] All assets downloaded');
 }

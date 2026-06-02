@@ -10,6 +10,7 @@ into a full system management dashboard with tabs.
 ## Current State
 
 The admin page at `apps/web/app/modules/admin/page.tsx` currently has:
+
 - User list with username, email, role badge, status badge, last login
 - Lock/unlock toggle (PATCH)
 - Delete user (DELETE)
@@ -30,9 +31,11 @@ The admin page at `apps/web/app/modules/admin/page.tsx` currently has:
 ### Tab 1: Users (expanded)
 
 **Current features (keep):**
+
 - User list, lock/unlock, delete
 
 **New features:**
+
 - **Change role**: Dropdown to assign global role (admin, organizer, moderator, viewer)
 - **Change plan**: Dropdown (free/pro) + expiration date picker
 - **Impersonate**: "Login as" button — admin gets a temporary session as that user
@@ -46,6 +49,7 @@ The admin page at `apps/web/app/modules/admin/page.tsx` currently has:
 - **Bulk actions**: Select multiple users → bulk lock/unlock/delete
 
 **New API routes:**
+
 - `PATCH /api/v1/admin/users/:id/role` — change global role
 - `PATCH /api/v1/admin/users/:id/plan` — change plan
 - `POST /api/v1/admin/users/:id/impersonate` — start impersonation session
@@ -56,6 +60,7 @@ The admin page at `apps/web/app/modules/admin/page.tsx` currently has:
 ### Tab 2: Tournaments
 
 **Features:**
+
 - All tournaments across all users (not just the admin's own)
 - Stats: total, by status (draft/active/completed), by type
 - Click to view tournament detail
@@ -64,6 +69,7 @@ The admin page at `apps/web/app/modules/admin/page.tsx` currently has:
 - Delete tournament
 
 **API routes:**
+
 - `GET /api/v1/admin/tournaments` — all tournaments with organizer info
 - `PATCH /api/v1/admin/tournaments/:id` — force status change, reassign organizer
 - `DELETE /api/v1/admin/tournaments/:id` — force delete
@@ -71,6 +77,7 @@ The admin page at `apps/web/app/modules/admin/page.tsx` currently has:
 ### Tab 3: Security
 
 **Features:**
+
 - Recent security events (login_success, login_failed, user_registered, password_changed)
   - Uses existing `security_events` table
   - Filterable by event type, user, date range
@@ -80,6 +87,7 @@ The admin page at `apps/web/app/modules/admin/page.tsx` currently has:
 - Rate limit status overview
 
 **API routes:**
+
 - `GET /api/v1/admin/security/events` — paginated security events
 - `GET /api/v1/admin/security/login-attempts` — recent attempts with filters
 - `GET /api/v1/admin/security/sessions` — active session count + details
@@ -87,6 +95,7 @@ The admin page at `apps/web/app/modules/admin/page.tsx` currently has:
 ### Tab 4: System
 
 **Features:**
+
 - App version
 - Database status (Postgres connection test)
 - MinIO status (storage health check)
@@ -95,6 +104,7 @@ The admin page at `apps/web/app/modules/admin/page.tsx` currently has:
 - Environment info (Node version, memory usage)
 
 **API routes:**
+
 - `GET /api/v1/admin/system/health` — aggregated health checks
 
 ---
@@ -135,6 +145,7 @@ function ImpersonationBanner() {
 ## Files Changed/Created
 
 ### New
+
 - `apps/web/app/modules/admin/_components/users-tab.tsx`
 - `apps/web/app/modules/admin/_components/tournaments-tab.tsx`
 - `apps/web/app/modules/admin/_components/security-tab.tsx`
@@ -153,6 +164,7 @@ function ImpersonationBanner() {
 - `apps/web/app/api/v1/admin/system/health/route.ts`
 
 ### Modified
+
 - `apps/web/app/modules/admin/page.tsx` — refactor into tabbed layout
 - `packages/auth/src/jwt.ts` — add `impersonated_by` field to JWT payload
 - `apps/web/app/modules/layout.tsx` — add ImpersonationBanner

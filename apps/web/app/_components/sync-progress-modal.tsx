@@ -37,7 +37,9 @@ export function SyncProgressModal() {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
       <div className="w-full max-w-sm rounded-xl border border-border-subtle bg-surface-raised p-6 shadow-2xl">
         <div className="flex items-center gap-3 mb-4">
-          <div className={`h-3 w-3 rounded-full animate-pulse bg-gradient-to-r ${stageColors[progress.stage] ?? stageColors.pushing}`} />
+          <div
+            className={`h-3 w-3 rounded-full animate-pulse bg-gradient-to-r ${stageColors[progress.stage] ?? stageColors.pushing}`}
+          />
           <h3 className="text-sm font-medium text-gray-100">
             {stageLabels[progress.stage] ?? 'Syncing...'}
           </h3>

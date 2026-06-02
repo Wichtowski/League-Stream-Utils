@@ -37,12 +37,12 @@ export const useMatchGames = (
 
   const getTeamIdForSide = (game: GameResult, side: "blue" | "red"): string => {
     if (!match) return "";
-    
+
     // If game team data is empty, use match's default team assignments
-    if (!game.blueTeam || game.blueTeam === '' || !game.redTeam || game.redTeam === '') {
+    if (!game.blueTeam || game.blueTeam === "" || !game.redTeam || game.redTeam === "") {
       return side === "blue" ? match.blueTeamId : match.redTeamId;
     }
-    
+
     const isBlueTeamMatchBlue = blueTeam?.name && game.blueTeam === blueTeam.name;
     if (side === "blue") {
       return isBlueTeamMatchBlue ? match.blueTeamId : match.redTeamId;
@@ -166,7 +166,7 @@ export const useMatchGames = (
     const updatedGames: GameResult[] = (match.games || []).map((g) => {
       // Only update the target game, leave others completely unchanged
       if (g.gameNumber !== gameNumber) return g;
-      
+
       const newWinner = g.winner === "blue" ? "red" : "blue";
 
       // Get current team assignments before swapping
@@ -189,9 +189,9 @@ export const useMatchGames = (
       // For games with empty team data, we need to set the team names properly
       let newBlueTeam = g.redTeam;
       let newRedTeam = g.blueTeam;
-      
+
       // If the game has empty team data, use the match team names
-      if (!g.blueTeam || g.blueTeam === '' || !g.redTeam || g.redTeam === '') {
+      if (!g.blueTeam || g.blueTeam === "" || !g.redTeam || g.redTeam === "") {
         // Determine which team should be on which side after the swap
         const shouldBlueTeamBeOnBlue = currentBlueTeamId === match.blueTeamId;
         newBlueTeam = shouldBlueTeamBeOnBlue ? match.blueTeamId : match.redTeamId;

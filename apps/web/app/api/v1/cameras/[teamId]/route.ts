@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { withAuth } from '@lsu/auth';
 import { getCameraConfig, upsertCameraConfig, deleteCameraConfig } from '@lsu/camera/queries';
 import { json, error, unauthorized, notFound, parseBody } from '@/api/_helpers';

@@ -10,10 +10,7 @@ export async function recordLoginAttempt(
   username: string,
   success: boolean,
 ) {
-  await db
-    .insertInto('login_attempts')
-    .values({ ip, username, success })
-    .execute();
+  await db.insertInto('login_attempts').values({ ip, username, success }).execute();
 }
 
 export async function isLockedOut(db: Kysely<Database>, username: string): Promise<boolean> {

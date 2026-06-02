@@ -42,7 +42,13 @@ export function useCreateTournament() {
       const previous = qc.getQueryData(KEYS.all);
       qc.setQueryData(KEYS.all, (old: any[] | undefined) => [
         ...(old ?? []),
-        { id: `temp-${Date.now()}`, ...newData, status: 'draft', tournamentTeams: [], _optimistic: true },
+        {
+          id: `temp-${Date.now()}`,
+          ...newData,
+          status: 'draft',
+          tournamentTeams: [],
+          _optimistic: true,
+        },
       ]);
       return { previous };
     },
@@ -66,7 +72,7 @@ export function useUpdateTournament() {
       const { id, ...rest } = newData;
       await qc.cancelQueries({ queryKey: KEYS.detail(id) });
       const previous = qc.getQueryData(KEYS.detail(id));
-      qc.setQueryData(KEYS.detail(id), (old: any) => old ? { ...old, ...rest } : old);
+      qc.setQueryData(KEYS.detail(id), (old: any) => (old ? { ...old, ...rest } : old));
       return { previous, id };
     },
     onError: (_err, _vars, context) => {
@@ -109,7 +115,15 @@ export function useMatch(id: string) {
 export function useUpdateMatch() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, ...data }: { id: string; status?: string; scoreBlue?: number; scoreRed?: number }) =>
+    mutationFn: ({
+      id,
+      ...data
+    }: {
+      id: string;
+      status?: string;
+      scoreBlue?: number;
+      scoreRed?: number;
+    }) =>
       fetchJSON(`/api/v1/matches/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -119,7 +133,7 @@ export function useUpdateMatch() {
       const { id, ...rest } = newData;
       await qc.cancelQueries({ queryKey: KEYS.match(id) });
       const previous = qc.getQueryData(KEYS.match(id));
-      qc.setQueryData(KEYS.match(id), (old: any) => old ? { ...old, ...rest } : old);
+      qc.setQueryData(KEYS.match(id), (old: any) => (old ? { ...old, ...rest } : old));
       return { previous, id };
     },
     onError: (_err, _vars, context) => {

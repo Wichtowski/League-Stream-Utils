@@ -191,6 +191,7 @@ export function getDbForRequest(request: Request): Kysely<Database> {
 Each query function receives `db` as a parameter:
 
 **Before (Drizzle):**
+
 ```typescript
 export async function getTournaments() {
   return db.query.tournaments.findMany({
@@ -201,6 +202,7 @@ export async function getTournaments() {
 ```
 
 **After (Kysely):**
+
 ```typescript
 export async function getTournaments(db: Kysely<Database>) {
   const tournaments = await db
@@ -210,7 +212,7 @@ export async function getTournaments(db: Kysely<Database>) {
     .execute();
 
   // Load related data (Kysely doesn't have automatic relations)
-  const ids = tournaments.map(t => t.id);
+  const ids = tournaments.map((t) => t.id);
   const teamLinks = await db
     .selectFrom('tournament_teams')
     .innerJoin('teams', 'teams.id', 'tournament_teams.team_id')
@@ -219,9 +221,9 @@ export async function getTournaments(db: Kysely<Database>) {
     .where('tournament_teams.tournament_id', 'in', ids)
     .execute();
 
-  return tournaments.map(t => ({
+  return tournaments.map((t) => ({
     ...t,
-    teams: teamLinks.filter(tl => tl.tournament_id === t.id),
+    teams: teamLinks.filter((tl) => tl.tournament_id === t.id),
   }));
 }
 ```
@@ -261,9 +263,9 @@ import { Kysely, sql } from 'kysely';
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable('users')
-    .addColumn('id', 'uuid', col => col.primaryKey().defaultTo(sql`gen_random_uuid()`))
-    .addColumn('username', 'varchar(64)', col => col.notNull().unique())
-    .addColumn('email', 'varchar(255)', col => col.notNull().unique())
+    .addColumn('id', 'uuid', (col) => col.primaryKey().defaultTo(sql`gen_random_uuid()`))
+    .addColumn('username', 'varchar(64)', (col) => col.notNull().unique())
+    .addColumn('email', 'varchar(255)', (col) => col.notNull().unique())
     // ... all columns
     .execute();
 
@@ -314,8 +316,8 @@ Add to `docker-compose.yml`:
 minio:
   image: minio/minio
   ports:
-    - "9000:9000"
-    - "9001:9001"  # console
+    - '9000:9000'
+    - '9001:9001' # console
   environment:
     MINIO_ROOT_USER: lsu_minio
     MINIO_ROOT_PASSWORD: lsu_minio_dev
@@ -337,6 +339,7 @@ packages/storage/
 ```
 
 **Interface:**
+
 ```typescript
 interface StorageProvider {
   upload(key: string, data: Buffer, contentType: string): Promise<string>;
@@ -358,6 +361,7 @@ interface StorageProvider {
 ### Step 4: Migrate existing base64 data
 
 Write a migration script that:
+
 1. Reads all `logo` (jsonb) fields from teams, tournaments, commentators
 2. Decodes base64 → uploads to MinIO
 3. Updates DB field to `{ key: "teams/abc123.png" }` instead of base64 blob
@@ -370,34 +374,35 @@ All image components use `<img src="/api/v1/storage/{key}" />` instead of inline
 
 ## Tables: Online-only vs Both
 
-| Table | Postgres (online) | SQLite (offline) |
-|-------|:--:|:--:|
-| tournaments | ✓ | ✓ |
-| tournament_teams | ✓ | ✓ |
-| brackets | ✓ | ✓ |
-| matches | ✓ | ✓ |
-| match_games | ✓ | ✓ |
-| teams | ✓ | ✓ |
-| players | ✓ | ✓ |
-| staff | ✓ | ✓ |
-| commentators | ✓ | ✓ |
-| match_commentators | ✓ | ✓ |
-| champions | ✓ | ✓ |
-| user_permissions | ✓ | ✓ |
-| tournament_permissions | ✓ | ✓ |
-| users | ✓ | ✗ (offline bypasses auth) |
-| sessions | ✓ | ✗ |
-| email_verification_tokens | ✓ | ✗ |
-| login_attempts | ✓ | ✗ |
-| security_events | ✓ | ✗ |
-| permission_audit | ✓ | ✗ |
-| predictions | ✓ | ✗ |
+| Table                     | Postgres (online) |     SQLite (offline)      |
+| ------------------------- | :---------------: | :-----------------------: |
+| tournaments               |         ✓         |             ✓             |
+| tournament_teams          |         ✓         |             ✓             |
+| brackets                  |         ✓         |             ✓             |
+| matches                   |         ✓         |             ✓             |
+| match_games               |         ✓         |             ✓             |
+| teams                     |         ✓         |             ✓             |
+| players                   |         ✓         |             ✓             |
+| staff                     |         ✓         |             ✓             |
+| commentators              |         ✓         |             ✓             |
+| match_commentators        |         ✓         |             ✓             |
+| champions                 |         ✓         |             ✓             |
+| user_permissions          |         ✓         |             ✓             |
+| tournament_permissions    |         ✓         |             ✓             |
+| users                     |         ✓         | ✗ (offline bypasses auth) |
+| sessions                  |         ✓         |             ✗             |
+| email_verification_tokens |         ✓         |             ✗             |
+| login_attempts            |         ✓         |             ✗             |
+| security_events           |         ✓         |             ✗             |
+| permission_audit          |         ✓         |             ✗             |
+| predictions               |         ✓         |             ✗             |
 
 ---
 
 ## Files Changed/Created
 
 ### New
+
 - `packages/db/src/types.ts`
 - `packages/db/src/migrations/001_initial.ts`
 - `packages/storage/` (entire package)
@@ -405,6 +410,7 @@ All image components use `<img src="/api/v1/storage/{key}" />` instead of inline
 - `docker-compose.yml` (MinIO service)
 
 ### Rewritten
+
 - `packages/db/src/index.ts`
 - `packages/db/package.json`
 - `packages/tournament/src/queries.ts`
@@ -417,6 +423,7 @@ All image components use `<img src="/api/v1/storage/{key}" />` instead of inline
 - All API routes using query functions (~15 routes)
 
 ### Deleted
+
 - `packages/db/src/schema/` (entire directory)
 - `packages/db/drizzle.config.ts`
 - `packages/db/drizzle/` (migration directory)
@@ -425,19 +432,19 @@ All image components use `<img src="/api/v1/storage/{key}" />` instead of inline
 
 ## Estimated Scope
 
-| Sub-task | Files | Complexity |
-|----------|-------|------------|
-| Database types interface | 1 | Medium |
-| Dialect factory | 1 | Low |
-| Migration file | 1 | Medium |
-| Rewrite tournament queries | 1 | Medium |
-| Rewrite team queries | 1 | Medium |
-| Rewrite auth queries | 3 | Medium |
-| Rewrite other queries | 2 | Low |
-| Update API routes | ~15 | Low (mechanical) |
-| Remove Drizzle cleanup | ~10 | Low |
-| Storage package | 4 | Medium |
-| Storage API routes | 3 | Low |
-| MinIO Docker setup | 1 | Low |
-| Base64 migration script | 1 | Medium |
-| Update image components | ~8 | Low |
+| Sub-task                   | Files | Complexity       |
+| -------------------------- | ----- | ---------------- |
+| Database types interface   | 1     | Medium           |
+| Dialect factory            | 1     | Low              |
+| Migration file             | 1     | Medium           |
+| Rewrite tournament queries | 1     | Medium           |
+| Rewrite team queries       | 1     | Medium           |
+| Rewrite auth queries       | 3     | Medium           |
+| Rewrite other queries      | 2     | Low              |
+| Update API routes          | ~15   | Low (mechanical) |
+| Remove Drizzle cleanup     | ~10   | Low              |
+| Storage package            | 4     | Medium           |
+| Storage API routes         | 3     | Low              |
+| MinIO Docker setup         | 1     | Low              |
+| Base64 migration script    | 1     | Medium           |
+| Update image components    | ~8    | Low              |

@@ -20,7 +20,7 @@ export default function ModulesPage() {
   const { data: teams, isPending: teamsPending } = useTeams();
   const { data: tournaments, isPending: tournamentsPending } = useTournaments();
 
-  const hasData = (teams as any[] ?? []).length > 0 || (tournaments as any[] ?? []).length > 0;
+  const hasData = ((teams as any[]) ?? []).length > 0 || ((tournaments as any[]) ?? []).length > 0;
   const loading = teamsPending || tournamentsPending;
 
   if (!loading && !hasData) {
@@ -43,7 +43,9 @@ export default function ModulesPage() {
             prefetch
             className="group rounded-lg border border-border-subtle bg-surface-raised p-5 transition-all duration-150 hover:border-indigo-500/40 hover:bg-surface-overlay"
           >
-            <h2 className="text-sm font-semibold group-hover:text-indigo-400 transition-colors">{m.name}</h2>
+            <h2 className="text-sm font-semibold group-hover:text-indigo-400 transition-colors">
+              {m.name}
+            </h2>
             <p className="mt-1 text-xs text-text-muted">{m.description}</p>
           </Link>
         ))}

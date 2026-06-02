@@ -11,22 +11,22 @@ export const DebugGameData: React.FC<DebugGameDataProps> = ({ gameData, isConnec
   return (
     <div className="fixed top-4 left-4 bg-black/80 text-white p-4 rounded-lg max-w-md max-h-96 overflow-auto z-50">
       <h3 className="text-lg font-bold mb-2">Debug Info</h3>
-      
+
       <div className="space-y-2 text-sm">
         <div>
           <strong>Connected:</strong> {isConnected ? "✅ Yes" : "❌ No"}
         </div>
-        
+
         {error && (
           <div>
             <strong>Error:</strong> <span className="text-red-400">{error}</span>
           </div>
         )}
-        
+
         <div>
           <strong>Game Data:</strong> {gameData ? "✅ Available" : "❌ Not Available"}
         </div>
-        
+
         {gameData && (
           <>
             <div>
@@ -41,7 +41,7 @@ export const DebugGameData: React.FC<DebugGameDataProps> = ({ gameData, isConnec
             <div>
               <strong>Players:</strong> {gameData.allPlayers?.length || 0}
             </div>
-            
+
             {gameData.allPlayers && gameData.allPlayers.length > 0 && (
               <div>
                 <strong>Player Names:</strong>
@@ -63,5 +63,3 @@ export const DebugGameData: React.FC<DebugGameDataProps> = ({ gameData, isConnec
     </div>
   );
 };
-
-

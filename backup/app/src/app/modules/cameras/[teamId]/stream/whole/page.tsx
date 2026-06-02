@@ -20,7 +20,7 @@ export default function TeamCameraStreamPage() {
 
   useEffect(() => {
     setRemoveSidebar(true);
-    
+
     return () => {
       setRemoveSidebar(false);
     };
@@ -83,9 +83,7 @@ export default function TeamCameraStreamPage() {
   }, [teamName, loading, teamId]);
 
   if (loading) {
-    return (
-      <></>
-    );
+    return <></>;
   }
 
   if (players.length === 0 && !camerasLoading) {
@@ -146,7 +144,10 @@ export default function TeamCameraStreamPage() {
       {/* Bottom row - 3 cameras */}
       <div className="grid grid-cols-3 h-1/2 gap-1">
         {players.slice(2, 5).map((player, index) => (
-          <div key={`${player.inGameName || player.playerName || "player"}-${index + 2}`} className="aspect-video bg-black">
+          <div
+            key={`${player.inGameName || player.playerName || "player"}-${index + 2}`}
+            className="aspect-video bg-black"
+          >
             <CameraStream
               players={[player]}
               teamName={teamName}

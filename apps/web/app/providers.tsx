@@ -26,7 +26,9 @@ export function Providers({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>('dark');
 
   return (
-    <ThemeProvider value={{ theme, setTheme, toggle: () => setTheme((t) => (t === 'dark' ? 'light' : 'dark')) }}>
+    <ThemeProvider
+      value={{ theme, setTheme, toggle: () => setTheme((t) => (t === 'dark' ? 'light' : 'dark')) }}
+    >
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <CommandPaletteProvider>

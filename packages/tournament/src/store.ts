@@ -10,11 +10,16 @@ interface TournamentUIState {
   setView: (view: TournamentUIState['view']) => void;
 }
 
-export const useTournamentStore = create<TournamentUIState>()(devtools((set) => ({
-  selectedTournamentId: null,
-  selectedMatchId: null,
-  view: 'list',
-  selectTournament: (id) => set({ selectedTournamentId: id, view: id ? 'bracket' : 'list' }),
-  selectMatch: (id) => set({ selectedMatchId: id }),
-  setView: (view) => set({ view }),
-}), { name: 'tournament' }));
+export const useTournamentStore = create<TournamentUIState>()(
+  devtools(
+    (set) => ({
+      selectedTournamentId: null,
+      selectedMatchId: null,
+      view: 'list',
+      selectTournament: (id) => set({ selectedTournamentId: id, view: id ? 'bracket' : 'list' }),
+      selectMatch: (id) => set({ selectedMatchId: id }),
+      setView: (view) => set({ view }),
+    }),
+    { name: 'tournament' },
+  ),
+);

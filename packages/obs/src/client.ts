@@ -59,7 +59,11 @@ export class OBSClient {
   }
 
   async setSceneItemEnabled(sceneName: string, sceneItemId: number, enabled: boolean) {
-    await this.obs.call('SetSceneItemEnabled', { sceneName, sceneItemId, sceneItemEnabled: enabled });
+    await this.obs.call('SetSceneItemEnabled', {
+      sceneName,
+      sceneItemId,
+      sceneItemEnabled: enabled,
+    });
   }
 
   async setInputSettings(inputName: string, settings: Record<string, unknown>) {

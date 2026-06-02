@@ -234,10 +234,7 @@ function parseLockfile(content: string): LCUCredentials | null {
 function findLockfile(): LCUCredentials | null {
   const candidates = [
     // Linux (Wine / Lutris / Snap)
-    join(
-      process.env.HOME || '~',
-      '.local/share/lutris/runtime/wine/league-of-legends/lockfile',
-    ),
+    join(process.env.HOME || '~', '.local/share/lutris/runtime/wine/league-of-legends/lockfile'),
     // macOS
     '/Applications/League of Legends.app/Contents/LoL/lockfile',
     // Windows-style paths (WSL / mapped drives)
@@ -271,10 +268,10 @@ function findFromProcess(): LCUCredentials | null {
     let output = '';
 
     if (platform === 'win32') {
-      output = execSync(
-        "wmic PROCESS WHERE \"name='LeagueClientUx.exe'\" GET commandline",
-        { encoding: 'utf-8', timeout: 5000 },
-      );
+      output = execSync('wmic PROCESS WHERE "name=\'LeagueClientUx.exe\'" GET commandline', {
+        encoding: 'utf-8',
+        timeout: 5000,
+      });
     } else if (platform === 'darwin') {
       output = execSync('ps -A | grep LeagueClientUx', {
         encoding: 'utf-8',
@@ -473,7 +470,7 @@ const WAMP_EVENT = 8;
 
 /** WebSocket event topics worth monitoring */
 const WS_TOPICS = [
-  'OnJsonApiEvent',                                         // catch-all: every LCU event
+  'OnJsonApiEvent', // catch-all: every LCU event
   // Targeted subscriptions (uncomment to use instead of catch-all):
   // 'OnJsonApiEvent_lol-gameflow_v1_gameflow-phase',
   // 'OnJsonApiEvent_lol-gameflow_v1_session',
@@ -520,7 +517,11 @@ function connectLCUWebSocket(
       const msg = JSON.parse(raw);
       if (!Array.isArray(msg) || msg[0] !== WAMP_EVENT) return;
 
-      const [, topic, payload] = msg as [number, string, { eventType: string; uri: string; data: unknown }];
+      const [, topic, payload] = msg as [
+        number,
+        string,
+        { eventType: string; uri: string; data: unknown },
+      ];
 
       // Apply filters
       if (EVENT_FILTERS.length > 0) {
@@ -619,7 +620,10 @@ async function fetchDetailedPlayerData(players: PlayerData[]) {
 class GameStateTracker {
   private lastEventId = -1;
   private lastGameTime = 0;
-  private playerStates = new Map<string, { kills: number; deaths: number; assists: number; cs: number; level: number; items: number[] }>();
+  private playerStates = new Map<
+    string,
+    { kills: number; deaths: number; assists: number; cs: number; level: number; items: number[] }
+  >();
 
   processUpdate(data: LiveClientGameData) {
     const newEvents = data.events.Events.filter((e) => e.EventID > this.lastEventId);
@@ -655,10 +659,7 @@ class GameStateTracker {
           log('GAME', `${BOLD}${id}${RESET} purchased: ${GREEN}${names.join(', ')}${RESET}`);
         }
         if (curr.kills > prev.kills || curr.deaths > prev.deaths || curr.assists > prev.assists) {
-          log(
-            'GAME',
-            `${BOLD}${id}${RESET} KDA: ${curr.kills}/${curr.deaths}/${curr.assists}`,
-          );
+          log('GAME', `${BOLD}${id}${RESET} KDA: ${curr.kills}/${curr.deaths}/${curr.assists}`);
         }
       }
 
@@ -668,7 +669,10 @@ class GameStateTracker {
     // Periodic game state summary
     const gameMinutes = Math.floor(data.gameData.gameTime / 60);
     const gameSeconds = Math.floor(data.gameData.gameTime % 60);
-    if (Math.floor(data.gameData.gameTime) % 30 === 0 && data.gameData.gameTime !== this.lastGameTime) {
+    if (
+      Math.floor(data.gameData.gameTime) % 30 === 0 &&
+      data.gameData.gameTime !== this.lastGameTime
+    ) {
       this.lastGameTime = Math.floor(data.gameData.gameTime);
       log(
         'GAME',
@@ -691,28 +695,56 @@ class GameStateTracker {
         log('EVENT', `${time} Minions spawning`, YELLOW);
         break;
       case 'ChampionKill':
-        log('EVENT', `${time} ${RED}KILL${RESET} ${ev.KillerName} → ${ev.VictimName} (assists: ${ev.Assisters?.join(', ') || 'none'})`, RED);
+        log(
+          'EVENT',
+          `${time} ${RED}KILL${RESET} ${ev.KillerName} → ${ev.VictimName} (assists: ${ev.Assisters?.join(', ') || 'none'})`,
+          RED,
+        );
         break;
       case 'Multikill':
-        log('EVENT', `${time} ${RED}${BOLD}MULTIKILL (${ev.KillStreak})${RESET} by ${ev.KillerName}`, RED);
+        log(
+          'EVENT',
+          `${time} ${RED}${BOLD}MULTIKILL (${ev.KillStreak})${RESET} by ${ev.KillerName}`,
+          RED,
+        );
         break;
       case 'Ace':
         log('EVENT', `${time} ${RED}${BOLD}ACE${RESET} by ${ev.Acer} (${ev.AcingTeam})`, RED);
         break;
       case 'TurretKilled':
-        log('EVENT', `${time} ${MAGENTA}Turret destroyed${RESET}: ${ev.TurretKilled} by ${ev.KillerName}`, MAGENTA);
+        log(
+          'EVENT',
+          `${time} ${MAGENTA}Turret destroyed${RESET}: ${ev.TurretKilled} by ${ev.KillerName}`,
+          MAGENTA,
+        );
         break;
       case 'InhibKilled':
-        log('EVENT', `${time} ${MAGENTA}${BOLD}Inhibitor destroyed${RESET}: ${ev.InhibKilled} by ${ev.KillerName}`, MAGENTA);
+        log(
+          'EVENT',
+          `${time} ${MAGENTA}${BOLD}Inhibitor destroyed${RESET}: ${ev.InhibKilled} by ${ev.KillerName}`,
+          MAGENTA,
+        );
         break;
       case 'DragonKill':
-        log('EVENT', `${time} ${CYAN}${BOLD}Dragon (${ev.DragonType})${RESET} slain by ${ev.KillerName}${ev.Stolen === 'True' ? ` ${RED}STOLEN${RESET}` : ''}`, CYAN);
+        log(
+          'EVENT',
+          `${time} ${CYAN}${BOLD}Dragon (${ev.DragonType})${RESET} slain by ${ev.KillerName}${ev.Stolen === 'True' ? ` ${RED}STOLEN${RESET}` : ''}`,
+          CYAN,
+        );
         break;
       case 'HeraldKill':
-        log('EVENT', `${time} ${CYAN}Herald${RESET} slain by ${ev.KillerName}${ev.Stolen === 'True' ? ` ${RED}STOLEN${RESET}` : ''}`, CYAN);
+        log(
+          'EVENT',
+          `${time} ${CYAN}Herald${RESET} slain by ${ev.KillerName}${ev.Stolen === 'True' ? ` ${RED}STOLEN${RESET}` : ''}`,
+          CYAN,
+        );
         break;
       case 'BaronKill':
-        log('EVENT', `${time} ${YELLOW}${BOLD}BARON${RESET} slain by ${ev.KillerName}${ev.Stolen === 'True' ? ` ${RED}STOLEN${RESET}` : ''}`, YELLOW);
+        log(
+          'EVENT',
+          `${time} ${YELLOW}${BOLD}BARON${RESET} slain by ${ev.KillerName}${ev.Stolen === 'True' ? ` ${RED}STOLEN${RESET}` : ''}`,
+          YELLOW,
+        );
         break;
       case 'FirstBrick':
         log('EVENT', `${time} ${MAGENTA}First Blood Tower${RESET} by ${ev.KillerName}`, MAGENTA);
@@ -787,7 +819,11 @@ ${BOLD}${CYAN}╔═════════════════════
     try {
       const allData = await probeAllLCUEndpoints(creds);
       const availableEndpoints = Object.keys(allData);
-      log('LCU', `${GREEN}${availableEndpoints.length}${RESET} endpoints responded successfully`, GREEN);
+      log(
+        'LCU',
+        `${GREEN}${availableEndpoints.length}${RESET} endpoints responded successfully`,
+        GREEN,
+      );
 
       // Show key data
       if (allData.currentSummoner) {
@@ -887,7 +923,11 @@ ${BOLD}${CYAN}╔═════════════════════
           // First time in game: dump full state
           if (!initialDump) {
             initialDump = true;
-            log('LIVE', `${BOLD}Game Info:${RESET} ${data.gameData.gameMode} on ${data.gameData.mapName} (${data.gameData.mapTerrain})`, GREEN);
+            log(
+              'LIVE',
+              `${BOLD}Game Info:${RESET} ${data.gameData.gameMode} on ${data.gameData.mapName} (${data.gameData.mapTerrain})`,
+              GREEN,
+            );
 
             // Team rosters
             const orderTeam = data.allPlayers.filter((p) => p.team === 'ORDER');

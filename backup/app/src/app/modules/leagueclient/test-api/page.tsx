@@ -16,19 +16,19 @@ const TestAPIPage: React.FC = () => {
   const testGameAPI = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const response = await fetch("/api/game");
       const data = await response.json();
-      
+
       if (response.ok) {
         setGameData(data);
         console.log("Game API Response:", data);
       } else {
-        setError(`API Error: ${response.status} - ${data.message || 'Unknown error'}`);
+        setError(`API Error: ${response.status} - ${data.message || "Unknown error"}`);
       }
     } catch (err) {
-      setError(`Network Error: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      setError(`Network Error: ${err instanceof Error ? err.message : "Unknown error"}`);
     } finally {
       setLoading(false);
     }
@@ -38,7 +38,7 @@ const TestAPIPage: React.FC = () => {
     <div className="min-h-screen bg-black text-white p-8">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-3xl font-bold mb-8">League Client API Test</h1>
-        
+
         <div className="space-y-4">
           <button
             onClick={testGameAPI}
@@ -75,5 +75,3 @@ const TestAPIPage: React.FC = () => {
 };
 
 export default TestAPIPage;
-
-

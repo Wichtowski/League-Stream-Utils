@@ -9,7 +9,7 @@ const config: Config = {
   singleQuote: false,
   bracketSpacing: true,
   arrowParens: "always",
-  endOfLine: "crlf",
+  endOfLine: "crlf"
 };
 
 // eslint-disable-next-line import/no-default-export

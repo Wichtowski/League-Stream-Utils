@@ -1,6 +1,6 @@
 import { chromium, Page } from 'playwright';
 import fs from 'fs';
-import OpenAI from "openai";
+import OpenAI from 'openai';
 import dotenv from 'dotenv';
 import path from 'path';
 
@@ -22,38 +22,44 @@ interface PlayerData {
     currentFlexRank: { rank: string; peak: string };
     soloDuo: { season: string; tier: string; lp: string }[];
     flex: { season: string; tier: string; lp: string }[];
-  }
+  };
 }
 
 function normalizeName(name: string): { original: string; normalized: string } {
   const [namePart, tag] = name.split('#');
   const region = tag?.toLowerCase() || 'eune';
   const normalized = namePart.trim().replace(/\s+/g, '-');
-  return { original: name, normalized: `${normalized}-${region.toUpperCase()}`};
+  return { original: name, normalized: `${normalized}-${region.toUpperCase()}` };
 }
 
 async function scrapePlayerOPGG(page: Page, original: string) {
-  const playerData: PlayerData = { 
-    name: original, 
-    accountLevel: '', 
-    career: { 
-      currentSoloDuoRank: { rank: '', peak: '' }, 
-      currentFlexRank: { rank: '', peak: '' }, 
-      soloDuo: [] as any[], 
-      flex: [] as any[] 
-    } 
+  const playerData: PlayerData = {
+    name: original,
+    accountLevel: '',
+    career: {
+      currentSoloDuoRank: { rank: '', peak: '' },
+      currentFlexRank: { rank: '', peak: '' },
+      soloDuo: [] as any[],
+      flex: [] as any[],
+    },
   };
 
   const level = await page.$eval(
     '#content-header > div:nth-child(1) > div > div > div > div.flex.w-full div > div > span',
-    el => el.textContent?.trim() || '0'
+    (el) => el.textContent?.trim() || '0',
   );
   playerData.accountLevel = level;
 
-  const peakSoloDuoElement = await page.$('#content-container aside > section:nth-child(1) > div.flex.items-center.justify-between.flex-col.gap-3 > div > div:nth-child(2) > div > div.flex > strong');
-  const peakSoloDuoElementLP = await page.$('#content-container aside > section:nth-child(1) > div.flex.items-center.justify-between.flex-col.gap-3 > div > div:nth-child(2) > div > div.flex > span');
+  const peakSoloDuoElement = await page.$(
+    '#content-container aside > section:nth-child(1) > div.flex.items-center.justify-between.flex-col.gap-3 > div > div:nth-child(2) > div > div.flex > strong',
+  );
+  const peakSoloDuoElementLP = await page.$(
+    '#content-container aside > section:nth-child(1) > div.flex.items-center.justify-between.flex-col.gap-3 > div > div:nth-child(2) > div > div.flex > span',
+  );
 
-  const currentSoloDuoRankElement = await page.$('#content-container aside > section:nth-child(1) > div.flex.items-center.justify-between.flex-col.gap-3 > div > div:nth-child(1) > div.flex.flex-1.items-center.gap-4 > div > strong');
+  const currentSoloDuoRankElement = await page.$(
+    '#content-container aside > section:nth-child(1) > div.flex.items-center.justify-between.flex-col.gap-3 > div > div:nth-child(1) > div.flex.flex-1.items-center.gap-4 > div > strong',
+  );
   const currentSoloDuoRank = currentSoloDuoRankElement
     ? (await currentSoloDuoRankElement.textContent())?.trim() || 'Unranked'
     : 'Unranked';
@@ -64,12 +70,21 @@ async function scrapePlayerOPGG(page: Page, original: string) {
     ? (await peakSoloDuoElementLP.textContent())?.trim() || '0 LP'
     : '0 LP';
 
-  playerData.career.currentSoloDuoRank = { rank: currentSoloDuoRank, peak: peakSoloDuo + ' ' + peakSoloDuoLP };
+  playerData.career.currentSoloDuoRank = {
+    rank: currentSoloDuoRank,
+    peak: peakSoloDuo + ' ' + peakSoloDuoLP,
+  };
 
-  const peakFlexElement = await page.$('#content-container aside > section:nth-child(2) > div.flex.items-center.justify-between.flex-col.gap-3 > div > div:nth-child(2) > div > div.flex > strong');
-  const peakFlexElementLP = await page.$('#content-container aside > section:nth-child(2) > div.flex.items-center.justify-between.flex-col.gap-3 > div > div:nth-child(2) > div > div.flex > span');
+  const peakFlexElement = await page.$(
+    '#content-container aside > section:nth-child(2) > div.flex.items-center.justify-between.flex-col.gap-3 > div > div:nth-child(2) > div > div.flex > strong',
+  );
+  const peakFlexElementLP = await page.$(
+    '#content-container aside > section:nth-child(2) > div.flex.items-center.justify-between.flex-col.gap-3 > div > div:nth-child(2) > div > div.flex > span',
+  );
 
-  const currentFlexRankElement = await page.$('#content-container aside > section:nth-child(2) > div.flex.items-center.justify-between.flex-col.gap-3 > div > div:nth-child(1) > div.flex.flex-1.items-center.gap-4 > div > strong');
+  const currentFlexRankElement = await page.$(
+    '#content-container aside > section:nth-child(2) > div.flex.items-center.justify-between.flex-col.gap-3 > div > div:nth-child(1) > div.flex.flex-1.items-center.gap-4 > div > strong',
+  );
   const currentFlexRank = currentFlexRankElement
     ? (await currentFlexRankElement.textContent())?.trim() || 'Unranked'
     : 'Unranked';
@@ -80,7 +95,10 @@ async function scrapePlayerOPGG(page: Page, original: string) {
     ? (await peakFlexElementLP.textContent())?.trim() || '0 LP'
     : '0 LP';
 
-  playerData.career.currentFlexRank = { rank: currentFlexRank, peak: peakFlexRank + ' ' + peakFlexRankLP };
+  playerData.career.currentFlexRank = {
+    rank: currentFlexRank,
+    peak: peakFlexRank + ' ' + peakFlexRankLP,
+  };
 
   const viewAllSeasons = await page.$('text=View all season tiers');
   if (viewAllSeasons) {
@@ -90,17 +108,17 @@ async function scrapePlayerOPGG(page: Page, original: string) {
 
   const soloDuoSeasons = await page.$$eval(
     '#content-container aside > section:nth-child(1) > div.flex.items-center.justify-between.flex-col.gap-3 > table > tbody > tr td:nth-child(1) strong',
-    els => els.map(e => e.textContent?.trim() || 'Unknown')
+    (els) => els.map((e) => e.textContent?.trim() || 'Unknown'),
   );
   const soloDuoTiers = await page.$$eval(
     '#content-container aside > section:nth-child(1) > div.flex.items-center.justify-between.flex-col.gap-3 > table > tbody > tr td:nth-child(2) span',
-    els => els.map(e => e.textContent?.trim() || 'Unknown')
+    (els) => els.map((e) => e.textContent?.trim() || 'Unknown'),
   );
   const soloDuoLps = await page.$$eval(
     '#content-container aside > section:nth-child(1) > div.flex.items-center.justify-between.flex-col.gap-3 > table > tbody > tr td:nth-child(3)',
-    els => els.map(e => e.textContent?.trim() || '0 LP')
+    (els) => els.map((e) => e.textContent?.trim() || '0 LP'),
   );
-  
+
   console.log(soloDuoSeasons, soloDuoTiers, soloDuoLps);
   if (soloDuoSeasons.length === 0) {
     playerData.career.soloDuo.push({ season: 'Never played', tier: 'Unranked', lp: '0 LP' });
@@ -116,15 +134,15 @@ async function scrapePlayerOPGG(page: Page, original: string) {
 
   const flexSeasons = await page.$$eval(
     '#content-container aside > section:nth-child(2) > div.flex.items-center.justify-between.flex-col.gap-3 > table > tbody > tr td:nth-child(1) strong',
-    els => els.map(e => e.textContent?.trim() || 'Unknown')
+    (els) => els.map((e) => e.textContent?.trim() || 'Unknown'),
   );
   const flexTiers = await page.$$eval(
     '#content-container aside > section:nth-child(2) > div.flex.items-center.justify-between.flex-col.gap-3 > table > tbody > tr td:nth-child(2) span',
-    els => els.map(e => e.textContent?.trim() || 'Unknown')
+    (els) => els.map((e) => e.textContent?.trim() || 'Unknown'),
   );
   const flexLps = await page.$$eval(
     '#content-container aside > section:nth-child(2) > div.flex.items-center.justify-between.flex-col.gap-3 > table > tbody > tr td:nth-child(3)',
-    els => els.map(e => e.textContent?.trim() || '0 LP')
+    (els) => els.map((e) => e.textContent?.trim() || '0 LP'),
   );
 
   console.log(flexSeasons, flexTiers, flexLps);
@@ -148,8 +166,8 @@ function getNextVersionNumber(filePath: string): number {
   const baseName = path.basename(filePath, path.extname(filePath));
   const files = fs.readdirSync(dir);
   const versions = files
-    .filter(f => f.startsWith(baseName) && f.endsWith(path.extname(filePath)))
-    .map(f => {
+    .filter((f) => f.startsWith(baseName) && f.endsWith(path.extname(filePath)))
+    .map((f) => {
       const match = f.match(/-v(\d+)\.json$/);
       return match ? parseInt(match[1]) : 0;
     });
@@ -168,18 +186,18 @@ function getVersionedFilePath(basePath: string): string {
   const skipOpgg = process.argv.includes('--skip-opgg');
   const skipScoring = process.argv.includes('--skip-scoring');
   const skipTeaming = process.argv.includes('--skip-teaming');
-  console.log("Amount of players to scrape:", players.length);
+  console.log('Amount of players to scrape:', players.length);
 
   if (!skipOpgg) {
     const browser = await chromium.launch({ headless: false });
     const context = await browser.newContext();
     const results = { players: [] as any[] };
-    
+
     const url = `https://op.gg/lol/summoners/eune/Niskrojs-eune`;
     const page = await context.newPage();
-    await page.goto(url)
+    await page.goto(url);
     await page.waitForLoadState('domcontentloaded');
-    await page.getByText('Agree').click({ timeout: 50000});
+    await page.getByText('Agree').click({ timeout: 50000 });
     await page.waitForLoadState('domcontentloaded');
     await page.close();
 
@@ -196,18 +214,18 @@ function getVersionedFilePath(basePath: string): string {
 
     for (const player of players) {
       const { original, normalized } = normalizeName(player);
-      
+
       // Check if player already exists in the data
-      if (existingData.players.some(p => p.name === original)) {
+      if (existingData.players.some((p) => p.name === original)) {
         console.log(`Skipping ${original} - data already exists`);
-        results.players.push(existingData.players.find(p => p.name === original));
+        results.players.push(existingData.players.find((p) => p.name === original));
         continue;
       }
 
       try {
         const page = await context.newPage();
         const opgg = `https://op.gg/lol/summoners/eune/${normalized}`;
-        await page.goto(opgg)
+        await page.goto(opgg);
         await page.waitForLoadState('domcontentloaded');
         const data = await scrapePlayerOPGG(page, original);
         await page.close();
@@ -225,10 +243,11 @@ function getVersionedFilePath(basePath: string): string {
     const finalResults = {
       players: [
         ...existingData.players,
-        ...results.players.filter(newPlayer => 
-          !existingData.players.some(existingPlayer => existingPlayer.name === newPlayer.name)
-        )
-      ]
+        ...results.players.filter(
+          (newPlayer) =>
+            !existingData.players.some((existingPlayer) => existingPlayer.name === newPlayer.name),
+        ),
+      ],
     };
 
     const versionedPath = getVersionedFilePath(path.join('v1', 'players.json'));
@@ -240,8 +259,9 @@ function getVersionedFilePath(basePath: string): string {
     // Load data for OpenAI analysis
     let finalResults: PlayerData[];
     try {
-      const latestPlayersLog = fs.readdirSync('v1')
-        .filter(f => f.startsWith('players-scores-') && f.endsWith('.json'))
+      const latestPlayersLog = fs
+        .readdirSync('v1')
+        .filter((f) => f.startsWith('players-scores-') && f.endsWith('.json'))
         .sort()
         .pop();
       if (!latestPlayersLog) {
@@ -297,27 +317,27 @@ function getVersionedFilePath(basePath: string): string {
     `;
 
     const response = await openai.responses.create({
-      model: "o3",
+      model: 'o3',
       input: [
         {
-          "role": "user",
-          "content": playerPrompt
+          role: 'user',
+          content: playerPrompt,
         },
         {
-          "role": "user",
-          "content": JSON.stringify(finalResults)
-        }
+          role: 'user',
+          content: JSON.stringify(finalResults),
+        },
       ],
       text: {
-        "format": {
-          "type": "json_object"
-        }
+        format: {
+          type: 'json_object',
+        },
       },
       reasoning: {
-        "effort": "high"
+        effort: 'high',
       },
       tools: [],
-      store: true
+      store: true,
     });
 
     console.log('✅ OpenAI API call completed');
@@ -325,13 +345,14 @@ function getVersionedFilePath(basePath: string): string {
     const versionedPath = getVersionedFilePath(path.join('v1', 'player-scores.json'));
     fs.writeFileSync(versionedPath, response.output_text, 'utf-8');
   }
-  
+
   if (!skipTeaming) {
     // Load data for OpenAI analysis
     let finalResults: { players: PlayerData[] };
     try {
-      const latestScoresLog = fs.readdirSync('v1')
-        .filter(f => f.startsWith('player-scores-') && f.endsWith('.json'))
+      const latestScoresLog = fs
+        .readdirSync('v1')
+        .filter((f) => f.startsWith('player-scores-') && f.endsWith('.json'))
         .sort()
         .pop();
       if (!latestScoresLog) {
@@ -397,27 +418,27 @@ function getVersionedFilePath(basePath: string): string {
     `;
 
     const response = await openai.responses.create({
-      model: "o3",
+      model: 'o3',
       input: [
         {
-          "role": "user",
-          "content": teamPrompt
+          role: 'user',
+          content: teamPrompt,
         },
         {
-          "role": "user",
-          "content": JSON.stringify(finalResults)
-        }
+          role: 'user',
+          content: JSON.stringify(finalResults),
+        },
       ],
       text: {
-        "format": {
-          "type": "json_object"
-        }
+        format: {
+          type: 'json_object',
+        },
       },
       reasoning: {
-        "effort": "medium"
+        effort: 'medium',
       },
       tools: [],
-      store: true
+      store: true,
     });
 
     console.log('✅ OpenAI API call completed');

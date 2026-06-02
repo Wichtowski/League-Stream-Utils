@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { withAuth } from '@lsu/auth';
 import { getDbForRequest } from '@lsu/db';
 import { json, error, unauthorized, notFound, parseBody } from '@/api/_helpers';
@@ -13,7 +13,11 @@ export async function GET(request: NextRequest, { params }: Params) {
 
   const { id } = await params;
   const db = getDbForRequest(request);
-  const commentator = await db.selectFrom('commentators').selectAll().where('id', '=', id).executeTakeFirst();
+  const commentator = await db
+    .selectFrom('commentators')
+    .selectAll()
+    .where('id', '=', id)
+    .executeTakeFirst();
   if (!commentator) return notFound('Commentator not found');
   return json(commentator);
 }

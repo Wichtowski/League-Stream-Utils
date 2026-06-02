@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { withAuth } from '@lsu/auth';
 import { canManageTournament } from '@lsu/auth/permissions';
 import { getDbForRequest } from '@lsu/db';
@@ -32,8 +32,10 @@ export async function PATCH(request: NextRequest, { params }: Params) {
   const body = await parseBody<Record<string, unknown>>(request);
   if (!body) return error('Request body required');
 
-  if (body.startDate && typeof body.startDate === 'string') body.startDate = new Date(body.startDate) as any;
-  if (body.endDate && typeof body.endDate === 'string') body.endDate = new Date(body.endDate) as any;
+  if (body.startDate && typeof body.startDate === 'string')
+    {body.startDate = new Date(body.startDate) as any;}
+  if (body.endDate && typeof body.endDate === 'string')
+    {body.endDate = new Date(body.endDate) as any;}
 
   const tournament = await updateTournament(db, id, body as any);
   if (!tournament) return notFound('Tournament not found');

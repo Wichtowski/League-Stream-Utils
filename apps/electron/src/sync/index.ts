@@ -58,12 +58,22 @@ async function readSyncMeta(): Promise<{
   }
 }
 
-async function writeSyncMeta(meta: { lastSyncedAt: string | null; idMappings: Record<string, string> }) {
+async function writeSyncMeta(meta: {
+  lastSyncedAt: string | null;
+  idMappings: Record<string, string>;
+}) {
   await fs.writeFile(getSyncMetaPath(), JSON.stringify(meta, null, 2));
 }
 
 async function readSyncLog(): Promise<
-  { table: string; action: string; record_id: string; data: Record<string, unknown>; created_at: string; synced_at: string | null }[]
+  {
+    table: string;
+    action: string;
+    record_id: string;
+    data: Record<string, unknown>;
+    created_at: string;
+    synced_at: string | null;
+  }[]
 > {
   try {
     const raw = await fs.readFile(getSyncLogPath(), 'utf-8');
@@ -152,7 +162,13 @@ export class SyncManager {
       updated_at: entry.created_at,
     }));
 
-    this.emit({ stage: 'pushing', table: 'all', current: 0, total: changes.length, detail: `Pushing ${changes.length} changes` });
+    this.emit({
+      stage: 'pushing',
+      table: 'all',
+      current: 0,
+      total: changes.length,
+      detail: `Pushing ${changes.length} changes`,
+    });
 
     try {
       const res = await fetch(`${serverUrl}/api/v1/sync/push`, {
@@ -171,7 +187,7 @@ export class SyncManager {
         return result;
       }
 
-      const body = await res.json() as {
+      const body = (await res.json()) as {
         applied: number;
         conflicts: { table: string; local_id: string; cloud_id: string; resolution: string }[];
         id_mappings: { local_id: string; cloud_id: string; table: string }[];
@@ -192,7 +208,13 @@ export class SyncManager {
       meta.lastSyncedAt = now;
       await writeSyncMeta(meta);
 
-      this.emit({ stage: 'pushing', table: 'all', current: changes.length, total: changes.length, detail: `Pushed ${body.applied} changes` });
+      this.emit({
+        stage: 'pushing',
+        table: 'all',
+        current: changes.length,
+        total: changes.length,
+        detail: `Pushed ${body.applied} changes`,
+      });
     } catch (err: any) {
       result.errors.push(err.message);
       this.emit({ stage: 'error', table: '', current: 0, total: 0, detail: err.message });
@@ -212,7 +234,13 @@ export class SyncManager {
       return result;
     }
 
-    this.emit({ stage: 'pulling', table: 'all', current: 0, total: SYNCED_TABLES.length, detail: 'Pulling changes from cloud' });
+    this.emit({
+      stage: 'pulling',
+      table: 'all',
+      current: 0,
+      total: SYNCED_TABLES.length,
+      detail: 'Pulling changes from cloud',
+    });
 
     try {
       const res = await fetch(`${serverUrl}/api/v1/sync/pull`, {
@@ -234,8 +262,13 @@ export class SyncManager {
         return result;
       }
 
-      const body = await res.json() as {
-        changes: { table: string; action: string; data: Record<string, unknown>; updated_at: string }[];
+      const body = (await res.json()) as {
+        changes: {
+          table: string;
+          action: string;
+          data: Record<string, unknown>;
+          updated_at: string;
+        }[];
         sync_timestamp: string;
       };
 
@@ -243,9 +276,7 @@ export class SyncManager {
         const change = body.changes[i];
         const collection = await readCollection(change.table);
 
-        const existingIndex = collection.findIndex(
-          (r) => r.id === (change.data as any).id,
-        );
+        const existingIndex = collection.findIndex((r) => r.id === (change.data as any).id);
 
         if (existingIndex >= 0) {
           const existing = collection[existingIndex];

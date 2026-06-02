@@ -47,7 +47,15 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
 
   return (
     <NavigationContext.Provider
-      value={{ activeModule, setActiveModule, sidebarCollapsed, setSidebarCollapsed, removeSidebar, setRemoveSidebar, toggleSidebar }}
+      value={{
+        activeModule,
+        setActiveModule,
+        sidebarCollapsed,
+        setSidebarCollapsed,
+        removeSidebar,
+        setRemoveSidebar,
+        toggleSidebar
+      }}
     >
       {children}
     </NavigationContext.Provider>

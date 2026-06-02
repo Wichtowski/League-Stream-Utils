@@ -13,14 +13,7 @@ const SpectatorPage: React.FC = () => {
     setActiveModule(null);
   }, [setActiveModule]);
 
-
-  return (
-    <SpectatorDisplay 
-      gameData={gameData} 
-      isConnected={isConnected} 
-      error={error} 
-    />
-  );
+  return <SpectatorDisplay gameData={gameData} isConnected={isConnected} error={error} />;
 };
 
 export default SpectatorPage;

@@ -51,7 +51,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         await uiControl.hideUIKeepEssentials();
         return NextResponse.json({
           success: true,
-          message: "UI hidden, keeping essential elements (minimap, kill callouts, announcements, neutral timers, quests)"
+          message:
+            "UI hidden, keeping essential elements (minimap, kill callouts, announcements, neutral timers, quests)"
         });
 
       default:
@@ -113,5 +114,3 @@ export async function GET(): Promise<NextResponse> {
     );
   }
 }
-
-

@@ -304,8 +304,7 @@ export function TournamentDataProvider({ children }: { children: ReactNode }) {
 
     // Check if we're on a tournament-related page
     const isTournamentPage =
-      window.location.pathname.includes("/modules/tournaments") ||
-      window.location.pathname.includes("/modules/draft");
+      window.location.pathname.includes("/modules/tournaments") || window.location.pathname.includes("/modules/draft");
 
     if (!isTournamentPage) return;
 

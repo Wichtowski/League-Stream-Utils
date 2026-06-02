@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { withAuth } from '@lsu/auth';
 import { getDbForRequest } from '@lsu/db';
 import { json, unauthorized, forbidden, notFound } from '@/api/_helpers';
@@ -24,7 +24,16 @@ export async function GET(request: NextRequest, { params }: Params) {
 
   const sessions = await db
     .selectFrom('sessions')
-    .select(['id', 'ip', 'user_agent', 'created_at', 'last_used_at', 'expires_at', 'is_valid', 'impersonated_by'])
+    .select([
+      'id',
+      'ip',
+      'user_agent',
+      'created_at',
+      'last_used_at',
+      'expires_at',
+      'is_valid',
+      'impersonated_by',
+    ])
     .where('user_id', '=', userId)
     .where('is_valid', '=', true)
     .where('expires_at', '>', new Date())

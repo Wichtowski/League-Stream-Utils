@@ -138,7 +138,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   ].join(' | ');
 
   return (
-    <AuthContext.Provider value={{ user, loading: combinedLoading, appMode, isOffline, isDeveloper, debug, logout, refresh, switchToOnline }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        loading: combinedLoading,
+        appMode,
+        isOffline,
+        isDeveloper,
+        debug,
+        logout,
+        refresh,
+        switchToOnline,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

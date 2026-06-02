@@ -82,7 +82,10 @@ export async function register(
   const sanitizedEmail = email.replace(/[<>]/g, '').trim().toLowerCase();
 
   if (!/^[a-zA-Z0-9_-]{3,30}$/.test(sanitizedUsername)) {
-    return { success: false as const, error: 'Username must be 3-30 characters (letters, numbers, _, -)' };
+    return {
+      success: false as const,
+      error: 'Username must be 3-30 characters (letters, numbers, _, -)',
+    };
   }
 
   const passwordError = validatePasswordStrength(password);
@@ -116,10 +119,7 @@ export async function register(
     .returning(['id', 'username', 'email', 'is_admin'])
     .executeTakeFirstOrThrow();
 
-  await db
-    .insertInto('user_permissions')
-    .values({ user_id: user.id, role: 'viewer' })
-    .execute();
+  await db.insertInto('user_permissions').values({ user_id: user.id, role: 'viewer' }).execute();
 
   await logSecurityEvent(db, 'user_registered', ip, user.id);
 
@@ -193,11 +193,7 @@ export async function changePassword(
   newPassword: string,
   ip: string,
 ) {
-  const user = await db
-    .selectFrom('users')
-    .selectAll()
-    .where('id', '=', userId)
-    .executeTakeFirst();
+  const user = await db.selectFrom('users').selectAll().where('id', '=', userId).executeTakeFirst();
 
   if (!user) return { success: false as const, error: 'User not found' };
 

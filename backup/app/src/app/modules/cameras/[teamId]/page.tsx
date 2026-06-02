@@ -8,13 +8,7 @@ import { useAuth } from "@lib/contexts/AuthContext";
 import { useAuthenticatedFetch } from "@lib/hooks/useAuthenticatedFetch";
 import { useCameras } from "@libCamera/context/CamerasContext";
 import { CameraPlayer, CameraTeam } from "@libCamera/types";
-import {
-  TeamSetupHeader,
-  ProgressBar,
-  StreamUrlInput,
-  QuickActions,
-  HelpSection
-} from "@libCamera/components";
+import { TeamSetupHeader, ProgressBar, StreamUrlInput, QuickActions, HelpSection } from "@libCamera/components";
 import { useMergedCameraTeams } from "@lib/hooks/useMergedCameraTeams";
 import { PageWrapper } from "@lib/layout/PageWrapper";
 import { LoadingSpinner } from "@lib/components/common";
@@ -53,12 +47,12 @@ export default function TeamCameraSetupPage(): ReactElement {
     const updateWindowWidth = (): void => {
       setIsMobile(window.innerWidth <= 1280 && window.innerWidth > 0);
     };
-    
+
     updateWindowWidth();
-    window.addEventListener('resize', updateWindowWidth);
-    
+    window.addEventListener("resize", updateWindowWidth);
+
     return () => {
-      window.removeEventListener('resize', updateWindowWidth);
+      window.removeEventListener("resize", updateWindowWidth);
     };
   }, []);
 
@@ -112,7 +106,7 @@ export default function TeamCameraSetupPage(): ReactElement {
     if (!team) return;
 
     const invalidUrls: string[] = [];
-    
+
     // Check team stream URL
     if (team.teamStreamUrl && team.teamStreamUrl.trim() !== "") {
       const teamValidation = validateStreamUrl(team.teamStreamUrl);
@@ -120,7 +114,7 @@ export default function TeamCameraSetupPage(): ReactElement {
         invalidUrls.push(`Team Stream: ${teamValidation.error}`);
       }
     }
-    
+
     // Check player URLs
     team.players.forEach((player) => {
       if (player.url && player.url.trim() !== "") {
@@ -130,7 +124,7 @@ export default function TeamCameraSetupPage(): ReactElement {
         }
       }
     });
-    
+
     // Show error if any URLs are invalid
     if (invalidUrls.length > 0) {
       await showAlert({
@@ -247,7 +241,7 @@ export default function TeamCameraSetupPage(): ReactElement {
                     />
                   ))}
                 </div>
-                
+
                 {/* Bottom row - 2 players centered */}
                 {team.players.length > 3 && (
                   <div className="flex justify-center w-full">

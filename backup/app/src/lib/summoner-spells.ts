@@ -60,13 +60,13 @@ async function fetchCommunityDragonSpellsFromAPI(): Promise<SummonerSpell[]> {
   try {
     const version = await getLatestVersion();
     const { CommunityDragonSpellsService } = await import("@lib/services/assets/community-dragon-spells");
-    
+
     const communitySpells = await CommunityDragonSpellsService.getAvailableSpells(version);
-    
+
     return communitySpells.map((spell) => ({
       _id: spell.filename,
       name: spell.name,
-      key: spell.filename.replace('.png', ''),
+      key: spell.filename.replace(".png", ""),
       description: `CommunityDragon spell: ${spell.name}`,
       maxrank: 1,
       cooldown: [0],
@@ -111,7 +111,7 @@ async function getSummonerSpellsFromComprehensiveCache(): Promise<SummonerSpell[
         fetchSummonerSpellsFromAPI(),
         fetchCommunityDragonSpellsFromAPI()
       ]);
-      
+
       // Combine both spell sources
       return [...dataDragonResult.spells, ...communityDragonSpells];
     }
@@ -153,7 +153,7 @@ async function getSummonerSpellsFromBasicCache(): Promise<SummonerSpell[]> {
       fetchSummonerSpellsFromAPI(),
       fetchCommunityDragonSpellsFromAPI()
     ]);
-    
+
     // Combine both spell sources and apply image URL transformation
     const allSpells = [...dataDragonResult.spells, ...communityDragonSpells];
     return allSpells.map((s) => ({ ...s, image: toLocalImageUrl(s.image) }));

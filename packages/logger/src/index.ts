@@ -45,10 +45,14 @@ export function createLogger(context: string) {
     warn: (msg: string, meta?: Record<string, unknown>) => log('warn', msg, meta),
     error: (msg: string, meta?: Record<string, unknown>) => log('error', msg, meta),
     child: (requestId: string) => ({
-      debug: (msg: string, meta?: Record<string, unknown>) => log('debug', msg, { requestId, ...meta }),
-      info: (msg: string, meta?: Record<string, unknown>) => log('info', msg, { requestId, ...meta }),
-      warn: (msg: string, meta?: Record<string, unknown>) => log('warn', msg, { requestId, ...meta }),
-      error: (msg: string, meta?: Record<string, unknown>) => log('error', msg, { requestId, ...meta }),
+      debug: (msg: string, meta?: Record<string, unknown>) =>
+        log('debug', msg, { requestId, ...meta }),
+      info: (msg: string, meta?: Record<string, unknown>) =>
+        log('info', msg, { requestId, ...meta }),
+      warn: (msg: string, meta?: Record<string, unknown>) =>
+        log('warn', msg, { requestId, ...meta }),
+      error: (msg: string, meta?: Record<string, unknown>) =>
+        log('error', msg, { requestId, ...meta }),
     }),
   };
 }

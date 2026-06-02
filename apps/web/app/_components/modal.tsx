@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useRef, type ReactNode } from 'react';
-import { Button } from './button';
 
 interface ModalProps {
   open: boolean;
@@ -33,7 +32,14 @@ export function Modal({ open, onClose, title, children, footer }: ModalProps) {
           onClick={onClose}
           className="rounded-md p-1 text-text-muted hover:bg-surface-overlay hover:text-gray-200 transition-colors"
         >
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
             <path d="M4 4l8 8M12 4l-8 8" />
           </svg>
         </button>

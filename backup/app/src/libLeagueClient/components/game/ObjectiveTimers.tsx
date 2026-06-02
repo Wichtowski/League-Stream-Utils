@@ -3,7 +3,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 // import { LiveGameData } from "@libLeagueClient/types";
 import { getDragonPitAsset, getBaronPitAsset, getAtakhanAsset } from "@libLeagueClient/components/common";
-import { ObjectiveState, DragonType, ObjectiveTimersProps, OBJECTIVE_CONFIGS, ObjectiveType } from "@libLeagueClient/types/objective-timers";
+import {
+  ObjectiveState,
+  DragonType,
+  ObjectiveTimersProps,
+  OBJECTIVE_CONFIGS,
+  ObjectiveType
+} from "@libLeagueClient/types/objective-timers";
 
 const ObjectiveTimers: React.FC<ObjectiveTimersProps> = ({ gameData, gameVersion }) => {
   const [objectives, setObjectives] = useState<ObjectiveState[]>([]);
@@ -14,23 +20,23 @@ const ObjectiveTimers: React.FC<ObjectiveTimersProps> = ({ gameData, gameVersion
   const events = useMemo(() => gameData.events || [], [gameData.events]);
 
   // Get dragon kills count
-  const dragonKills = useMemo(() => events.filter(event => event.EventName === "DragonKill"), [events]);
+  const dragonKills = useMemo(() => events.filter((event) => event.EventName === "DragonKill"), [events]);
   const totalDragonKills = dragonKills.length;
 
   // Get baron kills count
-  const baronKills = useMemo(() => events.filter(event => event.EventName === "BaronKill"), [events]);
+  const baronKills = useMemo(() => events.filter((event) => event.EventName === "BaronKill"), [events]);
   const totalBaronKills = baronKills.length;
 
   // Get voidgrub kills count
-  const voidgrubKills = useMemo(() => events.filter(event => event.EventName === "HordeKill"), [events]);
+  const voidgrubKills = useMemo(() => events.filter((event) => event.EventName === "HordeKill"), [events]);
   const totalVoidgrubKills = voidgrubKills.length;
 
   // Get herald kills count
-  const heraldKills = useMemo(() => events.filter(event => event.EventName === "HeraldKill"), [events]);
+  const heraldKills = useMemo(() => events.filter((event) => event.EventName === "HeraldKill"), [events]);
   const totalHeraldKills = heraldKills.length;
 
   // Get atakhan kills count
-  const atakhanKills = useMemo(() => events.filter(event => event.EventName === "AtakhanKill"), [events]);
+  const atakhanKills = useMemo(() => events.filter((event) => event.EventName === "AtakhanKill"), [events]);
   const totalAtakhanKills = atakhanKills.length;
 
   const borderStyle = "border-2 border-zinc-600/50";
@@ -88,7 +94,7 @@ const ObjectiveTimers: React.FC<ObjectiveTimersProps> = ({ gameData, gameVersion
     const dragonConfig = OBJECTIVE_CONFIGS.dragon;
     const dragonSpawnTime = 300; // 5:00
     const firstDragonTimerStart = 150; // 2:30 - special case for first dragon
-    
+
     // Determine if we should show elder dragon (after 4th dragon kill)
     const shouldShowElder = totalDragonKills >= 4;
     const elderConfig = OBJECTIVE_CONFIGS.elder;
@@ -99,7 +105,7 @@ const ObjectiveTimers: React.FC<ObjectiveTimersProps> = ({ gameData, gameVersion
       const lastDragonKillTime = lastDragonKill?.EventTime || 0;
       const elderRespawnTime = lastDragonKillTime + elderConfig.respawnTime;
       const elderTimeRemaining = elderRespawnTime - gameTime;
-      
+
       if (elderTimeRemaining > 0) {
         objectivesList.push({
           id: "elder",
@@ -131,7 +137,7 @@ const ObjectiveTimers: React.FC<ObjectiveTimersProps> = ({ gameData, gameVersion
       // Show regular dragon
       let dragonTimeRemaining = 0;
       let dragonIsSpawned = false;
-      
+
       if (totalDragonKills === 0) {
         // First dragon - timer starts at 2:30
         if (gameTime >= firstDragonTimerStart && gameTime < dragonSpawnTime) {
@@ -146,7 +152,7 @@ const ObjectiveTimers: React.FC<ObjectiveTimersProps> = ({ gameData, gameVersion
         const lastDragonKill = dragonKills[dragonKills.length - 1];
         const lastDragonKillTime = lastDragonKill?.EventTime || 0;
         const nextDragonSpawnTime = lastDragonKillTime + dragonConfig.respawnTime;
-        
+
         if (gameTime < nextDragonSpawnTime) {
           dragonTimeRemaining = nextDragonSpawnTime - gameTime;
           dragonIsSpawned = false;
@@ -155,12 +161,15 @@ const ObjectiveTimers: React.FC<ObjectiveTimersProps> = ({ gameData, gameVersion
           dragonIsSpawned = true;
         }
       }
-      
+
       if (dragonTimeRemaining > 0 || dragonIsSpawned) {
         objectivesList.push({
           id: "dragon",
           name: "Dragon",
-          icon: getDragonPitAsset(gameVersion, currentDragonType === "elder" ? "elder.png" : `${currentDragonType}.svg`),
+          icon: getDragonPitAsset(
+            gameVersion,
+            currentDragonType === "elder" ? "elder.png" : `${currentDragonType}.svg`
+          ),
           spawnTime: dragonSpawnTime,
           respawnTime: dragonConfig.respawnTime,
           isActive: dragonTimeRemaining <= dragonConfig.activeThreshold && dragonTimeRemaining > 0,
@@ -177,13 +186,13 @@ const ObjectiveTimers: React.FC<ObjectiveTimersProps> = ({ gameData, gameVersion
     const voidgrubDeathTime = 900; // 15:00
     const voidgrubSpawnTime = 480; // 8:00
     // const voidgrubTimerStart = voidgrubSpawnTime - voidgrubConfig.timerStartOffset; // 3:00
-    
+
     // Check if voidgrubs are still alive (not all 3 killed)
     const voidgrubsAlive = totalVoidgrubKills < 3;
-    
+
     let voidgrubTimeRemaining = 0;
     let voidgrubIsSpawned = false;
-    
+
     if (gameTime < voidgrubSpawnTime) {
       // Voidgrubs haven't spawned yet, show countdown timer
       voidgrubTimeRemaining = voidgrubSpawnTime - gameTime;
@@ -193,7 +202,7 @@ const ObjectiveTimers: React.FC<ObjectiveTimersProps> = ({ gameData, gameVersion
       voidgrubTimeRemaining = 0;
       voidgrubIsSpawned = true;
     }
-    
+
     if (voidgrubsAlive && gameTime < voidgrubDeathTime && (voidgrubTimeRemaining > 0 || voidgrubIsSpawned)) {
       objectivesList.push({
         id: "voidgrubs",
@@ -213,11 +222,11 @@ const ObjectiveTimers: React.FC<ObjectiveTimersProps> = ({ gameData, gameVersion
     const heraldConfig = OBJECTIVE_CONFIGS.herald;
     const heraldDeathTimeForHerald = 1495; // 24:55
     const heraldSpawnTime = 900; // 15:00 (fallback)
-    
+
     let heraldTimeRemaining = 0;
     let heraldIsSpawned = false;
     let heraldActualSpawnTime = 0;
-    
+
     if (!voidgrubsAlive) {
       // Voidgrubs are slain, calculate herald spawn time
       if (totalVoidgrubKills > 0) {
@@ -229,7 +238,7 @@ const ObjectiveTimers: React.FC<ObjectiveTimersProps> = ({ gameData, gameVersion
         // Fallback: use normal spawn time if no voidgrub kills detected
         heraldActualSpawnTime = heraldSpawnTime;
       }
-      
+
       if (gameTime < heraldActualSpawnTime) {
         // Herald hasn't spawned yet, show countdown timer
         heraldTimeRemaining = heraldActualSpawnTime - gameTime;
@@ -240,7 +249,7 @@ const ObjectiveTimers: React.FC<ObjectiveTimersProps> = ({ gameData, gameVersion
         heraldIsSpawned = true;
       }
     }
-    
+
     if (!voidgrubsAlive && gameTime < heraldDeathTimeForHerald && (heraldTimeRemaining > 0 || heraldIsSpawned)) {
       objectivesList.push({
         id: "herald",
@@ -259,10 +268,10 @@ const ObjectiveTimers: React.FC<ObjectiveTimersProps> = ({ gameData, gameVersion
     const atakhanConfig = OBJECTIVE_CONFIGS.atakhan;
     const atakhanSpawnTime = 1200; // 20:00
     const atakhanTimerStart = atakhanSpawnTime - atakhanConfig.timerStartOffset; // 15:00
-    
+
     let atakhanTimeRemaining = 0;
     let atakhanIsSpawned = false;
-    
+
     if (gameTime >= atakhanTimerStart && gameTime < atakhanSpawnTime) {
       // Atakhan countdown phase (15:00 to 20:00)
       atakhanTimeRemaining = atakhanSpawnTime - gameTime;
@@ -272,7 +281,7 @@ const ObjectiveTimers: React.FC<ObjectiveTimersProps> = ({ gameData, gameVersion
       atakhanTimeRemaining = 0;
       atakhanIsSpawned = true;
     }
-    
+
     if (totalAtakhanKills === 0 && (atakhanTimeRemaining > 0 || atakhanIsSpawned)) {
       objectivesList.push({
         id: "atakhan",
@@ -291,10 +300,10 @@ const ObjectiveTimers: React.FC<ObjectiveTimersProps> = ({ gameData, gameVersion
     const baronConfig = OBJECTIVE_CONFIGS.baron;
     const baronSpawnTime = 1500; // 25:00
     const baronTimerStart = baronSpawnTime - baronConfig.timerStartOffset; // 20:00
-    
+
     let baronTimeRemaining = 0;
     let baronIsSpawned = false;
-    
+
     if (totalBaronKills === 0) {
       // Baron hasn't been killed yet
       if (gameTime >= baronTimerStart && gameTime < baronSpawnTime) {
@@ -312,7 +321,7 @@ const ObjectiveTimers: React.FC<ObjectiveTimersProps> = ({ gameData, gameVersion
       const lastBaronKillTime = lastBaronKill?.EventTime || 0;
       const baronRespawnTime = lastBaronKillTime + baronConfig.respawnTime;
       const baronRespawnTimeRemaining = baronRespawnTime - gameTime;
-      
+
       if (baronRespawnTimeRemaining > 0) {
         baronTimeRemaining = baronRespawnTimeRemaining;
         baronIsSpawned = false;
@@ -321,7 +330,7 @@ const ObjectiveTimers: React.FC<ObjectiveTimersProps> = ({ gameData, gameVersion
         baronIsSpawned = true;
       }
     }
-    
+
     if (baronTimeRemaining > 0 || baronIsSpawned) {
       objectivesList.push({
         id: "baron",
@@ -337,7 +346,19 @@ const ObjectiveTimers: React.FC<ObjectiveTimersProps> = ({ gameData, gameVersion
     }
 
     return objectivesList.slice(0, 3); // Maximum 3 objectives
-  }, [gameTime, totalDragonKills, totalBaronKills, totalVoidgrubKills, totalHeraldKills, totalAtakhanKills, currentDragonType, gameVersion, dragonKills, baronKills, voidgrubKills]);
+  }, [
+    gameTime,
+    totalDragonKills,
+    totalBaronKills,
+    totalVoidgrubKills,
+    totalHeraldKills,
+    totalAtakhanKills,
+    currentDragonType,
+    gameVersion,
+    dragonKills,
+    baronKills,
+    voidgrubKills
+  ]);
 
   useEffect(() => {
     setObjectives(calculateObjectives());
@@ -385,18 +406,10 @@ const ObjectiveTimers: React.FC<ObjectiveTimersProps> = ({ gameData, gameVersion
             className={`flex items-center p-2 ${borderStyle} ${getObjectiveBackgroundColor(objective.objectiveType)} shadow-lg`}
             style={{ backgroundColor: getObjectiveBackgroundColor(objective.objectiveType) }}
           >
-            <motion.div 
-              className="w-12 h-12 relative"
-            >
-              <Image
-                src={objective.icon}
-                alt={objective.name}
-                width={48}
-                height={48}
-                className="rounded"
-              />
+            <motion.div className="w-12 h-12 relative">
+              <Image src={objective.icon} alt={objective.name} width={48} height={48} className="rounded" />
             </motion.div>
-            
+
             {!objective.isSpawned && (
               <motion.div
                 key={objective.timeRemaining}
@@ -411,15 +424,14 @@ const ObjectiveTimers: React.FC<ObjectiveTimersProps> = ({ gameData, gameVersion
                 {formatTime(objective.timeRemaining)}
               </motion.div>
             )}
-            
+
             {objective.isSpawned && (
               <motion.div
                 initial={{ opacity: 0, scale: 0 }}
                 animate={{ opacity: 1, scale: 1 }}
                 style={{ backgroundColor: "rgb(49, 35, 87)" }}
                 className="font-mono text-lg font-bold"
-              >
-              </motion.div>
+              ></motion.div>
             )}
           </motion.div>
         ))}

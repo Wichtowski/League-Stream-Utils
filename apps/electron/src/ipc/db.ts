@@ -58,7 +58,12 @@ export function registerDBHandlers() {
       const entries = await fs.readdir(backupsDir, { withFileTypes: true });
       return entries
         .filter((e) => e.isDirectory())
-        .map((e) => ({ id: e.name, createdAt: e.name.replace(/-/g, (m, i) => (i < 19 ? ([10, 13].includes(i) ? ':' : i === 4 || i === 7 ? '-' : m) : m)) }))
+        .map((e) => ({
+          id: e.name,
+          createdAt: e.name.replace(/-/g, (m, i) =>
+            i < 19 ? ([10, 13].includes(i) ? ':' : i === 4 || i === 7 ? '-' : m) : m,
+          ),
+        }))
         .reverse();
     } catch {
       return [];

@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { withAuth, getClientIp } from '@lsu/auth';
 import { generateTokens } from '@lsu/auth';
 import { getDbForRequest } from '@lsu/db';
@@ -57,7 +57,10 @@ export async function POST(request: NextRequest, { params }: Params) {
       user_id: userId,
       action: 'impersonation_started',
       resource: 'sessions',
-      metadata: JSON.stringify({ impersonatedBy: auth.user.userId, adminUsername: auth.user.username }),
+      metadata: JSON.stringify({
+        impersonatedBy: auth.user.userId,
+        adminUsername: auth.user.username,
+      }),
       performed_by: auth.user.userId,
     })
     .execute();

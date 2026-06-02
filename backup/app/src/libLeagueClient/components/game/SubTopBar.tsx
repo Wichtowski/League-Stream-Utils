@@ -15,7 +15,7 @@ export const SubTopBar: React.FC<SubTopBarProps> = ({
   formatGameTime,
   blueTeamDragons,
   redTeamDragons,
-  dragonIcons,
+  dragonIcons
 }) => {
   const getDragonIcon = (dragonType: string): string => {
     switch (dragonType) {
@@ -40,7 +40,7 @@ export const SubTopBar: React.FC<SubTopBarProps> = ({
 
   const renderDragonIcons = (dragons: GameEvent[], _teamColor: "blue" | "red"): React.ReactNode => {
     // Filter out elder dragons as they will be used elsewhere
-    const filteredDragons = dragons.filter(dragon => dragon.DragonType !== "Elder");
+    const filteredDragons = dragons.filter((dragon) => dragon.DragonType !== "Elder");
 
     if (filteredDragons.length === 0) {
       return null; // Don't show anything if no dragons
@@ -65,22 +65,16 @@ export const SubTopBar: React.FC<SubTopBarProps> = ({
   return (
     <div className="h-full flex items-center justify-center relative w-full bg-black/90">
       {/* Blue Team Dragons - Left side */}
-      <div className="flex items-center justify-start flex-1 pr-4">
-        {renderDragonIcons(blueTeamDragons, "blue")}
-      </div>
-      
+      <div className="flex items-center justify-start flex-1 pr-4">{renderDragonIcons(blueTeamDragons, "blue")}</div>
+
       {/* Center - Timer */}
       <div className="flex items-center justify-center px-4">
-        <div className="text-3xl font-bold text-white font-mono">
-          {formatGameTime(gameTime)}
-        </div>
+        <div className="text-3xl font-bold text-white font-mono">{formatGameTime(gameTime)}</div>
       </div>
-      
+
       {/* Red Team Dragons - Right side */}
-      <div className="flex items-center justify-start flex-1 pl-4">
-        {renderDragonIcons(redTeamDragons, "red")}
-      </div>
-      
+      <div className="flex items-center justify-start flex-1 pl-4">{renderDragonIcons(redTeamDragons, "red")}</div>
+
       {/* Debug info - remove this later */}
       <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs text-gray-400">
         Blue: {blueTeamDragons.length} | Red: {redTeamDragons.length}

@@ -61,15 +61,17 @@ export const TeamSchema = new Schema({
   // Camera settings for streaming
   cameras: {
     teamStreamUrl: { type: String, default: "" },
-    players: [{
-      playerId: { type: String, required: true },
-      playerName: { type: String, required: true },
-      role: { type: String, required: true },
-      url: { type: String, default: "" },
-      imagePath: { type: String, default: "" },
-      delayedUrl: { type: String, default: "" },
-      useDelay: { type: Boolean, default: false }
-    }],
+    players: [
+      {
+        playerId: { type: String, required: true },
+        playerName: { type: String, required: true },
+        role: { type: String, required: true },
+        url: { type: String, default: "" },
+        imagePath: { type: String, default: "" },
+        delayedUrl: { type: String, default: "" },
+        useDelay: { type: Boolean, default: false }
+      }
+    ],
     globalTournamentMode: { type: Boolean, default: false },
     updatedAt: { type: Date, default: Date.now }
   }

@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { hashPassword, verifyPassword, validatePasswordStrength, isPasswordReused } from './password';
+import {
+  hashPassword,
+  verifyPassword,
+  validatePasswordStrength,
+  isPasswordReused,
+} from './password';
 import { checkRateLimit, getRateLimitHeaders } from './rate-limit';
 
 describe('password', () => {

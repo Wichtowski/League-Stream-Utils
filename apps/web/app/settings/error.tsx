@@ -8,7 +8,9 @@ export default function SettingsError({ error, reset }: { error: Error; reset: (
       <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-6 py-4 text-sm text-red-400">
         {error.message || 'Something went wrong'}
       </div>
-      <Button variant="secondary" onClick={reset}>Try again</Button>
+      <Button variant="secondary" onClick={reset}>
+        Try again
+      </Button>
     </div>
   );
 }

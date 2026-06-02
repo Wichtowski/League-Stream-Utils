@@ -18,10 +18,17 @@ async function fetchJSON<T>(url: string, init?: RequestInit): Promise<T> {
 
 export default function CommentatorsPage() {
   const qc = useQueryClient();
-  const { data, isPending, isError } = useQuery({ queryKey: ['commentators'], queryFn: () => fetchJSON<any[]>('/api/v1/commentators') });
+  const { data, isPending, isError } = useQuery({
+    queryKey: ['commentators'],
+    queryFn: () => fetchJSON<any[]>('/api/v1/commentators'),
+  });
   const create = useMutation({
     mutationFn: (body: { name: string; socialLinks?: Record<string, string> }) =>
-      fetchJSON('/api/v1/commentators', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }),
+      fetchJSON('/api/v1/commentators', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['commentators'] });
       toast('success', 'Commentator added');
@@ -33,7 +40,9 @@ export default function CommentatorsPage() {
     onMutate: async (id) => {
       await qc.cancelQueries({ queryKey: ['commentators'] });
       const previous = qc.getQueryData(['commentators']);
-      qc.setQueryData(['commentators'], (old: any[] | undefined) => (old ?? []).filter((c: any) => c.id !== id));
+      qc.setQueryData(['commentators'], (old: any[] | undefined) =>
+        (old ?? []).filter((c: any) => c.id !== id),
+      );
       return { previous };
     },
     onError: (_err, _vars, context) => {
@@ -50,9 +59,16 @@ export default function CommentatorsPage() {
   function handleCreate() {
     const socialLinks: Record<string, string> = {};
     if (twitter) socialLinks.twitter = twitter;
-    create.mutate({ name, socialLinks: Object.keys(socialLinks).length ? socialLinks : undefined }, {
-      onSuccess: () => { setShowCreate(false); setName(''); setTwitter(''); },
-    });
+    create.mutate(
+      { name, socialLinks: Object.keys(socialLinks).length ? socialLinks : undefined },
+      {
+        onSuccess: () => {
+          setShowCreate(false);
+          setName('');
+          setTwitter('');
+        },
+      },
+    );
   }
 
   return (
@@ -63,28 +79,50 @@ export default function CommentatorsPage() {
     >
       {isPending ? (
         <div className="space-y-2">
-          {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} height="56px" rounded="lg" />)}
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} height="56px" rounded="lg" />
+          ))}
         </div>
       ) : isError ? (
-        <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-400">Failed to load commentators</div>
+        <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-400">
+          Failed to load commentators
+        </div>
       ) : (
         <DataTable
           columns={[
-            { key: 'name', header: 'Name', render: (c: any) => <span className="font-medium">{c.name}</span> },
+            {
+              key: 'name',
+              header: 'Name',
+              render: (c: any) => <span className="font-medium">{c.name}</span>,
+            },
             {
               key: 'social',
               header: 'Social',
               render: (c: any) => {
                 const links = c.socialLinks as Record<string, string> | null;
-                if (!links || Object.keys(links).length === 0) return <span className="text-text-muted">—</span>;
-                return <span className="text-text-muted text-xs">{Object.entries(links).map(([k, v]) => `${k}: ${v}`).join(', ')}</span>;
+                if (!links || Object.keys(links).length === 0)
+                  {return <span className="text-text-muted">—</span>;}
+                return (
+                  <span className="text-text-muted text-xs">
+                    {Object.entries(links)
+                      .map(([k, v]) => `${k}: ${v}`)
+                      .join(', ')}
+                  </span>
+                );
               },
             },
             {
               key: 'actions',
               header: '',
               render: (c: any) => (
-                <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); if (confirm(`Delete ${c.name}?`)) remove.mutate(c.id); }}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (confirm(`Delete ${c.name}?`)) remove.mutate(c.id);
+                  }}
+                >
                   Delete
                 </Button>
               ),
@@ -103,7 +141,9 @@ export default function CommentatorsPage() {
         title="Add Commentator"
         footer={
           <>
-            <Button variant="secondary" onClick={() => setShowCreate(false)}>Cancel</Button>
+            <Button variant="secondary" onClick={() => setShowCreate(false)}>
+              Cancel
+            </Button>
             <Button onClick={handleCreate} disabled={!name || create.isPending}>
               {create.isPending ? 'Adding...' : 'Add'}
             </Button>
@@ -111,8 +151,20 @@ export default function CommentatorsPage() {
         }
       >
         <div className="space-y-4">
-          <Input label="Name" id="c-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="John Doe" />
-          <Input label="Twitter (optional)" id="c-twitter" value={twitter} onChange={(e) => setTwitter(e.target.value)} placeholder="@handle" />
+          <Input
+            label="Name"
+            id="c-name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="John Doe"
+          />
+          <Input
+            label="Twitter (optional)"
+            id="c-twitter"
+            value={twitter}
+            onChange={(e) => setTwitter(e.target.value)}
+            placeholder="@handle"
+          />
         </div>
       </Modal>
     </PageWrapper>

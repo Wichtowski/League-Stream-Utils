@@ -29,7 +29,12 @@ export function useTeam(id: string) {
 export function useCreateTeam() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (data: { name: string; tag: string; colors: { primary: string; secondary: string; accent: string }; country?: string }) =>
+    mutationFn: (data: {
+      name: string;
+      tag: string;
+      colors: { primary: string; secondary: string; accent: string };
+      country?: string;
+    }) =>
       fetchJSON('/api/v1/teams', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -54,7 +59,16 @@ export function useCreateTeam() {
 export function useUpdateTeam() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, ...data }: { id: string; name?: string; tag?: string; colors?: { primary: string; secondary: string; accent: string }; country?: string }) =>
+    mutationFn: ({
+      id,
+      ...data
+    }: {
+      id: string;
+      name?: string;
+      tag?: string;
+      colors?: { primary: string; secondary: string; accent: string };
+      country?: string;
+    }) =>
       fetchJSON(`/api/v1/teams/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -64,7 +78,7 @@ export function useUpdateTeam() {
       const { id, ...rest } = newData;
       await qc.cancelQueries({ queryKey: KEYS.detail(id) });
       const previous = qc.getQueryData(KEYS.detail(id));
-      qc.setQueryData(KEYS.detail(id), (old: any) => old ? { ...old, ...rest } : old);
+      qc.setQueryData(KEYS.detail(id), (old: any) => (old ? { ...old, ...rest } : old));
       return { previous, id };
     },
     onError: (_err, _vars, context) => {

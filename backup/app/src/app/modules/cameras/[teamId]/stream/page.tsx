@@ -20,7 +20,7 @@ export default function TeamCameraStreamPage() {
 
   useEffect(() => {
     setRemoveSidebar(true);
-    
+
     return () => {
       setRemoveSidebar(false);
     };

@@ -28,11 +28,7 @@ export function withDatabaseInit(
       return handler(request, context);
     } catch (error) {
       console.error("Database initialization failed:", error);
-      return NextResponse.json(
-        { error: "Database connection failed" },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: "Database connection failed" }, { status: 500 });
     }
   };
 }
-

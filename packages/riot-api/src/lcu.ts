@@ -14,10 +14,7 @@ function authHeader(password: string) {
   return 'Basic ' + btoa(`riot:${password}`);
 }
 
-export async function lcuFetch<T>(
-  credentials: LCUCredentials,
-  endpoint: string,
-): Promise<T> {
+export async function lcuFetch<T>(credentials: LCUCredentials, endpoint: string): Promise<T> {
   const url = `${credentials.protocol}://127.0.0.1:${credentials.port}${endpoint}`;
   const res = await fetch(url, {
     headers: { Authorization: authHeader(credentials.password) },
@@ -40,13 +37,15 @@ export async function getCurrentSummoner(credentials: LCUCredentials) {
 
 export async function getChampSelectSession(credentials: LCUCredentials) {
   return lcuFetch<{
-    actions: Array<Array<{
-      id: number;
-      type: 'ban' | 'pick';
-      championId: number;
-      completed: boolean;
-      actorCellId: number;
-    }>>;
+    actions: Array<
+      Array<{
+        id: number;
+        type: 'ban' | 'pick';
+        championId: number;
+        completed: boolean;
+        actorCellId: number;
+      }>
+    >;
     myTeam: Array<{ cellId: number; championId: number; summonerId: number }>;
     theirTeam: Array<{ cellId: number; championId: number; summonerId: number }>;
     timer: { phase: string; adjustedTimeLeftInPhase: number };

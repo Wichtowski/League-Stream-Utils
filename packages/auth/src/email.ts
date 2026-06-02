@@ -16,7 +16,10 @@ const transporter = nodemailer.createTransport({
 const FROM = process.env.SMTP_FROM ?? 'LSU <noreply@localhost>';
 const APP_URL = process.env.APP_URL ?? 'http://localhost:3000';
 
-export async function generateVerificationToken(db: Kysely<Database>, userId: string): Promise<string> {
+export async function generateVerificationToken(
+  db: Kysely<Database>,
+  userId: string,
+): Promise<string> {
   const token = randomBytes(32).toString('hex');
   const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
@@ -64,19 +67,13 @@ export async function verifyEmail(db: Kysely<Database>, token: string) {
     .where('id', '=', record.user_id)
     .execute();
 
-  await db
-    .deleteFrom('email_verification_tokens')
-    .where('user_id', '=', record.user_id)
-    .execute();
+  await db.deleteFrom('email_verification_tokens').where('user_id', '=', record.user_id).execute();
 
   return { success: true as const };
 }
 
 export async function resendVerificationEmail(db: Kysely<Database>, userId: string, email: string) {
-  await db
-    .deleteFrom('email_verification_tokens')
-    .where('user_id', '=', userId)
-    .execute();
+  await db.deleteFrom('email_verification_tokens').where('user_id', '=', userId).execute();
 
   const token = await generateVerificationToken(db, userId);
   await sendVerificationEmail(email, token);

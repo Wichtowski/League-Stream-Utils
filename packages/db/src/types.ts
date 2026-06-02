@@ -151,11 +151,7 @@ export interface MatchesTable extends SyncFields {
   blue_team_id: string | null;
   red_team_id: string | null;
   format: 'bo1' | 'bo3' | 'bo5';
-  status: ColumnType<
-    'scheduled' | 'live' | 'completed' | 'cancelled',
-    string | undefined,
-    string
-  >;
+  status: ColumnType<'scheduled' | 'live' | 'completed' | 'cancelled', string | undefined, string>;
   score_blue: ColumnType<number, number | undefined, number>;
   score_red: ColumnType<number, number | undefined, number>;
   round_number: number | null;
@@ -256,7 +252,11 @@ export interface TournamentJoinRequestsTable {
   tournament_id: string;
   team_id: string;
   requested_by: string;
-  status: ColumnType<'pending' | 'approved' | 'rejected', 'pending' | undefined, 'pending' | 'approved' | 'rejected'>;
+  status: ColumnType<
+    'pending' | 'approved' | 'rejected',
+    'pending' | undefined,
+    'pending' | 'approved' | 'rejected'
+  >;
   message: string | null;
   responded_by: string | null;
   responded_at: Date | null;
@@ -268,7 +268,11 @@ export interface TournamentInvitationsTable {
   tournament_id: string;
   team_id: string;
   invited_by: string;
-  status: ColumnType<'pending' | 'accepted' | 'declined', 'pending' | undefined, 'pending' | 'accepted' | 'declined'>;
+  status: ColumnType<
+    'pending' | 'accepted' | 'declined',
+    'pending' | undefined,
+    'pending' | 'accepted' | 'declined'
+  >;
   message: string | null;
   responded_at: Date | null;
   created_at: ColumnType<Date, Date | undefined, never>;

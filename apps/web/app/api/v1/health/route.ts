@@ -1,5 +1,5 @@
 import { getDb, sql } from '@lsu/db';
-import { json, error } from '@/api/_helpers';
+import { json } from '@/api/_helpers';
 import { getTotalClientCount, getActiveSessionIds } from '../draft/[sessionId]/ws/room';
 
 export async function GET() {

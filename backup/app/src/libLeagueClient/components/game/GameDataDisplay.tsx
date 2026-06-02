@@ -37,15 +37,10 @@ interface GameDataDisplayProps {
 }
 
 const MapBackground: React.FC = () => {
-  const mapHeight = 250 + (11 * 2);
-  const mapWidth = 250 + (12 * 2);
+  const mapHeight = 250 + 11 * 2;
+  const mapWidth = 250 + 12 * 2;
 
-  return (
-    <div
-      className="absolute bottom-0 right-0 bg-black"
-      style={{ width: mapWidth, height: mapHeight }}
-    />
-  );
+  return <div className="absolute bottom-0 right-0 bg-black" style={{ width: mapWidth, height: mapHeight }} />;
 };
 
 export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({
@@ -140,7 +135,7 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({
   }, [tournament, match, blueTeamData, redTeamData]);
 
   // Fetch camera settings when teams are available
-  // Camera settings are now available directly from team data - no need to fetch 
+  // Camera settings are now available directly from team data - no need to fetch
 
   const formatGameTime = (seconds: number): string => {
     const minutes = Math.floor(seconds / 60);
@@ -261,8 +256,7 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ action: "hideKeepEssentials" })
         });
-      } catch (_err) {
-      }
+      } catch (_err) {}
     })();
   }, [uiReady]);
 
@@ -285,11 +279,11 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({
   const _orderedRed = bound.red.filter(Boolean);
 
   const firstBrick = gameData.events?.find((event) => event.EventName === "FirstBrick");
-  
+
   // Helper function to determine team from minion name or turret name
   const getTeamFromEntityName = (entityName: string): "ORDER" | "CHAOS" | null => {
     if (!entityName) return null;
-    
+
     // Check if it's a minion name (pattern: Minion_T[team]L...)
     if (entityName.startsWith("Minion_T")) {
       // Extract team number from minion name
@@ -300,70 +294,75 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({
         return teamNumber === 100 ? "ORDER" : teamNumber === 200 ? "CHAOS" : null;
       }
     }
-    
+
     // Check if it's a turret name (pattern: Turret_T[team]...)
     if (entityName.startsWith("Turret_T")) {
       if (entityName.includes("Order")) return "ORDER";
       if (entityName.includes("Chaos")) return "CHAOS";
     }
-    
+
     return null;
   };
-  
+
   // Determine which team got the first brick by checking KillerName
-  const _firstBrickTeam = firstBrick?.KillerName 
+  const _firstBrickTeam = firstBrick?.KillerName
     ? (() => {
         // First check if it's a player
-        const playerTeam = blueTeamPlayers.some(player => player.summonerName === firstBrick.KillerName) ? "ORDER" : 
-                          redTeamPlayers.some(player => player.summonerName === firstBrick.KillerName) ? "CHAOS" : null;
-        
+        const playerTeam = blueTeamPlayers.some((player) => player.summonerName === firstBrick.KillerName)
+          ? "ORDER"
+          : redTeamPlayers.some((player) => player.summonerName === firstBrick.KillerName)
+            ? "CHAOS"
+            : null;
+
         if (playerTeam) return playerTeam;
-        
+
         // If not a player, check if it's a minion or turret
         return getTeamFromEntityName(firstBrick.KillerName);
       })()
     : null;
   const dragonsKilled = gameData.events?.filter((event) => event.EventName === "DragonKill") || [];
 
-  const blueTeamDragonsKilled = dragonsKilled.filter((event) => event.KillerName === blueTeamPlayers.find((player) => player.summonerName === event.KillerName)?.summonerName);
-  const redTeamDragonsKilled = dragonsKilled.filter((event) => event.KillerName === redTeamPlayers.find((player) => player.summonerName === event.KillerName)?.summonerName);
+  const blueTeamDragonsKilled = dragonsKilled.filter(
+    (event) =>
+      event.KillerName === blueTeamPlayers.find((player) => player.summonerName === event.KillerName)?.summonerName
+  );
+  const redTeamDragonsKilled = dragonsKilled.filter(
+    (event) =>
+      event.KillerName === redTeamPlayers.find((player) => player.summonerName === event.KillerName)?.summonerName
+  );
 
   // Baron buff logic - check if baron was killed in the last 180 seconds (3 minutes)
   const currentGameTime = gameData.gameData.gameTime;
   const baronKills = gameData.events?.filter((event) => event.EventName === "BaronKill") || [];
-  
-  const blueTeamBaronKills = baronKills.filter((event) => 
-    event.KillerName && blueTeamPlayers.some(player => player.summonerName === event.KillerName)
+
+  const blueTeamBaronKills = baronKills.filter(
+    (event) => event.KillerName && blueTeamPlayers.some((player) => player.summonerName === event.KillerName)
   );
-  const redTeamBaronKills = baronKills.filter((event) => 
-    event.KillerName && redTeamPlayers.some(player => player.summonerName === event.KillerName)
+  const redTeamBaronKills = baronKills.filter(
+    (event) => event.KillerName && redTeamPlayers.some((player) => player.summonerName === event.KillerName)
   );
 
-  const blueTeamHasBaronBuff = blueTeamBaronKills.some((event) => 
-    currentGameTime - event.EventTime <= 180
-  );
-  const redTeamHasBaronBuff = redTeamBaronKills.some((event) => 
-    currentGameTime - event.EventTime <= 180
-  );
+  const blueTeamHasBaronBuff = blueTeamBaronKills.some((event) => currentGameTime - event.EventTime <= 180);
+  const redTeamHasBaronBuff = redTeamBaronKills.some((event) => currentGameTime - event.EventTime <= 180);
 
   // Horde/Voidgrub kills logic
   const hordeKills = gameData.events?.filter((event) => event.EventName === "HordeKill") || [];
-  
-  const blueTeamHordeKills = hordeKills.filter((event) => 
-    event.KillerName && blueTeamPlayers.some(player => player.summonerName === event.KillerName)
+
+  const blueTeamHordeKills = hordeKills.filter(
+    (event) => event.KillerName && blueTeamPlayers.some((player) => player.summonerName === event.KillerName)
   );
-  const redTeamHordeKills = hordeKills.filter((event) => 
-    event.KillerName && redTeamPlayers.some(player => player.summonerName === event.KillerName)
+  const redTeamHordeKills = hordeKills.filter(
+    (event) => event.KillerName && redTeamPlayers.some((player) => player.summonerName === event.KillerName)
   );
 
   // Atakhan kills logic
   const atakhanKills = gameData.events?.filter((event) => event.EventName === "AtakhanKill") || [];
-  
-  const blueTeamAtakhanKills = atakhanKills.filter((event) => 
-    event.KillerName && blueTeamPlayers.some(player => player.summonerName === event.KillerName)
+
+  const blueTeamAtakhanKills = atakhanKills.filter(
+    (event) => event.KillerName && blueTeamPlayers.some((player) => player.summonerName === event.KillerName)
   );
-  const redTeamAtakhanKills = atakhanKills.filter((event) => 
-    event.KillerName && redTeamPlayers.some(player => player.summonerName === event.KillerName)
+  const redTeamAtakhanKills = atakhanKills.filter(
+    (event) => event.KillerName && redTeamPlayers.some((player) => player.summonerName === event.KillerName)
   );
 
   // Calculate team stats
@@ -372,7 +371,7 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({
     deaths: blueTeamPlayers.reduce((sum, player) => sum + (player.scores?.deaths || 0), 0),
     assists: blueTeamPlayers.reduce((sum, player) => sum + (player.scores?.assists || 0), 0),
     gold: blueTeamPlayers.reduce((sum, player) => sum + (player.gold || 0), 0),
-    towers: gameData.events?.filter((event) => event.EventName === "TurretKilled" ).length || 0,
+    towers: gameData.events?.filter((event) => event.EventName === "TurretKilled").length || 0,
     dragonsSlained: {
       earth: blueTeamDragonsKilled.filter((event) => event.DragonType === "Earth").length,
       elder: blueTeamDragonsKilled.filter((event) => event.DragonType === "Elder").length,
@@ -380,14 +379,14 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({
       water: blueTeamDragonsKilled.filter((event) => event.DragonType === "Water").length,
       air: blueTeamDragonsKilled.filter((event) => event.DragonType === "Air").length,
       chemtech: blueTeamDragonsKilled.filter((event) => event.DragonType === "Chemtech").length,
-      hextech: blueTeamDragonsKilled.filter((event) => event.DragonType === "Hextech").length,
+      hextech: blueTeamDragonsKilled.filter((event) => event.DragonType === "Hextech").length
     },
     baronsSlained: blueTeamBaronKills.length,
     hasBaronBuff: blueTeamHasBaronBuff,
     grubs: blueTeamHordeKills.length,
     heraldsKilled: 0,
     atakhan: blueTeamAtakhanKills.length,
-    petal: 0,
+    petal: 0
   };
 
   const redTeamStats = {
@@ -395,7 +394,7 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({
     deaths: redTeamPlayers.reduce((sum, player) => sum + (player.scores?.deaths || 0), 0),
     assists: redTeamPlayers.reduce((sum, player) => sum + (player.scores?.assists || 0), 0),
     gold: redTeamPlayers.reduce((sum, player) => sum + (player.gold || 0), 0),
-    towers: gameData.events?.filter((event) => event.EventName === "TurretKilled" ).length || 0,
+    towers: gameData.events?.filter((event) => event.EventName === "TurretKilled").length || 0,
     dragonsSlained: {
       earth: redTeamDragonsKilled.filter((event) => event.DragonType === "Earth").length,
       elder: redTeamDragonsKilled.filter((event) => event.DragonType === "Elder").length,
@@ -403,17 +402,15 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({
       water: redTeamDragonsKilled.filter((event) => event.DragonType === "Water").length,
       air: redTeamDragonsKilled.filter((event) => event.DragonType === "Air").length,
       chemtech: redTeamDragonsKilled.filter((event) => event.DragonType === "Chemtech").length,
-      hextech: redTeamDragonsKilled.filter((event) => event.DragonType === "Hextech").length,
+      hextech: redTeamDragonsKilled.filter((event) => event.DragonType === "Hextech").length
     },
     baronsSlained: redTeamBaronKills.length,
     hasBaronBuff: redTeamHasBaronBuff,
     grubsKilled: redTeamHordeKills.length,
     heraldsKilled: 0,
     atakhan: redTeamAtakhanKills.length,
-    petal: 0,
+    petal: 0
   };
-
-
 
   const getResolutionStyles = (): {
     maxWidth: string;
@@ -421,24 +418,22 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({
     switch (resolution) {
       case "WQHD":
         return {
-          maxWidth: "max-w-[1000px]",
+          maxWidth: "max-w-[1000px]"
         };
       case "4K":
         return {
-          maxWidth: "max-w-[1280px]",
+          maxWidth: "max-w-[1280px]"
         };
       default: // FHD
         return {
-          maxWidth: "max-w-[936px]",
+          maxWidth: "max-w-[936px]"
         };
     }
   };
 
   const resolutionStyles = getResolutionStyles();
 
-
   return (
-    
     <div className="fixed inset-0 text-white font-sans">
       {/* Top Bar - Team Scores & Game Info */}
       <motion.div
@@ -469,7 +464,7 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({
             redTeamDragons={redTeamDragonsKilled}
             dragonIcons={dragonIcons}
           />
-         </div>
+        </div>
       </motion.div>
 
       {/* Objective Timers - Top Left */}
@@ -573,7 +568,6 @@ export const GameDataDisplay: React.FC<GameDataDisplayProps> = ({
         </div> */}
       </div>
       <MapBackground />
-
     </div>
   );
 };

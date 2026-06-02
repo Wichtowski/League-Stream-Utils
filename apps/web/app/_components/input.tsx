@@ -1,6 +1,10 @@
 'use client';
 
-import type { InputHTMLAttributes, TextareaHTMLAttributes, SelectHTMLAttributes, ReactNode } from 'react';
+import type {
+  InputHTMLAttributes,
+  TextareaHTMLAttributes,
+  SelectHTMLAttributes,
+} from 'react';
 
 const inputBase =
   'w-full rounded-lg border border-border-subtle bg-surface px-3 py-2 text-sm outline-none transition-colors placeholder:text-text-muted/50 focus:border-indigo-500 disabled:opacity-50';
@@ -18,7 +22,11 @@ export function Input({ label, error, id, className = '', ...props }: InputProps
           {label}
         </label>
       )}
-      <input id={id} className={`${inputBase} ${error ? 'border-red-500' : ''} ${className}`} {...props} />
+      <input
+        id={id}
+        className={`${inputBase} ${error ? 'border-red-500' : ''} ${className}`}
+        {...props}
+      />
       {error && <p className="text-xs text-red-400">{error}</p>}
     </div>
   );

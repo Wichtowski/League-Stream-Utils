@@ -46,15 +46,6 @@ const PLAN_OPTIONS = [
   { value: 'pro', label: 'Pro' },
 ];
 
-const roleBadgeVariant: Record<string, 'default' | 'success' | 'warning' | 'error' | 'info'> = {
-  developer: 'success',
-  admin: 'error',
-  organizer: 'warning',
-  moderator: 'info',
-  commentator: 'default',
-  viewer: 'default',
-};
-
 interface User {
   id: string;
   username: string;
@@ -79,7 +70,11 @@ export function UsersTab() {
     [isDeveloper],
   );
 
-  const { data: users, isPending, isError } = useQuery({
+  const {
+    data: users,
+    isPending,
+    isError,
+  } = useQuery({
     queryKey: ['admin', 'users'],
     queryFn: () => fetchJSON<User[]>('/api/v1/admin/users'),
   });
@@ -167,9 +162,7 @@ export function UsersTab() {
             render: (u: User) => (
               <span className="text-text-muted">
                 {u.email}
-                {u.email_verified === false && (
-                  <Badge variant="warning">Unverified</Badge>
-                )}
+                {u.email_verified === false && <Badge variant="warning">Unverified</Badge>}
               </span>
             ),
           },

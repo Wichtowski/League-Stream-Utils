@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { withAuth } from '@lsu/auth';
 import { getSession, deleteSession } from '@lsu/draft/queries';
 import { json, unauthorized, notFound } from '@/api/_helpers';

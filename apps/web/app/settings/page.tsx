@@ -6,7 +6,12 @@ import { Button } from '@/_components/button';
 import { Badge } from '@/_components/badge';
 import { isElectron } from '@lsu/electron-bridge';
 import type { AssetTreeNode } from '@lsu/electron-bridge';
-import { useElectronStore, useOBSElectron, useBackupStore, useSyncStore } from '@lsu/electron-bridge/hooks';
+import {
+  useElectronStore,
+  useOBSElectron,
+  useBackupStore,
+  useSyncStore,
+} from '@lsu/electron-bridge/hooks';
 import { Input } from '@/_components/input';
 
 type Tab = 'general' | 'assets' | 'obs' | 'backups' | 'sync';
@@ -80,9 +85,21 @@ function GeneralTab() {
 }
 
 function AssetsTab() {
-  const { cacheStats, assetTree, integrityResults, loading, refreshCacheStats, refreshAssetTree, runIntegrityCheck, clearCache } = useElectronStore();
+  const {
+    cacheStats,
+    assetTree,
+    integrityResults,
+    loading,
+    refreshCacheStats,
+    refreshAssetTree,
+    runIntegrityCheck,
+    clearCache,
+  } = useElectronStore();
 
-  useEffect(() => { refreshCacheStats(); refreshAssetTree(); }, []);
+  useEffect(() => {
+    refreshCacheStats();
+    refreshAssetTree();
+  }, []);
 
   return (
     <div className="space-y-4">
@@ -103,8 +120,20 @@ function AssetsTab() {
           <p className="text-xs text-text-muted mb-3">Loading...</p>
         )}
         <div className="flex gap-2">
-          <Button variant="secondary" size="sm" onClick={() => { refreshCacheStats(); refreshAssetTree(); }} disabled={loading}>Refresh</Button>
-          <Button variant="secondary" size="sm" onClick={clearCache} disabled={loading}>Clear Cache</Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => {
+              refreshCacheStats();
+              refreshAssetTree();
+            }}
+            disabled={loading}
+          >
+            Refresh
+          </Button>
+          <Button variant="secondary" size="sm" onClick={clearCache} disabled={loading}>
+            Clear Cache
+          </Button>
         </div>
       </div>
 
@@ -125,9 +154,15 @@ function AssetsTab() {
         <h3 className="text-sm font-medium mb-3">Integrity Check</h3>
         {integrityResults ? (
           <div className="flex gap-6 text-sm mb-3">
-            <div><Badge variant="success">{integrityResults.valid} valid</Badge></div>
-            <div><Badge variant="error">{integrityResults.corrupted} corrupted</Badge></div>
-            <div><Badge variant="warning">{integrityResults.missing} missing</Badge></div>
+            <div>
+              <Badge variant="success">{integrityResults.valid} valid</Badge>
+            </div>
+            <div>
+              <Badge variant="error">{integrityResults.corrupted} corrupted</Badge>
+            </div>
+            <div>
+              <Badge variant="warning">{integrityResults.missing} missing</Badge>
+            </div>
           </div>
         ) : (
           <p className="text-xs text-text-muted mb-3">Run a check to scan asset files.</p>
@@ -153,27 +188,30 @@ function TreeNodeView({ node, depth }: { node: AssetTreeNode; depth: number }) {
         style={{ paddingLeft: `${depth * 16 + 4}px` }}
       >
         {isDir ? (
-          <span className={`text-text-muted transition-transform ${expanded ? 'rotate-90' : ''}`}>▸</span>
+          <span className={`text-text-muted transition-transform ${expanded ? 'rotate-90' : ''}`}>
+            ▸
+          </span>
         ) : (
           <span className="text-text-muted opacity-0">▸</span>
         )}
-        <span className={isDir ? 'text-indigo-400' : 'text-gray-300'}>
-          {node.name}
-        </span>
+        <span className={isDir ? 'text-indigo-400' : 'text-gray-300'}>{node.name}</span>
         {isDir && <span className="text-text-muted ml-1">({childCount})</span>}
         {!isDir && node.size != null && (
           <span className="ml-auto text-text-muted">{formatBytes(node.size)}</span>
         )}
       </button>
-      {isDir && expanded && node.children?.map((child) => (
-        <TreeNodeView key={child.name} node={child} depth={depth + 1} />
-      ))}
+      {isDir &&
+        expanded &&
+        node.children?.map((child) => (
+          <TreeNodeView key={child.name} node={child} depth={depth + 1} />
+        ))}
     </div>
   );
 }
 
 function OBSTab() {
-  const { connected, scenes, currentScene, connecting, error, connect, disconnect, switchScene } = useOBSElectron();
+  const { connected, scenes, currentScene, connecting, error, connect, disconnect, switchScene } =
+    useOBSElectron();
   const [url, setUrl] = useState('ws://localhost:4455');
   const [password, setPassword] = useState('');
 
@@ -189,14 +227,31 @@ function OBSTab() {
         {error && <p className="text-xs text-red-400 mb-3">{error}</p>}
         {!connected ? (
           <div className="space-y-3">
-            <Input label="WebSocket URL" id="obs-url" value={url} onChange={(e) => setUrl(e.target.value)} />
-            <Input label="Password" id="obs-pw" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-            <Button size="sm" onClick={() => connect(url, password || undefined)} disabled={connecting}>
+            <Input
+              label="WebSocket URL"
+              id="obs-url"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+            />
+            <Input
+              label="Password"
+              id="obs-pw"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <Button
+              size="sm"
+              onClick={() => connect(url, password || undefined)}
+              disabled={connecting}
+            >
               {connecting ? 'Connecting...' : 'Connect'}
             </Button>
           </div>
         ) : (
-          <Button variant="secondary" size="sm" onClick={disconnect}>Disconnect</Button>
+          <Button variant="secondary" size="sm" onClick={disconnect}>
+            Disconnect
+          </Button>
         )}
       </div>
 
@@ -229,15 +284,20 @@ function OBSTab() {
 }
 
 function BackupsTab() {
-  const { backups, loading, refreshBackups, createBackup, restoreBackup, deleteBackup } = useBackupStore();
+  const { backups, loading, refreshBackups, createBackup, restoreBackup, deleteBackup } =
+    useBackupStore();
 
-  useEffect(() => { refreshBackups(); }, []);
+  useEffect(() => {
+    refreshBackups();
+  }, []);
 
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h3 className="text-sm font-medium">Database Backups</h3>
-        <Button size="sm" onClick={createBackup} disabled={loading}>Create Backup</Button>
+        <Button size="sm" onClick={createBackup} disabled={loading}>
+          Create Backup
+        </Button>
       </div>
 
       {backups.length === 0 ? (
@@ -247,11 +307,30 @@ function BackupsTab() {
       ) : (
         <div className="space-y-2">
           {backups.map((b) => (
-            <div key={b.id} className="flex items-center justify-between rounded-lg border border-border-subtle bg-surface-raised px-4 py-3">
+            <div
+              key={b.id}
+              className="flex items-center justify-between rounded-lg border border-border-subtle bg-surface-raised px-4 py-3"
+            >
               <span className="text-sm font-mono text-text-muted">{b.id}</span>
               <div className="flex gap-2">
-                <Button variant="secondary" size="sm" onClick={() => restoreBackup(b.id)} disabled={loading}>Restore</Button>
-                <Button variant="ghost" size="sm" onClick={() => { if (confirm('Delete this backup?')) deleteBackup(b.id); }} disabled={loading}>Delete</Button>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => restoreBackup(b.id)}
+                  disabled={loading}
+                >
+                  Restore
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    if (confirm('Delete this backup?')) deleteBackup(b.id);
+                  }}
+                  disabled={loading}
+                >
+                  Delete
+                </Button>
               </div>
             </div>
           ))}
@@ -262,7 +341,8 @@ function BackupsTab() {
 }
 
 function SyncTab() {
-  const { status, syncing, lastResult, refreshStatus, fullSync, push, pull, resetSync } = useSyncStore();
+  const { status, syncing, lastResult, refreshStatus, fullSync, push, pull, resetSync } =
+    useSyncStore();
 
   useEffect(() => {
     refreshStatus();
@@ -281,11 +361,15 @@ function SyncTab() {
         <div className="space-y-2 text-sm mb-4">
           <div className="flex justify-between">
             <span className="text-text-muted">Last sync</span>
-            <span>{status?.lastSyncedAt ? new Date(status.lastSyncedAt).toLocaleString() : 'Never'}</span>
+            <span>
+              {status?.lastSyncedAt ? new Date(status.lastSyncedAt).toLocaleString() : 'Never'}
+            </span>
           </div>
           <div className="flex justify-between">
             <span className="text-text-muted">Pending changes</span>
-            <span className={status?.pendingChanges ? 'text-amber-300' : ''}>{status?.pendingChanges ?? 0}</span>
+            <span className={status?.pendingChanges ? 'text-amber-300' : ''}>
+              {status?.pendingChanges ?? 0}
+            </span>
           </div>
         </div>
 
@@ -315,14 +399,20 @@ function SyncTab() {
               <p className="text-xs text-text-muted">Pulled</p>
             </div>
             <div>
-              <p className={`text-lg font-semibold ${lastResult.conflicts > 0 ? 'text-amber-400' : 'text-text-muted'}`}>{lastResult.conflicts}</p>
+              <p
+                className={`text-lg font-semibold ${lastResult.conflicts > 0 ? 'text-amber-400' : 'text-text-muted'}`}
+              >
+                {lastResult.conflicts}
+              </p>
               <p className="text-xs text-text-muted">Conflicts</p>
             </div>
           </div>
           {lastResult.errors.length > 0 && (
             <div className="mt-3 rounded-md border border-red-500/30 bg-red-500/10 p-2">
               {lastResult.errors.map((e, i) => (
-                <p key={i} className="text-xs text-red-400">{e}</p>
+                <p key={i} className="text-xs text-red-400">
+                  {e}
+                </p>
               ))}
             </div>
           )}
@@ -334,7 +424,13 @@ function SyncTab() {
         <p className="text-xs text-text-muted mb-3">
           Reset sync metadata to start fresh. Your local data is preserved.
         </p>
-        <Button variant="ghost" size="sm" onClick={() => { if (confirm('Reset all sync metadata?')) resetSync(); }}>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => {
+            if (confirm('Reset all sync metadata?')) resetSync();
+          }}
+        >
           Reset Sync
         </Button>
       </div>

@@ -71,37 +71,46 @@ export default function MatchDetailPage({
     const newBlue = side === 'blue' ? blueScore + 1 : blueScore;
     const newRed = side === 'red' ? redScore + 1 : redScore;
     const decided = newBlue >= needed || newRed >= needed;
-    updateMatch.mutate({
-      id: matchId,
-      scoreBlue: newBlue,
-      scoreRed: newRed,
-      status: decided ? 'completed' : 'live',
-    }, {
-      onSuccess: () => toast('success', 'Score updated'),
-      onError: () => toast('error', 'Failed to update score'),
-    });
+    updateMatch.mutate(
+      {
+        id: matchId,
+        scoreBlue: newBlue,
+        scoreRed: newRed,
+        status: decided ? 'completed' : 'live',
+      },
+      {
+        onSuccess: () => toast('success', 'Score updated'),
+        onError: () => toast('error', 'Failed to update score'),
+      },
+    );
   }
 
   function setStatus(s: string) {
-    updateMatch.mutate({ id: matchId, status: s }, {
-      onSuccess: () => toast('success', `Match ${s}`),
-      onError: () => toast('error', 'Failed to update status'),
-    });
+    updateMatch.mutate(
+      { id: matchId, status: s },
+      {
+        onSuccess: () => toast('success', `Match ${s}`),
+        onError: () => toast('error', 'Failed to update status'),
+      },
+    );
   }
 
   return (
     <PageWrapper
       title={`${blueName} vs ${redName}`}
       subtitle={`${format.toUpperCase()} · ${m.round_name ?? m.roundName ?? ''}`}
-      actions={
-        <Badge variant={statusVariant[status] ?? 'default'}>{status}</Badge>
-      }
+      actions={<Badge variant={statusVariant[status] ?? 'default'}>{status}</Badge>}
     >
-      <Breadcrumbs items={[
-        { label: 'Tournaments', href: '/modules/tournaments' },
-        { label: m.tournament?.name ?? 'Tournament', href: `/modules/tournaments/${tournamentId}` },
-        { label: `${blueName} vs ${redName}` },
-      ]} />
+      <Breadcrumbs
+        items={[
+          { label: 'Tournaments', href: '/modules/tournaments' },
+          {
+            label: m.tournament?.name ?? 'Tournament',
+            href: `/modules/tournaments/${tournamentId}`,
+          },
+          { label: `${blueName} vs ${redName}` },
+        ]}
+      />
       <div className="mx-auto max-w-lg space-y-6">
         <div className="flex items-center gap-4 rounded-xl border border-border-subtle bg-surface-raised p-6">
           <TeamSide
@@ -158,7 +167,8 @@ export default function MatchDetailPage({
 
         {isComplete && (
           <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4 text-center text-sm text-emerald-400">
-            Match complete — {blueScore > redScore ? blueName : redName} wins {Math.max(blueScore, redScore)}-{Math.min(blueScore, redScore)}
+            Match complete — {blueScore > redScore ? blueName : redName} wins{' '}
+            {Math.max(blueScore, redScore)}-{Math.min(blueScore, redScore)}
           </div>
         )}
 
@@ -190,7 +200,7 @@ export default function MatchDetailPage({
 function TeamSide({
   name,
   colors,
-  score,
+  score: _score,
   isWinner,
 }: {
   name: string;
@@ -218,7 +228,7 @@ function scoreOptions(format: string) {
 }
 
 function PredictionPanel({
-  matchId,
+  matchId: _matchId,
   blueName,
   redName,
   blueColors,
@@ -248,15 +258,16 @@ function PredictionPanel({
   const scores = scoreOptions(format);
 
   // Check if prediction was correct
-  const predictionResult = isComplete && prediction
-    ? (() => {
-        const actualWinner = blueScore > redScore ? 'blue' : 'red';
-        const actualScore = `${Math.max(blueScore, redScore)}-${Math.min(blueScore, redScore)}`;
-        const winnerCorrect = prediction.winner === actualWinner;
-        const scoreCorrect = prediction.score === actualScore;
-        return { winnerCorrect, scoreCorrect, exact: winnerCorrect && scoreCorrect };
-      })()
-    : null;
+  const predictionResult =
+    isComplete && prediction
+      ? (() => {
+          const actualWinner = blueScore > redScore ? 'blue' : 'red';
+          const actualScore = `${Math.max(blueScore, redScore)}-${Math.min(blueScore, redScore)}`;
+          const winnerCorrect = prediction.winner === actualWinner;
+          const scoreCorrect = prediction.score === actualScore;
+          return { winnerCorrect, scoreCorrect, exact: winnerCorrect && scoreCorrect };
+        })()
+      : null;
 
   if (prediction) {
     const predName = prediction.winner === 'blue' ? blueName : redName;
@@ -284,8 +295,20 @@ function PredictionPanel({
           {predName} wins {prediction.score}
         </p>
         {predictionResult && (
-          <Badge variant={predictionResult.exact ? 'success' : predictionResult.winnerCorrect ? 'warning' : 'error'}>
-            {predictionResult.exact ? 'Exact!' : predictionResult.winnerCorrect ? 'Winner correct' : 'Wrong'}
+          <Badge
+            variant={
+              predictionResult.exact
+                ? 'success'
+                : predictionResult.winnerCorrect
+                  ? 'warning'
+                  : 'error'
+            }
+          >
+            {predictionResult.exact
+              ? 'Exact!'
+              : predictionResult.winnerCorrect
+                ? 'Winner correct'
+                : 'Wrong'}
           </Badge>
         )}
       </div>

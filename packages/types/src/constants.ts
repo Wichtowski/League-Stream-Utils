@@ -44,13 +44,7 @@ export const DEFAULT_TIMERS = {
 } as const;
 
 /** Canonical role display order. */
-export const ROLE_ORDER: readonly string[] = [
-  'TOP',
-  'JUNGLE',
-  'MID',
-  'BOTTOM',
-  'SUPPORT',
-] as const;
+export const ROLE_ORDER: readonly string[] = ['TOP', 'JUNGLE', 'MID', 'BOTTOM', 'SUPPORT'] as const;
 
 /** Total turns in a standard draft. */
 export const TOTAL_DRAFT_TURNS = PICK_BAN_ORDER.length;

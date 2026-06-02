@@ -15,6 +15,7 @@ The `user_permissions` table already exists with roles: `admin`, `organizer`, `m
 The `tournament_permissions` table provides per-tournament role scoping.
 
 **What's missing:**
+
 - No permission checks in API routes (anyone can create tournaments, edit teams, etc.)
 - No team ownership enforcement
 - No tournament join request system
@@ -23,6 +24,7 @@ The `tournament_permissions` table provides per-tournament role scoping.
 ### Step 1: Assign default permissions on registration
 
 Update `packages/auth/src/session.ts` → `register()`:
+
 - After user creation, insert `user_permissions` row with role `viewer`
 - All users can create teams (player behavior) and tournaments (organizer behavior) by default
 
@@ -47,16 +49,16 @@ export async function requireTournamentRole(
 
 ### Step 3: Enforce ownership in API routes
 
-| Route | Rule |
-|-------|------|
-| `POST /api/v1/teams` | Any authenticated user |
-| `PATCH /api/v1/teams/:id` | Owner only (`teams.owner_id`) |
-| `DELETE /api/v1/teams/:id` | Owner only |
-| `POST /api/v1/tournaments` | Any authenticated user |
-| `PATCH /api/v1/tournaments/:id` | Organizer (`tournaments.organizer_id`) or admin |
-| `DELETE /api/v1/tournaments/:id` | Organizer or admin |
-| `POST /api/v1/tournaments/:id/teams` | Organizer manages, or team join request |
-| `GET /api/v1/admin/*` | Admin role only |
+| Route                                | Rule                                            |
+| ------------------------------------ | ----------------------------------------------- |
+| `POST /api/v1/teams`                 | Any authenticated user                          |
+| `PATCH /api/v1/teams/:id`            | Owner only (`teams.owner_id`)                   |
+| `DELETE /api/v1/teams/:id`           | Owner only                                      |
+| `POST /api/v1/tournaments`           | Any authenticated user                          |
+| `PATCH /api/v1/tournaments/:id`      | Organizer (`tournaments.organizer_id`) or admin |
+| `DELETE /api/v1/tournaments/:id`     | Organizer or admin                              |
+| `POST /api/v1/tournaments/:id/teams` | Organizer manages, or team join request         |
+| `GET /api/v1/admin/*`                | Admin role only                                 |
 
 ### Step 4: Tournament join request system
 
@@ -67,22 +69,24 @@ interface TournamentJoinRequestsTable {
   id: Generated<string>;
   tournament_id: string;
   team_id: string;
-  requested_by: string;        // user who submitted
+  requested_by: string; // user who submitted
   status: 'pending' | 'approved' | 'rejected';
-  message: string | null;       // optional message from team
-  responded_by: string | null;  // organizer who responded
+  message: string | null; // optional message from team
+  responded_by: string | null; // organizer who responded
   responded_at: Date | null;
   created_at: ColumnType<Date, Date | undefined, never>;
 }
 ```
 
 **API routes:**
+
 - `POST /api/v1/tournaments/:id/join` — team owner submits join request
 - `GET /api/v1/tournaments/:id/requests` — organizer sees pending requests
 - `PATCH /api/v1/tournaments/:id/requests/:requestId` — approve/reject
 - On approve: auto-insert into `tournament_teams`
 
 **UI:**
+
 - Tournament detail page → "Pending Requests" tab (organizer only)
 - Team detail page → "Join Tournament" button → modal with tournament search
 - Notification badge on tournament nav when pending requests exist
@@ -90,6 +94,7 @@ interface TournamentJoinRequestsTable {
 ### Step 5: Team invitation system
 
 Allow organizers to invite teams directly:
+
 - `POST /api/v1/tournaments/:id/invite` — sends invite to team owner
 - Team owner sees invites in their dashboard → accept/decline
 - On accept: auto-insert into `tournament_teams`
@@ -110,6 +115,7 @@ plan_expires_at: Date | null;
 ```
 
 Migration:
+
 ```sql
 ALTER TABLE users ADD COLUMN plan VARCHAR(8) NOT NULL DEFAULT 'free';
 ALTER TABLE users ADD COLUMN plan_expires_at TIMESTAMPTZ;
@@ -149,12 +155,14 @@ export async function checkPlanLimit(
 ### Step 3: Gate tournament creation
 
 In `POST /api/v1/tournaments`:
+
 - Count user's existing tournaments as organizer
 - If `>= PLAN_LIMITS[user.plan].maxTournamentsAsOrganizer`, return 403 with upgrade prompt
 
 ### Step 4: UI — Plan status in settings
 
 `/settings` page shows:
+
 - Current plan (Free / Pro)
 - Usage: "2 of 3 tournaments used"
 - "Upgrade to Pro" CTA (disabled for now, shows "Coming soon" or manual contact)
@@ -163,6 +171,7 @@ In `POST /api/v1/tournaments`:
 ### Step 5: Admin can change user plans
 
 In the super-admin panel (Phase 3):
+
 - Dropdown to change user plan (free/pro)
 - Set expiration date
 - Logged in `permission_audit` table
@@ -171,14 +180,15 @@ In the super-admin panel (Phase 3):
 
 ## New Tables
 
-| Table | Description |
-|-------|-------------|
+| Table                      | Description                          |
+| -------------------------- | ------------------------------------ |
 | `tournament_join_requests` | Teams requesting to join tournaments |
-| `tournament_invitations` | Organizers inviting teams |
+| `tournament_invitations`   | Organizers inviting teams            |
 
 ## Files Changed/Created
 
 ### New
+
 - `packages/auth/src/permissions.ts` — permission check helpers
 - `packages/auth/src/plan.ts` — plan limits + check helpers
 - `packages/db/src/migrations/002_join_requests.ts`
@@ -189,6 +199,7 @@ In the super-admin panel (Phase 3):
 - `apps/web/app/api/v1/tournaments/[id]/invite/route.ts`
 
 ### Modified
+
 - `packages/db/src/types.ts` — add new table interfaces + plan fields
 - `packages/auth/src/session.ts` — assign default role on register
 - `packages/auth/src/index.ts` — export new modules

@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const RIOT_API_KEY = process.env.RIOT_API_KEY!;
-const REGION_BASE_URL = 'https://europe.api.riotgames.com'; 
+const REGION_BASE_URL = 'https://europe.api.riotgames.com';
 
 console.log(RIOT_API_KEY);
 
@@ -14,8 +14,8 @@ interface RiotUser {
 }
 
 const users: RiotUser[] = [
-    // Company players
-    { gameName: "Robak P", tagLine: "EUNE" },
+  // Company players
+  { gameName: 'Robak P', tagLine: 'EUNE' },
 ];
 
 async function fetchRiotAccount(user: RiotUser) {

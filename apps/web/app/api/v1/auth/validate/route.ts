@@ -1,7 +1,7 @@
-import { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { validateSession } from '@lsu/auth';
 import { getDbForRequest } from '@lsu/db';
-import { json, setCookies } from '@/api/_helpers';
+import { json } from '@/api/_helpers';
 
 export async function GET(request: NextRequest) {
   const refreshToken = request.cookies.get('refresh_token')?.value;

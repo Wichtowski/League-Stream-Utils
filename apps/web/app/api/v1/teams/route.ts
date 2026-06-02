@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { withAuth } from '@lsu/auth';
 import { getDbForRequest } from '@lsu/db';
 import { getTeams, createTeam } from '@lsu/team/queries';

@@ -1,8 +1,7 @@
-import { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { withAuth } from '@lsu/auth';
 import { getDb } from '@lsu/db';
 import { json, error, unauthorized, forbidden, parseBody } from '@/api/_helpers';
-import { sql } from 'kysely';
 
 const SYNCED_TABLES = [
   'teams',
@@ -106,7 +105,10 @@ export async function POST(request: NextRequest) {
           const localTime = new Date(change.updated_at).getTime();
 
           if (localTime >= cloudTime) {
-            const { local_id, id, created_at, ...updateData } = change.data as Record<string, unknown>;
+            const { local_id, id, created_at, ...updateData } = change.data as Record<
+              string,
+              unknown
+            >;
             await db
               .updateTable(change.table)
               .set({

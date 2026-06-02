@@ -136,7 +136,9 @@ export function registerAssetHandlers() {
           nodes.push({ name: entry.name, type: 'file', size: stat.size });
         }
       }
-      return nodes.sort((a, b) => (a.type === b.type ? a.name.localeCompare(b.name) : a.type === 'directory' ? -1 : 1));
+      return nodes.sort((a, b) =>
+        a.type === b.type ? a.name.localeCompare(b.name) : a.type === 'directory' ? -1 : 1,
+      );
     }
 
     return buildTree(assetsDir);

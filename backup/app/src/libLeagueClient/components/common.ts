@@ -18,7 +18,7 @@ export const getSummonerSpellImageByName = (summonerSpellName: string): string =
   // Trim all spaces and add "Summoner" prefix
   const original = (summonerSpellName || "").trim();
   let normalizedName = "";
-  
+
   if (!original) return "";
   if (original === "Teleport Unleashed") {
     normalizedName = "unleashed_teleport_new.png";

@@ -1,5 +1,14 @@
 import { create } from 'zustand';
-import { isElectron, getElectronAPI, type AssetTreeNode, type DownloadProgress, type AppMode, type SyncResult, type SyncStatus, type SyncProgress } from './index';
+import {
+  isElectron,
+  getElectronAPI,
+  type AssetTreeNode,
+  type DownloadProgress,
+  type AppMode,
+  type SyncResult,
+  type SyncStatus,
+  type SyncProgress,
+} from './index';
 
 interface ElectronStore {
   isElectronEnv: boolean;

@@ -41,7 +41,7 @@ export class LCUUIControl {
       interfaceTimeline: false
     };
 
-    await this.lcuClient.post('/replay/render', renderSettings);
+    await this.lcuClient.post("/replay/render", renderSettings);
   }
 
   /**
@@ -64,7 +64,7 @@ export class LCUUIControl {
       interfaceTimeline: true
     };
 
-    await this.lcuClient.post('/replay/render', renderSettings);
+    await this.lcuClient.post("/replay/render", renderSettings);
   }
 
   /**
@@ -95,20 +95,20 @@ export class LCUUIControl {
       banners: true
     };
 
-    await this.lcuClient.post('/replay/render', renderSettings);
+    await this.lcuClient.post("/replay/render", renderSettings);
   }
 
   /**
    * Get current render settings
    */
   async getCurrentRenderSettings(): Promise<RenderSettings> {
-    return await this.lcuClient.get<RenderSettings>('/replay/render');
+    return await this.lcuClient.get<RenderSettings>("/replay/render");
   }
 
   /**
    * Set custom render settings
    */
   async setCustomRenderSettings(settings: RenderSettings): Promise<void> {
-    await this.lcuClient.post('/replay/render', settings);
+    await this.lcuClient.post("/replay/render", settings);
   }
 }

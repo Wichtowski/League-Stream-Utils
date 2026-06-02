@@ -1,7 +1,7 @@
-import { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { withAuth } from '@lsu/auth';
 import { getDbForRequest } from '@lsu/db';
-import { createMatch, saveBracket } from '@lsu/tournament/queries';
+import { createMatch } from '@lsu/tournament/queries';
 import { json, error, unauthorized, parseBody } from '@/api/_helpers';
 
 interface Params {

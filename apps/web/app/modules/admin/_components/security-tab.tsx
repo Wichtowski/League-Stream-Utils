@@ -52,8 +52,7 @@ export function SecurityTab() {
 
   const { data: loginAttempts } = useQuery({
     queryKey: ['admin', 'security', 'login-attempts'],
-    queryFn: () =>
-      fetchJSON<any[]>('/api/v1/admin/security/login-attempts?limit=20&success=false'),
+    queryFn: () => fetchJSON<any[]>('/api/v1/admin/security/login-attempts?limit=20&success=false'),
   });
 
   return (
@@ -101,9 +100,7 @@ export function SecurityTab() {
               {
                 key: 'username',
                 header: 'User',
-                render: (e: any) => (
-                  <span className="text-text-muted">{e.username ?? '—'}</span>
-                ),
+                render: (e: any) => <span className="text-text-muted">{e.username ?? '—'}</span>,
               },
               {
                 key: 'ip',

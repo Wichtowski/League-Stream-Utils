@@ -23,7 +23,11 @@ export function registerChampionHandlers() {
     }
 
     const versions = await fs.readdir(cacheDir, { withFileTypes: true });
-    const dirs = versions.filter((d) => d.isDirectory()).map((d) => d.name).sort().reverse();
+    const dirs = versions
+      .filter((d) => d.isDirectory())
+      .map((d) => d.name)
+      .sort()
+      .reverse();
 
     if (dirs.length === 0) return null;
 

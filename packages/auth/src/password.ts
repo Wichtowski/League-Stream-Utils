@@ -19,10 +19,7 @@ export function validatePasswordStrength(password: string): string | null {
   return null;
 }
 
-export async function isPasswordReused(
-  password: string,
-  history: string[],
-): Promise<boolean> {
+export async function isPasswordReused(password: string, history: string[]): Promise<boolean> {
   for (const old of history.slice(0, PASSWORD_HISTORY_SIZE)) {
     if (await compare(password, old)) return true;
   }

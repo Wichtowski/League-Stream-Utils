@@ -30,7 +30,11 @@ export function usedraftSession(id: string) {
 export function useCreatedraftSession() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (data: { config: Record<string, unknown>; teams: Record<string, unknown>; password?: string }) =>
+    mutationFn: (data: {
+      config: Record<string, unknown>;
+      teams: Record<string, unknown>;
+      password?: string;
+    }) =>
       fetchJSON('/api/v1/draft', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

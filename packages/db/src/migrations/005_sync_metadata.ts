@@ -21,14 +21,8 @@ export async function up(db: Kysely<unknown>): Promise<void> {
       .alterTable(table)
       .addColumn('sync_status', 'varchar(10)', (c) => c.defaultTo('synced'))
       .execute();
-    await db.schema
-      .alterTable(table)
-      .addColumn('last_synced_at', 'timestamp')
-      .execute();
-    await db.schema
-      .alterTable(table)
-      .addColumn('cloud_id', 'uuid')
-      .execute();
+    await db.schema.alterTable(table).addColumn('last_synced_at', 'timestamp').execute();
+    await db.schema.alterTable(table).addColumn('cloud_id', 'uuid').execute();
   }
 
   await db.schema
@@ -42,11 +36,7 @@ export async function up(db: Kysely<unknown>): Promise<void> {
     .addColumn('synced_at', 'timestamp')
     .execute();
 
-  await db.schema
-    .createIndex('idx_sync_log_unsynced')
-    .on('sync_log')
-    .column('synced_at')
-    .execute();
+  await db.schema.createIndex('idx_sync_log_unsynced').on('sync_log').column('synced_at').execute();
 }
 
 export async function down(db: Kysely<unknown>): Promise<void> {

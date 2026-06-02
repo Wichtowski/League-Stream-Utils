@@ -80,7 +80,7 @@ export class GameService {
       if (matchId) {
         headers["x-match-id"] = matchId;
       }
-      
+
       const response = await fetch("/api/game", { headers });
 
       if (!response.ok) {
@@ -175,17 +175,17 @@ const itemCostCache = new Map<number, number>();
 
 function getItemCost(itemId: number): number {
   if (itemId === 0) return 0; // No item
-  
+
   // Check cache first
   if (itemCostCache.has(itemId)) {
     return itemCostCache.get(itemId)!;
   }
-  
+
   try {
     // Get item data from browser localStorage cache
     const itemData = getItemById(itemId.toString());
     const cost = itemData?.cost || 0;
-    
+
     // Cache the result
     itemCostCache.set(itemId, cost);
     return cost;
@@ -195,34 +195,33 @@ function getItemCost(itemId: number): number {
   }
 }
 
-function calculateSimulatedGold(
-  player: LivePlayer, 
-  gameTime: number
-): number {
+function calculateSimulatedGold(player: LivePlayer, gameTime: number): number {
   // Calculate current gold (what player has in pocket)
   let currentGold = 500; // Starting gold
-  
+
   // Add passive gold generation: 20.4 gold per 10 seconds, starts at 1:50
-  if (gameTime > 110) { // 1:50 in seconds
+  if (gameTime > 110) {
+    // 1:50 in seconds
     const passiveGoldTime = gameTime - 110;
     const passiveGoldPeriods = Math.floor(passiveGoldTime / 10);
     currentGold += passiveGoldPeriods * 20.4;
   }
-  
+
   // Add minion gold (scaled for realistic farming)
-  if (gameTime > 90) { // Minions spawn at 1:30
+  if (gameTime > 90) {
+    // Minions spawn at 1:30
     const minionTime = gameTime - 90;
     const waveInterval = 30; // New wave every 30 seconds
     const waves = Math.floor(minionTime / waveInterval);
-    
+
     if (waves > 0) {
       const timeInMinutes = gameTime / 60;
-      const goldPerWave = 125 + ((195 - 125) * Math.min(timeInMinutes, 25) / 25);
+      const goldPerWave = 125 + ((195 - 125) * Math.min(timeInMinutes, 25)) / 25;
       const farmEfficiency = 0.6; // Assume 60% of minions are farmed
       currentGold += waves * goldPerWave * farmEfficiency;
     }
   }
-  
+
   // Calculate total item value (what player has spent)
   let totalItemValue = 0;
   for (const item of player.items) {
@@ -231,10 +230,9 @@ function calculateSimulatedGold(
       totalItemValue += itemCost * item.count;
     }
   }
-  
+
   const totalGold = currentGold + totalItemValue;
-  
-  
+
   return totalGold;
 }
 
@@ -247,15 +245,15 @@ function transformRiotToLiveGameData(riot: RiotLiveClientData): LiveGameData {
       summonerName: p.summonerName,
       championName: p.championName,
       team: p.team,
-      riotIdTag: p.summonerName.split('#')[1],
-      riotIdGameName: p.summonerName.split('#')[0], // Extract game name without Riot tag
+      riotIdTag: p.summonerName.split("#")[1],
+      riotIdGameName: p.summonerName.split("#")[0], // Extract game name without Riot tag
       position: p.position,
       scores: {
         kills: p.scores?.kills ?? 0,
         deaths: p.scores?.deaths ?? 0,
         assists: p.scores?.assists ?? 0,
         creepScore: p.scores?.creepScore ?? 0,
-        wardScore: p.scores?.wardScore ?? 0,
+        wardScore: p.scores?.wardScore ?? 0
       },
       items: (p.items || []).map((it, index) => ({
         itemID: it.itemID ?? 0,
@@ -306,7 +304,7 @@ function transformRiotToLiveGameData(riot: RiotLiveClientData): LiveGameData {
         totalItemValue += itemCost * item.count;
       }
     }
-    
+
     // Check if we have live data for this player
     if (player.liveInfo?.currentGold !== undefined) {
       // Live data: current gold + item value
@@ -328,28 +326,30 @@ function transformRiotToLiveGameData(riot: RiotLiveClientData): LiveGameData {
     activeName,
     totalPlayers: allPlayers.length
   });
-  
-  const blueTeam = allPlayers.filter(p => p.team === "ORDER");
-  const redTeam = allPlayers.filter(p => p.team === "CHAOS");
+
+  const blueTeam = allPlayers.filter((p) => p.team === "ORDER");
+  const redTeam = allPlayers.filter((p) => p.team === "CHAOS");
   const blueGold = blueTeam.reduce((sum, p) => sum + (p.gold || 0), 0);
   const redGold = redTeam.reduce((sum, p) => sum + (p.gold || 0), 0);
-  
+
   console.log("💰 Team Gold Totals:", {
     blueTeamGold: blueGold,
     redTeamGold: redGold,
     blueTeamCount: blueTeam.length,
     redTeamCount: redTeam.length
   });
-  
-  console.log("👥 Player Details:", allPlayers.map(p => ({
-    name: p.summonerName,
-    team: p.team,
-    gold: p.gold,
-    hasLiveInfo: !!p.liveInfo?.currentGold,
-    liveGold: p.liveInfo?.currentGold,
-    isActive: p.summonerName === activeName
-  })));
 
+  console.log(
+    "👥 Player Details:",
+    allPlayers.map((p) => ({
+      name: p.summonerName,
+      team: p.team,
+      gold: p.gold,
+      hasLiveInfo: !!p.liveInfo?.currentGold,
+      liveGold: p.liveInfo?.currentGold,
+      isActive: p.summonerName === activeName
+    }))
+  );
 
   return {
     gameData: {

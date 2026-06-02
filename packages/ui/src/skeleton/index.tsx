@@ -31,13 +31,7 @@ export function Skeleton({
     ...style,
   };
 
-  return (
-    <div
-      className={`animate-pulse bg-white/5 ${className}`}
-      style={base}
-      {...rest}
-    />
-  );
+  return <div className={`animate-pulse bg-white/5 ${className}`} style={base} {...rest} />;
 }
 
 interface TableSkeletonProps {
@@ -71,9 +65,7 @@ interface CardSkeletonProps {
 
 export function CardSkeleton({ className = '' }: CardSkeletonProps) {
   return (
-    <div
-      className={`rounded-lg border border-white/10 p-4 space-y-3 ${className}`}
-    >
+    <div className={`rounded-lg border border-white/10 p-4 space-y-3 ${className}`}>
       <Skeleton height="1.25rem" width="60%" />
       <Skeleton height="0.875rem" width="80%" />
       <Skeleton height="0.875rem" width="40%" />

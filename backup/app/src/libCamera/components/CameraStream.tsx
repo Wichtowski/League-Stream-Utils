@@ -115,7 +115,7 @@ export const CameraStream: React.FC<CameraStreamProps> = ({
     const style: React.CSSProperties = {
       width,
       height: height === "auto" ? undefined : height,
-      aspectRatio: height === "auto" ? aspectRatio : undefined,
+      aspectRatio: height === "auto" ? aspectRatio : undefined
     };
     return style;
   }, [width, height, aspectRatio]);
@@ -127,9 +127,7 @@ export const CameraStream: React.FC<CameraStreamProps> = ({
           {teamName ? "No Players Found" : "No Players Available"}
         </h2>
         <p className="text-gray-400 mb-4">
-          {teamName
-            ? `No camera feeds configured for ${teamName}`
-            : "No camera feeds are available"}
+          {teamName ? `No camera feeds configured for ${teamName}` : "No camera feeds are available"}
         </p>
       </div>
     );
@@ -171,14 +169,14 @@ export const CameraStream: React.FC<CameraStreamProps> = ({
           <>
             {/* Shadow Background - Independent */}
             <div className="absolute bottom-0 left-0 right-0 z-10 bg-gradient-to-t from-black via-black/70 to-transparent py-8"></div>
-            
+
             {/* Text - Independent */}
             <div className="absolute bottom-0 left-0 right-0 z-20 flex items-center justify-center py-4 px-2">
-              <h2 className={`font-bold text-white ${
-                playerNameSize === "small" ? "text-lg" :
-                playerNameSize === "medium" ? "text-2xl" :
-                "text-4xl"
-              }`}>
+              <h2
+                className={`font-bold text-white ${
+                  playerNameSize === "small" ? "text-lg" : playerNameSize === "medium" ? "text-2xl" : "text-4xl"
+                }`}
+              >
                 {currentPlayer.inGameName || currentPlayer.playerName || "Unknown Player"}
               </h2>
             </div>

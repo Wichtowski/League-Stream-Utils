@@ -12,6 +12,7 @@
     "lint": "eslint src/"
   },
   "devDependencies": {
+    "@lsu/config": "workspace:*",
     "typescript": "^5.8.3"
   }
 }

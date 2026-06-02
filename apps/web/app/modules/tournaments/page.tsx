@@ -29,7 +29,12 @@ export default function TournamentsPage() {
 
   function handleCreate() {
     createTournament.mutate(
-      { name: form.name, type: form.type, format: form.format, description: form.description || undefined },
+      {
+        name: form.name,
+        type: form.type,
+        format: form.format,
+        description: form.description || undefined,
+      },
       {
         onSuccess: () => {
           setShowCreate(false);
@@ -59,69 +64,76 @@ export default function TournamentsPage() {
         </div>
       ) : (
         <>
-        <DataTable
-          columns={[
-            {
-              key: 'name',
-              header: 'Tournament',
-              render: (t: any) => <span className="font-medium">{t.name}</span>,
-            },
-            {
-              key: 'type',
-              header: 'Type',
-              render: (t: any) => <span className="text-text-muted capitalize">{t.type?.replace('_', ' ')}</span>,
-              className: 'w-32',
-            },
-            {
-              key: 'format',
-              header: 'Format',
-              render: (t: any) => <Badge variant="info">{t.format?.toUpperCase()}</Badge>,
-              className: 'w-24',
-            },
-            {
-              key: 'status',
-              header: 'Status',
-              render: (t: any) => <Badge variant={statusVariant[t.status] ?? 'default'}>{t.status}</Badge>,
-              className: 'w-28',
-            },
-            {
-              key: 'teams',
-              header: 'Teams',
-              render: (t: any) => <span className="text-text-muted">{t.tournamentTeams?.length ?? 0}</span>,
-              className: 'w-20',
-            },
-            {
-              key: 'actions',
-              header: '',
-              render: (t: any) => (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (confirm(`Delete ${t.name}?`)) deleteTournament.mutate(t.id, {
-                      onSuccess: () => toast('success', 'Tournament deleted'),
-                      onError: () => toast('error', 'Failed to delete tournament'),
-                    });
-                  }}
-                >
-                  Delete
-                </Button>
-              ),
-              className: 'w-20 text-right',
-            },
-          ]}
-          data={tournaments ?? []}
-          keyExtractor={(t: any) => t.id}
-          emptyMessage=""
-        />
-        {(tournaments ?? []).length === 0 && (
-          <EmptyState
-            message="No tournaments yet — set up brackets and manage matches."
-            actionLabel="Create a tournament"
-            actionHref="/modules/tournaments/new"
+          <DataTable
+            columns={[
+              {
+                key: 'name',
+                header: 'Tournament',
+                render: (t: any) => <span className="font-medium">{t.name}</span>,
+              },
+              {
+                key: 'type',
+                header: 'Type',
+                render: (t: any) => (
+                  <span className="text-text-muted capitalize">{t.type?.replace('_', ' ')}</span>
+                ),
+                className: 'w-32',
+              },
+              {
+                key: 'format',
+                header: 'Format',
+                render: (t: any) => <Badge variant="info">{t.format?.toUpperCase()}</Badge>,
+                className: 'w-24',
+              },
+              {
+                key: 'status',
+                header: 'Status',
+                render: (t: any) => (
+                  <Badge variant={statusVariant[t.status] ?? 'default'}>{t.status}</Badge>
+                ),
+                className: 'w-28',
+              },
+              {
+                key: 'teams',
+                header: 'Teams',
+                render: (t: any) => (
+                  <span className="text-text-muted">{t.tournamentTeams?.length ?? 0}</span>
+                ),
+                className: 'w-20',
+              },
+              {
+                key: 'actions',
+                header: '',
+                render: (t: any) => (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (confirm(`Delete ${t.name}?`))
+                        {deleteTournament.mutate(t.id, {
+                          onSuccess: () => toast('success', 'Tournament deleted'),
+                          onError: () => toast('error', 'Failed to delete tournament'),
+                        });}
+                    }}
+                  >
+                    Delete
+                  </Button>
+                ),
+                className: 'w-20 text-right',
+              },
+            ]}
+            data={tournaments ?? []}
+            keyExtractor={(t: any) => t.id}
+            emptyMessage=""
           />
-        )}
+          {(tournaments ?? []).length === 0 && (
+            <EmptyState
+              message="No tournaments yet — set up brackets and manage matches."
+              actionLabel="Create a tournament"
+              actionHref="/modules/tournaments/new"
+            />
+          )}
         </>
       )}
 
@@ -131,7 +143,9 @@ export default function TournamentsPage() {
         title="Create Tournament"
         footer={
           <>
-            <Button variant="secondary" onClick={() => setShowCreate(false)}>Cancel</Button>
+            <Button variant="secondary" onClick={() => setShowCreate(false)}>
+              Cancel
+            </Button>
             <Button onClick={handleCreate} disabled={!form.name || createTournament.isPending}>
               {createTournament.isPending ? 'Creating...' : 'Create'}
             </Button>
@@ -139,7 +153,13 @@ export default function TournamentsPage() {
         }
       >
         <div className="space-y-4">
-          <Input label="Name" id="t-name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Summer Split 2026" />
+          <Input
+            label="Name"
+            id="t-name"
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            placeholder="Summer Split 2026"
+          />
           <div className="grid grid-cols-2 gap-3">
             <Select
               label="Type"
@@ -165,7 +185,13 @@ export default function TournamentsPage() {
               ]}
             />
           </div>
-          <Textarea label="Description" id="t-desc" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Optional description..." />
+          <Textarea
+            label="Description"
+            id="t-desc"
+            value={form.description}
+            onChange={(e) => setForm({ ...form, description: e.target.value })}
+            placeholder="Optional description..."
+          />
         </div>
       </Modal>
     </PageWrapper>

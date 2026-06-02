@@ -50,9 +50,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}>
-        <ConditionalLayout
-          obsContent={children}
-        >
+        <ConditionalLayout obsContent={children}>
           <ContextWrapper
             contexts={[
               { name: "Electron", provider: ElectronProvider },

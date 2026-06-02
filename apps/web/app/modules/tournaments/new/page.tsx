@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { PageWrapper } from '@/_components/page-wrapper';
 import { Button } from '@/_components/button';
-import { Input, Textarea, Select } from '@/_components/input';
+import { Input, Textarea } from '@/_components/input';
 import { Badge } from '@/_components/badge';
 import { toast } from '@/_components/toast';
 import { useTeams } from '@lsu/team/hooks';
@@ -33,10 +33,24 @@ const INITIAL: TournamentForm = {
 const STEPS = ['Info', 'Format', 'Teams', 'Review'] as const;
 
 const TYPE_INFO: Record<string, { label: string; description: string }> = {
-  ladder: { label: 'Ladder', description: 'Single/double elimination bracket. Teams are seeded and play in a knockout format.' },
-  swiss: { label: 'Swiss', description: 'Teams play N rounds, matched by record. No team is eliminated until the final standings.' },
-  round_robin: { label: 'Round Robin', description: 'Everyone plays everyone. Final standings by wins.' },
-  groups: { label: 'Groups', description: 'Group stage followed by knockout. Split into groups, top teams advance.' },
+  ladder: {
+    label: 'Ladder',
+    description:
+      'Single/double elimination bracket. Teams are seeded and play in a knockout format.',
+  },
+  swiss: {
+    label: 'Swiss',
+    description:
+      'Teams play N rounds, matched by record. No team is eliminated until the final standings.',
+  },
+  round_robin: {
+    label: 'Round Robin',
+    description: 'Everyone plays everyone. Final standings by wins.',
+  },
+  groups: {
+    label: 'Groups',
+    description: 'Group stage followed by knockout. Split into groups, top teams advance.',
+  },
 };
 
 async function fetchJSON<T>(url: string, init?: RequestInit): Promise<T> {
@@ -52,10 +66,13 @@ export default function TournamentWizardPage() {
   const [submitting, setSubmitting] = useState(false);
 
   const canNext =
-    step === 0 ? form.name.length >= 2 :
-    step === 1 ? true :
-    step === 2 ? form.teamIds.length >= 2 :
-    true;
+    step === 0
+      ? form.name.length >= 2
+      : step === 1
+        ? true
+        : step === 2
+          ? form.teamIds.length >= 2
+          : true;
 
   async function handleSubmit() {
     setSubmitting(true);
@@ -91,11 +108,16 @@ export default function TournamentWizardPage() {
   }
 
   return (
-    <PageWrapper title="Create Tournament" subtitle={`Step ${step + 1} of ${STEPS.length}: ${STEPS[step]}`}>
-      <Breadcrumbs items={[
-        { label: 'Tournaments', href: '/modules/tournaments' },
-        { label: 'New Tournament' },
-      ]} />
+    <PageWrapper
+      title="Create Tournament"
+      subtitle={`Step ${step + 1} of ${STEPS.length}: ${STEPS[step]}`}
+    >
+      <Breadcrumbs
+        items={[
+          { label: 'Tournaments', href: '/modules/tournaments' },
+          { label: 'New Tournament' },
+        ]}
+      />
       <div className="mb-6 flex gap-1">
         {STEPS.map((s, i) => (
           <div
@@ -136,7 +158,13 @@ export default function TournamentWizardPage() {
   );
 }
 
-function StepInfo({ form, setForm }: { form: TournamentForm; setForm: (f: TournamentForm) => void }) {
+function StepInfo({
+  form,
+  setForm,
+}: {
+  form: TournamentForm;
+  setForm: (f: TournamentForm) => void;
+}) {
   return (
     <div className="space-y-4">
       <Input
@@ -173,7 +201,13 @@ function StepInfo({ form, setForm }: { form: TournamentForm; setForm: (f: Tourna
   );
 }
 
-function StepFormat({ form, setForm }: { form: TournamentForm; setForm: (f: TournamentForm) => void }) {
+function StepFormat({
+  form,
+  setForm,
+}: {
+  form: TournamentForm;
+  setForm: (f: TournamentForm) => void;
+}) {
   return (
     <div className="space-y-5">
       <div>
@@ -221,7 +255,13 @@ function StepFormat({ form, setForm }: { form: TournamentForm; setForm: (f: Tour
   );
 }
 
-function StepTeams({ form, setForm }: { form: TournamentForm; setForm: (f: TournamentForm) => void }) {
+function StepTeams({
+  form,
+  setForm,
+}: {
+  form: TournamentForm;
+  setForm: (f: TournamentForm) => void;
+}) {
   const { data: teams, isPending } = useTeams();
 
   function toggleTeam(id: string) {
@@ -274,9 +314,7 @@ function StepTeams({ form, setForm }: { form: TournamentForm; setForm: (f: Tourn
               <span className="font-medium">{t.name}</span>
               <span className="ml-2 text-text-muted">[{t.tag}]</span>
             </div>
-            {selected && (
-              <Badge variant="info">Seed #{seedIndex + 1}</Badge>
-            )}
+            {selected && <Badge variant="info">Seed #{seedIndex + 1}</Badge>}
           </button>
         );
       })}
@@ -290,7 +328,7 @@ function StepTeams({ form, setForm }: { form: TournamentForm; setForm: (f: Tourn
 
 function StepReview({ form }: { form: TournamentForm }) {
   const { data: teams } = useTeams();
-  const teamMap = new Map((teams as any[] ?? []).map((t: any) => [t.id, t]));
+  const teamMap = new Map(((teams as any[]) ?? []).map((t: any) => [t.id, t]));
 
   return (
     <div className="rounded-lg border border-border-subtle bg-surface-raised p-4 space-y-4">
@@ -304,7 +342,8 @@ function StepReview({ form }: { form: TournamentForm }) {
         <Badge variant="info">{form.format.toUpperCase()}</Badge>
         {form.startDate && (
           <span className="text-xs text-text-muted">
-            {form.startDate}{form.endDate ? ` — ${form.endDate}` : ''}
+            {form.startDate}
+            {form.endDate ? ` — ${form.endDate}` : ''}
           </span>
         )}
       </div>

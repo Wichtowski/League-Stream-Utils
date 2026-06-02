@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { withAuth } from '@lsu/auth';
 import { getDbForRequest } from '@lsu/db';
 import { json, error, unauthorized, forbidden, notFound, parseBody } from '@/api/_helpers';
@@ -31,10 +31,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     .executeTakeFirst();
   if (!user) return notFound('User not found');
 
-  await db
-    .deleteFrom('user_permissions')
-    .where('user_id', '=', userId)
-    .execute();
+  await db.deleteFrom('user_permissions').where('user_id', '=', userId).execute();
 
   const perm = await db
     .insertInto('user_permissions')

@@ -6,7 +6,12 @@ interface CameraUIState {
   selectTeam: (id: string | null) => void;
 }
 
-export const useCameraStore = create<CameraUIState>()(devtools((set) => ({
-  selectedTeamId: null,
-  selectTeam: (id) => set({ selectedTeamId: id }),
-}), { name: 'camera' }));
+export const useCameraStore = create<CameraUIState>()(
+  devtools(
+    (set) => ({
+      selectedTeamId: null,
+      selectTeam: (id) => set({ selectedTeamId: id }),
+    }),
+    { name: 'camera' },
+  ),
+);

@@ -24,7 +24,12 @@ export class ItemDownloadManager extends BaseDownloadManager {
     const missing = ids.filter((id) => !completed.has(id));
 
     if (missing.length === 0) {
-      this.progress({ stage: 'complete', current: ids.length, total: ids.length, itemName: 'all cached' });
+      this.progress({
+        stage: 'complete',
+        current: ids.length,
+        total: ids.length,
+        itemName: 'all cached',
+      });
       return;
     }
 

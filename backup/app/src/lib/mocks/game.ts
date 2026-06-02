@@ -24,7 +24,7 @@ const getRandomItem = (slot: number): { itemID: number; name: string; count: num
     { itemID: 3859, name: "Steel Shoulderguards", count: 1, price: 400 },
     { itemID: 1039, name: "Hunter's Talisman", count: 1, price: 350 }
   ];
-  
+
   const randomItem = items[Math.floor(Math.random() * items.length)];
   return { ...randomItem, slot };
 };
@@ -32,21 +32,21 @@ const getRandomItem = (slot: number): { itemID: number; name: string; count: num
 const getRandomItems = (): { itemID: number; name: string; count: number; price: number; slot: number }[] => {
   const itemCount = Math.floor(Math.random() * 4) + 1; // 1-4 items
   const items = [];
-  
+
   for (let i = 0; i < itemCount; i++) {
     items.push(getRandomItem(i));
   }
-  
+
   // Add trinket in slot 6
   const trinkets = [
     { itemID: 3363, name: "Farsight Alteration", count: 1, price: 0, slot: 6 },
     { itemID: 3364, name: "Oracle Lens", count: 1, price: 0, slot: 6 },
     { itemID: 3340, name: "Stealth Ward", count: 1, price: 0, slot: 6 }
   ];
-  
+
   const randomTrinket = trinkets[Math.floor(Math.random() * trinkets.length)];
   items.push(randomTrinket);
-  
+
   return items;
 };
 
@@ -63,7 +63,7 @@ export const staticPlayersOrderMock: LivePlayer[] = [
       deaths: getRandomValue(),
       assists: getRandomValue(),
       creepScore: getRandomValue(250),
-      wardScore: getRandomValue(30),
+      wardScore: getRandomValue(30)
     },
     items: getRandomItems(),
     level: getRandomValue(18),
@@ -90,7 +90,7 @@ export const staticPlayersOrderMock: LivePlayer[] = [
       deaths: getRandomValue(),
       assists: getRandomValue(),
       creepScore: getRandomValue(250),
-      wardScore: getRandomValue(30),
+      wardScore: getRandomValue(30)
     },
     items: getRandomItems(),
     level: getRandomValue(18),
@@ -117,7 +117,7 @@ export const staticPlayersOrderMock: LivePlayer[] = [
       deaths: getRandomValue(),
       assists: getRandomValue(),
       creepScore: getRandomValue(250),
-      wardScore: getRandomValue(30),
+      wardScore: getRandomValue(30)
     },
     items: getRandomItems(),
     level: getRandomValue(18),
@@ -144,7 +144,7 @@ export const staticPlayersOrderMock: LivePlayer[] = [
       deaths: getRandomValue(),
       assists: getRandomValue(),
       creepScore: getRandomValue(250),
-      wardScore: getRandomValue(30),
+      wardScore: getRandomValue(30)
     },
     items: getRandomItems(),
     level: getRandomValue(18),
@@ -171,7 +171,7 @@ export const staticPlayersOrderMock: LivePlayer[] = [
       deaths: getRandomValue(),
       assists: getRandomValue(),
       creepScore: getRandomValue(250),
-      wardScore: getRandomValue(30),
+      wardScore: getRandomValue(30)
     },
     items: getRandomItems(),
     level: getRandomValue(18),
@@ -201,7 +201,7 @@ export const staticPlayersChaosMock: LivePlayer[] = [
       deaths: getRandomValue(),
       assists: getRandomValue(),
       creepScore: getRandomValue(250),
-      wardScore: getRandomValue(30),
+      wardScore: getRandomValue(30)
     },
     items: getRandomItems(),
     level: getRandomValue(18),
@@ -228,7 +228,7 @@ export const staticPlayersChaosMock: LivePlayer[] = [
       deaths: getRandomValue(),
       assists: getRandomValue(),
       creepScore: getRandomValue(250),
-      wardScore: getRandomValue(30),
+      wardScore: getRandomValue(30)
     },
     items: getRandomItems(),
     level: getRandomValue(18),
@@ -255,7 +255,7 @@ export const staticPlayersChaosMock: LivePlayer[] = [
       deaths: getRandomValue(),
       assists: getRandomValue(),
       creepScore: getRandomValue(250),
-      wardScore: getRandomValue(30),
+      wardScore: getRandomValue(30)
     },
     items: getRandomItems(),
     level: getRandomValue(18),
@@ -282,7 +282,7 @@ export const staticPlayersChaosMock: LivePlayer[] = [
       deaths: getRandomValue(),
       assists: getRandomValue(),
       creepScore: getRandomValue(250),
-      wardScore: getRandomValue(30),
+      wardScore: getRandomValue(30)
     },
     items: getRandomItems(),
     level: getRandomValue(18),
@@ -309,7 +309,7 @@ export const staticPlayersChaosMock: LivePlayer[] = [
       deaths: getRandomValue(),
       assists: getRandomValue(),
       creepScore: getRandomValue(250),
-      wardScore: getRandomValue(30),
+      wardScore: getRandomValue(30)
     },
     items: getRandomItems(),
     level: getRandomValue(18),
@@ -325,7 +325,6 @@ export const staticPlayersChaosMock: LivePlayer[] = [
     runes: { keystone: "Aftershock", primaryRuneTree: "Resolve", secondaryRuneTree: "Inspiration" }
   }
 ];
-
 
 export const MockedRiotEvents: GameEvent[] = [
   {

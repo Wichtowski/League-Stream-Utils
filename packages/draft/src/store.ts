@@ -38,17 +38,22 @@ const initialState = {
   wsError: null,
 };
 
-export const usedraftStore = create<draftUIState>()(devtools((set) => ({
-  ...initialState,
-  setSession: (id) => set({ sessionId: id, status: 'idle' }),
-  setStatus: (status) => set({ status }),
-  setPhase: (phase) => set({ currentPhase: phase }),
-  setTeam: (team) => set({ currentTeam: team }),
-  setTurn: (turn) => set({ turnNumber: turn }),
-  setTimer: (timer) => set({ timer }),
-  addAction: (action) => set((s) => ({ actions: [...s.actions, action] })),
-  setActions: (actions) => set({ actions }),
-  selectChampion: (id) => set({ selectedChampionId: id }),
-  setError: (error) => set({ wsError: error }),
-  reset: () => set(initialState),
-}), { name: 'draft' }));
+export const usedraftStore = create<draftUIState>()(
+  devtools(
+    (set) => ({
+      ...initialState,
+      setSession: (id) => set({ sessionId: id, status: 'idle' }),
+      setStatus: (status) => set({ status }),
+      setPhase: (phase) => set({ currentPhase: phase }),
+      setTeam: (team) => set({ currentTeam: team }),
+      setTurn: (turn) => set({ turnNumber: turn }),
+      setTimer: (timer) => set({ timer }),
+      addAction: (action) => set((s) => ({ actions: [...s.actions, action] })),
+      setActions: (actions) => set({ actions }),
+      selectChampion: (id) => set({ selectedChampionId: id }),
+      setError: (error) => set({ wsError: error }),
+      reset: () => set(initialState),
+    }),
+    { name: 'draft' },
+  ),
+);

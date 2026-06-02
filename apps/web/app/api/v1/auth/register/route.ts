@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { register, getClientIp } from '@lsu/auth';
 import { getDbForRequest } from '@lsu/db';
 import { json, error, parseBody } from '@/api/_helpers';

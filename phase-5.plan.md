@@ -28,14 +28,14 @@ Create `packages/ui/src/skeleton.tsx` (already exists, expand):
 
 ### Where to apply
 
-| Page | Current | After |
-|------|---------|-------|
-| Teams list | Spinner | 6× Skeleton.Card in grid |
-| Tournament list | Spinner | 4× Skeleton.Card |
-| Admin users | Skeleton rows (already done) | Keep |
-| Settings | Spinner | Form skeleton |
-| Tournament detail | Spinner | Bracket skeleton + match list skeleton |
-| Match detail | Spinner | Score card skeleton |
+| Page              | Current                      | After                                  |
+| ----------------- | ---------------------------- | -------------------------------------- |
+| Teams list        | Spinner                      | 6× Skeleton.Card in grid               |
+| Tournament list   | Spinner                      | 4× Skeleton.Card                       |
+| Admin users       | Skeleton rows (already done) | Keep                                   |
+| Settings          | Spinner                      | Form skeleton                          |
+| Tournament detail | Spinner                      | Bracket skeleton + match list skeleton |
+| Match detail      | Spinner                      | Score card skeleton                    |
 
 ---
 
@@ -46,6 +46,7 @@ Use TanStack Query `onMutate` for immediate UI feedback before server confirms.
 ### Key Interactions
 
 **Team operations:**
+
 ```typescript
 const updateTeam = useMutation({
   mutationFn: (data) => fetch(...),
@@ -66,6 +67,7 @@ const updateTeam = useMutation({
 ```
 
 **Apply to:**
+
 - Team create/update/delete
 - Tournament create/update/delete
 - Player add/remove/update
@@ -106,13 +108,13 @@ toast.promise(createTeam(data), {
 
 ### Standard Messages
 
-| Action | Success | Error |
-|--------|---------|-------|
-| Create team | "Team created" | "Failed to create team" |
-| Delete team | "Team deleted" | "Failed to delete team" |
-| Create tournament | "Tournament created" | "Failed to create tournament" |
-| Update match score | "Score updated" | "Failed to update score" |
-| Lock user (admin) | "User locked" | "Failed to lock user" |
+| Action             | Success              | Error                         |
+| ------------------ | -------------------- | ----------------------------- |
+| Create team        | "Team created"       | "Failed to create team"       |
+| Delete team        | "Team deleted"       | "Failed to delete team"       |
+| Create tournament  | "Tournament created" | "Failed to create tournament" |
+| Update match score | "Score updated"      | "Failed to update score"      |
+| Lock user (admin)  | "User locked"        | "Failed to lock user"         |
 
 ---
 
@@ -133,13 +135,21 @@ Vinext supports the View Transitions API. Add cross-fade transitions between pag
 }
 
 @keyframes fade-out {
-  from { opacity: 1; }
-  to { opacity: 0; }
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
 }
 
 @keyframes fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 ```
 
@@ -177,6 +187,7 @@ Create `apps/web/app/_components/command-palette.tsx`:
 ```
 
 **Implementation:**
+
 - `cmdk` library (or custom) for command palette UI
 - Registered commands via a context provider
 - Each module can register its own commands
@@ -184,13 +195,13 @@ Create `apps/web/app/_components/command-palette.tsx`:
 
 ### Page-Level Shortcuts
 
-| Shortcut | Action |
-|----------|--------|
-| `Cmd+K` | Open command palette |
-| `Escape` | Close modal/palette, go back |
-| `Cmd+N` | Create new (context-dependent: team on teams page, tournament on tournaments page) |
-| `Cmd+S` | Save current form |
-| `/` | Focus search input (when available) |
+| Shortcut | Action                                                                             |
+| -------- | ---------------------------------------------------------------------------------- |
+| `Cmd+K`  | Open command palette                                                               |
+| `Escape` | Close modal/palette, go back                                                       |
+| `Cmd+N`  | Create new (context-dependent: team on teams page, tournament on tournaments page) |
+| `Cmd+S`  | Save current form                                                                  |
+| `/`      | Focus search input (when available)                                                |
 
 ---
 
@@ -223,6 +234,7 @@ Each module page sets breadcrumbs via a context or layout props.
 **Already done:** Amber badge in sidebar.
 
 **Enhancements:**
+
 - Clicking the badge opens a popover: "You're in offline mode. Data is stored locally."
   - "Switch to online" button (navigates to settings)
   - "Last synced: Never" (for future Phase 6)
@@ -233,6 +245,7 @@ Each module page sets breadcrumbs via a context or layout props.
 ## 8. Responsive Considerations
 
 While primarily a desktop app, ensure the web version works on tablets:
+
 - Sidebar collapses to icon-only on screens < 1024px
 - Module grid goes from 3 columns to 2 on tablets
 - Forms stack vertically on narrow screens
@@ -243,12 +256,14 @@ While primarily a desktop app, ensure the web version works on tablets:
 ## Files Changed/Created
 
 ### New
+
 - `apps/web/app/_components/command-palette.tsx`
 - `apps/web/app/_components/breadcrumbs.tsx`
 - `packages/ui/src/toast.ts` (helper, or expand existing)
 - `packages/ui/src/skeleton.tsx` (new variants)
 
 ### Modified
+
 - `apps/web/app/globals.css` — view transition keyframes
 - `apps/web/app/providers.tsx` — add CommandPaletteProvider
 - `apps/web/app/_components/side-nav.tsx` — responsive collapse, offline popover

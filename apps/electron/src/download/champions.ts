@@ -27,7 +27,9 @@ export class ChampionDownloadManager extends BaseDownloadManager {
     this.progress({ stage: 'fetching champion list', itemName: 'champions.json' });
 
     const listUrl = `${DDRAGON_CDN}/${version}/data/en_US/champion.json`;
-    const list = await this.fetchJson<{ data: Record<string, { id: string; key: string; name: string }> }>(listUrl);
+    const list = await this.fetchJson<{
+      data: Record<string, { id: string; key: string; name: string }>;
+    }>(listUrl);
     const keys = Object.keys(list.data);
 
     const manifest = await this.loadManifest(version);
@@ -35,7 +37,12 @@ export class ChampionDownloadManager extends BaseDownloadManager {
     const missing = keys.filter((k) => !completed.has(k));
 
     if (missing.length === 0) {
-      this.progress({ stage: 'complete', current: keys.length, total: keys.length, itemName: 'all cached' });
+      this.progress({
+        stage: 'complete',
+        current: keys.length,
+        total: keys.length,
+        itemName: 'all cached',
+      });
       return;
     }
 
@@ -60,10 +67,26 @@ export class ChampionDownloadManager extends BaseDownloadManager {
     const dir = this.resolvePath(version, 'champions', key);
 
     const tasks = [
-      { url: `${DDRAGON_CDN}/${version}/img/champion/${champ.image.full}`, dest: `${dir}/square.png`, label: `${key}/square` },
-      { url: `${DDRAGON_CDN}/img/champion/splash/${key}_0.jpg`, dest: `${dir}/splash.jpg`, label: `${key}/splash` },
-      { url: `${DDRAGON_CDN}/img/champion/loading/${key}_0.jpg`, dest: `${dir}/loading.jpg`, label: `${key}/loading` },
-      { url: `${DDRAGON_CDN}/img/champion/centered/${key}_0.jpg`, dest: `${dir}/splashCentered.jpg`, label: `${key}/splashCentered` },
+      {
+        url: `${DDRAGON_CDN}/${version}/img/champion/${champ.image.full}`,
+        dest: `${dir}/square.png`,
+        label: `${key}/square`,
+      },
+      {
+        url: `${DDRAGON_CDN}/img/champion/splash/${key}_0.jpg`,
+        dest: `${dir}/splash.jpg`,
+        label: `${key}/splash`,
+      },
+      {
+        url: `${DDRAGON_CDN}/img/champion/loading/${key}_0.jpg`,
+        dest: `${dir}/loading.jpg`,
+        label: `${key}/loading`,
+      },
+      {
+        url: `${DDRAGON_CDN}/img/champion/centered/${key}_0.jpg`,
+        dest: `${dir}/splashCentered.jpg`,
+        label: `${key}/splashCentered`,
+      },
     ];
 
     // Passive

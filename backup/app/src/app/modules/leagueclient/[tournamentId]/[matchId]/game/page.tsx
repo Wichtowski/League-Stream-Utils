@@ -24,7 +24,7 @@ const LiveGamePage: React.FC = () => {
 
   // Get resolution from query params, default to WQHD
   const searchParams = useSearchParams();
-  const resolution = (searchParams.get('resolution') as Resolutions) || "WQHD";
+  const resolution = (searchParams.get("resolution") as Resolutions) || "WQHD";
 
   useEffect(() => {
     setActiveModule(null);
@@ -131,7 +131,6 @@ const LiveGamePage: React.FC = () => {
   if (loading || !isConnected || !gameData || !currentMatch || !currentTournament) {
     return <></>;
   }
-  
 
   return (
     <>
@@ -142,7 +141,7 @@ const LiveGamePage: React.FC = () => {
         blueTeamData={blueTeamData}
         redTeamData={redTeamData}
         resolution={resolution}
-        />
+      />
     </>
   );
 };

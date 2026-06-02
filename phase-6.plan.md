@@ -43,6 +43,7 @@ and push changes to the cloud when ready.
 ### Conflict Resolution: Last-Write-Wins (LWW)
 
 Every synced table has an `updated_at` timestamp. When conflicts occur:
+
 - Compare `updated_at` timestamps
 - The newer record wins
 - Conflicts are logged for manual review (optional)
@@ -226,6 +227,7 @@ Cloud Sync (Pro)
 ### Sync Progress Modal
 
 When syncing, show:
+
 ```
 Syncing...
 ├── ✓ Pushing teams (3 changes)
@@ -238,6 +240,7 @@ Syncing...
 ### Conflict Resolution UI (future)
 
 If conflicts arise beyond LWW:
+
 - Show diff view: local vs cloud version
 - User picks which to keep
 - For now: LWW automatic, log conflicts for admin review
@@ -259,21 +262,21 @@ When a user switches from offline to online for the first time:
 
 ## Synced Tables
 
-| Table | Sync | Notes |
-|-------|:----:|-------|
-| tournaments | ✓ | Full sync |
-| tournament_teams | ✓ | Linked to tournaments + teams |
-| brackets | ✓ | JSON data synced as-is |
-| matches | ✓ | Full sync |
-| match_games | ✓ | Full sync |
-| teams | ✓ | Full sync |
-| players | ✓ | Linked to teams |
-| staff | ✓ | Linked to teams |
-| commentators | ✓ | Full sync |
-| match_commentators | ✓ | Linked to matches + commentators |
-| champions | ✗ | DDragon data, same everywhere |
-| user_permissions | ✗ | Server-managed |
-| tournament_permissions | ✓ | Synced with tournaments |
+| Table                  | Sync | Notes                            |
+| ---------------------- | :--: | -------------------------------- |
+| tournaments            |  ✓   | Full sync                        |
+| tournament_teams       |  ✓   | Linked to tournaments + teams    |
+| brackets               |  ✓   | JSON data synced as-is           |
+| matches                |  ✓   | Full sync                        |
+| match_games            |  ✓   | Full sync                        |
+| teams                  |  ✓   | Full sync                        |
+| players                |  ✓   | Linked to teams                  |
+| staff                  |  ✓   | Linked to teams                  |
+| commentators           |  ✓   | Full sync                        |
+| match_commentators     |  ✓   | Linked to matches + commentators |
+| champions              |  ✗   | DDragon data, same everywhere    |
+| user_permissions       |  ✗   | Server-managed                   |
+| tournament_permissions |  ✓   | Synced with tournaments          |
 
 ---
 
@@ -290,6 +293,7 @@ When a user switches from offline to online for the first time:
 ## Files Changed/Created
 
 ### New
+
 - `apps/electron/src/sync/index.ts`
 - `apps/electron/src/sync/push.ts`
 - `apps/electron/src/sync/pull.ts`
@@ -304,6 +308,7 @@ When a user switches from offline to online for the first time:
 - `packages/db/src/migrations/00X_sync_metadata.ts`
 
 ### Modified
+
 - `apps/electron/src/preload.ts` — add sync IPC calls
 - `apps/electron/src/main.ts` — initialize SyncManager
 - `packages/electron-bridge/src/index.ts` — add sync API types

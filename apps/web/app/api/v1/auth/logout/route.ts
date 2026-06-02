@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { logout } from '@lsu/auth';
 import { getDbForRequest } from '@lsu/db';
 import { json, clearCookies } from '@/api/_helpers';

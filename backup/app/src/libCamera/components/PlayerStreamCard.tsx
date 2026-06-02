@@ -25,7 +25,8 @@ export const PlayerStreamCard = ({ player, onChange }: PlayerStreamCardProps): R
           {showValidation && validation.isValid && validation.type && (
             <div className="flex items-center gap-2 mt-1">
               <span className="text-sm text-gray-400 flex items-center gap-1">
-                {React.createElement(getStreamTypeIcon(validation.type), { className: "w-4 h-4" })} {getStreamTypeLabel(validation.type)}
+                {React.createElement(getStreamTypeIcon(validation.type), { className: "w-4 h-4" })}{" "}
+                {getStreamTypeLabel(validation.type)}
               </span>
             </div>
           )}

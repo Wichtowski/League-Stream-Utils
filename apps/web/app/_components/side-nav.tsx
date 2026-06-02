@@ -106,11 +106,15 @@ export function SideNav() {
             className="flex w-full items-center gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 transition-colors hover:bg-amber-500/20"
           >
             <div className="h-2 w-2 shrink-0 rounded-full bg-amber-400 animate-pulse" />
-            <span className="text-xs font-medium text-amber-300 md:hidden lg:inline">Offline Mode</span>
+            <span className="text-xs font-medium text-amber-300 md:hidden lg:inline">
+              Offline Mode
+            </span>
           </button>
           {offlinePopover && (
             <div className="absolute left-0 right-0 top-full z-40 mt-1 rounded-lg border border-border-subtle bg-surface-raised p-3 shadow-xl md:left-auto md:w-56 md:right-auto">
-              <p className="text-xs text-gray-300 mb-2">You're in offline mode. Data is stored locally.</p>
+              <p className="text-xs text-gray-300 mb-2">
+                You're in offline mode. Data is stored locally.
+              </p>
               <button
                 onClick={() => {
                   setOfflinePopover(false);
@@ -129,12 +133,22 @@ export function SideNav() {
         onClick={openPalette}
         className="mx-2 mt-2 flex items-center gap-2 rounded-lg border border-border-subtle bg-surface px-3 py-2 text-xs text-text-muted transition-colors hover:bg-surface-overlay hover:text-gray-200 md:justify-center md:px-2 lg:justify-start lg:px-3"
       >
-        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0 opacity-50">
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 16 16"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          className="shrink-0 opacity-50"
+        >
           <circle cx="7" cy="7" r="5" />
           <path d="M11 11l3 3" />
         </svg>
         <span className="flex-1 text-left md:hidden lg:inline">Search...</span>
-        <kbd className="rounded border border-border-subtle bg-surface-raised px-1 py-0.5 text-[10px] md:hidden lg:inline-block">⌘K</kbd>
+        <kbd className="rounded border border-border-subtle bg-surface-raised px-1 py-0.5 text-[10px] md:hidden lg:inline-block">
+          ⌘K
+        </kbd>
       </button>
 
       <nav className="flex-1 space-y-0.5 overflow-y-auto px-2 py-3">
@@ -159,7 +173,11 @@ export function SideNav() {
                     ? 'shadow-lg'
                     : 'bg-surface-overlay group-hover:scale-110 group-hover:rotate-[-6deg]'
                 }`}
-                style={active ? { background: item.gradient, boxShadow: `0 0 12px ${item.glowColor}` } : undefined}
+                style={
+                  active
+                    ? { background: item.gradient, boxShadow: `0 0 12px ${item.glowColor}` }
+                    : undefined
+                }
               >
                 <Icon
                   className={`transition-transform duration-200 ${
@@ -169,7 +187,9 @@ export function SideNav() {
                   }`}
                 />
               </span>
-              <span className={`md:hidden lg:inline ${active ? 'translate-x-0.5' : 'transition-transform duration-200 group-hover:translate-x-0.5'}`}>
+              <span
+                className={`md:hidden lg:inline ${active ? 'translate-x-0.5' : 'transition-transform duration-200 group-hover:translate-x-0.5'}`}
+              >
                 {item.label}
               </span>
               {active && (
@@ -201,7 +221,10 @@ export function SideNav() {
           className="group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-text-muted transition-all duration-200 hover:bg-surface-overlay/60 hover:text-gray-200 md:justify-center md:px-2 lg:justify-start lg:px-3"
         >
           <span className="flex items-center justify-center rounded-md bg-surface-overlay p-1.5 transition-all duration-200 group-hover:rotate-90">
-            <HiCog6Tooth className="text-text-muted group-hover:text-gray-200" style={{ fontSize: 18 }} />
+            <HiCog6Tooth
+              className="text-text-muted group-hover:text-gray-200"
+              style={{ fontSize: 18 }}
+            />
           </span>
           <span className="md:hidden lg:inline">Settings</span>
         </Link>
@@ -212,7 +235,10 @@ export function SideNav() {
             className="group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-text-muted transition-all duration-200 hover:bg-red-500/10 hover:text-red-400 md:justify-center md:px-2 lg:justify-start lg:px-3"
           >
             <span className="flex items-center justify-center rounded-md bg-surface-overlay p-1.5 transition-all duration-200 group-hover:scale-110">
-              <HiArrowRightOnRectangle className="text-text-muted group-hover:text-red-400" style={{ fontSize: 18 }} />
+              <HiArrowRightOnRectangle
+                className="text-text-muted group-hover:text-red-400"
+                style={{ fontSize: 18 }}
+              />
             </span>
             <span className="md:hidden lg:inline">Logout</span>
           </button>

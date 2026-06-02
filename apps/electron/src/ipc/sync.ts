@@ -1,5 +1,5 @@
 import { ipcMain, BrowserWindow } from 'electron';
-import { SyncManager, type SyncProgress } from '../sync';
+import { SyncManager } from '../sync';
 
 let syncManager: SyncManager | null = null;
 

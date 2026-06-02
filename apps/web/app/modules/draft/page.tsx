@@ -75,7 +75,9 @@ export default function draftPage() {
             {
               key: 'phase',
               header: 'Phase',
-              render: (s: any) => <span className="text-text-muted capitalize">{s.currentPhase}</span>,
+              render: (s: any) => (
+                <span className="text-text-muted capitalize">{s.currentPhase}</span>
+              ),
               className: 'w-28',
             },
             {
@@ -87,7 +89,9 @@ export default function draftPage() {
             {
               key: 'status',
               header: 'Status',
-              render: (s: any) => <Badge variant={statusVariant[s.status] ?? 'default'}>{s.status}</Badge>,
+              render: (s: any) => (
+                <Badge variant={statusVariant[s.status] ?? 'default'}>{s.status}</Badge>
+              ),
               className: 'w-28',
             },
             {
@@ -120,7 +124,9 @@ export default function draftPage() {
         title="New Draft Session"
         footer={
           <>
-            <Button variant="secondary" onClick={() => setShowCreate(false)}>Cancel</Button>
+            <Button variant="secondary" onClick={() => setShowCreate(false)}>
+              Cancel
+            </Button>
             <Button onClick={handleQuickCreate} disabled={createSession.isPending}>
               {createSession.isPending ? 'Creating...' : 'Quick Create'}
             </Button>
@@ -128,7 +134,8 @@ export default function draftPage() {
         }
       >
         <p className="text-sm text-text-muted">
-          Creates a standard BO3 draft session with default 30s timers. You can configure teams and settings after creation.
+          Creates a standard BO3 draft session with default 30s timers. You can configure teams and
+          settings after creation.
         </p>
       </Modal>
     </PageWrapper>

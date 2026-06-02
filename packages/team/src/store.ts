@@ -8,9 +8,14 @@ interface TeamUIState {
   setFilter: (query: string) => void;
 }
 
-export const useTeamStore = create<TeamUIState>()(devtools((set) => ({
-  selectedTeamId: null,
-  filterQuery: '',
-  selectTeam: (id) => set({ selectedTeamId: id }),
-  setFilter: (query) => set({ filterQuery: query }),
-}), { name: 'team' }));
+export const useTeamStore = create<TeamUIState>()(
+  devtools(
+    (set) => ({
+      selectedTeamId: null,
+      filterQuery: '',
+      selectTeam: (id) => set({ selectedTeamId: id }),
+      setFilter: (query) => set({ filterQuery: query }),
+    }),
+    { name: 'team' },
+  ),
+);

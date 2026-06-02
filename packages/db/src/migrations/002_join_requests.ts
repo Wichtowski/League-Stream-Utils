@@ -9,9 +9,7 @@ export async function up(db: Kysely<unknown>): Promise<void> {
     .addColumn('tournament_id', 'uuid', (c) =>
       c.notNull().references('tournaments.id').onDelete('cascade'),
     )
-    .addColumn('team_id', 'uuid', (c) =>
-      c.notNull().references('teams.id').onDelete('cascade'),
-    )
+    .addColumn('team_id', 'uuid', (c) => c.notNull().references('teams.id').onDelete('cascade'))
     .addColumn('requested_by', 'uuid', (c) =>
       c.notNull().references('users.id').onDelete('cascade'),
     )
@@ -43,12 +41,8 @@ export async function up(db: Kysely<unknown>): Promise<void> {
     .addColumn('tournament_id', 'uuid', (c) =>
       c.notNull().references('tournaments.id').onDelete('cascade'),
     )
-    .addColumn('team_id', 'uuid', (c) =>
-      c.notNull().references('teams.id').onDelete('cascade'),
-    )
-    .addColumn('invited_by', 'uuid', (c) =>
-      c.notNull().references('users.id').onDelete('cascade'),
-    )
+    .addColumn('team_id', 'uuid', (c) => c.notNull().references('teams.id').onDelete('cascade'))
+    .addColumn('invited_by', 'uuid', (c) => c.notNull().references('users.id').onDelete('cascade'))
     .addColumn('status', 'varchar(16)', (c) => c.notNull().defaultTo('pending'))
     .addColumn('message', 'text')
     .addColumn('responded_at', 'timestamptz')

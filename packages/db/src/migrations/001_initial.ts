@@ -125,7 +125,9 @@ export async function up(db: Kysely<unknown>): Promise<void> {
     .addColumn('status', 'varchar(32)', (c) => c.notNull().defaultTo('draft'))
     .addColumn('logo', 'jsonb')
     .addColumn('description', 'text')
-    .addColumn('organizer_id', 'uuid', (c) => c.notNull().references('users.id').onDelete('cascade'))
+    .addColumn('organizer_id', 'uuid', (c) =>
+      c.notNull().references('users.id').onDelete('cascade'),
+    )
     .addColumn('start_date', 'timestamptz')
     .addColumn('end_date', 'timestamptz')
     .addColumn('created_at', 'timestamptz', (c) => c.notNull().defaultTo(sql`now()`))
@@ -136,7 +138,9 @@ export async function up(db: Kysely<unknown>): Promise<void> {
     .createTable('tournament_teams')
     .ifNotExists()
     .addColumn('id', 'uuid', (c) => c.primaryKey().defaultTo(sql`uuid_generate_v4()`))
-    .addColumn('tournament_id', 'uuid', (c) => c.notNull().references('tournaments.id').onDelete('cascade'))
+    .addColumn('tournament_id', 'uuid', (c) =>
+      c.notNull().references('tournaments.id').onDelete('cascade'),
+    )
     .addColumn('team_id', 'uuid', (c) => c.notNull().references('teams.id').onDelete('cascade'))
     .addColumn('seed', 'integer')
     .addColumn('registered_at', 'timestamptz', (c) => c.notNull().defaultTo(sql`now()`))
@@ -146,7 +150,9 @@ export async function up(db: Kysely<unknown>): Promise<void> {
     .createTable('brackets')
     .ifNotExists()
     .addColumn('id', 'uuid', (c) => c.primaryKey().defaultTo(sql`uuid_generate_v4()`))
-    .addColumn('tournament_id', 'uuid', (c) => c.notNull().references('tournaments.id').onDelete('cascade').unique())
+    .addColumn('tournament_id', 'uuid', (c) =>
+      c.notNull().references('tournaments.id').onDelete('cascade').unique(),
+    )
     .addColumn('data', 'jsonb', (c) => c.notNull())
     .addColumn('created_at', 'timestamptz', (c) => c.notNull().defaultTo(sql`now()`))
     .addColumn('updated_at', 'timestamptz', (c) => c.notNull().defaultTo(sql`now()`))
@@ -156,7 +162,9 @@ export async function up(db: Kysely<unknown>): Promise<void> {
     .createTable('matches')
     .ifNotExists()
     .addColumn('id', 'uuid', (c) => c.primaryKey().defaultTo(sql`uuid_generate_v4()`))
-    .addColumn('tournament_id', 'uuid', (c) => c.notNull().references('tournaments.id').onDelete('cascade'))
+    .addColumn('tournament_id', 'uuid', (c) =>
+      c.notNull().references('tournaments.id').onDelete('cascade'),
+    )
     .addColumn('blue_team_id', 'uuid', (c) => c.references('teams.id').onDelete('set null'))
     .addColumn('red_team_id', 'uuid', (c) => c.references('teams.id').onDelete('set null'))
     .addColumn('format', 'varchar(8)', (c) => c.notNull())
@@ -200,7 +208,9 @@ export async function up(db: Kysely<unknown>): Promise<void> {
     .ifNotExists()
     .addColumn('id', 'uuid', (c) => c.primaryKey().defaultTo(sql`uuid_generate_v4()`))
     .addColumn('match_id', 'uuid', (c) => c.notNull().references('matches.id').onDelete('cascade'))
-    .addColumn('commentator_id', 'uuid', (c) => c.notNull().references('commentators.id').onDelete('cascade'))
+    .addColumn('commentator_id', 'uuid', (c) =>
+      c.notNull().references('commentators.id').onDelete('cascade'),
+    )
     .addColumn('assigned_at', 'timestamptz', (c) => c.notNull().defaultTo(sql`now()`))
     .execute();
 
@@ -236,7 +246,9 @@ export async function up(db: Kysely<unknown>): Promise<void> {
     .ifNotExists()
     .addColumn('id', 'uuid', (c) => c.primaryKey().defaultTo(sql`uuid_generate_v4()`))
     .addColumn('user_id', 'uuid', (c) => c.notNull().references('users.id').onDelete('cascade'))
-    .addColumn('tournament_id', 'uuid', (c) => c.notNull().references('tournaments.id').onDelete('cascade'))
+    .addColumn('tournament_id', 'uuid', (c) =>
+      c.notNull().references('tournaments.id').onDelete('cascade'),
+    )
     .addColumn('role', 'varchar(32)', (c) => c.notNull())
     .addColumn('granted_at', 'timestamptz', (c) => c.notNull().defaultTo(sql`now()`))
     .addColumn('granted_by', 'uuid', (c) => c.references('users.id').onDelete('set null'))

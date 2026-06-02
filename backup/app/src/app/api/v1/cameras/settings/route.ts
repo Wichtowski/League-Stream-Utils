@@ -34,27 +34,27 @@ export const GET = withAuth(async (req: NextRequest, user: JWTPayload) => {
       if (userId) {
         // Get teams for specific user (admin view)
         const userTeams = await getUserTeams(userId);
-        teams = userTeams.filter(team => team.cameras);
+        teams = userTeams.filter((team) => team.cameras);
       } else {
         // Get all teams with camera settings
-        const rawTeams = await TeamModel.find({ 
-          "cameras": { $exists: true, $ne: null }
+        const rawTeams = await TeamModel.find({
+          cameras: { $exists: true, $ne: null }
         }).lean();
         teams = rawTeams as unknown as Team[];
       }
     } else {
       // Regular users see only their teams
       teams = await getUserTeams(user.userId);
-      teams = teams.filter(team => team.cameras);
+      teams = teams.filter((team) => team.cameras);
     }
 
     // Filter by specific team if requested
     if (teamId) {
-      teams = teams.filter(team => team._id === teamId);
+      teams = teams.filter((team) => team._id === teamId);
     }
 
     // Transform teams to camera format
-    const cameraTeams: CameraTeam[] = teams.map(team => ({
+    const cameraTeams: CameraTeam[] = teams.map((team) => ({
       teamId: team._id,
       teamName: team.name,
       teamStreamUrl: team.cameras?.teamStreamUrl,
@@ -84,7 +84,7 @@ export const POST = withAuth(async (req: NextRequest, user: JWTPayload) => {
         return NextResponse.json(
           {
             error: "You can only configure cameras for teams you own",
-            invalidTeams: invalidTeams.map(t => t.teamName)
+            invalidTeams: invalidTeams.map((t) => t.teamName)
           },
           { status: 403 }
         );
@@ -109,9 +109,9 @@ export const POST = withAuth(async (req: NextRequest, user: JWTPayload) => {
 
     await Promise.all(updatePromises);
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       message: "Camera settings updated successfully",
-      updatedTeams: teams.length 
+      updatedTeams: teams.length
     });
   } catch (error) {
     console.error("Error saving camera settings:", error);

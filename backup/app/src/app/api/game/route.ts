@@ -51,25 +51,23 @@ export async function GET(request: NextRequest) {
 
         // Check for matchId header to enhance data with player live info
         const matchId = request.headers.get("x-match-id");
-        
+
         if (matchId) {
           try {
             // Connect to database
             await connectToDatabase();
-            
+
             // Query player live info for this match
             const playerLiveInfo = await PlayerLiveInfoModel.find({ matchId }).lean();
-            
+
             if (playerLiveInfo && playerLiveInfo.length > 0) {
               // Enhance gameData with player live info
               if (gameData.allPlayers && Array.isArray(gameData.allPlayers)) {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 gameData.allPlayers = gameData.allPlayers.map((player: any) => {
                   // Find matching player live info by riotId
-                  const liveInfo = playerLiveInfo.find(
-                    (info) => info.riotId === player.riotId
-                  );
-                  
+                  const liveInfo = playerLiveInfo.find((info) => info.riotId === player.riotId);
+
                   if (liveInfo) {
                     // Merge live info into player data
                     return {
@@ -81,7 +79,7 @@ export async function GET(request: NextRequest) {
                       }
                     };
                   }
-                  
+
                   return player;
                 });
               }

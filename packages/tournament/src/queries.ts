@@ -82,9 +82,10 @@ export async function getTournament(db: Kysely<Database>, id: string) {
     .execute();
 
   const teamIds = ttRows.map((tt) => tt.t_id);
-  const playerRows = teamIds.length > 0
-    ? await db.selectFrom('players').selectAll().where('team_id', 'in', teamIds).execute()
-    : [];
+  const playerRows =
+    teamIds.length > 0
+      ? await db.selectFrom('players').selectAll().where('team_id', 'in', teamIds).execute()
+      : [];
 
   const bracket = await db
     .selectFrom('brackets')
@@ -101,18 +102,20 @@ export async function getTournament(db: Kysely<Database>, id: string) {
     .execute();
 
   const matchIds = matchRows.map((m) => m.id);
-  const gameRows = matchIds.length > 0
-    ? await db.selectFrom('match_games').selectAll().where('match_id', 'in', matchIds).execute()
-    : [];
+  const gameRows =
+    matchIds.length > 0
+      ? await db.selectFrom('match_games').selectAll().where('match_id', 'in', matchIds).execute()
+      : [];
 
   const allTeamIds = [
     ...matchRows.map((m) => m.blue_team_id).filter(Boolean),
     ...matchRows.map((m) => m.red_team_id).filter(Boolean),
   ] as string[];
   const uniqueTeamIds = [...new Set(allTeamIds)];
-  const matchTeams = uniqueTeamIds.length > 0
-    ? await db.selectFrom('teams').selectAll().where('id', 'in', uniqueTeamIds).execute()
-    : [];
+  const matchTeams =
+    uniqueTeamIds.length > 0
+      ? await db.selectFrom('teams').selectAll().where('id', 'in', uniqueTeamIds).execute()
+      : [];
   const teamMap = Object.fromEntries(matchTeams.map((t) => [t.id, t]));
 
   return {
@@ -139,8 +142,8 @@ export async function getTournament(db: Kysely<Database>, id: string) {
     bracket: bracket ?? null,
     matches: matchRows.map((m) => ({
       ...m,
-      blueTeam: m.blue_team_id ? teamMap[m.blue_team_id] ?? null : null,
-      redTeam: m.red_team_id ? teamMap[m.red_team_id] ?? null : null,
+      blueTeam: m.blue_team_id ? (teamMap[m.blue_team_id] ?? null) : null,
+      redTeam: m.red_team_id ? (teamMap[m.red_team_id] ?? null) : null,
       games: gameRows.filter((g) => g.match_id === m.id),
     })),
   };
@@ -211,7 +214,12 @@ export async function deleteTournament(db: Kysely<Database>, id: string) {
   await db.deleteFrom('tournaments').where('id', '=', id).execute();
 }
 
-export async function registerTeam(db: Kysely<Database>, tournamentId: string, teamId: string, seed?: number) {
+export async function registerTeam(
+  db: Kysely<Database>,
+  tournamentId: string,
+  teamId: string,
+  seed?: number,
+) {
   return db
     .insertInto('tournament_teams')
     .values({ tournament_id: tournamentId, team_id: teamId, seed: seed ?? null })
@@ -295,12 +303,7 @@ export async function updateMatch(
   if (data.scoreRed !== undefined) set.score_red = data.scoreRed;
   if (data.completedAt !== undefined) set.completed_at = data.completedAt;
 
-  return db
-    .updateTable('matches')
-    .set(set)
-    .where('id', '=', id)
-    .returningAll()
-    .executeTakeFirst();
+  return db.updateTable('matches').set(set).where('id', '=', id).returningAll().executeTakeFirst();
 }
 
 export async function recordGameResult(
@@ -328,11 +331,7 @@ export async function recordGameResult(
 }
 
 export async function getMatch(db: Kysely<Database>, id: string) {
-  const match = await db
-    .selectFrom('matches')
-    .selectAll()
-    .where('id', '=', id)
-    .executeTakeFirst();
+  const match = await db.selectFrom('matches').selectAll().where('id', '=', id).executeTakeFirst();
 
   if (!match) return undefined;
 

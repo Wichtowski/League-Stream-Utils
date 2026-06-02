@@ -1,11 +1,14 @@
-import { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { verifyEmail } from '@lsu/auth';
 import { getDbForRequest } from '@lsu/db';
 
 export async function GET(request: NextRequest) {
   const token = request.nextUrl.searchParams.get('token');
   if (!token) {
-    return new Response(html('Missing token', false), { status: 400, headers: { 'Content-Type': 'text/html' } });
+    return new Response(html('Missing token', false), {
+      status: 400,
+      headers: { 'Content-Type': 'text/html' },
+    });
   }
 
   const db = getDbForRequest(request);

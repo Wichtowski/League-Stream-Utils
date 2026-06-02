@@ -73,9 +73,7 @@ export function SystemTab() {
     <div className="space-y-6">
       <div className="flex items-center gap-3">
         <h3 className="text-sm font-medium">System Status</h3>
-        <Badge variant={data.status === 'healthy' ? 'success' : 'warning'}>
-          {data.status}
-        </Badge>
+        <Badge variant={data.status === 'healthy' ? 'success' : 'warning'}>{data.status}</Badge>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
@@ -83,9 +81,7 @@ export function SystemTab() {
           {Object.entries(data.checks).map(([name, check]) => (
             <div key={name} className="flex items-center justify-between py-1.5">
               <span className="text-sm capitalize">{name}</span>
-              <Badge variant={check.status === 'ok' ? 'success' : 'error'}>
-                {check.status}
-              </Badge>
+              <Badge variant={check.status === 'ok' ? 'success' : 'error'}>{check.status}</Badge>
             </div>
           ))}
         </Section>
@@ -116,9 +112,7 @@ export function SystemTab() {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="rounded-lg border border-border-subtle bg-surface-raised p-4">
-      <h4 className="mb-3 text-xs font-medium uppercase tracking-wider text-text-muted">
-        {title}
-      </h4>
+      <h4 className="mb-3 text-xs font-medium uppercase tracking-wider text-text-muted">{title}</h4>
       <div className="space-y-1">{children}</div>
     </div>
   );

@@ -63,5 +63,3 @@ export class RuneStylesDownloader extends BaseCacheService<void> {
 }
 
 export const runeStylesDownloader = new RuneStylesDownloader();
-
-

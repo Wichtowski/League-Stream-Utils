@@ -22,7 +22,12 @@ export class RuneDownloadManager extends BaseDownloadManager {
     const missing = filtered.filter((r) => !completed.has(String(r.id)));
 
     if (missing.length === 0) {
-      this.progress({ stage: 'complete', current: filtered.length, total: filtered.length, itemName: 'all cached' });
+      this.progress({
+        stage: 'complete',
+        current: filtered.length,
+        total: filtered.length,
+        itemName: 'all cached',
+      });
       return;
     }
 

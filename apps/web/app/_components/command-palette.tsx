@@ -1,6 +1,14 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback, createContext, useContext, type ReactNode } from 'react';
+import {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  createContext,
+  useContext,
+  type ReactNode,
+} from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/_components/auth-provider';
@@ -40,7 +48,8 @@ export function CommandPaletteProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       const target = e.target as HTMLElement;
-      const isInput = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
+      const isInput =
+        target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
 
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
@@ -60,7 +69,9 @@ export function CommandPaletteProvider({ children }: { children: ReactNode }) {
       }
       if (e.key === '/' && !isInput && !isOpen) {
         e.preventDefault();
-        const searchInput = document.querySelector<HTMLInputElement>('input[type="search"], input[placeholder*="search" i], input[placeholder*="Search" i]');
+        const searchInput = document.querySelector<HTMLInputElement>(
+          'input[type="search"], input[placeholder*="search" i], input[placeholder*="Search" i]',
+        );
         searchInput?.focus();
       }
     }
@@ -78,7 +89,7 @@ export function CommandPaletteProvider({ children }: { children: ReactNode }) {
 
 function CommandPaletteModal({ onClose }: { onClose: () => void }) {
   const router = useRouter();
-  const pathname = usePathname();
+  const _pathname = usePathname();
   const { user } = useAuth();
   const qc = useQueryClient();
   const [query, setQuery] = useState('');
@@ -87,40 +98,110 @@ function CommandPaletteModal({ onClose }: { onClose: () => void }) {
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   const commands: Command[] = [
-    { id: 'nav-draft', label: 'Go to Draft', group: 'Navigation', shortcut: '', action: () => router.push('/modules/draft') },
-    { id: 'nav-tournaments', label: 'Go to Tournaments', group: 'Navigation', action: () => router.push('/modules/tournaments') },
-    { id: 'nav-teams', label: 'Go to Teams', group: 'Navigation', action: () => router.push('/modules/teams') },
-    { id: 'nav-cameras', label: 'Go to Cameras', group: 'Navigation', action: () => router.push('/modules/cameras') },
-    { id: 'nav-commentators', label: 'Go to Commentators', group: 'Navigation', action: () => router.push('/modules/commentators') },
-    { id: 'nav-settings', label: 'Go to Settings', group: 'Navigation', shortcut: '⌘,', action: () => router.push('/settings') },
+    {
+      id: 'nav-draft',
+      label: 'Go to Draft',
+      group: 'Navigation',
+      shortcut: '',
+      action: () => router.push('/modules/draft'),
+    },
+    {
+      id: 'nav-tournaments',
+      label: 'Go to Tournaments',
+      group: 'Navigation',
+      action: () => router.push('/modules/tournaments'),
+    },
+    {
+      id: 'nav-teams',
+      label: 'Go to Teams',
+      group: 'Navigation',
+      action: () => router.push('/modules/teams'),
+    },
+    {
+      id: 'nav-cameras',
+      label: 'Go to Cameras',
+      group: 'Navigation',
+      action: () => router.push('/modules/cameras'),
+    },
+    {
+      id: 'nav-commentators',
+      label: 'Go to Commentators',
+      group: 'Navigation',
+      action: () => router.push('/modules/commentators'),
+    },
+    {
+      id: 'nav-settings',
+      label: 'Go to Settings',
+      group: 'Navigation',
+      shortcut: '⌘,',
+      action: () => router.push('/settings'),
+    },
     ...(user?.isAdmin
-      ? [{ id: 'nav-admin', label: 'Go to Admin', group: 'Navigation', action: () => router.push('/modules/admin') }]
+      ? [
+          {
+            id: 'nav-admin',
+            label: 'Go to Admin',
+            group: 'Navigation',
+            action: () => router.push('/modules/admin'),
+          },
+        ]
       : []),
-    { id: 'act-new-team', label: 'Create Team', group: 'Actions', shortcut: '⌘N', action: () => router.push('/modules/teams/new') },
-    { id: 'act-new-tournament', label: 'Create Tournament', group: 'Actions', action: () => router.push('/modules/tournaments/new') },
-    { id: 'nav-home', label: 'Go to Dashboard', group: 'Navigation', action: () => router.push('/modules') },
+    {
+      id: 'act-new-team',
+      label: 'Create Team',
+      group: 'Actions',
+      shortcut: '⌘N',
+      action: () => router.push('/modules/teams/new'),
+    },
+    {
+      id: 'act-new-tournament',
+      label: 'Create Tournament',
+      group: 'Actions',
+      action: () => router.push('/modules/tournaments/new'),
+    },
+    {
+      id: 'nav-home',
+      label: 'Go to Dashboard',
+      group: 'Navigation',
+      action: () => router.push('/modules'),
+    },
   ];
 
   // Build entity search results from cached query data
   const entityCommands: Command[] = [];
   if (query.length >= 2) {
     const q = query.toLowerCase();
-    const teams = (qc.getQueryData<any[]>(['teams']) ?? []);
+    const teams = qc.getQueryData<any[]>(['teams']) ?? [];
     for (const t of teams) {
       if (t.name?.toLowerCase().includes(q) || t.tag?.toLowerCase().includes(q)) {
-        entityCommands.push({ id: `team-${t.id}`, label: `${t.name} [${t.tag}]`, group: 'Teams', action: () => router.push(`/modules/teams`) });
+        entityCommands.push({
+          id: `team-${t.id}`,
+          label: `${t.name} [${t.tag}]`,
+          group: 'Teams',
+          action: () => router.push(`/modules/teams`),
+        });
       }
     }
-    const tournaments = (qc.getQueryData<any[]>(['tournaments']) ?? []);
+    const tournaments = qc.getQueryData<any[]>(['tournaments']) ?? [];
     for (const t of tournaments) {
       if (t.name?.toLowerCase().includes(q)) {
-        entityCommands.push({ id: `tournament-${t.id}`, label: t.name, group: 'Tournaments', action: () => router.push(`/modules/tournaments`) });
+        entityCommands.push({
+          id: `tournament-${t.id}`,
+          label: t.name,
+          group: 'Tournaments',
+          action: () => router.push(`/modules/tournaments`),
+        });
       }
     }
-    const commentators = (qc.getQueryData<any[]>(['commentators']) ?? []);
+    const commentators = qc.getQueryData<any[]>(['commentators']) ?? [];
     for (const c of commentators) {
       if (c.name?.toLowerCase().includes(q)) {
-        entityCommands.push({ id: `commentator-${c.id}`, label: c.name, group: 'Commentators', action: () => router.push('/modules/commentators') });
+        entityCommands.push({
+          id: `commentator-${c.id}`,
+          label: c.name,
+          group: 'Commentators',
+          action: () => router.push('/modules/commentators'),
+        });
       }
     }
   }
@@ -174,7 +255,15 @@ function CommandPaletteModal({ onClose }: { onClose: () => void }) {
       <div className="fixed inset-x-0 top-[20%] z-50 mx-auto w-full max-w-lg">
         <div className="overflow-hidden rounded-xl border border-border-subtle bg-surface-raised shadow-2xl">
           <div className="flex items-center gap-3 border-b border-border-subtle px-4 py-3">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0 text-text-muted">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 16 16"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              className="shrink-0 text-text-muted"
+            >
               <circle cx="7" cy="7" r="5" />
               <path d="M11 11l3 3" />
             </svg>

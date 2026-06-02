@@ -2,7 +2,6 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/_components/button';
-import { Badge } from '@/_components/badge';
 import { DataTable } from '@/_components/data-table';
 import { Select } from '@/_components/input';
 import { Skeleton } from '@lsu/ui/skeleton';
@@ -12,14 +11,6 @@ async function fetchJSON<T>(url: string, init?: RequestInit): Promise<T> {
   if (!res.ok) throw new Error(await res.text());
   return res.json();
 }
-
-const statusVariant: Record<string, 'default' | 'success' | 'warning' | 'error' | 'info'> = {
-  draft: 'default',
-  registration: 'info',
-  active: 'success',
-  completed: 'default',
-  cancelled: 'error',
-};
 
 interface Tournament {
   id: string;
@@ -36,7 +27,11 @@ interface Tournament {
 export function TournamentsTab() {
   const qc = useQueryClient();
 
-  const { data: tournaments, isPending, isError } = useQuery({
+  const {
+    data: tournaments,
+    isPending,
+    isError,
+  } = useQuery({
     queryKey: ['admin', 'tournaments'],
     queryFn: () => fetchJSON<Tournament[]>('/api/v1/admin/tournaments'),
   });
@@ -52,8 +47,7 @@ export function TournamentsTab() {
   });
 
   const deleteTournament = useMutation({
-    mutationFn: (id: string) =>
-      fetchJSON(`/api/v1/admin/tournaments/${id}`, { method: 'DELETE' }),
+    mutationFn: (id: string) => fetchJSON(`/api/v1/admin/tournaments/${id}`, { method: 'DELETE' }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'tournaments'] }),
   });
 
@@ -87,7 +81,10 @@ export function TournamentsTab() {
     <div className="space-y-4">
       <div className="flex gap-3">
         {Object.entries(byStatus).map(([status, count]) => (
-          <div key={status} className="rounded-lg border border-border-subtle bg-surface-raised px-4 py-2">
+          <div
+            key={status}
+            className="rounded-lg border border-border-subtle bg-surface-raised px-4 py-2"
+          >
             <span className="text-xs text-text-muted capitalize">{status}</span>
             <span className="ml-2 text-sm font-semibold">{count}</span>
           </div>
@@ -159,8 +156,7 @@ export function TournamentsTab() {
                   size="sm"
                   onClick={(e) => {
                     e.stopPropagation();
-                    if (confirm(`Delete tournament "${t.name}"?`))
-                      deleteTournament.mutate(t.id);
+                    if (confirm(`Delete tournament "${t.name}"?`)) deleteTournament.mutate(t.id);
                   }}
                 >
                   Delete

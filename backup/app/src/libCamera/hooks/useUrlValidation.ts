@@ -9,11 +9,11 @@ export const useUrlValidation = (url: string) => {
     if (url && url.trim() !== "") {
       const trimmedUrl = url.trim();
       const isLongEnough = trimmedUrl.length > 8; // https:// = 8 chars minimum
-      
+
       if (isLongEnough) {
         const result = validateStreamUrl(url);
         // Only update if the result is different
-        setValidation(prev => {
+        setValidation((prev) => {
           if (prev.isValid !== result.isValid || prev.type !== result.type || prev.error !== result.error) {
             return result;
           }
@@ -23,7 +23,7 @@ export const useUrlValidation = (url: string) => {
       } else {
         // URL is too short - show "configuring" state
         const configuringState = { isValid: false, error: "URL too short", type: "configuring" as const };
-        setValidation(prev => {
+        setValidation((prev) => {
           if (prev.type !== "configuring") {
             return configuringState;
           }

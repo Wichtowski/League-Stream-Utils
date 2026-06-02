@@ -1,5 +1,5 @@
-import { NextRequest } from 'next/server';
-import { getLatestVersion, fetchChampions, fetchChampionDetail } from '@lsu/riot-api/ddragon';
+import type { NextRequest } from 'next/server';
+import { fetchChampions, fetchChampionDetail } from '@lsu/riot-api/ddragon';
 import { json, error } from '@/api/_helpers';
 
 export async function GET(request: NextRequest) {
@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
 
     const champions = await fetchChampions(version);
     return json(champions);
-  } catch (e) {
+  } catch {
     return error('Failed to fetch champion data', 502);
   }
 }

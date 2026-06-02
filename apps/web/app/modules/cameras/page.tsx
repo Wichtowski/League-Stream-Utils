@@ -15,7 +15,7 @@ export default function CamerasPage() {
   const { data: teams } = useTeams();
   const deleteConfig = useDeleteCameraConfig();
 
-  const teamMap = new Map((teams as any[] ?? []).map((t: any) => [t.id, t]));
+  const teamMap = new Map(((teams as any[]) ?? []).map((t: any) => [t.id, t]));
 
   return (
     <PageWrapper title="Cameras" subtitle="Configure player stream URLs">
@@ -56,7 +56,9 @@ export default function CamerasPage() {
                         <span className="block text-xs text-text-muted">{role}</span>
                         {player ? (
                           <>
-                            <span className="block text-xs font-medium truncate mt-1">{player.playerName ?? '—'}</span>
+                            <span className="block text-xs font-medium truncate mt-1">
+                              {player.playerName ?? '—'}
+                            </span>
                             <Badge variant="success">Active</Badge>
                           </>
                         ) : (

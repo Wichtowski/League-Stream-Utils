@@ -3,7 +3,6 @@
 import { useEffect } from 'react';
 import { isElectron } from '@lsu/electron-bridge';
 import { useSyncStore } from '@lsu/electron-bridge/hooks';
-import { Button } from '@/_components/button';
 
 function formatRelativeTime(isoString: string): string {
   const diff = Date.now() - new Date(isoString).getTime();
@@ -31,11 +30,21 @@ export function SyncStatusWidget() {
   return (
     <div className="mx-2 mt-1.5 rounded-lg border border-border-subtle bg-surface p-2.5">
       <div className="flex items-center gap-2 mb-1.5">
-        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" className={`shrink-0 ${syncing ? 'animate-spin text-indigo-400' : 'text-text-muted'}`}>
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 16 16"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          className={`shrink-0 ${syncing ? 'animate-spin text-indigo-400' : 'text-text-muted'}`}
+        >
           <path d="M2 8a6 6 0 0 1 10.47-4M14 8a6 6 0 0 1-10.47 4" />
           <path d="M13 2v3h-3M3 14v-3h3" />
         </svg>
-        <span className="text-[11px] font-medium text-gray-300 md:hidden lg:inline">Cloud Sync</span>
+        <span className="text-[11px] font-medium text-gray-300 md:hidden lg:inline">
+          Cloud Sync
+        </span>
       </div>
 
       {status.pendingChanges > 0 && (

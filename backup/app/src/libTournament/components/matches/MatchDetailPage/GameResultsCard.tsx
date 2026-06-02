@@ -60,7 +60,6 @@ export const GameResultsCard: React.FC<GameResultsCardProps> = ({
     if (isUpdating) {
       return;
     }
-    
 
     setGameOrder((prev) => {
       let changed = false;
@@ -113,7 +112,7 @@ export const GameResultsCard: React.FC<GameResultsCardProps> = ({
         // Use team ID keys to match PlayerSlot component
         const blueKey = `${g.gameNumber}:${blueId}`;
         const redKey = `${g.gameNumber}:${redId}`;
-        
+
         // Always update the gameOrder with the current team assignments
         // This ensures that when sides are swapped, the gameOrder reflects the new assignments
         if (blueRoster && blueRoster.length > 0) {
@@ -128,7 +127,7 @@ export const GameResultsCard: React.FC<GameResultsCardProps> = ({
       const maxG: number = match.format === "BO1" ? 1 : match.format === "BO3" ? 3 : 5;
       for (let i = 1; i <= maxG; i++) {
         const _g = games.find((x) => x.gameNumber === i);
-        
+
         // Always initialize gameOrder for all games, not just missing ones
         if (!seed[`${i}:${match.blueTeamId}`] && blueTeam?.players?.main && blueTeam.players.main.length > 0) {
           seed[`${i}:${match.blueTeamId}`] = blueTeam.players.main.slice(0, 5);
@@ -139,7 +138,7 @@ export const GameResultsCard: React.FC<GameResultsCardProps> = ({
           changed = true;
         }
       }
-      
+
       return changed ? seed : prev;
     });
   }, [
@@ -156,7 +155,7 @@ export const GameResultsCard: React.FC<GameResultsCardProps> = ({
   // Position-based player swapping
   // Handle side swapping with player order preservation
   const handleSideSwapWithPlayerOrder = async (gameNumber: number) => {
-    const game = match.games?.find(g => g.gameNumber === gameNumber);
+    const game = match.games?.find((g) => g.gameNumber === gameNumber);
     if (!game) return;
 
     // Set updating flag to prevent useEffect from interfering
@@ -173,35 +172,33 @@ export const GameResultsCard: React.FC<GameResultsCardProps> = ({
       const currentBlueOrder = gameOrder[blueKey] || [];
       const currentRedOrder = gameOrder[redKey] || [];
 
-
       // After swapping sides, the team assignments will be reversed
       // So we need to update the gameOrder to reflect the new team assignments
       setGameOrder((prev) => {
         const newGameOrder = { ...prev };
-        
+
         // After side swap, the team IDs will be reversed
         // So we need to create new keys with the swapped team IDs
         const newBlueKey = `${gameNumber}:${currentRedTeamId}`;
         const newRedKey = `${gameNumber}:${currentBlueTeamId}`;
-        
+
         // The blue side will now have the red team's players
         // The red side will now have the blue team's players
         newGameOrder[newBlueKey] = currentRedOrder;
         newGameOrder[newRedKey] = currentBlueOrder;
-        
+
         // Remove the old keys to avoid confusion
         delete newGameOrder[blueKey];
         delete newGameOrder[redKey];
-        
+
         return newGameOrder;
       });
 
       // Call the original side swap function
       onSwapGameSides(gameNumber);
-      
+
       // Small delay to ensure state updates are processed
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
+      await new Promise((resolve) => setTimeout(resolve, 100));
     } finally {
       // Reset updating flag after a short delay
       setTimeout(() => {
@@ -210,16 +207,21 @@ export const GameResultsCard: React.FC<GameResultsCardProps> = ({
     }
   };
 
-  const handlePositionSwap = async (teamId: string, gameNumber: number, currentPlayerId: string, targetPlayerId: string) => {
+  const handlePositionSwap = async (
+    teamId: string,
+    gameNumber: number,
+    currentPlayerId: string,
+    targetPlayerId: string
+  ) => {
     if (currentPlayerId === targetPlayerId) return;
-    
+
     // Set updating flag to prevent useEffect from interfering
     setIsUpdating(true);
 
     try {
       // Use the same key format as PlayerSlot component
       const key = `${gameNumber}:${teamId}`;
-      
+
       // Update the game order by swapping positions
       setGameOrder((prev) => {
         const current = prev[key] || [];
@@ -234,29 +236,28 @@ export const GameResultsCard: React.FC<GameResultsCardProps> = ({
       // Update only the specific game with new player order
       const updatedGames: GameResult[] = (match.games || []).map((g) => {
         if (g.gameNumber !== gameNumber) return g;
-        
+
         const existing: Record<string, string[]> =
           (g as unknown as { playerSwapOrder?: Record<string, string[]> }).playerSwapOrder || {};
-        
+
         // Get the current order for this specific game and team
-        const currentOrder = gameOrder[key]?.map(p => p._id) || [];
+        const currentOrder = gameOrder[key]?.map((p) => p._id) || [];
         const newOrder = [...currentOrder];
-        
+
         // Find and swap the players in the order
         const idx1 = newOrder.indexOf(currentPlayerId);
         const idx2 = newOrder.indexOf(targetPlayerId);
         if (idx1 !== -1 && idx2 !== -1) {
           [newOrder[idx1], newOrder[idx2]] = [newOrder[idx2], newOrder[idx1]];
         }
-        
+
         return { ...g, playerSwapOrder: { ...existing, [teamId]: newOrder } } as GameResult;
       });
-      
+
       onUpdateGames(updatedGames);
-      
+
       // Small delay to ensure state updates are processed
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
+      await new Promise((resolve) => setTimeout(resolve, 100));
     } finally {
       // Reset updating flag after a short delay
       setTimeout(() => {
@@ -330,7 +331,6 @@ export const GameResultsCard: React.FC<GameResultsCardProps> = ({
     } catch (_error) {}
   };
 
-
   // Player slot component
   const PlayerSlot = ({
     player,
@@ -354,7 +354,7 @@ export const GameResultsCard: React.FC<GameResultsCardProps> = ({
     // Get current position in the game order
     const key = `${gameNumber}:${teamId}`;
     const currentOrder = gameOrder[key] || [];
-    const currentPosition = currentOrder.findIndex(p => p._id === player._id);
+    const currentPosition = currentOrder.findIndex((p) => p._id === player._id);
     const positionNames = ["TOP", "JUNGLE", "MID", "BOTTOM", "SUPPORT"];
     const currentPositionName = currentPosition >= 0 ? positionNames[currentPosition] : "UNKNOWN";
 
@@ -364,7 +364,7 @@ export const GameResultsCard: React.FC<GameResultsCardProps> = ({
         <div className="mb-3">
           <span className="text-xl font-medium text-white">{player.inGameName || player.tag}</span>
         </div>
-        
+
         {/* Inputs in same column */}
         <div className="space-y-2">
           {/* Champion select */}
@@ -387,7 +387,7 @@ export const GameResultsCard: React.FC<GameResultsCardProps> = ({
               </option>
             ))}
           </select>
-          
+
           {/* Position and swap dropdown */}
           {editingGame === gameNumber && (
             <div className="flex items-center gap-2">
@@ -405,8 +405,8 @@ export const GameResultsCard: React.FC<GameResultsCardProps> = ({
               >
                 <option value="">swap with</option>
                 {currentOrder
-                  .filter(p => p._id !== player._id)
-                  .map(targetPlayer => (
+                  .filter((p) => p._id !== player._id)
+                  .map((targetPlayer) => (
                     <option key={targetPlayer._id} value={targetPlayer._id}>
                       {targetPlayer.inGameName || targetPlayer.tag}
                     </option>
@@ -598,8 +598,8 @@ export const GameResultsCard: React.FC<GameResultsCardProps> = ({
                       game.winner === "blue"
                         ? "bg-blue-600 text-blue-100"
                         : game.winner === "red"
-                        ? "bg-red-600 text-red-100"
-                        : "bg-gray-600 text-gray-200"
+                          ? "bg-red-600 text-red-100"
+                          : "bg-gray-600 text-gray-200"
                     }`}
                   >
                     {game.winner === "blue" ? "Blue Win" : game.winner === "red" ? "Red Win" : "Ongoing"}
@@ -613,27 +613,27 @@ export const GameResultsCard: React.FC<GameResultsCardProps> = ({
                     onClick={() => {
                       const newEditingGame = editingGame === game.gameNumber ? null : game.gameNumber;
                       setEditingGame(newEditingGame);
-                      
+
                       // Ensure gameOrder is initialized for this game when starting to edit
                       if (newEditingGame !== null) {
                         const blueTeamId = getTeamIdForSide(game, "blue");
                         const redTeamId = getTeamIdForSide(game, "red");
                         const blueKey = `${game.gameNumber}:${blueTeamId}`;
                         const redKey = `${game.gameNumber}:${redTeamId}`;
-                        
+
                         setGameOrder((prev) => {
                           const newOrder = { ...prev };
-                          
+
                           // Initialize blue side if not exists
                           if (!newOrder[blueKey] && blueTeam?.players?.main) {
                             newOrder[blueKey] = blueTeam.players.main.slice(0, 5);
                           }
-                          
+
                           // Initialize red side if not exists
                           if (!newOrder[redKey] && redTeam?.players?.main) {
                             newOrder[redKey] = redTeam.players.main.slice(0, 5);
                           }
-                          
+
                           return newOrder;
                         });
                       }
@@ -652,13 +652,13 @@ export const GameResultsCard: React.FC<GameResultsCardProps> = ({
                 <div className="text-white text-sm truncate text-left">
                   {(() => {
                     const blueTeamName = typeof game.blueTeam === "string" ? game.blueTeam : game.blueTeam?.teamName;
-                    
+
                     // If game team data is empty, use match team data as fallback
-                    if (!blueTeamName || blueTeamName === '') {
+                    if (!blueTeamName || blueTeamName === "") {
                       const blueTeamId = getTeamIdForSide(game, "blue");
                       return blueTeamId === match.blueTeamId ? blueTeam?.name : redTeam?.name;
                     }
-                    
+
                     return blueTeamName;
                   })()}
                 </div>
@@ -666,13 +666,13 @@ export const GameResultsCard: React.FC<GameResultsCardProps> = ({
                 <div className="text-white text-sm truncate text-right">
                   {(() => {
                     const redTeamName = typeof game.redTeam === "string" ? game.redTeam : game.redTeam?.teamName;
-                    
+
                     // If game team data is empty, use match team data as fallback
-                    if (!redTeamName || redTeamName === '') {
+                    if (!redTeamName || redTeamName === "") {
                       const redTeamId = getTeamIdForSide(game, "red");
                       return redTeamId === match.blueTeamId ? blueTeam?.name : redTeam?.name;
                     }
-                    
+
                     return redTeamName;
                   })()}
                 </div>
@@ -734,8 +734,7 @@ export const GameResultsCard: React.FC<GameResultsCardProps> = ({
                           const blueSideTeamId = getTeamIdForSide(game, "blue");
                           const blueKey = `${game.gameNumber}:${blueSideTeamId}`;
                           const blueSideList = gameOrder[blueKey] || [];
-                          
-                          
+
                           return (blueSideList || []).slice(0, 5).map((p) => {
                             const current = game.championsPlayed?.[blueSideTeamId]?.[p._id];
                             return (
@@ -762,8 +761,7 @@ export const GameResultsCard: React.FC<GameResultsCardProps> = ({
                           const redSideTeamId = getTeamIdForSide(game, "red");
                           const redKey = `${game.gameNumber}:${redSideTeamId}`;
                           const redSideList = gameOrder[redKey] || [];
-                          
-                          
+
                           return (redSideList || []).slice(0, 5).map((p) => {
                             const current = game.championsPlayed?.[redSideTeamId]?.[p._id];
                             return (

@@ -1,6 +1,6 @@
-import { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { getSession } from '@lsu/draft/queries';
-import { getCurrentTurn, getPhaseForTurn, getTeamForTurn } from '@lsu/draft';
+import { getPhaseForTurn, getTeamForTurn } from '@lsu/draft';
 import { addClient, removeClient, broadcast } from './room';
 import { createLogger } from '@lsu/logger';
 
@@ -29,14 +29,16 @@ export async function GET(
   const client = addClient(sessionId, serverWs);
 
   const turnNumber = session.turnNumber ?? 0;
-  serverWs.send(JSON.stringify({
-    type: 'state',
-    phase: getPhaseForTurn(turnNumber),
-    team: getTeamForTurn(turnNumber),
-    turnNumber,
-    actions: session.actions ?? [],
-    timer: session.timer ?? { remaining: 30, totalTime: 30, isActive: false },
-  }));
+  serverWs.send(
+    JSON.stringify({
+      type: 'state',
+      phase: getPhaseForTurn(turnNumber),
+      team: getTeamForTurn(turnNumber),
+      turnNumber,
+      actions: session.actions ?? [],
+      timer: session.timer ?? { remaining: 30, totalTime: 30, isActive: false },
+    }),
+  );
 
   serverWs.addEventListener('message', async (event: MessageEvent) => {
     try {

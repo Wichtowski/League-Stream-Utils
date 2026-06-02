@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { resendVerificationEmail, withAuth } from '@lsu/auth';
 import { getDbForRequest } from '@lsu/db';
 import { json, error } from '@/api/_helpers';

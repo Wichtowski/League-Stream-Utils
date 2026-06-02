@@ -25,8 +25,8 @@ export default function middleware(request: NextRequest) {
       return addSecurityHeaders(NextResponse.next());
     }
 
-    const token = request.cookies.get('access_token')?.value
-      ?? request.cookies.get('refresh_token')?.value;
+    const token =
+      request.cookies.get('access_token')?.value ?? request.cookies.get('refresh_token')?.value;
     if (!token) {
       const loginUrl = new URL('/login', request.url);
       loginUrl.searchParams.set('redirect', pathname);

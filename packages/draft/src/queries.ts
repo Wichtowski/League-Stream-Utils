@@ -2,10 +2,7 @@ import { draftSessionModel, isMongoConfigured } from '@lsu/db-mongo';
 
 export async function getSessions(limit = 50) {
   if (!isMongoConfigured()) return [];
-  return draftSessionModel.find()
-    .sort({ createdAt: -1 })
-    .limit(limit)
-    .lean();
+  return draftSessionModel.find().sort({ createdAt: -1 }).limit(limit).lean();
 }
 
 export async function getSession(sessionId: string) {

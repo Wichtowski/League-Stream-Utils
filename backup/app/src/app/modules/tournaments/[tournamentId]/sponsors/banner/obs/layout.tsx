@@ -7,9 +7,5 @@ interface ObsLayoutProps {
 }
 
 export default function ObsLayout({ children }: ObsLayoutProps): ReactNode {
-  return (
-    <div className="w-screen h-screen bg-transparent overflow-hidden">
-      {children}
-    </div>
-  );
+  return <div className="w-screen h-screen bg-transparent overflow-hidden">{children}</div>;
 }

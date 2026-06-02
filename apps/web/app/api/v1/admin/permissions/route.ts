@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { withAuth } from '@lsu/auth';
 import { getDbForRequest } from '@lsu/db';
 import { json, error, unauthorized, forbidden, parseBody } from '@/api/_helpers';
@@ -9,7 +9,11 @@ export async function GET(request: NextRequest) {
   if (!auth.user.isAdmin) return forbidden();
 
   const db = getDbForRequest(request);
-  const permissions = await db.selectFrom('user_permissions').selectAll().orderBy('granted_at', 'desc').execute();
+  const permissions = await db
+    .selectFrom('user_permissions')
+    .selectAll()
+    .orderBy('granted_at', 'desc')
+    .execute();
   return json(permissions);
 }
 
@@ -32,13 +36,16 @@ export async function POST(request: NextRequest) {
     .returningAll()
     .executeTakeFirstOrThrow();
 
-  await db.insertInto('permission_audit').values({
-    user_id: body.userId,
-    action: 'grant',
-    resource: 'role',
-    metadata: JSON.stringify({ role: body.role }),
-    performed_by: auth.user.userId,
-  }).execute();
+  await db
+    .insertInto('permission_audit')
+    .values({
+      user_id: body.userId,
+      action: 'grant',
+      resource: 'role',
+      metadata: JSON.stringify({ role: body.role }),
+      performed_by: auth.user.userId,
+    })
+    .execute();
 
   return json(perm, 201);
 }

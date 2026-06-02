@@ -36,9 +36,7 @@ export function getTeamBans(side: TeamSide, actions: draftAction[]): draftAction
   return actions.filter((a) => a.teamSide === side && a.type === 'ban' && !a.undone);
 }
 
-export function getFearlessBannedChampions(
-  previousGames: draftAction[][],
-): Set<number> {
+export function getFearlessBannedChampions(previousGames: draftAction[][]): Set<number> {
   const banned = new Set<number>();
   for (const game of previousGames) {
     for (const action of game) {

@@ -4,7 +4,7 @@ import { TeamModel } from "@libTeam/database/models";
 export async function GET() {
   try {
     // Get all teams with camera settings
-    const teams = await TeamModel.find({ 
+    const teams = await TeamModel.find({
       "cameras.players": { $exists: true, $not: { $size: 0 } }
     });
 

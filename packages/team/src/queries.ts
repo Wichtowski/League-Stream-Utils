@@ -2,11 +2,7 @@ import type { Kysely } from 'kysely';
 import type { Database } from '@lsu/db/types';
 
 export async function getTeams(db: Kysely<Database>) {
-  const rows = await db
-    .selectFrom('teams')
-    .selectAll()
-    .orderBy('name', 'asc')
-    .execute();
+  const rows = await db.selectFrom('teams').selectAll().orderBy('name', 'asc').execute();
 
   const ids = rows.map((r) => r.id);
   if (ids.length === 0) return [];
@@ -24,11 +20,7 @@ export async function getTeams(db: Kysely<Database>) {
 }
 
 export async function getTeam(db: Kysely<Database>, id: string) {
-  const team = await db
-    .selectFrom('teams')
-    .selectAll()
-    .where('id', '=', id)
-    .executeTakeFirst();
+  const team = await db.selectFrom('teams').selectAll().where('id', '=', id).executeTakeFirst();
 
   if (!team) return undefined;
 
@@ -83,12 +75,7 @@ export async function updateTeam(
   if (data.country !== undefined) set.country = data.country;
   if (data.logo !== undefined) set.logo = JSON.stringify(data.logo);
 
-  return db
-    .updateTable('teams')
-    .set(set)
-    .where('id', '=', id)
-    .returningAll()
-    .executeTakeFirst();
+  return db.updateTable('teams').set(set).where('id', '=', id).returningAll().executeTakeFirst();
 }
 
 export async function deleteTeam(db: Kysely<Database>, id: string) {
@@ -158,12 +145,7 @@ export async function updatePlayer(
   if (data.country !== undefined) set.country = data.country;
   if (data.rank !== undefined) set.rank = data.rank;
 
-  return db
-    .updateTable('players')
-    .set(set)
-    .where('id', '=', id)
-    .returningAll()
-    .executeTakeFirst();
+  return db.updateTable('players').set(set).where('id', '=', id).returningAll().executeTakeFirst();
 }
 
 export async function removePlayer(db: Kysely<Database>, id: string) {

@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { changePassword, withAuth, getClientIp } from '@lsu/auth';
 import { getDbForRequest } from '@lsu/db';
 import { json, error, unauthorized, parseBody } from '@/api/_helpers';
@@ -14,7 +14,13 @@ export async function POST(request: NextRequest) {
 
   const db = getDbForRequest(request);
   const ip = getClientIp(request);
-  const result = await changePassword(db, auth.user.userId, body.currentPassword, body.newPassword, ip);
+  const result = await changePassword(
+    db,
+    auth.user.userId,
+    body.currentPassword,
+    body.newPassword,
+    ip,
+  );
 
   if (!result.success) {
     return error(result.error);

@@ -31,7 +31,7 @@ export default function CreateMatchPage(): React.ReactElement {
         currentTournament?.name
           ? { label: currentTournament.name, href: `/modules/tournaments/${tournamentId}` }
           : null,
-          { label: "Matches", href: `/modules/tournaments/${tournamentId}/matches` },
+        { label: "Matches", href: `/modules/tournaments/${tournamentId}/matches` },
         { label: "Create", href: `/modules/tournaments/${tournamentId}/matches/create`, isActive: true }
       ]
     };

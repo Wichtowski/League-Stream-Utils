@@ -158,11 +158,7 @@ export const MatchDetailPage: React.FC<MatchDetailPageProps> = ({ match, tournam
         </div>
 
         {/* Sidebar */}
-        <MatchSidebar
-          match={currentMatch}
-          teamWins={teamWins}
-          onStatusChange={handleStatusChangeWithUpdate}
-        />
+        <MatchSidebar match={currentMatch} teamWins={teamWins} onStatusChange={handleStatusChangeWithUpdate} />
       </div>
 
       <DeleteMatchModal

@@ -1,6 +1,7 @@
 import { getDb } from '../src/index';
 
-const hashPassword = (password: string) => Bun.password.hash(password, { algorithm: 'bcrypt', cost: 12 });
+const hashPassword = (password: string) =>
+  Bun.password.hash(password, { algorithm: 'bcrypt', cost: 12 });
 
 async function seed() {
   const db = getDb('online');
@@ -19,7 +20,11 @@ async function seed() {
     .executeTakeFirst();
 
   if (!admin) {
-    admin = await db.selectFrom('users').selectAll().where('username', '=', 'admin').executeTakeFirst();
+    admin = await db
+      .selectFrom('users')
+      .selectAll()
+      .where('username', '=', 'admin')
+      .executeTakeFirst();
   }
 
   if (!admin) throw new Error('Failed to create/find admin user');
@@ -49,7 +54,9 @@ async function seed() {
     .returningAll()
     .executeTakeFirst();
 
-  console.log(`  ✓ Teams: ${[team1?.name, team2?.name].filter(Boolean).join(', ') || 'already exist'}`);
+  console.log(
+    `  ✓ Teams: ${[team1?.name, team2?.name].filter(Boolean).join(', ') || 'already exist'}`,
+  );
 
   if (team1) {
     for (const p of [
@@ -59,7 +66,10 @@ async function seed() {
       { in_game_name: 'AlphaBot', tag: 'ALFA', role: 'BOTTOM' },
       { in_game_name: 'AlphaSup', tag: 'ALFA', role: 'SUPPORT' },
     ]) {
-      await db.insertInto('players').values({ team_id: team1.id, ...p }).execute();
+      await db
+        .insertInto('players')
+        .values({ team_id: team1.id, ...p })
+        .execute();
     }
     console.log('  ✓ Players for Team Alpha');
   }
@@ -72,7 +82,10 @@ async function seed() {
       { in_game_name: 'OmegaBot', tag: 'OMGA', role: 'BOTTOM' },
       { in_game_name: 'OmegaSup', tag: 'OMGA', role: 'SUPPORT' },
     ]) {
-      await db.insertInto('players').values({ team_id: team2.id, ...p }).execute();
+      await db
+        .insertInto('players')
+        .values({ team_id: team2.id, ...p })
+        .execute();
     }
     console.log('  ✓ Players for Team Omega');
   }
@@ -95,7 +108,11 @@ async function seed() {
     { name: 'CasterOne', social_links: JSON.stringify({ twitter: '@caster1' }) },
     { name: 'CasterTwo', social_links: JSON.stringify({ twitter: '@caster2' }) },
   ]) {
-    await db.insertInto('commentators').values(c).onConflict((oc) => oc.column('name').doNothing()).execute();
+    await db
+      .insertInto('commentators')
+      .values(c)
+      .onConflict((oc) => oc.column('name').doNothing())
+      .execute();
   }
 
   console.log('  ✓ Commentators');

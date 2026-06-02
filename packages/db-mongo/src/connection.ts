@@ -1,9 +1,11 @@
 import mongoose from 'mongoose';
 
-let cached = (global as Record<string, unknown>).__mongoConnection as {
-  conn: typeof mongoose | null;
-  promise: Promise<typeof mongoose> | null;
-} | undefined;
+let cached = (global as Record<string, unknown>).__mongoConnection as
+  | {
+      conn: typeof mongoose | null;
+      promise: Promise<typeof mongoose> | null;
+    }
+  | undefined;
 
 if (!cached) {
   cached = { conn: null, promise: null };

@@ -7,6 +7,7 @@
     "preload": "bun build src/preload.ts --outdir dist --target=node --format=cjs --external electron",
     "dev": "bun run preload && cross-env NODE_OPTIONS='--import tsx' electron .",
     "build": "electron-builder",
+    "lint": "eslint src/",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

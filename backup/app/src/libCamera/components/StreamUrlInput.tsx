@@ -13,11 +13,11 @@ interface StreamUrlInputProps {
   className?: string;
 }
 
-export const StreamUrlInput = ({ 
-  title, 
-  description, 
-  url, 
-  onChange, 
+export const StreamUrlInput = ({
+  title,
+  description,
+  url,
+  onChange,
   placeholder = "https://twitch.tv/player or OBS Stream URL",
   className = ""
 }: StreamUrlInputProps): React.ReactElement => {
@@ -45,17 +45,20 @@ export const StreamUrlInput = ({
           />
           {showValidation && validation.type === "configuring" && (
             <p className="text-orange-400 text-sm flex items-center gap-1">
-              {React.createElement(getStreamTypeIcon(validation.type), { className: "w-4 h-4" })} {getStreamTypeLabel(validation.type)}
+              {React.createElement(getStreamTypeIcon(validation.type), { className: "w-4 h-4" })}{" "}
+              {getStreamTypeLabel(validation.type)}
             </p>
           )}
           {showValidation && !validation.isValid && validation.error && validation.type !== "configuring" && (
             <p className="text-red-400 text-sm flex items-center gap-1">
-              {React.createElement(getStreamTypeIcon(validation.type), { className: "w-4 h-4" })} {getStreamTypeLabel(validation.type)}
+              {React.createElement(getStreamTypeIcon(validation.type), { className: "w-4 h-4" })}{" "}
+              {getStreamTypeLabel(validation.type)}
             </p>
           )}
           {showValidation && validation.isValid && (
             <p className="text-green-400 text-sm flex items-center gap-1">
-              {React.createElement(getStreamTypeIcon(validation.type), { className: "w-4 h-4" })} {getStreamTypeLabel(validation.type)}
+              {React.createElement(getStreamTypeIcon(validation.type), { className: "w-4 h-4" })}{" "}
+              {getStreamTypeLabel(validation.type)}
             </p>
           )}
         </div>

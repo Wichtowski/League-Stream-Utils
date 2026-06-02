@@ -104,7 +104,7 @@ function saveToLocalStorage(trees: RuneTree[], version: string, keystones?: Keys
       keystones: keystones || []
     },
     version,
-    timestamp: Date.now(),
+    timestamp: Date.now()
   };
   localStorage.setItem(CACHE_KEY, JSON.stringify(payload));
 }
@@ -159,7 +159,7 @@ export const getKeystonesCached = (): KeystoneRune[] => {
   if ((cached as StoredRunesV2).data && (cached as StoredRunesV2).data.keystones) {
     return (cached as StoredRunesV2).data.keystones;
   }
-  return ((cached as StoredRunesV1WithKeystones).keystones || []);
+  return (cached as StoredRunesV1WithKeystones).keystones || [];
 };
 
 export const getRuneImage = (nameOrKey?: string): string => {
@@ -170,12 +170,14 @@ export const getRuneImage = (nameOrKey?: string): string => {
 
   const normalized = nameOrKey.trim();
 
-  const trees = (cached as StoredRunesV2).data && (cached as StoredRunesV2).data.trees
-    ? (cached as StoredRunesV2).data.trees
-    : (cached as StoredRunesV1).data;
-  const keystones = (cached as StoredRunesV2).data && (cached as StoredRunesV2).data.keystones
-    ? (cached as StoredRunesV2).data.keystones
-    : (cached as StoredRunesV1WithKeystones).keystones || [];
+  const trees =
+    (cached as StoredRunesV2).data && (cached as StoredRunesV2).data.trees
+      ? (cached as StoredRunesV2).data.trees
+      : (cached as StoredRunesV1).data;
+  const keystones =
+    (cached as StoredRunesV2).data && (cached as StoredRunesV2).data.keystones
+      ? (cached as StoredRunesV2).data.keystones
+      : (cached as StoredRunesV1WithKeystones).keystones || [];
 
   const tree = trees?.find((r) => r.name === normalized || r.key === normalized);
   if (tree?.icon) return tree.icon;

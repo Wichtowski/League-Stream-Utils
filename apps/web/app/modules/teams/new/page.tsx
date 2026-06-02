@@ -70,11 +70,15 @@ export default function TeamWizardPage() {
   const [submitting, setSubmitting] = useState(false);
 
   const canNext =
-    step === 0 ? form.name.length >= 2 && form.tag.length >= 1 :
-    step === 1 ? true :
-    step === 2 ? form.players.length >= 1 :
-    step === 3 ? true :
-    true;
+    step === 0
+      ? form.name.length >= 2 && form.tag.length >= 1
+      : step === 1
+        ? true
+        : step === 2
+          ? form.players.length >= 1
+          : step === 3
+            ? true
+            : true;
 
   async function handleSubmit() {
     setSubmitting(true);
@@ -116,11 +120,11 @@ export default function TeamWizardPage() {
   }
 
   return (
-    <PageWrapper title="Create Team" subtitle={`Step ${step + 1} of ${STEPS.length}: ${STEPS[step]}`}>
-      <Breadcrumbs items={[
-        { label: 'Teams', href: '/modules/teams' },
-        { label: 'New Team' },
-      ]} />
+    <PageWrapper
+      title="Create Team"
+      subtitle={`Step ${step + 1} of ${STEPS.length}: ${STEPS[step]}`}
+    >
+      <Breadcrumbs items={[{ label: 'Teams', href: '/modules/teams' }, { label: 'New Team' }]} />
       <div className="mb-6 flex gap-1">
         {STEPS.map((s, i) => (
           <div
@@ -200,14 +204,18 @@ function StepColors({ form, setForm }: { form: TeamForm; setForm: (f: TeamForm) 
           id="primary"
           type="color"
           value={form.colors.primary}
-          onChange={(e) => setForm({ ...form, colors: { ...form.colors, primary: e.target.value } })}
+          onChange={(e) =>
+            setForm({ ...form, colors: { ...form.colors, primary: e.target.value } })
+          }
         />
         <Input
           label="Secondary"
           id="secondary"
           type="color"
           value={form.colors.secondary}
-          onChange={(e) => setForm({ ...form, colors: { ...form.colors, secondary: e.target.value } })}
+          onChange={(e) =>
+            setForm({ ...form, colors: { ...form.colors, secondary: e.target.value } })
+          }
         />
         <Input
           label="Accent"
@@ -224,7 +232,12 @@ function StepColors({ form, setForm }: { form: TeamForm; setForm: (f: TeamForm) 
           {COLOR_PRESETS.map((p) => (
             <button
               key={p.label}
-              onClick={() => setForm({ ...form, colors: { primary: p.primary, secondary: p.secondary, accent: p.accent } })}
+              onClick={() =>
+                setForm({
+                  ...form,
+                  colors: { primary: p.primary, secondary: p.secondary, accent: p.accent },
+                })
+              }
               className="flex items-center gap-2 rounded-lg border border-border-subtle bg-surface px-3 py-1.5 text-xs transition-colors hover:border-indigo-500/40"
             >
               <div
@@ -242,7 +255,9 @@ function StepColors({ form, setForm }: { form: TeamForm; setForm: (f: TeamForm) 
         <div className="flex items-center gap-3">
           <div
             className="h-12 w-12 rounded-lg"
-            style={{ background: `linear-gradient(135deg, ${form.colors.primary}, ${form.colors.secondary})` }}
+            style={{
+              background: `linear-gradient(135deg, ${form.colors.primary}, ${form.colors.secondary})`,
+            }}
           />
           <div>
             <span className="font-semibold">{form.name || 'Team Name'}</span>
@@ -256,13 +271,27 @@ function StepColors({ form, setForm }: { form: TeamForm; setForm: (f: TeamForm) 
 
 function StepRoster({ form, setForm }: { form: TeamForm; setForm: (f: TeamForm) => void }) {
   const [draft, setDraft] = useState<PlayerDraft>({
-    inGameName: '', tag: '', role: 'TOP', isSub: false, firstName: '', lastName: '', country: '',
+    inGameName: '',
+    tag: '',
+    role: 'TOP',
+    isSub: false,
+    firstName: '',
+    lastName: '',
+    country: '',
   });
 
   function addPlayer() {
     if (!draft.inGameName || !draft.tag) return;
     setForm({ ...form, players: [...form.players, { ...draft }] });
-    setDraft({ inGameName: '', tag: '', role: 'TOP', isSub: false, firstName: '', lastName: '', country: '' });
+    setDraft({
+      inGameName: '',
+      tag: '',
+      role: 'TOP',
+      isSub: false,
+      firstName: '',
+      lastName: '',
+      country: '',
+    });
   }
 
   function removePlayer(i: number) {
@@ -276,12 +305,18 @@ function StepRoster({ form, setForm }: { form: TeamForm; setForm: (f: TeamForm) 
       {form.players.length > 0 && (
         <div className="space-y-2">
           {form.players.map((p, i) => (
-            <div key={i} className="flex items-center gap-3 rounded-lg border border-border-subtle bg-surface-raised px-3 py-2 text-sm">
+            <div
+              key={i}
+              className="flex items-center gap-3 rounded-lg border border-border-subtle bg-surface-raised px-3 py-2 text-sm"
+            >
               <span className="w-16 text-xs text-text-muted">{p.role}</span>
               <span className="font-medium">{p.inGameName}</span>
               <span className="text-text-muted">#{p.tag}</span>
               {p.isSub && <span className="text-xs text-amber-400">Sub</span>}
-              <button onClick={() => removePlayer(i)} className="ml-auto text-xs text-red-400 hover:text-red-300">
+              <button
+                onClick={() => removePlayer(i)}
+                className="ml-auto text-xs text-red-400 hover:text-red-300"
+              >
                 Remove
               </button>
             </div>
@@ -336,7 +371,12 @@ function StepRoster({ form, setForm }: { form: TeamForm; setForm: (f: TeamForm) 
             Sub
           </label>
         </div>
-        <Button size="sm" variant="secondary" onClick={addPlayer} disabled={!draft.inGameName || !draft.tag}>
+        <Button
+          size="sm"
+          variant="secondary"
+          onClick={addPlayer}
+          disabled={!draft.inGameName || !draft.tag}
+        >
           Add Player
         </Button>
       </div>
@@ -361,16 +401,23 @@ function StepStaff({ form, setForm }: { form: TeamForm; setForm: (f: TeamForm) =
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-text-muted">Add coaches, managers, or analysts. This step is optional.</p>
+      <p className="text-sm text-text-muted">
+        Add coaches, managers, or analysts. This step is optional.
+      </p>
 
       {form.staff.length > 0 && (
         <div className="space-y-2">
           {form.staff.map((s, i) => (
-            <div key={i} className="flex items-center gap-3 rounded-lg border border-border-subtle bg-surface-raised px-3 py-2 text-sm">
+            <div
+              key={i}
+              className="flex items-center gap-3 rounded-lg border border-border-subtle bg-surface-raised px-3 py-2 text-sm"
+            >
               <span className="font-medium">{s.name}</span>
               <span className="text-text-muted">— {s.role}</span>
               <button
-                onClick={() => setForm({ ...form, staff: form.staff.filter((_, idx) => idx !== i) })}
+                onClick={() =>
+                  setForm({ ...form, staff: form.staff.filter((_, idx) => idx !== i) })
+                }
                 className="ml-auto text-xs text-red-400 hover:text-red-300"
               >
                 Remove
@@ -382,8 +429,20 @@ function StepStaff({ form, setForm }: { form: TeamForm; setForm: (f: TeamForm) =
 
       <div className="rounded-lg border border-border-subtle bg-surface p-4 space-y-3">
         <div className="grid grid-cols-2 gap-3">
-          <Input label="Name" id="sname" value={name} onChange={(e) => setName(e.target.value)} placeholder="Kim" />
-          <Input label="Role" id="srole" value={role} onChange={(e) => setRole(e.target.value)} placeholder="Coach" />
+          <Input
+            label="Name"
+            id="sname"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Kim"
+          />
+          <Input
+            label="Role"
+            id="srole"
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+            placeholder="Coach"
+          />
         </div>
         <Button size="sm" variant="secondary" onClick={addStaff} disabled={!name}>
           Add Staff
@@ -400,7 +459,9 @@ function StepReview({ form }: { form: TeamForm }) {
         <div className="flex items-center gap-3 mb-4">
           <div
             className="h-12 w-12 rounded-lg"
-            style={{ background: `linear-gradient(135deg, ${form.colors.primary}, ${form.colors.secondary})` }}
+            style={{
+              background: `linear-gradient(135deg, ${form.colors.primary}, ${form.colors.secondary})`,
+            }}
           />
           <div>
             <h3 className="font-semibold">{form.name}</h3>

@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { withAuth } from '@lsu/auth';
 import { pushAction, undoLastAction, updateSessionState, getSession } from '@lsu/draft/queries';
 import { validateAction, getPhaseForTurn, getTeamForTurn } from '@lsu/draft/engine';

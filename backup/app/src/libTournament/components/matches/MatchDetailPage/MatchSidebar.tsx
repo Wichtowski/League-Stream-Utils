@@ -8,11 +8,7 @@ interface MatchSidebarProps {
   onStatusChange: (status: MatchStatus) => Promise<boolean>;
 }
 
-export const MatchSidebar: React.FC<MatchSidebarProps> = ({
-  match,
-  teamWins,
-  onStatusChange,
-}) => {
+export const MatchSidebar: React.FC<MatchSidebarProps> = ({ match, teamWins, onStatusChange }) => {
   return (
     <div className="space-y-6">
       {/* Quick Actions */}

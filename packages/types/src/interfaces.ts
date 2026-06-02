@@ -9,8 +9,6 @@ import type {
   TournamentType,
   TournamentStatus,
   ImageFormat,
-  ImageStorageType,
-  Role,
   WSMessageType,
 } from './enums';
 

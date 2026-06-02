@@ -18,10 +18,4 @@ export {
   extractBans,
 } from './lcu';
 
-export {
-  saveToCache,
-  loadFromCache,
-  clearCache,
-  clearAllCaches,
-  isCacheValid,
-} from './cache';
+export { saveToCache, loadFromCache, clearCache, clearAllCaches, isCacheValid } from './cache';

@@ -77,7 +77,7 @@ interface DDragonRuneTree {
 }
 
 export async function fetchChampions(version?: string) {
-  const v = version ?? await getLatestVersion();
+  const v = version ?? (await getLatestVersion());
   const data = await fetchWithTimeout<{ data: Record<string, DDragonChampion> }>(
     `${BASE_URL}/cdn/${v}/data/en_US/champion.json`,
   );
@@ -95,7 +95,7 @@ export async function fetchChampions(version?: string) {
 }
 
 export async function fetchChampionDetail(championKey: string, version?: string) {
-  const v = version ?? await getLatestVersion();
+  const v = version ?? (await getLatestVersion());
   const data = await fetchWithTimeout<{ data: Record<string, DDragonChampion> }>(
     `${BASE_URL}/cdn/${v}/data/en_US/champion/${championKey}.json`,
   );
@@ -133,7 +133,7 @@ export async function fetchChampionDetail(championKey: string, version?: string)
 }
 
 export async function fetchItems(version?: string) {
-  const v = version ?? await getLatestVersion();
+  const v = version ?? (await getLatestVersion());
   const data = await fetchWithTimeout<{ data: Record<string, DDragonItem> }>(
     `${BASE_URL}/cdn/${v}/data/en_US/item.json`,
   );
@@ -152,7 +152,7 @@ export async function fetchItems(version?: string) {
 }
 
 export async function fetchSummonerSpells(version?: string) {
-  const v = version ?? await getLatestVersion();
+  const v = version ?? (await getLatestVersion());
   const data = await fetchWithTimeout<{ data: Record<string, DDragonSummonerSpell> }>(
     `${BASE_URL}/cdn/${v}/data/en_US/summoner.json`,
   );
@@ -166,7 +166,7 @@ export async function fetchSummonerSpells(version?: string) {
 }
 
 export async function fetchRunes(version?: string) {
-  const v = version ?? await getLatestVersion();
+  const v = version ?? (await getLatestVersion());
   const trees = await fetchWithTimeout<DDragonRuneTree[]>(
     `${BASE_URL}/cdn/${v}/data/en_US/runesReforged.json`,
   );
@@ -177,15 +177,16 @@ export async function fetchRunes(version?: string) {
       name: t.name,
       icon: `${BASE_URL}/cdn/img/${t.icon}`,
     })),
-    keystones: trees.flatMap((t) =>
-      t.slots[0]?.runes.map((r) => ({
-        id: r.id,
-        key: r.key,
-        name: r.name,
-        icon: `${BASE_URL}/cdn/img/${r.icon}`,
-        treeKey: t.key,
-        treeName: t.name,
-      })) ?? [],
+    keystones: trees.flatMap(
+      (t) =>
+        t.slots[0]?.runes.map((r) => ({
+          id: r.id,
+          key: r.key,
+          name: r.name,
+          icon: `${BASE_URL}/cdn/img/${r.icon}`,
+          treeKey: t.key,
+          treeName: t.name,
+        })) ?? [],
     ),
   };
 }
@@ -198,7 +199,9 @@ export function getImageUrls(version: string) {
     item: (filename: string) => `${cdn}/${version}/img/item/${filename}`,
     passive: (filename: string) => `${cdn}/${version}/img/passive/${filename}`,
     profileIcon: (id: number) => `${cdn}/${version}/img/profileicon/${id}.png`,
-    splash: (championKey: string, skin = 0) => `${cdn}/img/champion/splash/${championKey}_${skin}.jpg`,
-    loading: (championKey: string, skin = 0) => `${cdn}/img/champion/loading/${championKey}_${skin}.jpg`,
+    splash: (championKey: string, skin = 0) =>
+      `${cdn}/img/champion/splash/${championKey}_${skin}.jpg`,
+    loading: (championKey: string, skin = 0) =>
+      `${cdn}/img/champion/loading/${championKey}_${skin}.jpg`,
   };
 }

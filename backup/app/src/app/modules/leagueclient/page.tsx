@@ -9,14 +9,13 @@ import Link from "next/link";
 import { Match, Tournament } from "@libTournament/types";
 import { useElectron } from "@libElectron/contexts/ElectronContext";
 
-
 export default function LeagueClientPage(): React.ReactElement {
   const { setActiveModule } = useNavigation();
   const { user: _user, isLoading: _authLoading } = useAuth();
   const { currentTournament } = useCurrentTournament();
   const { currentMatch } = useCurrentMatch();
   const { isElectron } = useElectron();
-  
+
   const pageProps = useMemo(() => {
     return {
       title: "League Client Integration",
@@ -39,7 +38,15 @@ export default function LeagueClientPage(): React.ReactElement {
     currentMatch: Match | null;
   }
 
-  const LeagueClientCard = ({ title, description, routeKey, icon, accent, currentTournament, currentMatch }: LeagueClientCardProps): React.ReactElement => {
+  const LeagueClientCard = ({
+    title,
+    description,
+    routeKey,
+    icon,
+    accent,
+    currentTournament,
+    currentMatch
+  }: LeagueClientCardProps): React.ReactElement => {
     const accentStyles =
       accent === "blue"
         ? {

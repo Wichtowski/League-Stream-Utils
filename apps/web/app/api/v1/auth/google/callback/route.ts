@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest} from 'next/server';
+import { NextResponse } from 'next/server';
 import { exchangeGoogleCode, getGoogleUser, getClientIp } from '@lsu/auth';
 import { hashPassword } from '@lsu/auth';
 import { getDbForRequest } from '@lsu/db';
@@ -24,7 +25,11 @@ export async function GET(request: NextRequest) {
 
     if (!user) {
       let username = googleUser.email.split('@')[0].replace(/[^a-zA-Z0-9_-]/g, '_');
-      const existing = await db.selectFrom('users').select('id').where('username', '=', username).executeTakeFirst();
+      const existing = await db
+        .selectFrom('users')
+        .select('id')
+        .where('username', '=', username)
+        .executeTakeFirst();
       if (existing) username += `_${Date.now().toString(36)}`;
 
       const passwordHash = await hashPassword(crypto.randomUUID());
@@ -44,7 +49,11 @@ export async function GET(request: NextRequest) {
     });
 
     const ip = getClientIp(request);
-    await db.updateTable('users').set({ last_login_at: new Date(), last_login_ip: ip }).where('id', '=', user.id).execute();
+    await db
+      .updateTable('users')
+      .set({ last_login_at: new Date(), last_login_ip: ip })
+      .where('id', '=', user.id)
+      .execute();
 
     const html = `<!DOCTYPE html><html><body><script>
       window.opener?.postMessage({type:'oauth:google:success'},'*');

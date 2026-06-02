@@ -32,12 +32,12 @@ export const getTeamWins = (games: GameResult[], match: Match): { team1Wins: num
 // Helper function to get team ID for a side (copied from useMatchGames)
 const getTeamIdForSide = (game: GameResult, side: "blue" | "red", match: Match): string => {
   if (!match) return "";
-  
+
   // If game team data is empty, use match's default team assignments
-  if (!game.blueTeam || game.blueTeam === '' || !game.redTeam || game.redTeam === '') {
+  if (!game.blueTeam || game.blueTeam === "" || !game.redTeam || game.redTeam === "") {
     return side === "blue" ? match.blueTeamId : match.redTeamId;
   }
-  
+
   // For games with proper team data, determine which team is on which side
   const isBlueTeamMatchBlue = game.blueTeam === match.blueTeamId;
   if (side === "blue") {

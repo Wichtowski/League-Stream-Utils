@@ -16,12 +16,14 @@ League Stream Utils is a full-stack application that provides:
 ## 🛠️ Technology Stack
 
 ### Frontend
+
 - **Next.js 15** - React framework with App Router and standalone output
 - **React 19** - Latest UI library with concurrent features
 - **TypeScript 5** - Full type safety throughout the application
 - **Tailwind CSS 4** - Utility-first CSS with PostCSS optimization
 
 ### Backend & Database
+
 - **Next.js API Routes** - Server-side endpoints with middleware
 - **MongoDB 6** - NoSQL database with Mongoose ODM
 - **JWT Authentication** - Secure token-based auth with refresh tokens
@@ -29,11 +31,13 @@ League Stream Utils is a full-stack application that provides:
 - **Rate Limiting** - Built-in protection against abuse
 
 ### Desktop Application
+
 - **Electron 31** - Cross-platform desktop framework
 - **WebSocket** - Real-time communication between components
 - **IPC Handlers** - Secure communication between main and renderer processes
 
 ### Development & Build Tools
+
 - **Bun** - Fast JavaScript runtime and package manager
 - **ESLint 9** - Code linting with Next.js configuration
 - **Prettier** - Code formatting
@@ -41,6 +45,7 @@ League Stream Utils is a full-stack application that provides:
 - **Webpack Optimization** - Advanced bundle splitting and compression
 
 ### External Integrations
+
 - **Riot Games API** - Official League of Legends data and player verification
 - **League Client Update (LCU)** - Live game data integration
 - **Champion Cache System** - Optimized champion data management
@@ -57,23 +62,27 @@ League Stream Utils is a full-stack application that provides:
 ### Installation
 
 1. **Clone the repository**
+
 ```bash
 git clone <repository-url>
 cd League-Stream-Utils
 ```
 
 2. **Install dependencies**
+
 ```bash
 cd app
 bun install
 ```
 
 3. **Environment Setup**
+
 ```bash
 cp env.example .env.local
 ```
 
 Configure your environment variables:
+
 ```env
 MONGODB_URI="mongodb://localhost:27017/league-stream-utils"
 JWT_SECRET="your-super-strong-jwt-secret-at-least-32-characters"
@@ -84,24 +93,29 @@ RIOT_API_KEY="your-riot-api-key"
 ```
 
 6. **Start Development Server**
+
 ```bash
 bun run dev
 ```
+
 The application will be available at `http://localhost:2137`
 
 ### Desktop Application
 
 Run the desktop app alongside the web server:
+
 ```bash
 bun run dev:electron
 ```
 
 Run the desktop app (production style, creating exec file):
+
 ```bash
 bun run electron-dev
 ```
 
 Or run separately:
+
 ```bash
 # Terminal 1: Start web server
 bun run dev
@@ -201,7 +215,7 @@ git checkout -b fix/your-bug-fix
 - Add TypeScript types for new features
 - Update documentation if needed
 - Test your changes thoroughly
-- Or vibe code it, I dont really care ¯\_(ツ)_/¯
+- Or vibe code it, I dont really care ¯\_(ツ)\_/¯
 
 ### 4. Commit Your Changes
 
@@ -278,24 +292,28 @@ This project uses the Riot Games API and is subject to Riot's [Developer Terms o
 ## 🎯 Key Features
 
 ### Tournament Management
+
 - Complete bracket generation and management
 - Team registration with Riot API verification
 - Match scheduling and result tracking
 - Tournament statistics and analytics
 
 ### Pick/Ban System
+
 - Professional draft interface with real-time updates
 - Timer management and phase control
 - Fearless draft support
 - Champion analytics and statistics
 
 ### Streaming Integration
+
 - OBS automation and scene management
 - Camera feed management and layouts
 - Professional broadcast overlays
 - Real-time data synchronization
 
 ### Desktop Application
+
 - Cross-platform Electron app
 - Enhanced local features and storage
 - Tournament templates and presets

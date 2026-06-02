@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createLogger, generateRequestId } from '@lsu/logger';
+import { createLogger } from '@lsu/logger';
 
 const log = createLogger('api');
 

@@ -23,7 +23,12 @@ export class SummonerSpellDownloadManager extends BaseDownloadManager {
     const missing = spells.filter((s) => !completed.has(s.id));
 
     if (missing.length === 0) {
-      this.progress({ stage: 'complete', current: spells.length, total: spells.length, itemName: 'all cached' });
+      this.progress({
+        stage: 'complete',
+        current: spells.length,
+        total: spells.length,
+        itemName: 'all cached',
+      });
       return;
     }
 
@@ -44,6 +49,11 @@ export class SummonerSpellDownloadManager extends BaseDownloadManager {
     const { writeFile } = await import('node:fs/promises');
     await writeFile(dataPath, JSON.stringify(data.data), 'utf-8');
 
-    this.progress({ stage: 'complete', current: spells.length, total: spells.length, itemName: 'done' });
+    this.progress({
+      stage: 'complete',
+      current: spells.length,
+      total: spells.length,
+      itemName: 'done',
+    });
   }
 }

@@ -31,22 +31,28 @@ export function useOBS() {
     return clientRef.current;
   }, []);
 
-  const connect = useCallback(async (url?: string, password?: string) => {
-    const client = getClient();
-    await client.connect(url, password);
-    const { scenes, currentScene } = await client.getScenes();
-    store.getState().setScenes(scenes, currentScene);
-  }, [getClient]);
+  const connect = useCallback(
+    async (url?: string, password?: string) => {
+      const client = getClient();
+      await client.connect(url, password);
+      const { scenes, currentScene } = await client.getScenes();
+      store.getState().setScenes(scenes, currentScene);
+    },
+    [getClient],
+  );
 
   const disconnect = useCallback(async () => {
     await clientRef.current?.disconnect();
   }, []);
 
-  const switchScene = useCallback(async (sceneName: string) => {
-    const client = getClient();
-    await client.setCurrentScene(sceneName);
-    store.getState().setScenes(store.getState().scenes, sceneName);
-  }, [getClient]);
+  const switchScene = useCallback(
+    async (sceneName: string) => {
+      const client = getClient();
+      await client.setCurrentScene(sceneName);
+      store.getState().setScenes(store.getState().scenes, sceneName);
+    },
+    [getClient],
+  );
 
   return { connect, disconnect, switchScene, getClient };
 }

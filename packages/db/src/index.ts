@@ -311,11 +311,17 @@ function getDefaultSqlitePath(): string {
   const platform = process.platform;
   let base: string;
   if (platform === 'win32') {
-    base = path.join(process.env.APPDATA ?? path.join(os.homedir(), 'AppData', 'Roaming'), 'league-stream-utils');
+    base = path.join(
+      process.env.APPDATA ?? path.join(os.homedir(), 'AppData', 'Roaming'),
+      'league-stream-utils',
+    );
   } else if (platform === 'darwin') {
     base = path.join(os.homedir(), 'Library', 'Application Support', 'league-stream-utils');
   } else {
-    base = path.join(process.env.XDG_DATA_HOME ?? path.join(os.homedir(), '.local', 'share'), 'league-stream-utils');
+    base = path.join(
+      process.env.XDG_DATA_HOME ?? path.join(os.homedir(), '.local', 'share'),
+      'league-stream-utils',
+    );
   }
   fs.mkdirSync(base, { recursive: true });
   return path.join(base, 'local.db');

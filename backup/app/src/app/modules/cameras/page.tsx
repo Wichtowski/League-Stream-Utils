@@ -79,22 +79,24 @@ export default function CamerasPage(): ReactElement {
     if (searchLower) {
       filteredTournaments = byTournament.filter(({ tournament, teams }) => {
         const tournamentMatches = tournament.name.toLowerCase().includes(searchLower);
-        const teamMatches = teams.some(team => 
-          team.name.toLowerCase().includes(searchLower) ||
-          team.players.main.some(p => p.inGameName.toLowerCase().includes(searchLower)) ||
-          team.players.substitutes.some(p => p.inGameName.toLowerCase().includes(searchLower))
+        const teamMatches = teams.some(
+          (team) =>
+            team.name.toLowerCase().includes(searchLower) ||
+            team.players.main.some((p) => p.inGameName.toLowerCase().includes(searchLower)) ||
+            team.players.substitutes.some((p) => p.inGameName.toLowerCase().includes(searchLower))
         );
         return tournamentMatches || teamMatches;
       });
 
-      filteredUnassigned = unassigned.filter(team =>
-        team.name.toLowerCase().includes(searchLower) ||
-        team.players.main.some(p => p.inGameName.toLowerCase().includes(searchLower)) ||
-        team.players.substitutes.some(p => p.inGameName.toLowerCase().includes(searchLower))
+      filteredUnassigned = unassigned.filter(
+        (team) =>
+          team.name.toLowerCase().includes(searchLower) ||
+          team.players.main.some((p) => p.inGameName.toLowerCase().includes(searchLower)) ||
+          team.players.substitutes.some((p) => p.inGameName.toLowerCase().includes(searchLower))
       );
     }
 
-    return { 
+    return {
       filteredTournamentsWithTeams: filteredTournaments,
       filteredUnassignedTeams: filteredUnassigned
     };
@@ -149,9 +151,11 @@ export default function CamerasPage(): ReactElement {
               onChange={(e) => setSearchQuery(e.target.value)}
               className="px-3 py-2 w-80 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
-            <div className={`w-full center justify-center transition-all duration-300 ease-in-out overflow-hidden ${
-              searchQuery ? 'max-w-20 opacity-100' : 'max-w-0 opacity-0'
-            }`}>
+            <div
+              className={`w-full center justify-center transition-all duration-300 ease-in-out overflow-hidden ${
+                searchQuery ? "max-w-20 opacity-100" : "max-w-0 opacity-0"
+              }`}
+            >
               <button
                 onClick={() => setSearchQuery("")}
                 className="px-3 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded-lg transition-colors whitespace-nowrap"
@@ -166,95 +170,95 @@ export default function CamerasPage(): ReactElement {
           <>
             <div className="space-y-6">
               {paginatedTournamentGroups.groups.map(({ tournament, teams }) => {
-              const teamsPage = teamsPageByTournament[tournament._id] || 1;
-              const totalTeamPages = Math.max(1, Math.ceil(teams.length / TEAMS_PER_TOURNAMENT));
-              const teamsStart = (Math.min(teamsPage, totalTeamPages) - 1) * TEAMS_PER_TOURNAMENT;
-              const teamsEnd = teamsStart + TEAMS_PER_TOURNAMENT;
-              const teamsSlice = teams.slice(teamsStart, teamsEnd);
+                const teamsPage = teamsPageByTournament[tournament._id] || 1;
+                const totalTeamPages = Math.max(1, Math.ceil(teams.length / TEAMS_PER_TOURNAMENT));
+                const teamsStart = (Math.min(teamsPage, totalTeamPages) - 1) * TEAMS_PER_TOURNAMENT;
+                const teamsEnd = teamsStart + TEAMS_PER_TOURNAMENT;
+                const teamsSlice = teams.slice(teamsStart, teamsEnd);
 
-              return (
-                <div key={tournament._id} className="bg-gray-700 rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-lg font-semibold text-white">{tournament.name}</h3>
-                    {totalTeamPages > 1 && (
-                      <Pagination
-                        currentPage={Math.min(teamsPage, totalTeamPages)}
-                        totalPages={totalTeamPages}
-                        onPageChange={(p: number) =>
-                          setTeamsPageByTournament((prev) => ({
-                            ...prev,
-                            [tournament._id]: Math.max(1, Math.min(totalTeamPages, p))
-                          }))
-                        }
-                      />
-                    )}
-                  </div>
+                return (
+                  <div key={tournament._id} className="bg-gray-700 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-lg font-semibold text-white">{tournament.name}</h3>
+                      {totalTeamPages > 1 && (
+                        <Pagination
+                          currentPage={Math.min(teamsPage, totalTeamPages)}
+                          totalPages={totalTeamPages}
+                          onPageChange={(p: number) =>
+                            setTeamsPageByTournament((prev) => ({
+                              ...prev,
+                              [tournament._id]: Math.max(1, Math.min(totalTeamPages, p))
+                            }))
+                          }
+                        />
+                      )}
+                    </div>
 
-                  <ConditionalPermission
-                    permission={Permission.TOURNAMENT_VIEW}
-                    resourceId={tournament._id}
-                    hasPermission={
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {teamsSlice.map((team: MergedTeamWithPlayers) => (
-                          <div key={team._id} className="bg-gray-600 rounded-lg p-4">
-                            <Link href={`/modules/cameras/${team._id}`} className="cursor-pointer">
-                              <div className="flex justify-between items-center mb-2">
-                                <h3 className="font-semibold text-white flex items-center gap-2">
-                                  {team.logo?.data ? (
-                                    <SafeImage
-                                      src={team.logo.data}
-                                      alt={team.name}
-                                      width={24}
-                                      height={24}
-                                      className="w-6 h-6 rounded object-cover"
-                                    />
-                                  ) : null}
-                                  {team.name}
-                                </h3>
-                                <span className="text-sm text-gray-300">
-                                  {team.players.main.length + team.players.substitutes.length} players
-                                </span>
-                              </div>
-                              {team.players.substitutes.length > 0 ? (
-                                <div className="text-sm text-gray-200 mb-2">
-                                  <span className="font-semibold">Subs:</span>{" "}
-                                  {team.players.substitutes.map((p: MergedPlayer) => p.inGameName).join(", ")}
+                    <ConditionalPermission
+                      permission={Permission.TOURNAMENT_VIEW}
+                      resourceId={tournament._id}
+                      hasPermission={
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {teamsSlice.map((team: MergedTeamWithPlayers) => (
+                            <div key={team._id} className="bg-gray-600 rounded-lg p-4">
+                              <Link href={`/modules/cameras/${team._id}`} className="cursor-pointer">
+                                <div className="flex justify-between items-center mb-2">
+                                  <h3 className="font-semibold text-white flex items-center gap-2">
+                                    {team.logo?.data ? (
+                                      <SafeImage
+                                        src={team.logo.data}
+                                        alt={team.name}
+                                        width={24}
+                                        height={24}
+                                        className="w-6 h-6 rounded object-cover"
+                                      />
+                                    ) : null}
+                                    {team.name}
+                                  </h3>
+                                  <span className="text-sm text-gray-300">
+                                    {team.players.main.length + team.players.substitutes.length} players
+                                  </span>
                                 </div>
-                              ) : null}
-                              <div className="mt-2">
-                                <span className="font-semibold text-xs text-gray-200">Camera Status:</span>
-                                <ul className="text-xs mt-1">
-                                  {team.players.main.map((p: MergedPlayer) => (
-                                    <li
-                                      key={`main-${p._id}`}
-                                      className={p.cameraUrl ? "text-green-300" : "text-yellow-300"}
-                                    >
-                                      {p.inGameName} {p.cameraUrl ? "• Configured" : "• Not Configured"}
-                                    </li>
-                                  ))}
-                                  {team.players.substitutes.map((p: MergedPlayer) => (
-                                    <li
-                                      key={`sub-${p._id}`}
-                                      className={p.cameraUrl ? "text-green-300" : "text-yellow-300"}
-                                    >
-                                      {p.inGameName} (Sub) {p.cameraUrl ? "• Configured" : "• Not Configured"}
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-                            </Link>
-                          </div>
-                        ))}
-                      </div>
-                    }
-                    noPermission={
-                      <div className="text-gray-400 text-sm">No permission to view cameras for this tournament.</div>
-                    }
-                  />
-                </div>
-              );
-            })}
-          </div>
+                                {team.players.substitutes.length > 0 ? (
+                                  <div className="text-sm text-gray-200 mb-2">
+                                    <span className="font-semibold">Subs:</span>{" "}
+                                    {team.players.substitutes.map((p: MergedPlayer) => p.inGameName).join(", ")}
+                                  </div>
+                                ) : null}
+                                <div className="mt-2">
+                                  <span className="font-semibold text-xs text-gray-200">Camera Status:</span>
+                                  <ul className="text-xs mt-1">
+                                    {team.players.main.map((p: MergedPlayer) => (
+                                      <li
+                                        key={`main-${p._id}`}
+                                        className={p.cameraUrl ? "text-green-300" : "text-yellow-300"}
+                                      >
+                                        {p.inGameName} {p.cameraUrl ? "• Configured" : "• Not Configured"}
+                                      </li>
+                                    ))}
+                                    {team.players.substitutes.map((p: MergedPlayer) => (
+                                      <li
+                                        key={`sub-${p._id}`}
+                                        className={p.cameraUrl ? "text-green-300" : "text-yellow-300"}
+                                      >
+                                        {p.inGameName} (Sub) {p.cameraUrl ? "• Configured" : "• Not Configured"}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              </Link>
+                            </div>
+                          ))}
+                        </div>
+                      }
+                      noPermission={
+                        <div className="text-gray-400 text-sm">No permission to view cameras for this tournament.</div>
+                      }
+                    />
+                  </div>
+                );
+              })}
+            </div>
 
             <div>
               <Pagination
@@ -272,13 +276,12 @@ export default function CamerasPage(): ReactElement {
               {searchQuery ? "No tournaments or teams found matching your search" : "No tournaments available"}
             </div>
             <div className="flex justify-center">
-              <div className={`transition-all duration-300 ease-in-out overflow-hidden ${
-                searchQuery ? 'max-w-32 opacity-100' : 'max-w-0 opacity-0'
-              }`}>
-                <button
-                  onClick={() => setSearchQuery("")}
-                  className="text-blue-400 hover:text-blue-300 underline"
-                >
+              <div
+                className={`transition-all duration-300 ease-in-out overflow-hidden ${
+                  searchQuery ? "max-w-32 opacity-100" : "max-w-0 opacity-0"
+                }`}
+              >
+                <button onClick={() => setSearchQuery("")} className="text-blue-400 hover:text-blue-300 underline">
                   Clear search
                 </button>
               </div>
@@ -342,9 +345,11 @@ export default function CamerasPage(): ReactElement {
               {searchQuery ? "No unassigned teams found matching your search" : "No unassigned teams available"}
             </div>
             <div className="flex justify-center">
-              <div className={`transition-all duration-300 ease-in-out overflow-hidden ${
-                searchQuery ? 'max-w-32 opacity-100' : 'max-w-0 opacity-0'
-              }`}>
+              <div
+                className={`transition-all duration-300 ease-in-out overflow-hidden ${
+                  searchQuery ? "max-w-32 opacity-100" : "max-w-0 opacity-0"
+                }`}
+              >
                 <button
                   onClick={() => setSearchQuery("")}
                   className="text-blue-400 hover:text-blue-300 underline whitespace-nowrap"
