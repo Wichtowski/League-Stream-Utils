@@ -1,0 +1,46 @@
+{
+  "name": "@lsu/electron",
+  "version": "0.0.0",
+  "private": true,
+  "main": "src/main.ts",
+  "scripts": {
+    "preload": "bun build src/preload.ts --outdir dist --target=node --format=cjs --external electron",
+    "dev": "bun run preload && cross-env NODE_OPTIONS='--import tsx' electron .",
+    "build": "electron-builder",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@lsu/types": "workspace:*",
+    "obs-websocket-js": "^5.0.6"
+  },
+  "devDependencies": {
+    "@lsu/config": "workspace:*",
+    "cross-env": "^10.1.0",
+    "electron": "^35.1.2",
+    "electron-builder": "^26.0.12",
+    "tsx": "^4.8.1",
+    "typescript": "^5.8.3"
+  },
+  "build": {
+    "appId": "com.league-stream-utils.app",
+    "productName": "League Stream Utils",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "out/**/*"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "assets/icon.ico"
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "assets/icon.icns"
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon": "assets/icon.png"
+    }
+  }
+}

@@ -1,0 +1,44 @@
+import { Kysely, PostgresDialect, SqliteDialect } from 'kysely';
+import pg from 'pg';
+import BetterSqlite3 from 'better-sqlite3';
+import type { Database } from './types';
+
+export type { Database } from './types';
+export type AppDb = Kysely<Database>;
+
+let onlineDb: Kysely<Database> | null = null;
+let offlineDb: Kysely<Database> | null = null;
+
+export function getDb(mode: 'online' | 'offline' = 'online'): Kysely<Database> {
+  if (mode === 'offline') {
+    if (!offlineDb) {
+      const sqlitePath = process.env.SQLITE_PATH;
+      if (!sqlitePath) throw new Error('SQLITE_PATH environment variable is not set');
+      offlineDb = new Kysely<Database>({
+        dialect: new SqliteDialect({ database: new BetterSqlite3(sqlitePath) }),
+      });
+    }
+    return offlineDb;
+  }
+
+  if (!onlineDb) {
+    const connectionString = process.env.DATABASE_URL;
+    if (!connectionString) throw new Error('DATABASE_URL environment variable is not set');
+    onlineDb = new Kysely<Database>({
+      dialect: new PostgresDialect({
+        pool: new pg.Pool({ connectionString }),
+      }),
+    });
+  }
+  return onlineDb;
+}
+
+export const db = getDb('online');
+
+export function getDbForRequest(request: Request): Kysely<Database> {
+  const cookies = request.headers.get('cookie') ?? '';
+  const isOffline = cookies.includes('app_mode=offline');
+  return getDb(isOffline ? 'offline' : 'online');
+}
+
+export { sql } from 'kysely';

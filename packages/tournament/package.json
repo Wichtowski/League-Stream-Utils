@@ -1,0 +1,28 @@
+{
+  "name": "@lsu/tournament",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./queries": "./src/queries.ts",
+    "./hooks": "./src/hooks.ts",
+    "./store": "./src/store.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src/"
+  },
+  "dependencies": {
+    "@lsu/db": "workspace:*",
+    "@lsu/types": "workspace:*",
+    "@tanstack/react-query": "^5.80.6",
+    "kysely": "^0.29.2",
+    "zustand": "^5.0.5"
+  },
+  "devDependencies": {
+    "@lsu/config": "workspace:*",
+    "@types/react": "^19.2.15",
+    "typescript": "^5.8.3"
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "name": "@lsu/web",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vinext dev",
+    "build": "vinext build",
+    "start": "vinext start",
+    "deploy": "vinext deploy",
+    "lint": "eslint app/",
+    "typecheck": "tsc --noEmit",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
+  },
+  "dependencies": {
+    "@lsu/auth": "workspace:*",
+    "@lsu/camera": "workspace:*",
+    "@lsu/db": "workspace:*",
+    "@lsu/db-mongo": "workspace:*",
+    "@lsu/electron-bridge": "workspace:*",
+    "@lsu/logger": "workspace:*",
+    "@lsu/obs": "workspace:*",
+    "@lsu/draft": "workspace:*",
+    "@lsu/riot-api": "workspace:*",
+    "@lsu/team": "workspace:*",
+    "@lsu/tournament": "workspace:*",
+    "@lsu/types": "workspace:*",
+    "@lsu/ui": "workspace:*",
+    "@tanstack/react-query": "^5.80.6",
+    "kysely": "^0.29.2",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "react-icons": "^5.5.0",
+    "zustand": "^5.0.5"
+  },
+  "devDependencies": {
+    "@lsu/config": "workspace:*",
+    "@cloudflare/vite-plugin": "^1.39.0",
+    "@tailwindcss/vite": "^4.1.8",
+    "@types/react": "^19.2.15",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.2",
+    "@vitejs/plugin-rsc": "^0.5.26",
+    "react-server-dom-webpack": "^19.2.6",
+    "tailwindcss": "^4.1.8",
+    "typescript": "^5.8.3",
+    "vite": "^8.0.0",
+    "vinext": "^0.0.53",
+    "@playwright/test": "^1.52.0"
+  }
+}

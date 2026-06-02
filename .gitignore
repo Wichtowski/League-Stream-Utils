@@ -1,10 +1,8 @@
-.env
-node_modules/
+node_modules
 dist
-dist-electron
-league-director-cuts
-league-broadcast-css
-
-scripts/lol-player-scrapper/v*
-
-.vscode
+.next
+.turbo
+*.tsbuildinfo
+.env
+.env.local
+.env.*.local

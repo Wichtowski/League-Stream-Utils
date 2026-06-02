@@ -1,0 +1,13 @@
+{
+  "name": "@lsu/config",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    "./tsconfig/base": "./tsconfig/base.json",
+    "./tsconfig/nextjs": "./tsconfig/nextjs.json",
+    "./tsconfig/library": "./tsconfig/library.json",
+    "./eslint": "./eslint/base.js",
+    "./eslint/nextjs": "./eslint/nextjs.js",
+    "./vitest": "./vitest/base.ts"
+  }
+}

@@ -152,7 +152,7 @@ League-Stream-Utils/
 │   │   ├── libCamera/           # Camera management system
 │   │   ├── libElectron/         # Electron integration
 │   │   ├── libLeagueClient/     # LCU integration
-│   │   ├── libPickban/          # Pick/ban system
+│   │   ├── libdraft/          # Pick/ban system
 │   │   ├── libTeam/             # Team management
 │   │   ├── libTournament/       # Tournament system
 │   │   └── electron/            # Electron main process
