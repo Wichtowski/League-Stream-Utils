@@ -1,32 +1,34 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
+import Link from "next/link";
+
+import { useTranslation } from "@lsu/i18n";
 
 const cards = [
   {
-    title: 'Create a Team',
-    description: 'Build your roster, set team colors, and get ready to compete.',
-    href: '/modules/teams/new',
-    gradient: 'from-indigo-500 to-violet-500',
+    titleKey: "welcome_create_team",
+    descKey: "welcome_create_team_desc",
+    href: "/modules/teams/new",
+    gradient: "from-indigo-500 to-violet-500",
   },
   {
-    title: 'Organize a Tournament',
-    description: 'Set up brackets, invite teams, and manage matches.',
-    href: '/modules/tournaments/new',
-    gradient: 'from-violet-500 to-fuchsia-500',
+    titleKey: "welcome_create_tournament",
+    descKey: "welcome_create_tournament_desc",
+    href: "/modules/tournaments/new",
+    gradient: "from-violet-500 to-fuchsia-500",
   },
 ];
 
 export function WelcomeScreen() {
+  const { t } = useTranslation("modules");
+
   return (
     <div className="flex flex-col items-center gap-8 py-20">
       <div className="text-center">
         <h2 className="text-3xl font-bold bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">
-          Welcome to League Stream Utils
+          {t("welcome_title")}
         </h2>
-        <p className="mt-2 text-text-muted">
-          Let&apos;s get you set up. What would you like to do first?
-        </p>
+        <p className="mt-2 text-text-muted">{t("welcome_subtitle")}</p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 max-w-xl w-full">
@@ -38,9 +40,9 @@ export function WelcomeScreen() {
           >
             <div className={`mb-3 h-1 w-10 rounded-full bg-gradient-to-r ${card.gradient}`} />
             <h3 className="text-sm font-semibold group-hover:text-indigo-400 transition-colors">
-              {card.title}
+              {t(card.titleKey)}
             </h3>
-            <p className="mt-1 text-xs text-text-muted">{card.description}</p>
+            <p className="mt-1 text-xs text-text-muted">{t(card.descKey)}</p>
           </Link>
         ))}
       </div>

@@ -1,14 +1,18 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { PageWrapper } from '@/_components/page-wrapper';
-import { Button } from '@/_components/button';
-import { Input } from '@/_components/input';
-import { toast } from '@/_components/toast';
-import { Breadcrumbs } from '@/_components/breadcrumbs';
+import { useState } from "react";
 
-type Role = 'TOP' | 'JUNGLE' | 'MID' | 'BOTTOM' | 'SUPPORT';
+import { useRouter } from "next/navigation";
+
+import { useApiClient } from "@lsu/api-client/context";
+
+import { Breadcrumbs } from "@/_components/breadcrumbs";
+import { Button } from "@/_components/button";
+import { Input } from "@/_components/input";
+import { PageWrapper } from "@/_components/page-wrapper";
+import { toast } from "@/_components/toast";
+
+type Role = "TOP" | "JUNGLE" | "MID" | "BOTTOM" | "SUPPORT";
 
 interface PlayerDraft {
   inGameName: string;
@@ -35,36 +39,28 @@ interface TeamForm {
 }
 
 const INITIAL: TeamForm = {
-  name: '',
-  tag: '',
-  country: '',
-  colors: { primary: '#6366f1', secondary: '#8b5cf6', accent: '#a78bfa' },
+  name: "",
+  tag: "",
+  country: "",
+  colors: { primary: "#6366f1", secondary: "#8b5cf6", accent: "#a78bfa" },
   players: [],
   staff: [],
 };
 
-const STEPS = ['Identity', 'Colors', 'Roster', 'Staff', 'Review'] as const;
+const STEPS = ["Identity", "Colors", "Roster", "Staff", "Review"] as const;
 
 const COLOR_PRESETS = [
-  { label: 'Indigo', primary: '#6366f1', secondary: '#8b5cf6', accent: '#a78bfa' },
-  { label: 'Red', primary: '#ef4444', secondary: '#f87171', accent: '#fca5a5' },
-  { label: 'Emerald', primary: '#10b981', secondary: '#34d399', accent: '#6ee7b7' },
-  { label: 'Amber', primary: '#f59e0b', secondary: '#fbbf24', accent: '#fcd34d' },
-  { label: 'Cyan', primary: '#06b6d4', secondary: '#22d3ee', accent: '#67e8f9' },
-  { label: 'Rose', primary: '#f43f5e', secondary: '#fb7185', accent: '#fda4af' },
+  { label: "Indigo", primary: "#6366f1", secondary: "#8b5cf6", accent: "#a78bfa" },
+  { label: "Red", primary: "#ef4444", secondary: "#f87171", accent: "#fca5a5" },
+  { label: "Emerald", primary: "#10b981", secondary: "#34d399", accent: "#6ee7b7" },
+  { label: "Amber", primary: "#f59e0b", secondary: "#fbbf24", accent: "#fcd34d" },
+  { label: "Cyan", primary: "#06b6d4", secondary: "#22d3ee", accent: "#67e8f9" },
+  { label: "Rose", primary: "#f43f5e", secondary: "#fb7185", accent: "#fda4af" },
 ];
-
-async function fetchJSON<T>(url: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(url, init);
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(text);
-  }
-  return res.json();
-}
 
 export default function TeamWizardPage() {
   const router = useRouter();
+  const api = useApiClient();
   const [step, setStep] = useState(0);
   const [form, setForm] = useState<TeamForm>(INITIAL);
   const [submitting, setSubmitting] = useState(false);
@@ -83,37 +79,25 @@ export default function TeamWizardPage() {
   async function handleSubmit() {
     setSubmitting(true);
     try {
-      const team: any = await fetchJSON('/api/v1/teams', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: form.name,
-          tag: form.tag,
-          colors: form.colors,
-          country: form.country || undefined,
-        }),
+      const team = await api.teams.create({
+        name: form.name,
+        tag: form.tag,
+        colors: form.colors,
+        country: form.country || undefined,
       });
 
       for (const p of form.players) {
-        await fetchJSON(`/api/v1/teams/${team.id}/players`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            inGameName: p.inGameName,
-            tag: p.tag,
-            role: p.role,
-            isSub: p.isSub,
-            firstName: p.firstName || undefined,
-            lastName: p.lastName || undefined,
-            country: p.country || undefined,
-          }),
+        await api.teams.addPlayer(team.id, {
+          name: p.inGameName,
+          role: p.role,
+          country: p.country || undefined,
         });
       }
 
-      toast('success', 'Team created!');
-      router.push('/modules/teams');
-    } catch (e: any) {
-      toast('error', e.message ?? 'Failed to create team');
+      toast("success", "Team created!");
+      router.push("/modules/teams");
+    } catch (e: unknown) {
+      toast("error", e instanceof Error ? e.message : "Failed to create team");
     } finally {
       setSubmitting(false);
     }
@@ -124,13 +108,13 @@ export default function TeamWizardPage() {
       title="Create Team"
       subtitle={`Step ${step + 1} of ${STEPS.length}: ${STEPS[step]}`}
     >
-      <Breadcrumbs items={[{ label: 'Teams', href: '/modules/teams' }, { label: 'New Team' }]} />
+      <Breadcrumbs items={[{ label: "Teams", href: "/modules/teams" }, { label: "New Team" }]} />
       <div className="mb-6 flex gap-1">
         {STEPS.map((s, i) => (
           <div
             key={s}
             className={`h-1 flex-1 rounded-full transition-colors ${
-              i <= step ? 'bg-indigo-500' : 'bg-surface-raised'
+              i <= step ? "bg-indigo-500" : "bg-surface-raised"
             }`}
           />
         ))}
@@ -148,16 +132,16 @@ export default function TeamWizardPage() {
             variant="secondary"
             onClick={() => (step === 0 ? router.back() : setStep(step - 1))}
           >
-            {step === 0 ? 'Cancel' : 'Back'}
+            {step === 0 ? "Cancel" : "Back"}
           </Button>
 
           {step < STEPS.length - 1 ? (
             <Button onClick={() => setStep(step + 1)} disabled={!canNext}>
-              {step === 3 ? 'Review' : 'Next'}
+              {step === 3 ? "Review" : "Next"}
             </Button>
           ) : (
             <Button onClick={handleSubmit} disabled={submitting}>
-              {submitting ? 'Creating...' : 'Create Team'}
+              {submitting ? "Creating..." : "Create Team"}
             </Button>
           )}
         </div>
@@ -260,8 +244,8 @@ function StepColors({ form, setForm }: { form: TeamForm; setForm: (f: TeamForm) 
             }}
           />
           <div>
-            <span className="font-semibold">{form.name || 'Team Name'}</span>
-            <span className="ml-2 text-text-muted">[{form.tag || 'TAG'}]</span>
+            <span className="font-semibold">{form.name || "Team Name"}</span>
+            <span className="ml-2 text-text-muted">[{form.tag || "TAG"}]</span>
           </div>
         </div>
       </div>
@@ -271,26 +255,26 @@ function StepColors({ form, setForm }: { form: TeamForm; setForm: (f: TeamForm) 
 
 function StepRoster({ form, setForm }: { form: TeamForm; setForm: (f: TeamForm) => void }) {
   const [draft, setDraft] = useState<PlayerDraft>({
-    inGameName: '',
-    tag: '',
-    role: 'TOP',
+    inGameName: "",
+    tag: "",
+    role: "TOP",
     isSub: false,
-    firstName: '',
-    lastName: '',
-    country: '',
+    firstName: "",
+    lastName: "",
+    country: "",
   });
 
   function addPlayer() {
     if (!draft.inGameName || !draft.tag) return;
     setForm({ ...form, players: [...form.players, { ...draft }] });
     setDraft({
-      inGameName: '',
-      tag: '',
-      role: 'TOP',
+      inGameName: "",
+      tag: "",
+      role: "TOP",
       isSub: false,
-      firstName: '',
-      lastName: '',
-      country: '',
+      firstName: "",
+      lastName: "",
+      country: "",
     });
   }
 
@@ -298,7 +282,7 @@ function StepRoster({ form, setForm }: { form: TeamForm; setForm: (f: TeamForm) 
     setForm({ ...form, players: form.players.filter((_, idx) => idx !== i) });
   }
 
-  const ROLES: Role[] = ['TOP', 'JUNGLE', 'MID', 'BOTTOM', 'SUPPORT'];
+  const ROLES: Role[] = ["TOP", "JUNGLE", "MID", "BOTTOM", "SUPPORT"];
 
   return (
     <div className="space-y-4">
@@ -352,11 +336,11 @@ function StepRoster({ form, setForm }: { form: TeamForm; setForm: (f: TeamForm) 
                   onClick={() => setDraft({ ...draft, role: r })}
                   className={`flex-1 rounded-md px-2 py-1.5 text-xs font-medium transition-colors ${
                     draft.role === r
-                      ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/40'
-                      : 'bg-surface-raised text-text-muted border border-border-subtle hover:border-gray-600'
+                      ? "bg-indigo-500/20 text-indigo-400 border border-indigo-500/40"
+                      : "bg-surface-raised text-text-muted border border-border-subtle hover:border-gray-600"
                   }`}
                 >
-                  {r === 'BOTTOM' ? 'BOT' : r === 'JUNGLE' ? 'JGL' : r === 'SUPPORT' ? 'SUP' : r}
+                  {r === "BOTTOM" ? "BOT" : r === "JUNGLE" ? "JGL" : r === "SUPPORT" ? "SUP" : r}
                 </button>
               ))}
             </div>
@@ -389,14 +373,14 @@ function StepRoster({ form, setForm }: { form: TeamForm; setForm: (f: TeamForm) 
 }
 
 function StepStaff({ form, setForm }: { form: TeamForm; setForm: (f: TeamForm) => void }) {
-  const [name, setName] = useState('');
-  const [role, setRole] = useState('Coach');
+  const [name, setName] = useState("");
+  const [role, setRole] = useState("Coach");
 
   function addStaff() {
     if (!name) return;
     setForm({ ...form, staff: [...form.staff, { name, role }] });
-    setName('');
-    setRole('Coach');
+    setName("");
+    setRole("Coach");
   }
 
   return (

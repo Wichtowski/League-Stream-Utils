@@ -14,11 +14,13 @@
     "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
+    "@lsu/api-client": "workspace:*",
     "@lsu/auth": "workspace:*",
     "@lsu/camera": "workspace:*",
     "@lsu/db": "workspace:*",
     "@lsu/db-mongo": "workspace:*",
     "@lsu/electron-bridge": "workspace:*",
+    "@lsu/i18n": "workspace:*",
     "@lsu/logger": "workspace:*",
     "@lsu/obs": "workspace:*",
     "@lsu/draft": "workspace:*",

@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Button } from '@/_components/button';
-import { DataTable } from '@/_components/data-table';
-import { Select } from '@/_components/input';
-import { Skeleton } from '@lsu/ui/skeleton';
+import {
+  useAdminTournaments,
+  useAdminUpdateTournament,
+  useAdminDeleteTournament,
+} from "@lsu/api-client/hooks";
+import { useTranslation } from "@lsu/i18n";
+import { Skeleton } from "@lsu/ui/skeleton";
 
-async function fetchJSON<T>(url: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(url, init);
-  if (!res.ok) throw new Error(await res.text());
-  return res.json();
-}
+import { Button } from "@/_components/button";
+import { DataTable } from "@/_components/data-table";
+import { Select } from "@/_components/input";
 
 interface Tournament {
   id: string;
@@ -25,31 +25,11 @@ interface Tournament {
 }
 
 export function TournamentsTab() {
-  const qc = useQueryClient();
+  const { data: tournaments, isPending, isError } = useAdminTournaments();
 
-  const {
-    data: tournaments,
-    isPending,
-    isError,
-  } = useQuery({
-    queryKey: ['admin', 'tournaments'],
-    queryFn: () => fetchJSON<Tournament[]>('/api/v1/admin/tournaments'),
-  });
-
-  const updateTournament = useMutation({
-    mutationFn: ({ id, ...body }: { id: string; status?: string }) =>
-      fetchJSON(`/api/v1/admin/tournaments/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'tournaments'] }),
-  });
-
-  const deleteTournament = useMutation({
-    mutationFn: (id: string) => fetchJSON(`/api/v1/admin/tournaments/${id}`, { method: 'DELETE' }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'tournaments'] }),
-  });
+  const updateTournament = useAdminUpdateTournament();
+  const deleteTournament = useAdminDeleteTournament();
+  const { t } = useTranslation("admin");
 
   if (isPending) {
     return (
@@ -64,7 +44,7 @@ export function TournamentsTab() {
   if (isError) {
     return (
       <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-400">
-        Failed to load tournaments
+        {t("tournaments_failed_to_load")}
       </div>
     );
   }
@@ -72,6 +52,7 @@ export function TournamentsTab() {
   const byStatus = (tournaments ?? []).reduce(
     (acc, t) => {
       acc[t.status] = (acc[t.status] ?? 0) + 1;
+
       return acc;
     },
     {} as Record<string, number>,
@@ -90,7 +71,7 @@ export function TournamentsTab() {
           </div>
         ))}
         <div className="rounded-lg border border-border-subtle bg-surface-raised px-4 py-2">
-          <span className="text-xs text-text-muted">Total</span>
+          <span className="text-xs text-text-muted">{t("tournaments_total")}</span>
           <span className="ml-2 text-sm font-semibold">{tournaments?.length ?? 0}</span>
         </div>
       </div>
@@ -98,57 +79,57 @@ export function TournamentsTab() {
       <DataTable
         columns={[
           {
-            key: 'name',
-            header: 'Name',
+            key: "name",
+            header: "Name",
             render: (t: Tournament) => <span className="font-medium">{t.name}</span>,
           },
           {
-            key: 'organizer',
-            header: 'Organizer',
+            key: "organizer",
+            header: "Organizer",
             render: (t: Tournament) => (
               <span className="text-text-muted">{t.organizer_username}</span>
             ),
           },
           {
-            key: 'type',
-            header: 'Type',
+            key: "type",
+            header: "Type",
             render: (t: Tournament) => (
-              <span className="text-xs text-text-muted capitalize">{t.type.replace('_', ' ')}</span>
+              <span className="text-xs text-text-muted capitalize">{t.type.replace("_", " ")}</span>
             ),
-            className: 'w-28',
+            className: "w-28",
           },
           {
-            key: 'status',
-            header: 'Status',
+            key: "status",
+            header: "Status",
             render: (t: Tournament) => (
               <Select
                 options={[
-                  { value: 'draft', label: 'Draft' },
-                  { value: 'registration', label: 'Registration' },
-                  { value: 'active', label: 'Active' },
-                  { value: 'completed', label: 'Completed' },
-                  { value: 'cancelled', label: 'Cancelled' },
+                  { value: "draft", label: "Draft" },
+                  { value: "registration", label: "Registration" },
+                  { value: "active", label: "Active" },
+                  { value: "completed", label: "Completed" },
+                  { value: "cancelled", label: "Cancelled" },
                 ]}
                 value={t.status}
                 onChange={(e) => updateTournament.mutate({ id: t.id, status: e.target.value })}
                 className="!w-28 !py-1 text-xs"
               />
             ),
-            className: 'w-36',
+            className: "w-36",
           },
           {
-            key: 'created',
-            header: 'Created',
+            key: "created",
+            header: "Created",
             render: (t: Tournament) => (
               <span className="text-xs text-text-muted">
                 {new Date(t.created_at).toLocaleDateString()}
               </span>
             ),
-            className: 'w-28',
+            className: "w-28",
           },
           {
-            key: 'actions',
-            header: '',
+            key: "actions",
+            header: "",
             render: (t: Tournament) => (
               <div className="flex gap-1 justify-end">
                 <Button
@@ -163,7 +144,7 @@ export function TournamentsTab() {
                 </Button>
               </div>
             ),
-            className: 'w-24 text-right',
+            className: "w-24 text-right",
           },
         ]}
         data={tournaments ?? []}

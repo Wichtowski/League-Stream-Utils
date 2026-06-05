@@ -1,60 +1,28 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { PageWrapper } from '@/_components/page-wrapper';
-import { Button } from '@/_components/button';
-import { Modal } from '@/_components/modal';
-import { Input } from '@/_components/input';
-import { DataTable } from '@/_components/data-table';
-import { Skeleton } from '@lsu/ui/skeleton';
-import { toast } from '@/_components/toast';
+import { useState } from "react";
 
-async function fetchJSON<T>(url: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(url, init);
-  if (!res.ok) throw new Error(await res.text());
-  return res.json();
-}
+import { useCommentators, useCreateCommentator, useDeleteCommentator } from "@lsu/api-client/hooks";
+import { useTranslation } from "@lsu/i18n";
+import type { Commentator } from "@lsu/types";
+import { Skeleton } from "@lsu/ui/skeleton";
+
+import { Button } from "@/_components/button";
+import { DataTable } from "@/_components/data-table";
+import { Input } from "@/_components/input";
+import { Modal } from "@/_components/modal";
+import { PageWrapper } from "@/_components/page-wrapper";
+import { toast } from "@/_components/toast";
 
 export default function CommentatorsPage() {
-  const qc = useQueryClient();
-  const { data, isPending, isError } = useQuery({
-    queryKey: ['commentators'],
-    queryFn: () => fetchJSON<any[]>('/api/v1/commentators'),
-  });
-  const create = useMutation({
-    mutationFn: (body: { name: string; socialLinks?: Record<string, string> }) =>
-      fetchJSON('/api/v1/commentators', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      }),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['commentators'] });
-      toast('success', 'Commentator added');
-    },
-    onError: () => toast('error', 'Failed to add commentator'),
-  });
-  const remove = useMutation({
-    mutationFn: (id: string) => fetchJSON(`/api/v1/commentators/${id}`, { method: 'DELETE' }),
-    onMutate: async (id) => {
-      await qc.cancelQueries({ queryKey: ['commentators'] });
-      const previous = qc.getQueryData(['commentators']);
-      qc.setQueryData(['commentators'], (old: any[] | undefined) =>
-        (old ?? []).filter((c: any) => c.id !== id),
-      );
-      return { previous };
-    },
-    onError: (_err, _vars, context) => {
-      if (context?.previous) qc.setQueryData(['commentators'], context.previous);
-      toast('error', 'Failed to delete commentator');
-    },
-    onSettled: () => qc.invalidateQueries({ queryKey: ['commentators'] }),
-  });
+  const { data, isPending, isError } = useCommentators();
+  const create = useCreateCommentator();
+  const remove = useDeleteCommentator();
 
   const [showCreate, setShowCreate] = useState(false);
-  const [name, setName] = useState('');
-  const [twitter, setTwitter] = useState('');
+  const [name, setName] = useState("");
+  const [twitter, setTwitter] = useState("");
+  const { t } = useTranslation("commentators");
 
   function handleCreate() {
     const socialLinks: Record<string, string> = {};
@@ -64,18 +32,20 @@ export default function CommentatorsPage() {
       {
         onSuccess: () => {
           setShowCreate(false);
-          setName('');
-          setTwitter('');
+          setName("");
+          setTwitter("");
+          toast("success", t("toast_added"));
         },
+        onError: () => toast("error", t("toast_add_failed")),
       },
     );
   }
 
   return (
     <PageWrapper
-      title="Commentators"
-      subtitle="Manage broadcast talent"
-      actions={<Button onClick={() => setShowCreate(true)}>Add Commentator</Button>}
+      title={t("title")}
+      subtitle={t("subtitle")}
+      actions={<Button onClick={() => setShowCreate(true)}>{t("add_commentator")}</Button>}
     >
       {isPending ? (
         <div className="space-y-2">
@@ -85,85 +55,91 @@ export default function CommentatorsPage() {
         </div>
       ) : isError ? (
         <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-400">
-          Failed to load commentators
+          {t("failed_to_load")}
         </div>
       ) : (
         <DataTable
           columns={[
             {
-              key: 'name',
-              header: 'Name',
-              render: (c: any) => <span className="font-medium">{c.name}</span>,
+              key: "name",
+              header: t("col_name"),
+              render: (c: Commentator) => <span className="font-medium">{c.name}</span>,
             },
             {
-              key: 'social',
-              header: 'Social',
-              render: (c: any) => {
+              key: "social",
+              header: t("col_social"),
+              render: (c: Commentator) => {
                 const links = c.socialLinks as Record<string, string> | null;
-                if (!links || Object.keys(links).length === 0)
-                  {return <span className="text-text-muted">—</span>;}
+                if (!links || Object.keys(links).length === 0) {
+                  return <span className="text-text-muted">—</span>;
+                }
+
                 return (
                   <span className="text-text-muted text-xs">
                     {Object.entries(links)
                       .map(([k, v]) => `${k}: ${v}`)
-                      .join(', ')}
+                      .join(", ")}
                   </span>
                 );
               },
             },
             {
-              key: 'actions',
-              header: '',
-              render: (c: any) => (
+              key: "actions",
+              header: "",
+              render: (c: Commentator) => (
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={(e) => {
                     e.stopPropagation();
-                    if (confirm(`Delete ${c.name}?`)) remove.mutate(c.id);
+                    if (confirm(t("confirm_delete", { ns: "common", name: c.name }))) {
+                      remove.mutate(c.id, {
+                        onError: () => toast("error", t("toast_delete_failed")),
+                      });
+                    }
                   }}
                 >
-                  Delete
+                  {t("delete", { ns: "common" })}
                 </Button>
               ),
-              className: 'w-20 text-right',
+              className: "w-20 text-right",
             },
           ]}
           data={data ?? []}
-          keyExtractor={(c: any) => c.id}
-          emptyMessage="No commentators yet — add broadcast talent to assign them to matches."
+          keyExtractor={(c: Commentator) => c.id}
+          emptyMessage={t("empty_state")}
         />
       )}
 
       <Modal
         open={showCreate}
         onClose={() => setShowCreate(false)}
-        title="Add Commentator"
+        title={t("modal_title")}
         footer={
           <>
             <Button variant="secondary" onClick={() => setShowCreate(false)}>
-              Cancel
+              {t("cancel", { ns: "common" })}
             </Button>
             <Button onClick={handleCreate} disabled={!name || create.isPending}>
-              {create.isPending ? 'Adding...' : 'Add'}
+              {create.isPending ? t("adding", { ns: "common" }) : t("add", { ns: "common" })}
             </Button>
           </>
         }
       >
         <div className="space-y-4">
           <Input
-            label="Name"
+            label={t("label_name")}
             id="c-name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="John Doe"
+            placeholder={t("placeholder_name")}
           />
           <Input
-            label="Twitter (optional)"
+            label={t("label_twitter")}
             id="c-twitter"
             value={twitter}
             onChange={(e) => setTwitter(e.target.value)}
-            placeholder="@handle"
+            placeholder={t("placeholder_twitter")}
           />
         </div>
       </Modal>

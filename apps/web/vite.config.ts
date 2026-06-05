@@ -1,16 +1,16 @@
-import { defineConfig } from 'vite';
-import vinext from 'vinext';
-import tailwindcss from '@tailwindcss/vite';
-import path from 'node:path';
+import { defineConfig } from "vite";
+import vinext from "vinext";
+import tailwindcss from "@tailwindcss/vite";
+import path from "node:path";
 
 export default defineConfig({
   plugins: [vinext(), tailwindcss()],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, 'app'),
+      "@": path.resolve(__dirname, "app"),
     },
   },
   ssr: {
-    external: ['mongodb', 'mongoose', 'pg', 'kysely', 'better-sqlite3'],
+    external: ["mongodb", "mongoose", "pg", "kysely", "better-sqlite3"],
   },
 });

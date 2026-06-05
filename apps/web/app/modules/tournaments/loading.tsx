@@ -1,4 +1,4 @@
-import { Skeleton } from '@lsu/ui/skeleton';
+import { Skeleton } from "@lsu/ui/skeleton";
 
 export default function Loading() {
   return (

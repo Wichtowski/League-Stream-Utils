@@ -1,35 +1,10 @@
-'use client';
+"use client";
 
-import { useQuery } from '@tanstack/react-query';
-import { Badge } from '@/_components/badge';
-import { Skeleton } from '@lsu/ui/skeleton';
+import { useSystemHealth } from "@lsu/api-client/hooks";
+import { useTranslation } from "@lsu/i18n";
+import { Skeleton } from "@lsu/ui/skeleton";
 
-async function fetchJSON<T>(url: string): Promise<T> {
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(await res.text());
-  return res.json();
-}
-
-interface HealthData {
-  status: 'healthy' | 'degraded';
-  checks: Record<string, { status: string; detail?: string }>;
-  stats: {
-    users: number;
-    tournaments: number;
-    teams: number;
-    activeSessions: number;
-  };
-  runtime: {
-    nodeVersion: string;
-    uptime: number;
-    memoryUsage: {
-      rss: number;
-      heapTotal: number;
-      heapUsed: number;
-      external: number;
-    };
-  };
-}
+import { Badge } from "@/_components/badge";
 
 function formatBytes(bytes: number) {
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
@@ -41,15 +16,13 @@ function formatUptime(seconds: number) {
   const m = Math.floor((seconds % 3600) / 60);
   if (d > 0) return `${d}d ${h}h ${m}m`;
   if (h > 0) return `${h}h ${m}m`;
+
   return `${m}m`;
 }
 
 export function SystemTab() {
-  const { data, isPending, isError } = useQuery({
-    queryKey: ['admin', 'system', 'health'],
-    queryFn: () => fetchJSON<HealthData>('/api/v1/admin/system/health'),
-    refetchInterval: 30_000,
-  });
+  const { data, isPending, isError } = useSystemHealth();
+  const { t } = useTranslation("admin");
 
   if (isPending) {
     return (
@@ -64,7 +37,7 @@ export function SystemTab() {
   if (isError || !data) {
     return (
       <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-400">
-        Failed to load system health
+        {t("system_failed_to_load")}
       </div>
     );
   }
@@ -72,37 +45,46 @@ export function SystemTab() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
-        <h3 className="text-sm font-medium">System Status</h3>
-        <Badge variant={data.status === 'healthy' ? 'success' : 'warning'}>{data.status}</Badge>
+        <h3 className="text-sm font-medium">{t("system_title")}</h3>
+        <Badge variant={data.status === "healthy" ? "success" : "warning"}>{data.status}</Badge>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <Section title="Service Checks">
+        <Section title={t("system_service_checks")}>
           {Object.entries(data.checks).map(([name, check]) => (
             <div key={name} className="flex items-center justify-between py-1.5">
               <span className="text-sm capitalize">{name}</span>
-              <Badge variant={check.status === 'ok' ? 'success' : 'error'}>{check.status}</Badge>
+              <Badge variant={check.status === "ok" ? "success" : "error"}>{check.status}</Badge>
             </div>
           ))}
         </Section>
 
-        <Section title="Database Stats">
-          <StatRow label="Users" value={data.stats.users} />
-          <StatRow label="Tournaments" value={data.stats.tournaments} />
-          <StatRow label="Teams" value={data.stats.teams} />
-          <StatRow label="Active Sessions" value={data.stats.activeSessions} />
+        <Section title={t("system_db_stats")}>
+          <StatRow label={t("system_stat_users")} value={data.stats.users} />
+          <StatRow label={t("system_stat_tournaments")} value={data.stats.tournaments} />
+          <StatRow label={t("system_stat_teams")} value={data.stats.teams} />
+          <StatRow label={t("system_stat_sessions")} value={data.stats.activeSessions} />
         </Section>
 
-        <Section title="Runtime">
-          <StatRow label="Node Version" value={data.runtime.nodeVersion} />
-          <StatRow label="Uptime" value={formatUptime(data.runtime.uptime)} />
+        <Section title={t("system_runtime")}>
+          <StatRow label={t("system_node_version")} value={data.runtime.nodeVersion} />
+          <StatRow label={t("system_uptime")} value={formatUptime(data.runtime.uptime)} />
         </Section>
 
-        <Section title="Memory">
-          <StatRow label="RSS" value={formatBytes(data.runtime.memoryUsage.rss)} />
-          <StatRow label="Heap Total" value={formatBytes(data.runtime.memoryUsage.heapTotal)} />
-          <StatRow label="Heap Used" value={formatBytes(data.runtime.memoryUsage.heapUsed)} />
-          <StatRow label="External" value={formatBytes(data.runtime.memoryUsage.external)} />
+        <Section title={t("system_memory")}>
+          <StatRow label={t("system_rss")} value={formatBytes(data.runtime.memoryUsage.rss)} />
+          <StatRow
+            label={t("system_heap_total")}
+            value={formatBytes(data.runtime.memoryUsage.heapTotal)}
+          />
+          <StatRow
+            label={t("system_heap_used")}
+            value={formatBytes(data.runtime.memoryUsage.heapUsed)}
+          />
+          <StatRow
+            label={t("system_external")}
+            value={formatBytes(data.runtime.memoryUsage.external)}
+          />
         </Section>
       </div>
     </div>

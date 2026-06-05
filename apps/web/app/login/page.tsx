@@ -1,23 +1,28 @@
-'use client';
+"use client";
 
-import { useState, useEffect, type FormEvent } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useAuth } from '@/_components/auth-provider';
-import { Button } from '@/_components/button';
-import { Input } from '@/_components/input';
-import { isElectron } from '@lsu/electron-bridge';
-import { useAppMode } from '@lsu/electron-bridge/hooks';
+import { useState, useEffect, type FormEvent } from "react";
+
+import { useRouter, useSearchParams } from "next/navigation";
+
+import { isElectron } from "@lsu/electron-bridge";
+import { useAppMode } from "@lsu/electron-bridge/hooks";
+import { useTranslation } from "@lsu/i18n";
+
+import { useAuth } from "@/_components/auth-provider";
+import { Button } from "@/_components/button";
+import { Input } from "@/_components/input";
 
 export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { refresh } = useAuth();
-  const [mode, setMode] = useState<'login' | 'register'>('login');
-  const [form, setForm] = useState({ username: '', email: '', password: '' });
-  const [error, setError] = useState('');
+  const [mode, setMode] = useState<"login" | "register">("login");
+  const [form, setForm] = useState({ username: "", email: "", password: "" });
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const { setMode: setAppMode } = useAppMode();
   const [electron, setElectron] = useState(false);
+  const { t } = useTranslation("auth");
 
   useEffect(() => {
     setElectron(isElectron());
@@ -25,37 +30,39 @@ export default function LoginPage() {
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    setError('');
+    setError("");
     setLoading(true);
 
     try {
-      const url = mode === 'login' ? '/api/v1/auth/login' : '/api/v1/auth/register';
+      const url = mode === "login" ? "/api/v1/auth/login" : "/api/v1/auth/register";
       const body =
-        mode === 'login'
+        mode === "login"
           ? { username: form.username, password: form.password }
           : { username: form.username, email: form.email, password: form.password };
 
       const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
 
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error ?? 'Something went wrong');
+        setError(data.error ?? t("auth_error"));
+
         return;
       }
 
-      if (mode === 'register') {
-        setMode('login');
-        setError('');
+      if (mode === "register") {
+        setMode("login");
+        setError("");
+
         return;
       }
 
       await refresh();
-      const raw = searchParams.get('redirect') ?? '/modules';
-      const redirect = raw.startsWith('/') && !raw.startsWith('//') ? raw : '/modules';
+      const raw = searchParams.get("redirect") ?? "/modules";
+      const redirect = raw.startsWith("/") && !raw.startsWith("//") ? raw : "/modules";
       router.push(redirect);
     } finally {
       setLoading(false);
@@ -67,10 +74,10 @@ export default function LoginPage() {
       <div className="w-full max-w-sm space-y-6 rounded-xl border border-border-subtle bg-surface-raised p-8">
         <div className="text-center">
           <h1 className="text-xl font-semibold">
-            {mode === 'login' ? 'Sign in' : 'Create account'}
+            {mode === "login" ? t("sign_in") : t("create_account")}
           </h1>
           <p className="mt-1 text-xs text-text-muted">
-            {mode === 'login' ? 'Enter your credentials' : 'Register a new account'}
+            {mode === "login" ? t("enter_credentials") : t("register_new_account")}
           </p>
         </div>
 
@@ -82,15 +89,15 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input
-            label="Username"
+            label={t("username")}
             id="username"
             autoComplete="username"
             value={form.username}
             onChange={(e) => setForm({ ...form, username: e.target.value })}
           />
-          {mode === 'register' && (
+          {mode === "register" && (
             <Input
-              label="Email"
+              label={t("email")}
               id="email"
               type="email"
               autoComplete="email"
@@ -99,21 +106,25 @@ export default function LoginPage() {
             />
           )}
           <Input
-            label="Password"
+            label={t("password")}
             id="password"
             type="password"
-            autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+            autoComplete={mode === "login" ? "current-password" : "new-password"}
             value={form.password}
             onChange={(e) => setForm({ ...form, password: e.target.value })}
           />
           <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? 'Loading...' : mode === 'login' ? 'Sign in' : 'Register'}
+            {loading
+              ? t("loading", { ns: "common" })
+              : mode === "login"
+                ? t("sign_in")
+                : t("register")}
           </Button>
         </form>
 
         <div className="flex items-center gap-3">
           <div className="h-px flex-1 bg-border-subtle" />
-          <span className="text-xs text-text-muted">or</span>
+          <span className="text-xs text-text-muted">{t("or", { ns: "common" })}</span>
           <div className="h-px flex-1 bg-border-subtle" />
         </div>
 
@@ -121,7 +132,7 @@ export default function LoginPage() {
           variant="secondary"
           className="w-full"
           onClick={() =>
-            window.open('/api/v1/auth/google/start', 'google-oauth', 'width=500,height=600')
+            window.open("/api/v1/auth/google/start", "google-oauth", "width=500,height=600")
           }
           type="button"
         >
@@ -143,25 +154,25 @@ export default function LoginPage() {
               d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
             />
           </svg>
-          Continue with Google
+          {t("continue_with_google")}
         </Button>
 
         {electron && (
           <>
             <div className="flex items-center gap-1">
               <div className="h-px flex-1 bg-border-subtle" />
-              <span className="text-xs text-text-muted">or</span>
+              <span className="text-xs text-text-muted">{t("or", { ns: "common" })}</span>
               <div className="h-px flex-1 bg-border-subtle" />
             </div>
             <Button
               variant="secondary"
               className="w-full"
               onClick={async () => {
-                await setAppMode('offline');
+                await setAppMode("offline");
 
-                document.cookie = 'app_mode=offline; path=/; max-age=31536000; SameSite=Lax';
+                document.cookie = "app_mode=offline; path=/; max-age=31536000; SameSite=Lax";
                 await refresh();
-                router.push('/modules');
+                router.push("/modules");
               }}
               type="button"
             >
@@ -172,22 +183,22 @@ export default function LoginPage() {
                   clipRule="evenodd"
                 />
               </svg>
-              Continue with local data
+              {t("continue_with_local")}
             </Button>
           </>
         )}
 
         <p className="text-center text-xs text-text-muted">
-          {mode === 'login' ? "Don't have an account?" : 'Already have an account?'}{' '}
+          {mode === "login" ? t("no_account") : t("already_have_account")}{" "}
           <button
             type="button"
             onClick={() => {
-              setMode(mode === 'login' ? 'register' : 'login');
-              setError('');
+              setMode(mode === "login" ? "register" : "login");
+              setError("");
             }}
             className="text-indigo-400 hover:underline"
           >
-            {mode === 'login' ? 'Register' : 'Sign in'}
+            {mode === "login" ? t("register") : t("sign_in")}
           </button>
         </p>
       </div>

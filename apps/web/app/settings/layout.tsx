@@ -1,5 +1,6 @@
-import type { ReactNode } from 'react';
-import { SideNav } from '@/_components/side-nav';
+import type { ReactNode } from "react";
+
+import { SideNav } from "@/_components/side-nav";
 
 export default function SettingsLayout({ children }: { children: ReactNode }) {
   return (
