@@ -17,9 +17,9 @@
  *   --dump-endpoints        Dump all discoverable LCU endpoints and exit
  */
 
-import { execSync } from 'node:child_process';
-import { readFileSync, existsSync, appendFileSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { execSync } from "node:child_process";
+import { readFileSync, existsSync, appendFileSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 
 // ─────────────────────────────────────────────────────────
 //  Types
@@ -105,7 +105,7 @@ interface PlayerData {
     summonerSpellOne: SpellInfo;
     summonerSpellTwo: SpellInfo;
   };
-  team: 'ORDER' | 'CHAOS';
+  team: "ORDER" | "CHAOS";
 }
 
 interface ItemData {
@@ -158,26 +158,26 @@ function parseArgs() {
   const args = process.argv.slice(2);
   const flags = {
     pollInterval: 1000,
-    logFile: '',
+    logFile: "",
     noWebsocket: false,
     noLiveclient: false,
     dumpEndpoints: false,
   };
   for (let i = 0; i < args.length; i++) {
     switch (args[i]) {
-      case '--poll-interval':
+      case "--poll-interval":
         flags.pollInterval = parseInt(args[++i], 10) || 1000;
         break;
-      case '--log-file':
-        flags.logFile = args[++i] || '';
+      case "--log-file":
+        flags.logFile = args[++i] || "";
         break;
-      case '--no-websocket':
+      case "--no-websocket":
         flags.noWebsocket = true;
         break;
-      case '--no-liveclient':
+      case "--no-liveclient":
         flags.noLiveclient = true;
         break;
-      case '--dump-endpoints':
+      case "--dump-endpoints":
         flags.dumpEndpoints = true;
         break;
     }
@@ -189,14 +189,14 @@ function parseArgs() {
 //  Logging helpers
 // ─────────────────────────────────────────────────────────
 
-const RESET = '\x1b[0m';
-const BOLD = '\x1b[1m';
-const GREEN = '\x1b[32m';
-const YELLOW = '\x1b[33m';
-const CYAN = '\x1b[36m';
-const RED = '\x1b[31m';
-const DIM = '\x1b[2m';
-const MAGENTA = '\x1b[35m';
+const RESET = "\x1b[0m";
+const BOLD = "\x1b[1m";
+const GREEN = "\x1b[32m";
+const YELLOW = "\x1b[33m";
+const CYAN = "\x1b[36m";
+const RED = "\x1b[31m";
+const DIM = "\x1b[2m";
+const MAGENTA = "\x1b[35m";
 
 function log(tag: string, msg: string, color = CYAN) {
   const ts = new Date().toISOString().slice(11, 23);
@@ -208,10 +208,10 @@ function logJson(tag: string, label: string, data: unknown) {
   console.log(JSON.stringify(data, null, 2));
 }
 
-let logFilePath = '';
+let logFilePath = "";
 function appendToLog(entry: Record<string, unknown>) {
   if (!logFilePath) return;
-  appendFileSync(logFilePath, JSON.stringify({ ts: Date.now(), ...entry }) + '\n');
+  appendFileSync(logFilePath, JSON.stringify({ ts: Date.now(), ...entry }) + "\n");
 }
 
 // ─────────────────────────────────────────────────────────
@@ -220,7 +220,7 @@ function appendToLog(entry: Record<string, unknown>) {
 
 /** Parse the lockfile written by LeagueClient */
 function parseLockfile(content: string): LCUCredentials | null {
-  const parts = content.trim().split(':');
+  const parts = content.trim().split(":");
   if (parts.length < 5) return null;
   return {
     pid: parseInt(parts[1], 10),
@@ -234,23 +234,23 @@ function parseLockfile(content: string): LCUCredentials | null {
 function findLockfile(): LCUCredentials | null {
   const candidates = [
     // Linux (Wine / Lutris / Snap)
-    join(process.env.HOME || '~', '.local/share/lutris/runtime/wine/league-of-legends/lockfile'),
+    join(process.env.HOME || "~", ".local/share/lutris/runtime/wine/league-of-legends/lockfile"),
     // macOS
-    '/Applications/League of Legends.app/Contents/LoL/lockfile',
+    "/Applications/League of Legends.app/Contents/LoL/lockfile",
     // Windows-style paths (WSL / mapped drives)
-    'C:/Riot Games/League of Legends/lockfile',
-    'D:/Riot Games/League of Legends/lockfile',
+    "C:/Riot Games/League of Legends/lockfile",
+    "D:/Riot Games/League of Legends/lockfile",
     // Custom env var
-    process.env.LOL_LOCKFILE || '',
+    process.env.LOL_LOCKFILE || "",
   ].filter(Boolean);
 
   for (const path of candidates) {
     try {
       if (existsSync(path)) {
-        const content = readFileSync(path, 'utf-8');
+        const content = readFileSync(path, "utf-8");
         const creds = parseLockfile(content);
         if (creds) {
-          log('LCU', `Found lockfile at ${path}`, GREEN);
+          log("LCU", `Found lockfile at ${path}`, GREEN);
           return creds;
         }
       }
@@ -265,22 +265,22 @@ function findLockfile(): LCUCredentials | null {
 function findFromProcess(): LCUCredentials | null {
   try {
     const platform = process.platform;
-    let output = '';
+    let output = "";
 
-    if (platform === 'win32') {
-      output = execSync('wmic PROCESS WHERE "name=\'LeagueClientUx.exe\'" GET commandline', {
-        encoding: 'utf-8',
+    if (platform === "win32") {
+      output = execSync("wmic PROCESS WHERE \"name='LeagueClientUx.exe'\" GET commandline", {
+        encoding: "utf-8",
         timeout: 5000,
       });
-    } else if (platform === 'darwin') {
-      output = execSync('ps -A | grep LeagueClientUx', {
-        encoding: 'utf-8',
+    } else if (platform === "darwin") {
+      output = execSync("ps -A | grep LeagueClientUx", {
+        encoding: "utf-8",
         timeout: 5000,
       });
     } else {
       // Linux – might be running under Wine
-      output = execSync('ps aux | grep -i LeagueClientUx', {
-        encoding: 'utf-8',
+      output = execSync("ps aux | grep -i LeagueClientUx", {
+        encoding: "utf-8",
         timeout: 5000,
       });
     }
@@ -290,11 +290,11 @@ function findFromProcess(): LCUCredentials | null {
     const pidMatch = output.match(/--app-pid=(\d+)/);
 
     if (portMatch && tokenMatch) {
-      log('LCU', 'Found credentials from process list', GREEN);
+      log("LCU", "Found credentials from process list", GREEN);
       return {
         port: parseInt(portMatch[1], 10),
         password: tokenMatch[1],
-        protocol: 'https',
+        protocol: "https",
         pid: pidMatch ? parseInt(pidMatch[1], 10) : 0,
       };
     }
@@ -314,13 +314,13 @@ function discoverLCU(): LCUCredentials | null {
 // ─────────────────────────────────────────────────────────
 
 function basicAuth(password: string) {
-  return 'Basic ' + Buffer.from(`riot:${password}`).toString('base64');
+  return "Basic " + Buffer.from(`riot:${password}`).toString("base64");
 }
 
 async function lcuFetch<T = unknown>(
   creds: LCUCredentials,
   endpoint: string,
-  method = 'GET',
+  method = "GET",
   body?: unknown,
 ): Promise<T> {
   const url = `${creds.protocol}://127.0.0.1:${creds.port}${endpoint}`;
@@ -328,18 +328,18 @@ async function lcuFetch<T = unknown>(
     method,
     headers: {
       Authorization: basicAuth(creds.password),
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: body ? JSON.stringify(body) : undefined,
     // @ts-expect-error – Node/Bun flag to accept self-signed certs
     tls: { rejectUnauthorized: false },
   });
   if (!res.ok) {
-    const text = await res.text().catch(() => '');
+    const text = await res.text().catch(() => "");
     throw new Error(`LCU ${method} ${endpoint} → ${res.status}: ${text}`);
   }
-  const contentType = res.headers.get('content-type') || '';
-  if (contentType.includes('json')) return res.json();
+  const contentType = res.headers.get("content-type") || "";
+  if (contentType.includes("json")) return res.json();
   return (await res.text()) as unknown as T;
 }
 
@@ -347,99 +347,99 @@ async function lcuFetch<T = unknown>(
 
 const LCU_ENDPOINTS = {
   // ─── Summoner ───
-  currentSummoner: '/lol-summoner/v1/current-summoner',
-  summonerProfile: '/lol-summoner/v1/current-summoner/summoner-profile',
+  currentSummoner: "/lol-summoner/v1/current-summoner",
+  summonerProfile: "/lol-summoner/v1/current-summoner/summoner-profile",
 
   // ─── Gameflow (game state machine) ───
-  gameflowPhase: '/lol-gameflow/v1/gameflow-phase',
-  gameflowSession: '/lol-gameflow/v1/session',
-  gameflowAvailability: '/lol-gameflow/v1/availability',
+  gameflowPhase: "/lol-gameflow/v1/gameflow-phase",
+  gameflowSession: "/lol-gameflow/v1/session",
+  gameflowAvailability: "/lol-gameflow/v1/availability",
 
   // ─── Champion Select ───
-  champSelectSession: '/lol-champ-select/v1/session',
-  champSelectPickableChampions: '/lol-champ-select/v1/pickable-champion-ids',
-  champSelectBannableChampions: '/lol-champ-select/v1/bannable-champion-ids',
-  champSelectCurrentChampion: '/lol-champ-select/v1/current-champion',
-  champSelectTeamBoost: '/lol-champ-select/v1/team-boost',
+  champSelectSession: "/lol-champ-select/v1/session",
+  champSelectPickableChampions: "/lol-champ-select/v1/pickable-champion-ids",
+  champSelectBannableChampions: "/lol-champ-select/v1/bannable-champion-ids",
+  champSelectCurrentChampion: "/lol-champ-select/v1/current-champion",
+  champSelectTeamBoost: "/lol-champ-select/v1/team-boost",
 
   // ─── Lobby ───
-  lobby: '/lol-lobby/v2/lobby',
-  lobbyMembers: '/lol-lobby/v2/lobby/members',
-  lobbyMatchmakingSearch: '/lol-lobby/v2/lobby/matchmaking/search-state',
-  lobbyComms: '/lol-lobby/v2/comms',
+  lobby: "/lol-lobby/v2/lobby",
+  lobbyMembers: "/lol-lobby/v2/lobby/members",
+  lobbyMatchmakingSearch: "/lol-lobby/v2/lobby/matchmaking/search-state",
+  lobbyComms: "/lol-lobby/v2/comms",
 
   // ─── Matchmaking ───
-  matchmakingSearch: '/lol-matchmaking/v1/search',
-  matchmakingReadyCheck: '/lol-matchmaking/v1/ready-check',
+  matchmakingSearch: "/lol-matchmaking/v1/search",
+  matchmakingReadyCheck: "/lol-matchmaking/v1/ready-check",
 
   // ─── Ranked ───
-  rankedStats: '/lol-ranked/v1/current-ranked-stats',
-  rankedEos: '/lol-ranked/v1/eos-notifications',
+  rankedStats: "/lol-ranked/v1/current-ranked-stats",
+  rankedEos: "/lol-ranked/v1/eos-notifications",
 
   // ─── Match History ───
-  matchHistory: '/lol-match-history/v1/products/lol/current-summoner/matches',
+  matchHistory: "/lol-match-history/v1/products/lol/current-summoner/matches",
 
   // ─── Champions ───
-  champions: '/lol-champions/v1/inventories/{summonerId}/champions',
-  championMastery: '/lol-champion-mastery/v1/local-player/champion-mastery',
+  champions: "/lol-champions/v1/inventories/{summonerId}/champions",
+  championMastery: "/lol-champion-mastery/v1/local-player/champion-mastery",
 
   // ─── Runes (Perks) ───
-  perksCurrentPage: '/lol-perks/v1/currentpage',
-  perksPages: '/lol-perks/v1/pages',
-  perksInventory: '/lol-perks/v1/inventory',
+  perksCurrentPage: "/lol-perks/v1/currentpage",
+  perksPages: "/lol-perks/v1/pages",
+  perksInventory: "/lol-perks/v1/inventory",
 
   // ─── Collections ───
-  collections: '/lol-collections/v1/inventories/{summonerId}/backdrop',
+  collections: "/lol-collections/v1/inventories/{summonerId}/backdrop",
 
   // ─── Loot ───
-  lootMap: '/lol-loot/v1/player-loot-map',
+  lootMap: "/lol-loot/v1/player-loot-map",
 
   // ─── End of Game ───
-  endOfGameStats: '/lol-end-of-game/v1/eog-stats-block',
+  endOfGameStats: "/lol-end-of-game/v1/eog-stats-block",
 
   // ─── Chat ───
-  chatMe: '/lol-chat/v1/me',
-  chatFriends: '/lol-chat/v1/friends',
+  chatMe: "/lol-chat/v1/me",
+  chatFriends: "/lol-chat/v1/friends",
 
   // ─── Settings ───
-  gameSettings: '/lol-game-settings/v1/game-settings',
-  inputSettings: '/lol-game-settings/v1/input-settings',
+  gameSettings: "/lol-game-settings/v1/game-settings",
+  inputSettings: "/lol-game-settings/v1/input-settings",
 
   // ─── Challenges ───
-  challengesSummary: '/lol-challenges/v1/summary-player-data/local-player',
+  challengesSummary: "/lol-challenges/v1/summary-player-data/local-player",
 
   // ─── Clash ───
-  clashTournaments: '/lol-clash/v1/tournaments',
-  clashPlayer: '/lol-clash/v1/player',
+  clashTournaments: "/lol-clash/v1/tournaments",
+  clashPlayer: "/lol-clash/v1/player",
 
   // ─── Service Status ───
-  serviceStatus: '/lol-service-status/v1/lcu-status',
+  serviceStatus: "/lol-service-status/v1/lcu-status",
 
   // ─── Client System ───
-  systemInfo: '/system/v1/builds',
-  help: '/help',
-  swaggerV2: '/swagger/v2/swagger.json',
-  swaggerV3: '/swagger/v3/openapi.json',
+  systemInfo: "/system/v1/builds",
+  help: "/help",
+  swaggerV2: "/swagger/v2/swagger.json",
+  swaggerV3: "/swagger/v3/openapi.json",
 } as const;
 
 /** Probe all safe LCU endpoints and return results */
 async function probeAllLCUEndpoints(creds: LCUCredentials) {
   const results: Record<string, unknown> = {};
   const safeEndpoints = Object.entries(LCU_ENDPOINTS).filter(
-    ([key]) => !key.includes('swagger') && !key.includes('help'),
+    ([key]) => !key.includes("swagger") && !key.includes("help"),
   );
 
   const settled = await Promise.allSettled(
     safeEndpoints.map(async ([key, endpoint]) => {
       // Skip endpoints with path params for now
-      if (endpoint.includes('{')) return { key, data: null, skipped: true };
+      if (endpoint.includes("{")) return { key, data: null, skipped: true };
       const data = await lcuFetch(creds, endpoint);
       return { key, data, skipped: false };
     }),
   );
 
   for (const result of settled) {
-    if (result.status === 'fulfilled' && !result.value.skipped) {
+    if (result.status === "fulfilled" && !result.value.skipped) {
       results[result.value.key] = result.value.data;
     }
   }
@@ -470,7 +470,7 @@ const WAMP_EVENT = 8;
 
 /** WebSocket event topics worth monitoring */
 const WS_TOPICS = [
-  'OnJsonApiEvent', // catch-all: every LCU event
+  "OnJsonApiEvent", // catch-all: every LCU event
   // Targeted subscriptions (uncomment to use instead of catch-all):
   // 'OnJsonApiEvent_lol-gameflow_v1_gameflow-phase',
   // 'OnJsonApiEvent_lol-gameflow_v1_session',
@@ -501,19 +501,19 @@ function connectLCUWebSocket(
   // Embed auth in URL – works with Bun's native WebSocket (no custom headers needed)
   const url = `wss://riot:${encodeURIComponent(creds.password)}@127.0.0.1:${creds.port}/`;
 
-  const ws = new WebSocket(url, ['wamp']);
+  const ws = new WebSocket(url, ["wamp"]);
 
-  ws.addEventListener('open', () => {
-    log('WS', `Connected to LCU WebSocket on port ${creds.port}`, GREEN);
+  ws.addEventListener("open", () => {
+    log("WS", `Connected to LCU WebSocket on port ${creds.port}`, GREEN);
     for (const topic of WS_TOPICS) {
       ws.send(JSON.stringify([WAMP_SUBSCRIBE, topic]));
-      log('WS', `Subscribed to ${BOLD}${topic}${RESET}`, CYAN);
+      log("WS", `Subscribed to ${BOLD}${topic}${RESET}`, CYAN);
     }
   });
 
-  ws.addEventListener('message', (event: MessageEvent) => {
+  ws.addEventListener("message", (event: MessageEvent) => {
     try {
-      const raw = typeof event.data === 'string' ? event.data : event.data.toString();
+      const raw = typeof event.data === "string" ? event.data : event.data.toString();
       const msg = JSON.parse(raw);
       if (!Array.isArray(msg) || msg[0] !== WAMP_EVENT) return;
 
@@ -535,12 +535,12 @@ function connectLCUWebSocket(
     }
   });
 
-  ws.addEventListener('error', (event: Event) => {
-    log('WS', `Error: ${(event as ErrorEvent).message || 'connection error'}`, RED);
+  ws.addEventListener("error", (event: Event) => {
+    log("WS", `Error: ${(event as ErrorEvent).message || "connection error"}`, RED);
   });
 
-  ws.addEventListener('close', (event: CloseEvent) => {
-    log('WS', `Disconnected (${event.code} ${event.reason})`, YELLOW);
+  ws.addEventListener("close", (event: CloseEvent) => {
+    log("WS", `Disconnected (${event.code} ${event.reason})`, YELLOW);
   });
 
   return ws;
@@ -550,27 +550,27 @@ function connectLCUWebSocket(
 //  4. Live Client Data API – port 2999 (active game only)
 // ─────────────────────────────────────────────────────────
 
-const LIVE_CLIENT_BASE = 'https://127.0.0.1:2999';
+const LIVE_CLIENT_BASE = "https://127.0.0.1:2999";
 
 const LIVE_CLIENT_ENDPOINTS = {
-  allGameData: '/liveclientdata/allgamedata',
-  activePlayer: '/liveclientdata/activeplayer',
-  activePlayerName: '/liveclientdata/activeplayername',
-  activePlayerAbilities: '/liveclientdata/activeplayerabilities',
-  activePlayerRunes: '/liveclientdata/activeplayerrunes',
-  playerList: '/liveclientdata/playerlist',
-  eventData: '/liveclientdata/eventdata',
-  gameStats: '/liveclientdata/gamestats',
+  allGameData: "/liveclientdata/allgamedata",
+  activePlayer: "/liveclientdata/activeplayer",
+  activePlayerName: "/liveclientdata/activeplayername",
+  activePlayerAbilities: "/liveclientdata/activeplayerabilities",
+  activePlayerRunes: "/liveclientdata/activeplayerrunes",
+  playerList: "/liveclientdata/playerlist",
+  eventData: "/liveclientdata/eventdata",
+  gameStats: "/liveclientdata/gamestats",
   // Per-player endpoints (require ?riotId= query param)
-  playerScores: '/liveclientdata/playerscores',
-  playerSummonerSpells: '/liveclientdata/playersummonerspells',
-  playerMainRunes: '/liveclientdata/playermainrunes',
-  playerItems: '/liveclientdata/playeritems',
+  playerScores: "/liveclientdata/playerscores",
+  playerSummonerSpells: "/liveclientdata/playersummonerspells",
+  playerMainRunes: "/liveclientdata/playermainrunes",
+  playerItems: "/liveclientdata/playeritems",
 } as const;
 
-async function liveClientFetch<T = unknown>(endpoint: string, query = ''): Promise<T | null> {
+async function liveClientFetch<T = unknown>(endpoint: string, query = ""): Promise<T | null> {
   try {
-    const url = `${LIVE_CLIENT_BASE}${endpoint}${query ? `?${query}` : ''}`;
+    const url = `${LIVE_CLIENT_BASE}${endpoint}${query ? `?${query}` : ""}`;
     const res = await fetch(url, {
       // @ts-expect-error – self-signed cert
       tls: { rejectUnauthorized: false },
@@ -609,7 +609,7 @@ async function fetchDetailedPlayerData(players: PlayerData[]) {
     }),
   );
   return details
-    .filter((r): r is PromiseFulfilledResult<any> => r.status === 'fulfilled')
+    .filter((r): r is PromiseFulfilledResult<any> => r.status === "fulfilled")
     .map((r) => r.value);
 }
 
@@ -649,17 +649,17 @@ class GameStateTracker {
 
       if (prev) {
         if (curr.level > prev.level) {
-          log('GAME', `${BOLD}${id}${RESET} leveled up to ${MAGENTA}${curr.level}${RESET}`);
+          log("GAME", `${BOLD}${id}${RESET} leveled up to ${MAGENTA}${curr.level}${RESET}`);
         }
         const newItems = curr.items.filter((i) => !prev.items.includes(i));
         if (newItems.length > 0) {
           const names = player.items
             .filter((i) => newItems.includes(i.itemID))
             .map((i) => i.displayName);
-          log('GAME', `${BOLD}${id}${RESET} purchased: ${GREEN}${names.join(', ')}${RESET}`);
+          log("GAME", `${BOLD}${id}${RESET} purchased: ${GREEN}${names.join(", ")}${RESET}`);
         }
         if (curr.kills > prev.kills || curr.deaths > prev.deaths || curr.assists > prev.assists) {
-          log('GAME', `${BOLD}${id}${RESET} KDA: ${curr.kills}/${curr.deaths}/${curr.assists}`);
+          log("GAME", `${BOLD}${id}${RESET} KDA: ${curr.kills}/${curr.deaths}/${curr.assists}`);
         }
       }
 
@@ -675,8 +675,8 @@ class GameStateTracker {
     ) {
       this.lastGameTime = Math.floor(data.gameData.gameTime);
       log(
-        'GAME',
-        `${DIM}${gameMinutes}:${String(gameSeconds).padStart(2, '0')} | ` +
+        "GAME",
+        `${DIM}${gameMinutes}:${String(gameSeconds).padStart(2, "0")} | ` +
           `Gold: ${Math.floor(data.activePlayer.currentGold)} | ` +
           `Level: ${data.activePlayer.level} | ` +
           `Mode: ${data.gameData.gameMode} | ` +
@@ -686,73 +686,73 @@ class GameStateTracker {
   }
 
   private logGameEvent(ev: GameEvent) {
-    const time = `${Math.floor(ev.EventTime / 60)}:${String(Math.floor(ev.EventTime % 60)).padStart(2, '0')}`;
+    const time = `${Math.floor(ev.EventTime / 60)}:${String(Math.floor(ev.EventTime % 60)).padStart(2, "0")}`;
     switch (ev.EventName) {
-      case 'GameStart':
-        log('EVENT', `${GREEN}${BOLD}Game Started!${RESET}`, GREEN);
+      case "GameStart":
+        log("EVENT", `${GREEN}${BOLD}Game Started!${RESET}`, GREEN);
         break;
-      case 'MinionsSpawning':
-        log('EVENT', `${time} Minions spawning`, YELLOW);
+      case "MinionsSpawning":
+        log("EVENT", `${time} Minions spawning`, YELLOW);
         break;
-      case 'ChampionKill':
+      case "ChampionKill":
         log(
-          'EVENT',
-          `${time} ${RED}KILL${RESET} ${ev.KillerName} → ${ev.VictimName} (assists: ${ev.Assisters?.join(', ') || 'none'})`,
+          "EVENT",
+          `${time} ${RED}KILL${RESET} ${ev.KillerName} → ${ev.VictimName} (assists: ${ev.Assisters?.join(", ") || "none"})`,
           RED,
         );
         break;
-      case 'Multikill':
+      case "Multikill":
         log(
-          'EVENT',
+          "EVENT",
           `${time} ${RED}${BOLD}MULTIKILL (${ev.KillStreak})${RESET} by ${ev.KillerName}`,
           RED,
         );
         break;
-      case 'Ace':
-        log('EVENT', `${time} ${RED}${BOLD}ACE${RESET} by ${ev.Acer} (${ev.AcingTeam})`, RED);
+      case "Ace":
+        log("EVENT", `${time} ${RED}${BOLD}ACE${RESET} by ${ev.Acer} (${ev.AcingTeam})`, RED);
         break;
-      case 'TurretKilled':
+      case "TurretKilled":
         log(
-          'EVENT',
+          "EVENT",
           `${time} ${MAGENTA}Turret destroyed${RESET}: ${ev.TurretKilled} by ${ev.KillerName}`,
           MAGENTA,
         );
         break;
-      case 'InhibKilled':
+      case "InhibKilled":
         log(
-          'EVENT',
+          "EVENT",
           `${time} ${MAGENTA}${BOLD}Inhibitor destroyed${RESET}: ${ev.InhibKilled} by ${ev.KillerName}`,
           MAGENTA,
         );
         break;
-      case 'DragonKill':
+      case "DragonKill":
         log(
-          'EVENT',
-          `${time} ${CYAN}${BOLD}Dragon (${ev.DragonType})${RESET} slain by ${ev.KillerName}${ev.Stolen === 'True' ? ` ${RED}STOLEN${RESET}` : ''}`,
+          "EVENT",
+          `${time} ${CYAN}${BOLD}Dragon (${ev.DragonType})${RESET} slain by ${ev.KillerName}${ev.Stolen === "True" ? ` ${RED}STOLEN${RESET}` : ""}`,
           CYAN,
         );
         break;
-      case 'HeraldKill':
+      case "HeraldKill":
         log(
-          'EVENT',
-          `${time} ${CYAN}Herald${RESET} slain by ${ev.KillerName}${ev.Stolen === 'True' ? ` ${RED}STOLEN${RESET}` : ''}`,
+          "EVENT",
+          `${time} ${CYAN}Herald${RESET} slain by ${ev.KillerName}${ev.Stolen === "True" ? ` ${RED}STOLEN${RESET}` : ""}`,
           CYAN,
         );
         break;
-      case 'BaronKill':
+      case "BaronKill":
         log(
-          'EVENT',
-          `${time} ${YELLOW}${BOLD}BARON${RESET} slain by ${ev.KillerName}${ev.Stolen === 'True' ? ` ${RED}STOLEN${RESET}` : ''}`,
+          "EVENT",
+          `${time} ${YELLOW}${BOLD}BARON${RESET} slain by ${ev.KillerName}${ev.Stolen === "True" ? ` ${RED}STOLEN${RESET}` : ""}`,
           YELLOW,
         );
         break;
-      case 'FirstBrick':
-        log('EVENT', `${time} ${MAGENTA}First Blood Tower${RESET} by ${ev.KillerName}`, MAGENTA);
+      case "FirstBrick":
+        log("EVENT", `${time} ${MAGENTA}First Blood Tower${RESET} by ${ev.KillerName}`, MAGENTA);
         break;
       default:
-        log('EVENT', `${time} ${ev.EventName} ${JSON.stringify(ev)}`, DIM);
+        log("EVENT", `${time} ${ev.EventName} ${JSON.stringify(ev)}`, DIM);
     }
-    appendToLog({ source: 'live_event', event: ev });
+    appendToLog({ source: "live_event", event: ev });
   }
 }
 
@@ -761,23 +761,23 @@ class GameStateTracker {
 // ─────────────────────────────────────────────────────────
 
 async function dumpLCUEndpoints(creds: LCUCredentials) {
-  log('LCU', 'Fetching /help to discover all endpoints...', CYAN);
+  log("LCU", "Fetching /help to discover all endpoints...", CYAN);
   try {
-    const help = await lcuFetch<Record<string, unknown>>(creds, '/help');
-    const outputPath = join(process.cwd(), 'lcu-endpoints-dump.json');
+    const help = await lcuFetch<Record<string, unknown>>(creds, "/help");
+    const outputPath = join(process.cwd(), "lcu-endpoints-dump.json");
     writeFileSync(outputPath, JSON.stringify(help, null, 2));
-    log('LCU', `Wrote all endpoints to ${GREEN}${outputPath}${RESET}`, GREEN);
+    log("LCU", `Wrote all endpoints to ${GREEN}${outputPath}${RESET}`, GREEN);
   } catch (err: unknown) {
-    log('LCU', `Failed to fetch /help: ${(err as Error).message}`, RED);
+    log("LCU", `Failed to fetch /help: ${(err as Error).message}`, RED);
 
     // Fallback: try swagger
     try {
-      const swagger = await lcuFetch<Record<string, unknown>>(creds, '/swagger/v3/openapi.json');
-      const outputPath = join(process.cwd(), 'lcu-openapi-dump.json');
+      const swagger = await lcuFetch<Record<string, unknown>>(creds, "/swagger/v3/openapi.json");
+      const outputPath = join(process.cwd(), "lcu-openapi-dump.json");
       writeFileSync(outputPath, JSON.stringify(swagger, null, 2));
-      log('LCU', `Wrote OpenAPI spec to ${GREEN}${outputPath}${RESET}`, GREEN);
+      log("LCU", `Wrote OpenAPI spec to ${GREEN}${outputPath}${RESET}`, GREEN);
     } catch (err2: unknown) {
-      log('LCU', `Also failed swagger: ${(err2 as Error).message}`, RED);
+      log("LCU", `Also failed swagger: ${(err2 as Error).message}`, RED);
     }
   }
 }
@@ -802,11 +802,11 @@ ${BOLD}${CYAN}╔═════════════════════
 `);
 
   // ── Step 1: Discover LCU ──
-  log('INIT', 'Discovering League Client...', YELLOW);
+  log("INIT", "Discovering League Client...", YELLOW);
   const creds = discoverLCU();
 
   if (creds) {
-    log('INIT', `LCU found → port ${BOLD}${creds.port}${RESET}, pid ${creds.pid}`, GREEN);
+    log("INIT", `LCU found → port ${BOLD}${creds.port}${RESET}, pid ${creds.pid}`, GREEN);
 
     // ── Dump endpoints if requested ──
     if (flags.dumpEndpoints) {
@@ -815,69 +815,69 @@ ${BOLD}${CYAN}╔═════════════════════
     }
 
     // ── Probe LCU REST endpoints ──
-    log('LCU', 'Probing all safe REST endpoints...', CYAN);
+    log("LCU", "Probing all safe REST endpoints...", CYAN);
     try {
       const allData = await probeAllLCUEndpoints(creds);
       const availableEndpoints = Object.keys(allData);
       log(
-        'LCU',
+        "LCU",
         `${GREEN}${availableEndpoints.length}${RESET} endpoints responded successfully`,
         GREEN,
       );
 
       // Show key data
       if (allData.currentSummoner) {
-        logJson('LCU', 'Current Summoner', allData.currentSummoner);
+        logJson("LCU", "Current Summoner", allData.currentSummoner);
       }
       if (allData.gameflowPhase) {
-        log('LCU', `Gameflow phase: ${BOLD}${allData.gameflowPhase}${RESET}`, MAGENTA);
+        log("LCU", `Gameflow phase: ${BOLD}${allData.gameflowPhase}${RESET}`, MAGENTA);
       }
       if (allData.rankedStats) {
-        logJson('LCU', 'Ranked Stats', allData.rankedStats);
+        logJson("LCU", "Ranked Stats", allData.rankedStats);
       }
 
-      appendToLog({ source: 'lcu_probe', endpoints: availableEndpoints, data: allData });
+      appendToLog({ source: "lcu_probe", endpoints: availableEndpoints, data: allData });
     } catch (err: unknown) {
-      log('LCU', `Probe error: ${(err as Error).message}`, RED);
+      log("LCU", `Probe error: ${(err as Error).message}`, RED);
     }
 
     // ── Connect LCU WebSocket ──
     if (!flags.noWebsocket) {
-      log('WS', 'Connecting to LCU WebSocket...', CYAN);
+      log("WS", "Connecting to LCU WebSocket...", CYAN);
       const ws = connectLCUWebSocket(creds, (topic, payload) => {
         const eventType = payload.eventType; // Create | Update | Delete
         const uri = payload.uri;
 
         // Color-code by event type
-        const color = eventType === 'Create' ? GREEN : eventType === 'Delete' ? RED : YELLOW;
-        log('WS', `${color}${eventType}${RESET} ${DIM}${uri}${RESET}`);
+        const color = eventType === "Create" ? GREEN : eventType === "Delete" ? RED : YELLOW;
+        log("WS", `${color}${eventType}${RESET} ${DIM}${uri}${RESET}`);
 
         // Log interesting payloads fully
         const importantPrefixes = [
-          '/lol-gameflow/',
-          '/lol-champ-select/',
-          '/lol-lobby/',
-          '/lol-end-of-game/',
-          '/lol-matchmaking/',
-          '/lol-perks/',
+          "/lol-gameflow/",
+          "/lol-champ-select/",
+          "/lol-lobby/",
+          "/lol-end-of-game/",
+          "/lol-matchmaking/",
+          "/lol-perks/",
         ];
         if (importantPrefixes.some((p) => uri.startsWith(p))) {
           console.log(JSON.stringify(payload.data, null, 2));
         }
 
-        appendToLog({ source: 'lcu_ws', topic, eventType, uri, data: payload.data });
+        appendToLog({ source: "lcu_ws", topic, eventType, uri, data: payload.data });
       });
 
       // Cleanup on exit
-      process.on('SIGINT', () => {
-        log('WS', 'Closing WebSocket...', YELLOW);
+      process.on("SIGINT", () => {
+        log("WS", "Closing WebSocket...", YELLOW);
         ws.close();
         process.exit(0);
       });
     }
   } else {
     log(
-      'INIT',
+      "INIT",
       `${YELLOW}League Client not found.${RESET} Will monitor Live Client API only.\n` +
         `  ${DIM}Tip: Set LOL_LOCKFILE env var to your lockfile path${RESET}`,
       YELLOW,
@@ -886,7 +886,7 @@ ${BOLD}${CYAN}╔═════════════════════
 
   // ── Step 2: Poll Live Client Data API ──
   if (!flags.noLiveclient) {
-    log('LIVE', 'Starting Live Client Data API polling...', CYAN);
+    log("LIVE", "Starting Live Client Data API polling...", CYAN);
     const tracker = new GameStateTracker();
     let wasInGame = false;
     let initialDump = false;
@@ -895,13 +895,13 @@ ${BOLD}${CYAN}╔═════════════════════
       const inGame = await isGameRunning();
 
       if (inGame && !wasInGame) {
-        log('LIVE', `${GREEN}${BOLD}Game detected! Streaming live data...${RESET}`, GREEN);
+        log("LIVE", `${GREEN}${BOLD}Game detected! Streaming live data...${RESET}`, GREEN);
         wasInGame = true;
         initialDump = false;
       }
 
       if (!inGame && wasInGame) {
-        log('LIVE', `${YELLOW}Game ended.${RESET}`, YELLOW);
+        log("LIVE", `${YELLOW}Game ended.${RESET}`, YELLOW);
         wasInGame = false;
         initialDump = false;
 
@@ -909,8 +909,8 @@ ${BOLD}${CYAN}╔═════════════════════
         if (creds) {
           try {
             const eog = await lcuFetch(creds, LCU_ENDPOINTS.endOfGameStats);
-            logJson('LCU', 'End of Game Stats', eog);
-            appendToLog({ source: 'end_of_game', data: eog });
+            logJson("LCU", "End of Game Stats", eog);
+            appendToLog({ source: "end_of_game", data: eog });
           } catch {
             /* not available yet */
           }
@@ -924,35 +924,35 @@ ${BOLD}${CYAN}╔═════════════════════
           if (!initialDump) {
             initialDump = true;
             log(
-              'LIVE',
+              "LIVE",
               `${BOLD}Game Info:${RESET} ${data.gameData.gameMode} on ${data.gameData.mapName} (${data.gameData.mapTerrain})`,
               GREEN,
             );
 
             // Team rosters
-            const orderTeam = data.allPlayers.filter((p) => p.team === 'ORDER');
-            const chaosTeam = data.allPlayers.filter((p) => p.team === 'CHAOS');
+            const orderTeam = data.allPlayers.filter((p) => p.team === "ORDER");
+            const chaosTeam = data.allPlayers.filter((p) => p.team === "CHAOS");
 
-            log('LIVE', `${BOLD}${CYAN}── Blue Side (ORDER) ──${RESET}`, CYAN);
+            log("LIVE", `${BOLD}${CYAN}── Blue Side (ORDER) ──${RESET}`, CYAN);
             for (const p of orderTeam) {
               log(
-                'LIVE',
-                `  ${p.championName} (${p.riotId || p.summonerName}) ${DIM}${p.position || 'N/A'} | ${p.summonerSpells.summonerSpellOne.displayName}/${p.summonerSpells.summonerSpellTwo.displayName}${RESET}`,
+                "LIVE",
+                `  ${p.championName} (${p.riotId || p.summonerName}) ${DIM}${p.position || "N/A"} | ${p.summonerSpells.summonerSpellOne.displayName}/${p.summonerSpells.summonerSpellTwo.displayName}${RESET}`,
               );
             }
-            log('LIVE', `${BOLD}${RED}── Red Side (CHAOS) ──${RESET}`, RED);
+            log("LIVE", `${BOLD}${RED}── Red Side (CHAOS) ──${RESET}`, RED);
             for (const p of chaosTeam) {
               log(
-                'LIVE',
-                `  ${p.championName} (${p.riotId || p.summonerName}) ${DIM}${p.position || 'N/A'} | ${p.summonerSpells.summonerSpellOne.displayName}/${p.summonerSpells.summonerSpellTwo.displayName}${RESET}`,
+                "LIVE",
+                `  ${p.championName} (${p.riotId || p.summonerName}) ${DIM}${p.position || "N/A"} | ${p.summonerSpells.summonerSpellOne.displayName}/${p.summonerSpells.summonerSpellTwo.displayName}${RESET}`,
               );
             }
 
             // Active player details
-            logJson('LIVE', 'Active Player Stats', data.activePlayer.championStats);
-            logJson('LIVE', 'Active Player Runes', data.activePlayer.fullRunes);
+            logJson("LIVE", "Active Player Stats", data.activePlayer.championStats);
+            logJson("LIVE", "Active Player Runes", data.activePlayer.fullRunes);
 
-            appendToLog({ source: 'game_start', data });
+            appendToLog({ source: "game_start", data });
           }
 
           // Process deltas
@@ -972,9 +972,9 @@ ${BOLD}${CYAN}╔═════════════════════
   }
 
   // Keep process alive
-  log('INIT', `${GREEN}Explorer running. Press Ctrl+C to stop.${RESET}`, GREEN);
+  log("INIT", `${GREEN}Explorer running. Press Ctrl+C to stop.${RESET}`, GREEN);
   if (logFilePath) {
-    log('INIT', `Logging events to ${BOLD}${logFilePath}${RESET}`, CYAN);
+    log("INIT", `Logging events to ${BOLD}${logFilePath}${RESET}`, CYAN);
   }
 }
 
