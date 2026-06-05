@@ -1,18 +1,20 @@
-import { draftSessionModel, isMongoConfigured } from '@lsu/db-mongo';
+import { draftSessionModel, isMongoConfigured } from "@lsu/db-mongo";
 
 export async function getSessions(limit = 50) {
   if (!isMongoConfigured()) return [];
+
   return draftSessionModel.find().sort({ createdAt: -1 }).limit(limit).lean();
 }
 
 export async function getSession(sessionId: string) {
   if (!isMongoConfigured()) return null;
+
   return draftSessionModel.findOne({ sessionId }).lean();
 }
 
 export async function createSession(data: {
   sessionId: string;
-  type?: 'static' | 'lcu' | 'tournament' | 'web';
+  type?: "static" | "lcu" | "tournament" | "web";
   config: Record<string, unknown>;
   teams: { blue: Record<string, unknown>; red: Record<string, unknown> };
   createdBy: string;
@@ -20,9 +22,9 @@ export async function createSession(data: {
 }) {
   return draftSessionModel.create({
     ...data,
-    status: 'waiting',
-    currentPhase: 'ban1',
-    currentTeam: 'blue',
+    status: "waiting",
+    currentPhase: "ban1",
+    currentTeam: "blue",
     turnNumber: 0,
     timer: { remaining: 30, totalTime: 30, isActive: false },
     actions: [],
@@ -33,9 +35,9 @@ export async function updateSessionState(
   sessionId: string,
   update: {
     currentPhase?: string;
-    currentTeam?: 'blue' | 'red';
+    currentTeam?: "blue" | "red";
     turnNumber?: number;
-    status?: 'waiting' | 'active' | 'paused' | 'completed';
+    status?: "waiting" | "active" | "paused" | "completed";
     timer?: { remaining: number; totalTime: number; isActive: boolean; startedAt?: Date };
     startedAt?: Date;
     completedAt?: Date;
@@ -51,9 +53,9 @@ export async function updateSessionState(
 export async function pushAction(
   sessionId: string,
   action: {
-    type: 'pick' | 'ban';
+    type: "pick" | "ban";
     championId: number;
-    teamSide: 'blue' | 'red';
+    teamSide: "blue" | "red";
     phase: string;
   },
 ) {
@@ -71,6 +73,7 @@ export async function undoLastAction(sessionId: string) {
   const lastAction = session.actions[session.actions.length - 1];
   lastAction.undone = true;
   await session.save();
+
   return session.toObject();
 }
 

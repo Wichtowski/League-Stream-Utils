@@ -1,10 +1,11 @@
-import { create } from 'zustand';
-import { devtools } from 'zustand/middleware';
-import type { GamePhase, TeamSide, draftAction, DraftTimer } from '@lsu/types';
+import { create } from "zustand";
+import { devtools } from "zustand/middleware";
+
+import type { GamePhase, TeamSide, draftAction, DraftTimer } from "@lsu/types";
 
 interface draftUIState {
   sessionId: string | null;
-  status: 'idle' | 'connecting' | 'connected' | 'error';
+  status: "idle" | "connecting" | "connected" | "error";
   currentPhase: GamePhase;
   currentTeam: TeamSide;
   turnNumber: number;
@@ -14,7 +15,7 @@ interface draftUIState {
   wsError: string | null;
 
   setSession: (id: string) => void;
-  setStatus: (status: draftUIState['status']) => void;
+  setStatus: (status: draftUIState["status"]) => void;
   setPhase: (phase: GamePhase) => void;
   setTeam: (team: TeamSide) => void;
   setTurn: (turn: number) => void;
@@ -28,9 +29,9 @@ interface draftUIState {
 
 const initialState = {
   sessionId: null,
-  status: 'idle' as const,
-  currentPhase: 'config' as GamePhase,
-  currentTeam: 'blue' as TeamSide,
+  status: "idle" as const,
+  currentPhase: "config" as GamePhase,
+  currentTeam: "blue" as TeamSide,
   turnNumber: 0,
   timer: { remaining: 30, totalTime: 30, isActive: false },
   actions: [] as draftAction[],
@@ -42,7 +43,7 @@ export const usedraftStore = create<draftUIState>()(
   devtools(
     (set) => ({
       ...initialState,
-      setSession: (id) => set({ sessionId: id, status: 'idle' }),
+      setSession: (id) => set({ sessionId: id, status: "idle" }),
       setStatus: (status) => set({ status }),
       setPhase: (phase) => set({ currentPhase: phase }),
       setTeam: (team) => set({ currentTeam: team }),
@@ -54,6 +55,6 @@ export const usedraftStore = create<draftUIState>()(
       setError: (error) => set({ wsError: error }),
       reset: () => set(initialState),
     }),
-    { name: 'draft' },
+    { name: "draft" },
   ),
 );

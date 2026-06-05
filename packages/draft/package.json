@@ -6,7 +6,6 @@
   "exports": {
     ".": "./src/index.ts",
     "./queries": "./src/queries.ts",
-    "./hooks": "./src/hooks.ts",
     "./store": "./src/store.ts",
     "./engine": "./src/engine.ts"
   },
@@ -16,6 +15,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@lsu/api-client": "workspace:*",
     "@lsu/db-mongo": "workspace:*",
     "@lsu/types": "workspace:*",
     "@tanstack/react-query": "^5.80.6",
