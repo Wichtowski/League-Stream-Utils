@@ -1,9 +1,9 @@
-import type { DownloadProgress } from './base';
-import { getLatestVersion } from './constants';
-import { ChampionDownloadManager } from './champions';
-import { ItemDownloadManager } from './items';
-import { RuneDownloadManager } from './runes';
-import { SummonerSpellDownloadManager } from './summoner-spells';
+import type { DownloadProgress } from "./base";
+import { ChampionDownloadManager } from "./champions";
+import { getLatestVersion } from "./constants";
+import { ItemDownloadManager } from "./items";
+import { RuneDownloadManager } from "./runes";
+import { SummonerSpellDownloadManager } from "./summoner-spells";
 
 export type { DownloadProgress };
 
@@ -29,5 +29,5 @@ export async function downloadAllAssets(
 
   await Promise.all([champions!.download(version), ...rest.map((m) => m.download(version))]);
 
-  console.log('[download] All assets downloaded');
+  console.log("[download] All assets downloaded");
 }

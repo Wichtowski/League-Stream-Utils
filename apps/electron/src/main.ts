@@ -1,12 +1,14 @@
-import { app, BrowserWindow, session } from 'electron';
-import { createWindow } from './window';
-import { registerAllHandlers } from './ipc';
-import { downloadAllAssets } from './download';
-import { readConfig } from './ipc/util';
+import { app, BrowserWindow, session } from "electron";
+
+import "@lsu/i18n/instance";
+import { downloadAllAssets } from "./download";
+import { registerAllHandlers } from "./ipc";
+import { readConfig } from "./ipc/util";
+import { createWindow } from "./window";
 
 let mainWindow: BrowserWindow | null = null;
 
-const DEV_URL = 'http://localhost:3000';
+const DEV_URL = "http://localhost:3000";
 
 async function waitForDevServer(url: string, maxAttempts = 60): Promise<void> {
   for (let i = 0; i < maxAttempts; i++) {
@@ -16,43 +18,43 @@ async function waitForDevServer(url: string, maxAttempts = 60): Promise<void> {
     } catch {}
     await new Promise((r) => setTimeout(r, 1000));
   }
-  console.warn('[electron] Dev server not responding, opening anyway');
+  console.warn("[electron] Dev server not responding, opening anyway");
 }
 
 app.whenReady().then(async () => {
   registerAllHandlers();
 
   if (!app.isPackaged) {
-    console.log('[electron] Waiting for web dev server...');
+    console.log("[electron] Waiting for web dev server...");
     await waitForDevServer(DEV_URL);
-    console.log('[electron] Dev server ready');
+    console.log("[electron] Dev server ready");
   }
 
   mainWindow = createWindow(DEV_URL);
 
   const cfg = await readConfig();
-  if (cfg.appMode === 'offline') {
-    const cookieUrl = app.isPackaged ? 'https://app.local' : DEV_URL;
+  if (cfg.appMode === "offline") {
+    const cookieUrl = app.isPackaged ? "https://app.local" : DEV_URL;
     await session.defaultSession.cookies.set({
       url: cookieUrl,
-      name: 'app_mode',
-      value: 'offline',
-      path: '/',
-      sameSite: 'lax',
+      name: "app_mode",
+      value: "offline",
+      path: "/",
+      sameSite: "lax",
     });
   }
 
   downloadAllAssets((progress) => {
-    mainWindow?.webContents.send('assets:progress', progress);
-  }).catch((err) => console.error('Asset download failed:', err));
+    mainWindow?.webContents.send("assets:progress", progress);
+  }).catch((err) => console.error("Asset download failed:", err));
 
-  app.on('activate', () => {
+  app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       mainWindow = createWindow(DEV_URL);
     }
   });
 });
 
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') app.quit();
+app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") app.quit();
 });

@@ -1,9 +1,9 @@
-import { registerAssetHandlers } from './assets';
-import { registerChampionHandlers } from './champions';
-import { registerOBSHandlers } from './obs';
-import { registerUtilHandlers } from './util';
-import { registerDBHandlers } from './db';
-import { registerSyncHandlers } from './sync';
+import { registerAssetHandlers } from "./assets";
+import { registerChampionHandlers } from "./champions";
+import { registerDBHandlers } from "./db";
+import { registerOBSHandlers } from "./obs";
+import { registerSyncHandlers } from "./sync";
+import { registerUtilHandlers } from "./util";
 
 export function registerAllHandlers() {
   registerAssetHandlers();

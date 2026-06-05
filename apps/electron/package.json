@@ -2,6 +2,7 @@
   "name": "@lsu/electron",
   "version": "0.0.0",
   "private": true,
+  "type": "module",
   "main": "src/main.ts",
   "scripts": {
     "preload": "bun build src/preload.ts --outdir dist --target=node --format=cjs --external electron",
@@ -11,6 +12,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@lsu/i18n": "workspace:*",
     "@lsu/types": "workspace:*",
     "obs-websocket-js": "^5.0.6"
   },

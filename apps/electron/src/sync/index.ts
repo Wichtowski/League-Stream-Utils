@@ -1,20 +1,23 @@
-import fs from 'node:fs/promises';
-import path from 'node:path';
-import { app } from 'electron';
-import { readConfig } from '../ipc/util';
+import { app } from "electron";
+import fs from "node:fs/promises";
+import path from "node:path";
+
+import { i18n } from "@lsu/i18n/instance";
+
+import { readConfig } from "../ipc/util";
 
 const SYNCED_TABLES = [
-  'teams',
-  'players',
-  'staff',
-  'tournaments',
-  'tournament_teams',
-  'brackets',
-  'matches',
-  'match_games',
-  'commentators',
-  'match_commentators',
-  'tournament_permissions',
+  "teams",
+  "players",
+  "staff",
+  "tournaments",
+  "tournament_teams",
+  "brackets",
+  "matches",
+  "match_games",
+  "commentators",
+  "match_commentators",
+  "tournament_permissions",
 ] as const;
 
 export interface SyncResult {
@@ -31,7 +34,7 @@ export interface SyncStatus {
 }
 
 export interface SyncProgress {
-  stage: 'pushing' | 'pulling' | 'complete' | 'error';
+  stage: "pushing" | "pulling" | "complete" | "error";
   table: string;
   current: number;
   total: number;
@@ -39,11 +42,11 @@ export interface SyncProgress {
 }
 
 function getSyncMetaPath() {
-  return path.join(app.getPath('userData'), 'sync-meta.json');
+  return path.join(app.getPath("userData"), "sync-meta.json");
 }
 
 function getSyncLogPath() {
-  return path.join(app.getPath('userData'), 'data', 'sync-log.json');
+  return path.join(app.getPath("userData"), "data", "sync-log.json");
 }
 
 async function readSyncMeta(): Promise<{
@@ -51,7 +54,8 @@ async function readSyncMeta(): Promise<{
   idMappings: Record<string, string>;
 }> {
   try {
-    const raw = await fs.readFile(getSyncMetaPath(), 'utf-8');
+    const raw = await fs.readFile(getSyncMetaPath(), "utf-8");
+
     return JSON.parse(raw);
   } catch {
     return { lastSyncedAt: null, idMappings: {} };
@@ -76,7 +80,8 @@ async function readSyncLog(): Promise<
   }[]
 > {
   try {
-    const raw = await fs.readFile(getSyncLogPath(), 'utf-8');
+    const raw = await fs.readFile(getSyncLogPath(), "utf-8");
+
     return JSON.parse(raw);
   } catch {
     return [];
@@ -90,9 +95,10 @@ async function writeSyncLog(log: unknown[]) {
 }
 
 async function readCollection(name: string): Promise<Record<string, unknown>[]> {
-  const filePath = path.join(app.getPath('userData'), 'data', `${name}.json`);
+  const filePath = path.join(app.getPath("userData"), "data", `${name}.json`);
   try {
-    const raw = await fs.readFile(filePath, 'utf-8');
+    const raw = await fs.readFile(filePath, "utf-8");
+
     return JSON.parse(raw);
   } catch {
     return [];
@@ -100,18 +106,20 @@ async function readCollection(name: string): Promise<Record<string, unknown>[]> 
 }
 
 async function writeCollection(name: string, data: Record<string, unknown>[]) {
-  const dir = path.join(app.getPath('userData'), 'data');
+  const dir = path.join(app.getPath("userData"), "data");
   await fs.mkdir(dir, { recursive: true });
   await fs.writeFile(path.join(dir, `${name}.json`), JSON.stringify(data, null, 2));
 }
 
 async function getServerUrl(): Promise<string> {
   const cfg = await readConfig();
-  return (cfg.serverUrl as string) || 'http://localhost:3000';
+
+  return (cfg.serverUrl as string) || "http://localhost:3000";
 }
 
 async function getAccessToken(): Promise<string | null> {
   const cfg = await readConfig();
+
   return (cfg.accessToken as string) || null;
 }
 
@@ -150,31 +158,32 @@ export class SyncManager {
     const serverUrl = await getServerUrl();
     const token = await getAccessToken();
     if (!token) {
-      result.errors.push('Not authenticated');
+      result.errors.push(i18n.t("electron:sync_not_authenticated"));
+
       return result;
     }
 
     const changes = pending.map((entry) => ({
       table: entry.table,
-      action: entry.action as 'insert' | 'update' | 'delete',
+      action: entry.action as "insert" | "update" | "delete",
       data: entry.data,
       local_id: entry.record_id,
       updated_at: entry.created_at,
     }));
 
     this.emit({
-      stage: 'pushing',
-      table: 'all',
+      stage: "pushing",
+      table: "all",
       current: 0,
       total: changes.length,
-      detail: `Pushing ${changes.length} changes`,
+      detail: i18n.t("electron:sync_pushing", { count: changes.length }),
     });
 
     try {
       const res = await fetch(`${serverUrl}/api/v1/sync/push`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           Cookie: `access_token=${token}`,
         },
         body: JSON.stringify({ changes }),
@@ -182,8 +191,9 @@ export class SyncManager {
 
       if (!res.ok) {
         const text = await res.text();
-        result.errors.push(`Push failed: ${text}`);
-        this.emit({ stage: 'error', table: '', current: 0, total: 0, detail: text });
+        result.errors.push(`${i18n.t("electron:sync_push_failed", { error: text })}`);
+        this.emit({ stage: "error", table: "", current: 0, total: 0, detail: text });
+
         return result;
       }
 
@@ -209,15 +219,16 @@ export class SyncManager {
       await writeSyncMeta(meta);
 
       this.emit({
-        stage: 'pushing',
-        table: 'all',
+        stage: "pushing",
+        table: "all",
         current: changes.length,
         total: changes.length,
-        detail: `Pushed ${body.applied} changes`,
+        detail: i18n.t("electron:sync_pushed", { count: body.applied }),
       });
-    } catch (err: any) {
-      result.errors.push(err.message);
-      this.emit({ stage: 'error', table: '', current: 0, total: 0, detail: err.message });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      result.errors.push(msg);
+      this.emit({ stage: "error", table: "", current: 0, total: 0, detail: msg });
     }
 
     return result;
@@ -230,23 +241,24 @@ export class SyncManager {
     const token = await getAccessToken();
 
     if (!token) {
-      result.errors.push('Not authenticated');
+      result.errors.push(i18n.t("electron:sync_not_authenticated"));
+
       return result;
     }
 
     this.emit({
-      stage: 'pulling',
-      table: 'all',
+      stage: "pulling",
+      table: "all",
       current: 0,
       total: SYNCED_TABLES.length,
-      detail: 'Pulling changes from cloud',
+      detail: i18n.t("electron:sync_pulling"),
     });
 
     try {
       const res = await fetch(`${serverUrl}/api/v1/sync/pull`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           Cookie: `access_token=${token}`,
         },
         body: JSON.stringify({
@@ -257,8 +269,9 @@ export class SyncManager {
 
       if (!res.ok) {
         const text = await res.text();
-        result.errors.push(`Pull failed: ${text}`);
-        this.emit({ stage: 'error', table: '', current: 0, total: 0, detail: text });
+        result.errors.push(i18n.t("electron:sync_pull_failed", { error: text }));
+        this.emit({ stage: "error", table: "", current: 0, total: 0, detail: text });
+
         return result;
       }
 
@@ -276,7 +289,9 @@ export class SyncManager {
         const change = body.changes[i];
         const collection = await readCollection(change.table);
 
-        const existingIndex = collection.findIndex((r) => r.id === (change.data as any).id);
+        const existingIndex = collection.findIndex(
+          (r) => r.id === (change.data as Record<string, unknown>).id,
+        );
 
         if (existingIndex >= 0) {
           const existing = collection[existingIndex];
@@ -297,19 +312,20 @@ export class SyncManager {
         await writeCollection(change.table, collection);
 
         this.emit({
-          stage: 'pulling',
+          stage: "pulling",
           table: change.table,
           current: i + 1,
           total: body.changes.length,
-          detail: `Pulled ${change.table}`,
+          detail: i18n.t("electron:sync_pulled", { table: change.table }),
         });
       }
 
       meta.lastSyncedAt = body.sync_timestamp;
       await writeSyncMeta(meta);
-    } catch (err: any) {
-      result.errors.push(err.message);
-      this.emit({ stage: 'error', table: '', current: 0, total: 0, detail: err.message });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      result.errors.push(msg);
+      this.emit({ stage: "error", table: "", current: 0, total: 0, detail: msg });
     }
 
     return result;
@@ -319,7 +335,13 @@ export class SyncManager {
     const pushResult = await this.push();
     const pullResult = await this.pull();
 
-    this.emit({ stage: 'complete', table: '', current: 0, total: 0, detail: 'Sync complete' });
+    this.emit({
+      stage: "complete",
+      table: "",
+      current: 0,
+      total: 0,
+      detail: i18n.t("electron:sync_complete"),
+    });
 
     return {
       pushed: pushResult.pushed,

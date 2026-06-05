@@ -1,8 +1,10 @@
-import { app } from 'electron';
-import fs from 'node:fs/promises';
-import { createWriteStream } from 'node:fs';
-import path from 'node:path';
-import { pipeline } from 'node:stream/promises';
+import { app } from "electron";
+import { createWriteStream } from "node:fs";
+import fs from "node:fs/promises";
+import path from "node:path";
+import { pipeline } from "node:stream/promises";
+
+import { i18n } from "@lsu/i18n/instance";
 
 export interface DownloadProgress {
   category: string;
@@ -26,7 +28,7 @@ export abstract class BaseDownloadManager {
   protected onProgress: ProgressCallback | null = null;
 
   constructor() {
-    this.assetsDir = path.join(app.getPath('userData'), 'assets');
+    this.assetsDir = path.join(app.getPath("userData"), "assets");
   }
 
   abstract readonly category: string;
@@ -42,8 +44,8 @@ export abstract class BaseDownloadManager {
       category: this.category,
       current: p.current ?? 0,
       total: p.total ?? 0,
-      itemName: p.itemName ?? '',
-      stage: p.stage ?? 'downloading',
+      itemName: p.itemName ?? "",
+      stage: p.stage ?? "downloading",
       percentage: p.total ? Math.round(((p.current ?? 0) / p.total) * 100) : 0,
     });
   }
@@ -55,6 +57,7 @@ export abstract class BaseDownloadManager {
   protected async exists(filePath: string): Promise<boolean> {
     try {
       await fs.access(filePath);
+
       return true;
     } catch {
       return false;
@@ -68,9 +71,10 @@ export abstract class BaseDownloadManager {
   protected async downloadFile(url: string, dest: string): Promise<void> {
     await this.ensureDir(path.dirname(dest));
     const res = await fetch(url);
-    if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}: ${url}`);
+    if (!res.ok || !res.body) {
+      throw new Error(i18n.t("electron:http_error", { status: res.status, url }));
+    }
     const ws = createWriteStream(dest);
-    // @ts-expect-error Node ReadableStream compat
     await pipeline(res.body, ws);
   }
 
@@ -91,7 +95,7 @@ export abstract class BaseDownloadManager {
         }),
       );
       results.forEach((r, idx) => {
-        if (r.status === 'fulfilled') downloaded++;
+        if (r.status === "fulfilled") downloaded++;
         else failed.push(batch[idx]!.label);
       });
     }
@@ -102,7 +106,8 @@ export abstract class BaseDownloadManager {
   protected async loadManifest(version: string): Promise<Manifest | null> {
     const p = this.resolvePath(version, `${this.category}-manifest.json`);
     try {
-      const raw = await fs.readFile(p, 'utf-8');
+      const raw = await fs.readFile(p, "utf-8");
+
       return JSON.parse(raw);
     } catch {
       return null;
@@ -113,12 +118,13 @@ export abstract class BaseDownloadManager {
     const p = this.resolvePath(version, `${this.category}-manifest.json`);
     await this.ensureDir(path.dirname(p));
     const manifest: Manifest = { version, completedItems, updatedAt: Date.now() };
-    await fs.writeFile(p, JSON.stringify(manifest), 'utf-8');
+    await fs.writeFile(p, JSON.stringify(manifest), "utf-8");
   }
 
   protected async fetchJson<T>(url: string): Promise<T> {
     const res = await fetch(url);
-    if (!res.ok) throw new Error(`HTTP ${res.status}: ${url}`);
+    if (!res.ok) throw new Error(i18n.t("electron:http_error", { status: res.status, url }));
+
     return res.json() as Promise<T>;
   }
 }

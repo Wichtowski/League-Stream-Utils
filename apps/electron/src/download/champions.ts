@@ -1,5 +1,5 @@
-import { BaseDownloadManager } from './base';
-import { DDRAGON_CDN } from './constants';
+import { BaseDownloadManager } from "./base";
+import { DDRAGON_CDN } from "./constants";
 
 interface DDChampionEntry {
   id: string;
@@ -11,20 +11,20 @@ interface DDChampionEntry {
 }
 
 const RECAST_CHAMPIONS: Record<string, string[]> = {
-  Aatrox: ['AatroxQ2', 'AatroxQ3'],
-  Riven: ['RivenTriCleave2', 'RivenTriCleave3'],
-  Yasuo: ['YasuoQ2', 'YasuoQ3'],
-  Yone: ['YoneQ3'],
-  Katarina: ['KatarinaEDagger'],
-  KhaZix: ['KhaZixQEvo', 'KhaZixWEvo', 'KhaZixEEvo', 'KhaZixREvo'],
-  Kassadin: ['KassadinRStack2', 'KassadinRStack3', 'KassadinRStack4'],
+  Aatrox: ["AatroxQ2", "AatroxQ3"],
+  Riven: ["RivenTriCleave2", "RivenTriCleave3"],
+  Yasuo: ["YasuoQ2", "YasuoQ3"],
+  Yone: ["YoneQ3"],
+  Katarina: ["KatarinaEDagger"],
+  KhaZix: ["KhaZixQEvo", "KhaZixWEvo", "KhaZixEEvo", "KhaZixREvo"],
+  Kassadin: ["KassadinRStack2", "KassadinRStack3", "KassadinRStack4"],
 };
 
 export class ChampionDownloadManager extends BaseDownloadManager {
-  readonly category = 'champions';
+  readonly category = "champions";
 
   async download(version: string): Promise<void> {
-    this.progress({ stage: 'fetching champion list', itemName: 'champions.json' });
+    this.progress({ stage: "fetching champion list", itemName: "champions.json" });
 
     const listUrl = `${DDRAGON_CDN}/${version}/data/en_US/champion.json`;
     const list = await this.fetchJson<{
@@ -38,11 +38,12 @@ export class ChampionDownloadManager extends BaseDownloadManager {
 
     if (missing.length === 0) {
       this.progress({
-        stage: 'complete',
+        stage: "complete",
         current: keys.length,
         total: keys.length,
-        itemName: 'all cached',
+        itemName: "all cached",
       });
+
       return;
     }
 
@@ -51,20 +52,20 @@ export class ChampionDownloadManager extends BaseDownloadManager {
 
     for (const key of missing) {
       current++;
-      this.progress({ stage: 'downloading', current, total, itemName: key });
+      this.progress({ stage: "downloading", current, total, itemName: key });
       await this.downloadChampion(key, version);
       completed.add(key);
       await this.saveManifest(version, [...completed]);
     }
 
-    this.progress({ stage: 'complete', current: total, total, itemName: 'done' });
+    this.progress({ stage: "complete", current: total, total, itemName: "done" });
   }
 
   private async downloadChampion(key: string, version: string): Promise<void> {
     const detailUrl = `${DDRAGON_CDN}/${version}/data/en_US/champion/${key}.json`;
     const detail = await this.fetchJson<{ data: Record<string, DDChampionEntry> }>(detailUrl);
     const champ = detail.data[key]!;
-    const dir = this.resolvePath(version, 'champions', key);
+    const dir = this.resolvePath(version, "champions", key);
 
     const tasks = [
       {
@@ -97,7 +98,7 @@ export class ChampionDownloadManager extends BaseDownloadManager {
     });
 
     // Spells (Q W E R)
-    const slotNames = ['Q', 'W', 'E', 'R'];
+    const slotNames = ["Q", "W", "E", "R"];
     champ.spells.forEach((spell, i) => {
       tasks.push({
         url: `${DDRAGON_CDN}/${version}/img/spell/${spell.image.full}`,

@@ -1,5 +1,5 @@
-import { BaseDownloadManager } from './base';
-import { DDRAGON_CDN } from './constants';
+import { BaseDownloadManager } from "./base";
+import { DDRAGON_CDN } from "./constants";
 
 interface DDSummonerSpell {
   id: string;
@@ -9,10 +9,10 @@ interface DDSummonerSpell {
 }
 
 export class SummonerSpellDownloadManager extends BaseDownloadManager {
-  readonly category = 'spells';
+  readonly category = "spells";
 
   async download(version: string): Promise<void> {
-    this.progress({ stage: 'fetching spell list', itemName: 'summoner.json' });
+    this.progress({ stage: "fetching spell list", itemName: "summoner.json" });
 
     const url = `${DDRAGON_CDN}/${version}/data/en_US/summoner.json`;
     const data = await this.fetchJson<{ data: Record<string, DDSummonerSpell> }>(url);
@@ -24,15 +24,16 @@ export class SummonerSpellDownloadManager extends BaseDownloadManager {
 
     if (missing.length === 0) {
       this.progress({
-        stage: 'complete',
+        stage: "complete",
         current: spells.length,
         total: spells.length,
-        itemName: 'all cached',
+        itemName: "all cached",
       });
+
       return;
     }
 
-    const dir = this.resolvePath(version, 'spells');
+    const dir = this.resolvePath(version, "spells");
     const tasks = missing.map((spell) => ({
       url: `${DDRAGON_CDN}/${version}/img/spell/${spell.image.full}`,
       dest: `${dir}/${spell.id}.png`,
@@ -44,16 +45,16 @@ export class SummonerSpellDownloadManager extends BaseDownloadManager {
     await this.saveManifest(version, [...completed]);
 
     // Save spell data
-    const dataPath = this.resolvePath(version, 'spells', 'summoner.json');
+    const dataPath = this.resolvePath(version, "spells", "summoner.json");
     await this.ensureDir(dir);
-    const { writeFile } = await import('node:fs/promises');
-    await writeFile(dataPath, JSON.stringify(data.data), 'utf-8');
+    const { writeFile } = await import("node:fs/promises");
+    await writeFile(dataPath, JSON.stringify(data.data), "utf-8");
 
     this.progress({
-      stage: 'complete',
+      stage: "complete",
       current: spells.length,
       total: spells.length,
-      itemName: 'done',
+      itemName: "done",
     });
   }
 }

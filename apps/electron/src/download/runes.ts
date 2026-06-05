@@ -1,5 +1,5 @@
-import { BaseDownloadManager } from './base';
-import { CDRAGON_RAW, DDRAGON_CDN } from './constants';
+import { BaseDownloadManager } from "./base";
+import { CDRAGON_RAW, DDRAGON_CDN } from "./constants";
 
 interface CDragonRune {
   id: number;
@@ -8,14 +8,14 @@ interface CDragonRune {
 }
 
 export class RuneDownloadManager extends BaseDownloadManager {
-  readonly category = 'runes';
+  readonly category = "runes";
 
   async download(version: string): Promise<void> {
-    this.progress({ stage: 'fetching rune data', itemName: 'perks.json' });
+    this.progress({ stage: "fetching rune data", itemName: "perks.json" });
 
     const url = `${CDRAGON_RAW}/plugins/rcp-be-lol-game-data/global/default/v1/perks.json`;
     const runes = await this.fetchJson<CDragonRune[]>(url);
-    const filtered = runes.filter((r) => !r.iconPath.includes('7000.png'));
+    const filtered = runes.filter((r) => !r.iconPath.includes("7000.png"));
 
     const manifest = await this.loadManifest(version);
     const completed = new Set(manifest?.completedItems ?? []);
@@ -23,20 +23,22 @@ export class RuneDownloadManager extends BaseDownloadManager {
 
     if (missing.length === 0) {
       this.progress({
-        stage: 'complete',
+        stage: "complete",
         current: filtered.length,
         total: filtered.length,
-        itemName: 'all cached',
+        itemName: "all cached",
       });
+
       return;
     }
 
-    const dir = this.resolvePath(version, 'runes');
+    const dir = this.resolvePath(version, "runes");
     const total = filtered.length;
     let current = total - missing.length;
 
     const tasks = missing.map((rune) => {
-      const fileName = rune.iconPath.split('/').pop()!.toLowerCase();
+      const fileName = rune.iconPath.split("/").pop()!.toLowerCase();
+
       return {
         url: `${DDRAGON_CDN}/img/perk-images/${fileName}`,
         dest: `${dir}/${rune.id}.png`,
@@ -49,16 +51,16 @@ export class RuneDownloadManager extends BaseDownloadManager {
       await this.downloadBatch(batch, 8);
       batch.forEach((t) => completed.add(t.label));
       current += batch.length;
-      this.progress({ stage: 'downloading', current, total, itemName: `${batch.length} runes` });
+      this.progress({ stage: "downloading", current, total, itemName: `${batch.length} runes` });
       await this.saveManifest(version, [...completed]);
     }
 
     // Save rune data
-    const dataPath = this.resolvePath(version, 'runes', 'runes.json');
+    const dataPath = this.resolvePath(version, "runes", "runes.json");
     await this.ensureDir(dir);
-    const { writeFile } = await import('node:fs/promises');
-    await writeFile(dataPath, JSON.stringify(filtered), 'utf-8');
+    const { writeFile } = await import("node:fs/promises");
+    await writeFile(dataPath, JSON.stringify(filtered), "utf-8");
 
-    this.progress({ stage: 'complete', current: total, total, itemName: 'done' });
+    this.progress({ stage: "complete", current: total, total, itemName: "done" });
   }
 }

@@ -1,5 +1,5 @@
-import { app, BrowserWindow, shell } from 'electron';
-import path from 'node:path';
+import { app, BrowserWindow, shell } from "electron";
+import path from "node:path";
 
 export function createWindow(devUrl: string): BrowserWindow {
   const isDev = !app.isPackaged;
@@ -9,10 +9,10 @@ export function createWindow(devUrl: string): BrowserWindow {
     height: 900,
     minWidth: 1200,
     minHeight: 700,
-    backgroundColor: '#0f0f13',
-    titleBarStyle: 'hiddenInset',
+    backgroundColor: "#0f0f13",
+    titleBarStyle: "hiddenInset",
     webPreferences: {
-      preload: path.join(__dirname, '..', 'dist', 'preload.js'),
+      preload: path.join(__dirname, "..", "dist", "preload.js"),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
@@ -20,18 +20,20 @@ export function createWindow(devUrl: string): BrowserWindow {
   });
 
   win.webContents.setWindowOpenHandler(({ url }) => {
-    if (url.startsWith('https://accounts.google.com') || url.includes('oauth')) {
+    if (url.startsWith("https://accounts.google.com") || url.includes("oauth")) {
       shell.openExternal(url);
-      return { action: 'deny' };
+
+      return { action: "deny" };
     }
-    return { action: 'deny' };
+
+    return { action: "deny" };
   });
 
   if (isDev) {
     win.loadURL(devUrl);
-    win.webContents.openDevTools({ mode: 'detach' });
+    win.webContents.openDevTools({ mode: "detach" });
   } else {
-    win.loadFile(path.join(__dirname, '../renderer/index.html'));
+    win.loadFile(path.join(__dirname, "../renderer/index.html"));
   }
 
   return win;
