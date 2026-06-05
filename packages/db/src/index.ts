@@ -1,12 +1,13 @@
-import { Kysely, PostgresDialect, SqliteDialect } from 'kysely';
-import pg from 'pg';
-import BetterSqlite3 from 'better-sqlite3';
-import path from 'node:path';
-import fs from 'node:fs';
-import os from 'node:os';
-import type { Database } from './types';
+import BetterSqlite3 from "better-sqlite3";
+import { Kysely, PostgresDialect, SqliteDialect } from "kysely";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import pg from "pg";
 
-export type { Database } from './types';
+import type { Database } from "./types";
+
+export type { Database } from "./types";
 export type AppDb = Kysely<Database>;
 
 let onlineDb: Kysely<Database> | null = null;
@@ -310,54 +311,58 @@ function initSqliteSchema(db: BetterSqlite3.Database) {
 function getDefaultSqlitePath(): string {
   const platform = process.platform;
   let base: string;
-  if (platform === 'win32') {
+  if (platform === "win32") {
     base = path.join(
-      process.env.APPDATA ?? path.join(os.homedir(), 'AppData', 'Roaming'),
-      'league-stream-utils',
+      process.env.APPDATA ?? path.join(os.homedir(), "AppData", "Roaming"),
+      "league-stream-utils",
     );
-  } else if (platform === 'darwin') {
-    base = path.join(os.homedir(), 'Library', 'Application Support', 'league-stream-utils');
+  } else if (platform === "darwin") {
+    base = path.join(os.homedir(), "Library", "Application Support", "league-stream-utils");
   } else {
     base = path.join(
-      process.env.XDG_DATA_HOME ?? path.join(os.homedir(), '.local', 'share'),
-      'league-stream-utils',
+      process.env.XDG_DATA_HOME ?? path.join(os.homedir(), ".local", "share"),
+      "league-stream-utils",
     );
   }
   fs.mkdirSync(base, { recursive: true });
-  return path.join(base, 'local.db');
+
+  return path.join(base, "local.db");
 }
 
-export function getDb(mode: 'online' | 'offline' = 'online'): Kysely<Database> {
-  if (mode === 'offline') {
+export function getDb(mode: "online" | "offline" = "online"): Kysely<Database> {
+  if (mode === "offline") {
     if (!offlineDb) {
       const sqlitePath = process.env.SQLITE_PATH ?? getDefaultSqlitePath();
       const sqlite = new BetterSqlite3(sqlitePath);
-      sqlite.pragma('journal_mode = WAL');
-      sqlite.pragma('foreign_keys = ON');
+      sqlite.pragma("journal_mode = WAL");
+      sqlite.pragma("foreign_keys = ON");
       initSqliteSchema(sqlite);
       offlineDb = new Kysely<Database>({
         dialect: new SqliteDialect({ database: sqlite }),
       });
     }
+
     return offlineDb;
   }
 
   if (!onlineDb) {
     const connectionString = process.env.DATABASE_URL;
-    if (!connectionString) throw new Error('DATABASE_URL environment variable is not set');
+    if (!connectionString) throw new Error("DATABASE_URL environment variable is not set");
     onlineDb = new Kysely<Database>({
       dialect: new PostgresDialect({
         pool: new pg.Pool({ connectionString }),
       }),
     });
   }
+
   return onlineDb;
 }
 
 export function getDbForRequest(request: Request): Kysely<Database> {
-  const cookies = request.headers.get('cookie') ?? '';
-  const isOffline = cookies.includes('app_mode=offline');
-  return getDb(isOffline ? 'offline' : 'online');
+  const cookies = request.headers.get("cookie") ?? "";
+  const isOffline = cookies.includes("app_mode=offline");
+
+  return getDb(isOffline ? "offline" : "online");
 }
 
-export { sql } from 'kysely';
+export { sql } from "kysely";

@@ -1,9 +1,9 @@
-import type { Generated, ColumnType, JSONColumnType } from 'kysely';
+import type { Generated, ColumnType, JSONColumnType } from "kysely";
 
 // ── Sync metadata (shared by all synced tables) ─────────────
 
 export interface SyncFields {
-  sync_status: ColumnType<'synced' | 'pending' | 'conflict', string | undefined, string>;
+  sync_status: ColumnType<"synced" | "pending" | "conflict", string | undefined, string>;
   last_synced_at: Date | null;
   cloud_id: string | null;
 }
@@ -23,7 +23,7 @@ export interface UsersTable {
   last_login_ip: string | null;
   sessions_created_today: ColumnType<number, number | undefined, number>;
   last_session_date: Date | null;
-  plan: ColumnType<'free' | 'pro', 'free' | 'pro' | undefined, 'free' | 'pro'>;
+  plan: ColumnType<"free" | "pro", "free" | "pro" | undefined, "free" | "pro">;
   plan_expires_at: Date | null;
   must_change_password: ColumnType<boolean, boolean | undefined, boolean>;
   created_at: ColumnType<Date, Date | undefined, never>;
@@ -87,7 +87,7 @@ export interface PlayersTable extends SyncFields {
   team_id: string;
   in_game_name: string;
   tag: string;
-  role: 'TOP' | 'JUNGLE' | 'MID' | 'BOTTOM' | 'SUPPORT';
+  role: "TOP" | "JUNGLE" | "MID" | "BOTTOM" | "SUPPORT";
   is_sub: ColumnType<boolean, boolean | undefined, boolean>;
   profile_image: JSONColumnType<unknown> | null;
   puuid: string | null;
@@ -113,10 +113,10 @@ export interface StaffTable extends SyncFields {
 export interface TournamentsTable extends SyncFields {
   id: Generated<string>;
   name: string;
-  type: 'ladder' | 'swiss' | 'round_robin' | 'groups';
-  format: 'bo1' | 'bo3' | 'bo5';
+  type: "ladder" | "swiss" | "round_robin" | "groups";
+  format: "bo1" | "bo3" | "bo5";
   status: ColumnType<
-    'draft' | 'registration' | 'active' | 'completed' | 'cancelled',
+    "draft" | "registration" | "active" | "completed" | "cancelled",
     string | undefined,
     string
   >;
@@ -150,8 +150,8 @@ export interface MatchesTable extends SyncFields {
   tournament_id: string;
   blue_team_id: string | null;
   red_team_id: string | null;
-  format: 'bo1' | 'bo3' | 'bo5';
-  status: ColumnType<'scheduled' | 'live' | 'completed' | 'cancelled', string | undefined, string>;
+  format: "bo1" | "bo3" | "bo5";
+  status: ColumnType<"scheduled" | "live" | "completed" | "cancelled", string | undefined, string>;
   score_blue: ColumnType<number, number | undefined, number>;
   score_red: ColumnType<number, number | undefined, number>;
   round_number: number | null;
@@ -210,7 +210,7 @@ export interface ChampionsTable {
 export interface UserPermissionsTable {
   id: Generated<string>;
   user_id: string;
-  role: 'admin' | 'organizer' | 'moderator' | 'commentator' | 'viewer';
+  role: "admin" | "organizer" | "moderator" | "commentator" | "viewer";
   granted_at: ColumnType<Date, Date | undefined, never>;
   granted_by: string | null;
 }
@@ -219,7 +219,7 @@ export interface TournamentPermissionsTable extends SyncFields {
   id: Generated<string>;
   user_id: string;
   tournament_id: string;
-  role: 'organizer' | 'moderator' | 'commentator' | 'viewer';
+  role: "organizer" | "moderator" | "commentator" | "viewer";
   granted_at: ColumnType<Date, Date | undefined, never>;
   granted_by: string | null;
 }
@@ -241,7 +241,7 @@ export interface PredictionsTable {
   id: Generated<string>;
   match_id: string;
   user_id: string;
-  predicted_winner: 'blue' | 'red';
+  predicted_winner: "blue" | "red";
   created_at: ColumnType<Date, Date | undefined, never>;
 }
 
@@ -253,9 +253,9 @@ export interface TournamentJoinRequestsTable {
   team_id: string;
   requested_by: string;
   status: ColumnType<
-    'pending' | 'approved' | 'rejected',
-    'pending' | undefined,
-    'pending' | 'approved' | 'rejected'
+    "pending" | "approved" | "rejected",
+    "pending" | undefined,
+    "pending" | "approved" | "rejected"
   >;
   message: string | null;
   responded_by: string | null;
@@ -269,9 +269,9 @@ export interface TournamentInvitationsTable {
   team_id: string;
   invited_by: string;
   status: ColumnType<
-    'pending' | 'accepted' | 'declined',
-    'pending' | undefined,
-    'pending' | 'accepted' | 'declined'
+    "pending" | "accepted" | "declined",
+    "pending" | undefined,
+    "pending" | "accepted" | "declined"
   >;
   message: string | null;
   responded_at: Date | null;
@@ -284,7 +284,7 @@ export interface SyncLogTable {
   id: Generated<number>;
   table_name: string;
   record_id: string;
-  action: 'insert' | 'update' | 'delete';
+  action: "insert" | "update" | "delete";
   data: string;
   created_at: ColumnType<Date, Date | undefined, never>;
   synced_at: Date | null;

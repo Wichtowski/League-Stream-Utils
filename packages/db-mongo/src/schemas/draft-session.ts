@@ -1,11 +1,12 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
+
 const { Schema, model, models } = mongoose;
 type Document = mongoose.Document;
 
 interface draftActionDoc {
-  type: 'pick' | 'ban';
+  type: "pick" | "ban";
   championId: number;
-  teamSide: 'blue' | 'red';
+  teamSide: "blue" | "red";
   phase: string;
   timestamp: Date;
   undone?: boolean;
@@ -13,11 +14,11 @@ interface draftActionDoc {
 
 export interface draftSessionDoc extends Document {
   sessionId: string;
-  type: 'static' | 'lcu' | 'tournament' | 'web';
+  type: "static" | "lcu" | "tournament" | "web";
   config: Record<string, unknown>;
-  status: 'waiting' | 'active' | 'paused' | 'completed';
+  status: "waiting" | "active" | "paused" | "completed";
   currentPhase: string;
-  currentTeam: 'blue' | 'red';
+  currentTeam: "blue" | "red";
   turnNumber: number;
   timer: {
     remaining: number;
@@ -39,9 +40,9 @@ export interface draftSessionDoc extends Document {
 
 const draftActionSchema = new Schema<draftActionDoc>(
   {
-    type: { type: String, enum: ['pick', 'ban'], required: true },
+    type: { type: String, enum: ["pick", "ban"], required: true },
     championId: { type: Number, required: true },
-    teamSide: { type: String, enum: ['blue', 'red'], required: true },
+    teamSide: { type: String, enum: ["blue", "red"], required: true },
     phase: { type: String, required: true },
     timestamp: { type: Date, default: Date.now },
     undone: { type: Boolean, default: false },
@@ -52,15 +53,15 @@ const draftActionSchema = new Schema<draftActionDoc>(
 const draftSessionSchema = new Schema<draftSessionDoc>(
   {
     sessionId: { type: String, required: true, unique: true, index: true },
-    type: { type: String, enum: ['static', 'lcu', 'tournament', 'web'], default: 'web' },
+    type: { type: String, enum: ["static", "lcu", "tournament", "web"], default: "web" },
     config: { type: Schema.Types.Mixed, required: true },
     status: {
       type: String,
-      enum: ['waiting', 'active', 'paused', 'completed'],
-      default: 'waiting',
+      enum: ["waiting", "active", "paused", "completed"],
+      default: "waiting",
     },
-    currentPhase: { type: String, default: 'ban1' },
-    currentTeam: { type: String, enum: ['blue', 'red'], default: 'blue' },
+    currentPhase: { type: String, default: "ban1" },
+    currentTeam: { type: String, enum: ["blue", "red"], default: "blue" },
     turnNumber: { type: Number, default: 0 },
     timer: {
       remaining: { type: Number, default: 30 },
@@ -84,5 +85,5 @@ const draftSessionSchema = new Schema<draftSessionDoc>(
 draftSessionSchema.index({ createdAt: 1 }, { expireAfterSeconds: 86400 });
 
 export const draftSessionModel =
-  (models['draftSession'] as ReturnType<typeof model<draftSessionDoc>>) ??
-  model<draftSessionDoc>('draftSession', draftSessionSchema, 'draft_sessions');
+  (models["draftSession"] as ReturnType<typeof model<draftSessionDoc>>) ??
+  model<draftSessionDoc>("draftSession", draftSessionSchema, "draft_sessions");

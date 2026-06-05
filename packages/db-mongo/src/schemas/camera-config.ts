@@ -1,9 +1,10 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
+
 const { Schema, model, models } = mongoose;
 type Document = mongoose.Document;
 
 interface CameraPlayerDoc {
-  role: 'TOP' | 'JUNGLE' | 'MID' | 'BOTTOM' | 'SUPPORT';
+  role: "TOP" | "JUNGLE" | "MID" | "BOTTOM" | "SUPPORT";
   streamUrl: string;
   playerName?: string;
 }
@@ -19,7 +20,7 @@ const cameraPlayerSchema = new Schema<CameraPlayerDoc>(
   {
     role: {
       type: String,
-      enum: ['TOP', 'JUNGLE', 'MID', 'BOTTOM', 'SUPPORT'],
+      enum: ["TOP", "JUNGLE", "MID", "BOTTOM", "SUPPORT"],
       required: true,
     },
     streamUrl: { type: String, required: true },
@@ -40,5 +41,5 @@ const cameraConfigSchema = new Schema<CameraConfigDoc>(
 cameraConfigSchema.index({ teamId: 1, userId: 1 }, { unique: true });
 
 export const CameraConfigModel =
-  (models['CameraConfig'] as ReturnType<typeof model<CameraConfigDoc>>) ??
-  model<CameraConfigDoc>('CameraConfig', cameraConfigSchema, 'camera_configs');
+  (models["CameraConfig"] as ReturnType<typeof model<CameraConfigDoc>>) ??
+  model<CameraConfigDoc>("CameraConfig", cameraConfigSchema, "camera_configs");

@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 let cached = (global as Record<string, unknown>).__mongoConnection as
   | {
@@ -29,7 +29,8 @@ export async function connectMongo() {
   }
 
   cached!.conn = await cached!.promise;
+
   return cached!.conn;
 }
 
-export { default as mongoose } from 'mongoose';
+export { default as mongoose } from "mongoose";
