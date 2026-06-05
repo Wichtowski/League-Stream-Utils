@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { createContext, use, type ReactNode } from 'react';
+import { createContext, use, type ReactNode } from "react";
 
-type Theme = 'light' | 'dark';
+type Theme = "light" | "dark";
 
 interface ThemeContextValue {
   theme: Theme;
@@ -24,7 +24,8 @@ export function ThemeProvider({
 
 export function useTheme(): ThemeContextValue {
   const ctx = use(ThemeContext);
-  if (!ctx) throw new Error('useTheme must be used within ThemeProvider');
+  if (!ctx) throw new Error("useTheme must be used within ThemeProvider");
+
   return ctx;
 }
 

@@ -1,5 +1,5 @@
-import { create } from 'zustand';
-import { devtools } from 'zustand/middleware';
+import { create } from "zustand";
+import { devtools } from "zustand/middleware";
 
 interface CameraUIState {
   selectedTeamId: string | null;
@@ -12,6 +12,6 @@ export const useCameraStore = create<CameraUIState>()(
       selectedTeamId: null,
       selectTeam: (id) => set({ selectedTeamId: id }),
     }),
-    { name: 'camera' },
+    { name: "camera" },
   ),
 );

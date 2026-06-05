@@ -6,7 +6,6 @@
   "exports": {
     ".": "./src/index.ts",
     "./queries": "./src/queries.ts",
-    "./hooks": "./src/hooks.ts",
     "./store": "./src/store.ts"
   },
   "scripts": {
@@ -14,6 +13,7 @@
     "lint": "eslint src/"
   },
   "dependencies": {
+    "@lsu/api-client": "workspace:*",
     "@lsu/db": "workspace:*",
     "@lsu/types": "workspace:*",
     "@tanstack/react-query": "^5.80.6",

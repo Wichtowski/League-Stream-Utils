@@ -1,5 +1,5 @@
-import { create } from 'zustand';
-import { devtools } from 'zustand/middleware';
+import { create } from "zustand";
+import { devtools } from "zustand/middleware";
 
 interface TeamUIState {
   selectedTeamId: string | null;
@@ -12,10 +12,10 @@ export const useTeamStore = create<TeamUIState>()(
   devtools(
     (set) => ({
       selectedTeamId: null,
-      filterQuery: '',
+      filterQuery: "",
       selectTeam: (id) => set({ selectedTeamId: id }),
       setFilter: (query) => set({ filterQuery: query }),
     }),
-    { name: 'team' },
+    { name: "team" },
   ),
 );

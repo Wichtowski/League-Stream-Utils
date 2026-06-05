@@ -1,5 +1,5 @@
-const BASE_URL = 'https://ddragon.leagueoflegends.com';
-const FALLBACK_VERSION = '15.20.1';
+const BASE_URL = "https://ddragon.leagueoflegends.com";
+const FALLBACK_VERSION = "15.20.1";
 const FETCH_TIMEOUT = 15_000;
 
 async function fetchWithTimeout<T>(url: string, timeout = FETCH_TIMEOUT): Promise<T> {
@@ -8,6 +8,7 @@ async function fetchWithTimeout<T>(url: string, timeout = FETCH_TIMEOUT): Promis
   try {
     const res = await fetch(url, { signal: controller.signal });
     if (!res.ok) throw new Error(`DDragon ${res.status}: ${url}`);
+
     return res.json();
   } finally {
     clearTimeout(timer);
@@ -26,6 +27,7 @@ export async function getLatestVersion(): Promise<string> {
     const versions = await fetchWithTimeout<string[]>(`${BASE_URL}/api/versions.json`, 10_000);
     cachedVersion = versions[0] ?? FALLBACK_VERSION;
     versionFetchedAt = Date.now();
+
     return cachedVersion;
   } catch {
     return cachedVersion ?? FALLBACK_VERSION;
@@ -81,6 +83,7 @@ export async function fetchChampions(version?: string) {
   const data = await fetchWithTimeout<{ data: Record<string, DDragonChampion> }>(
     `${BASE_URL}/cdn/${v}/data/en_US/champion.json`,
   );
+
   return Object.values(data.data).map((c) => ({
     id: Number(c.key),
     name: c.name,
@@ -137,6 +140,7 @@ export async function fetchItems(version?: string) {
   const data = await fetchWithTimeout<{ data: Record<string, DDragonItem> }>(
     `${BASE_URL}/cdn/${v}/data/en_US/item.json`,
   );
+
   return Object.entries(data.data).map(([id, item]) => ({
     id,
     name: item.name,
@@ -156,6 +160,7 @@ export async function fetchSummonerSpells(version?: string) {
   const data = await fetchWithTimeout<{ data: Record<string, DDragonSummonerSpell> }>(
     `${BASE_URL}/cdn/${v}/data/en_US/summoner.json`,
   );
+
   return Object.values(data.data).map((s) => ({
     id: Number(s.key),
     key: s.id,
@@ -170,6 +175,7 @@ export async function fetchRunes(version?: string) {
   const trees = await fetchWithTimeout<DDragonRuneTree[]>(
     `${BASE_URL}/cdn/${v}/data/en_US/runesReforged.json`,
   );
+
   return {
     trees: trees.map((t) => ({
       id: t.id,
@@ -193,6 +199,7 @@ export async function fetchRunes(version?: string) {
 
 export function getImageUrls(version: string) {
   const cdn = `${BASE_URL}/cdn`;
+
   return {
     champion: (filename: string) => `${cdn}/${version}/img/champion/${filename}`,
     spell: (filename: string) => `${cdn}/${version}/img/spell/${filename}`,

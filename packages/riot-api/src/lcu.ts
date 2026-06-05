@@ -1,7 +1,7 @@
 const LCU_ENDPOINTS = {
-  currentSummoner: '/lol-summoner/v1/current-summoner',
-  champSelect: '/lol-champ-select/v1/session',
-  gameflowPhase: '/lol-gameflow/v1/gameflow-phase',
+  currentSummoner: "/lol-summoner/v1/current-summoner",
+  champSelect: "/lol-champ-select/v1/session",
+  gameflowPhase: "/lol-gameflow/v1/gameflow-phase",
 } as const;
 
 interface LCUCredentials {
@@ -11,7 +11,7 @@ interface LCUCredentials {
 }
 
 function authHeader(password: string) {
-  return 'Basic ' + btoa(`riot:${password}`);
+  return "Basic " + btoa(`riot:${password}`);
 }
 
 export async function lcuFetch<T>(credentials: LCUCredentials, endpoint: string): Promise<T> {
@@ -22,6 +22,7 @@ export async function lcuFetch<T>(credentials: LCUCredentials, endpoint: string)
     agent: undefined,
   });
   if (!res.ok) throw new Error(`LCU ${res.status}: ${endpoint}`);
+
   return res.json();
 }
 
@@ -40,7 +41,7 @@ export async function getChampSelectSession(credentials: LCUCredentials) {
     actions: Array<
       Array<{
         id: number;
-        type: 'ban' | 'pick';
+        type: "ban" | "pick";
         championId: number;
         completed: boolean;
         actorCellId: number;
@@ -57,8 +58,9 @@ export async function getGameflowPhase(credentials: LCUCredentials): Promise<str
 }
 
 export function parseLockfile(content: string): LCUCredentials | null {
-  const parts = content.trim().split(':');
+  const parts = content.trim().split(":");
   if (parts.length < 5) return null;
+
   return {
     port: parseInt(parts[2], 10),
     password: parts[3],
@@ -73,7 +75,7 @@ export function extractBans(session: Awaited<ReturnType<typeof getChampSelectSes
 
   for (const actionGroup of session.actions) {
     for (const action of actionGroup) {
-      if (action.type === 'ban' && action.completed && action.championId > 0) {
+      if (action.type === "ban" && action.completed && action.championId > 0) {
         if (myTeamCellIds.has(action.actorCellId)) {
           myTeamBans.push(action.championId);
         } else {

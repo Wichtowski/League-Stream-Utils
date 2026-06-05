@@ -1,6 +1,8 @@
-import { useRef, useCallback } from 'react';
-import { create } from 'zustand';
-import { OBSClient, type OBSConnectionStatus } from './client';
+import { useRef, useCallback } from "react";
+
+import { create } from "zustand";
+
+import { OBSClient, type OBSConnectionStatus } from "./client";
 
 interface OBSState {
   status: OBSConnectionStatus;
@@ -11,7 +13,7 @@ interface OBSState {
 }
 
 export const useOBSStore = create<OBSState>((set) => ({
-  status: 'disconnected',
+  status: "disconnected",
   currentScene: null,
   scenes: [],
   setStatus: (status) => set({ status }),
@@ -28,6 +30,7 @@ export function useOBS() {
         store.getState().setStatus(status);
       });
     }
+
     return clientRef.current;
   }, []);
 

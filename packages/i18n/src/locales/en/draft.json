@@ -1,0 +1,19 @@
+{
+  "title": "Draft",
+  "subtitle": "Create and manage draft sessions",
+  "new_session": "New Session",
+  "failed_to_load": "Failed to load sessions",
+  "blue_side": "Blue Side",
+  "red_side": "Red Side",
+  "blue": "Blue",
+  "red": "Red",
+  "col_match": "Match",
+  "col_phase": "Phase",
+  "col_turn": "Turn",
+  "col_status": "Status",
+  "delete_session": "Delete this session?",
+  "empty_state": "No draft sessions — create one to get started",
+  "modal_title": "New Draft Session",
+  "quick_create": "Quick Create",
+  "quick_create_description": "Creates a standard BO3 draft session with default 30s timers. You can configure teams and settings after creation."
+}

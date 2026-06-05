@@ -1,17 +1,17 @@
-import baseConfig from './base.js';
-import nextPlugin from '@next/eslint-plugin-next';
-import reactHooksPlugin from 'eslint-plugin-react-hooks';
+import baseConfig from "./base.js";
+import nextPlugin from "@next/eslint-plugin-next";
+import reactHooksPlugin from "eslint-plugin-react-hooks";
 
 export default [
   ...baseConfig,
   {
     plugins: {
-      '@next/next': nextPlugin,
-      'react-hooks': reactHooksPlugin,
+      "@next/next": nextPlugin,
+      "react-hooks": reactHooksPlugin,
     },
     rules: {
       ...nextPlugin.configs.recommended.rules,
-      ...nextPlugin.configs['core-web-vitals'].rules,
+      ...nextPlugin.configs["core-web-vitals"].rules,
       ...reactHooksPlugin.configs.recommended.rules,
     },
   },

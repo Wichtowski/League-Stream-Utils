@@ -1,15 +1,16 @@
-import type { Kysely } from 'kysely';
-import type { Database } from '@lsu/db/types';
+import type { Kysely } from "kysely";
+
+import type { Database } from "@lsu/db/types";
 
 export async function getTeams(db: Kysely<Database>) {
-  const rows = await db.selectFrom('teams').selectAll().orderBy('name', 'asc').execute();
+  const rows = await db.selectFrom("teams").selectAll().orderBy("name", "asc").execute();
 
   const ids = rows.map((r) => r.id);
   if (ids.length === 0) return [];
 
   const [playerRows, staffRows] = await Promise.all([
-    db.selectFrom('players').selectAll().where('team_id', 'in', ids).execute(),
-    db.selectFrom('staff').selectAll().where('team_id', 'in', ids).execute(),
+    db.selectFrom("players").selectAll().where("team_id", "in", ids).execute(),
+    db.selectFrom("staff").selectAll().where("team_id", "in", ids).execute(),
   ]);
 
   return rows.map((t) => ({
@@ -20,13 +21,13 @@ export async function getTeams(db: Kysely<Database>) {
 }
 
 export async function getTeam(db: Kysely<Database>, id: string) {
-  const team = await db.selectFrom('teams').selectAll().where('id', '=', id).executeTakeFirst();
+  const team = await db.selectFrom("teams").selectAll().where("id", "=", id).executeTakeFirst();
 
   if (!team) return undefined;
 
   const [players, staffMembers] = await Promise.all([
-    db.selectFrom('players').selectAll().where('team_id', '=', id).execute(),
-    db.selectFrom('staff').selectAll().where('team_id', '=', id).execute(),
+    db.selectFrom("players").selectAll().where("team_id", "=", id).execute(),
+    db.selectFrom("staff").selectAll().where("team_id", "=", id).execute(),
   ]);
 
   return { ...team, players, staff: staffMembers };
@@ -44,7 +45,7 @@ export async function createTeam(
   },
 ) {
   return db
-    .insertInto('teams')
+    .insertInto("teams")
     .values({
       name: data.name,
       tag: data.tag,
@@ -75,11 +76,11 @@ export async function updateTeam(
   if (data.country !== undefined) set.country = data.country;
   if (data.logo !== undefined) set.logo = JSON.stringify(data.logo);
 
-  return db.updateTable('teams').set(set).where('id', '=', id).returningAll().executeTakeFirst();
+  return db.updateTable("teams").set(set).where("id", "=", id).returningAll().executeTakeFirst();
 }
 
 export async function deleteTeam(db: Kysely<Database>, id: string) {
-  await db.deleteFrom('teams').where('id', '=', id).execute();
+  await db.deleteFrom("teams").where("id", "=", id).execute();
 }
 
 export async function addPlayer(
@@ -88,7 +89,7 @@ export async function addPlayer(
     teamId: string;
     inGameName: string;
     tag: string;
-    role: 'TOP' | 'JUNGLE' | 'MID' | 'BOTTOM' | 'SUPPORT';
+    role: "TOP" | "JUNGLE" | "MID" | "BOTTOM" | "SUPPORT";
     isSub?: boolean;
     profileImage?: unknown;
     puuid?: string;
@@ -99,7 +100,7 @@ export async function addPlayer(
   },
 ) {
   return db
-    .insertInto('players')
+    .insertInto("players")
     .values({
       team_id: data.teamId,
       in_game_name: data.inGameName,
@@ -123,7 +124,7 @@ export async function updatePlayer(
   data: Partial<{
     inGameName: string;
     tag: string;
-    role: 'TOP' | 'JUNGLE' | 'MID' | 'BOTTOM' | 'SUPPORT';
+    role: "TOP" | "JUNGLE" | "MID" | "BOTTOM" | "SUPPORT";
     isSub: boolean;
     profileImage: unknown;
     puuid: string;
@@ -145,11 +146,11 @@ export async function updatePlayer(
   if (data.country !== undefined) set.country = data.country;
   if (data.rank !== undefined) set.rank = data.rank;
 
-  return db.updateTable('players').set(set).where('id', '=', id).returningAll().executeTakeFirst();
+  return db.updateTable("players").set(set).where("id", "=", id).returningAll().executeTakeFirst();
 }
 
 export async function removePlayer(db: Kysely<Database>, id: string) {
-  await db.deleteFrom('players').where('id', '=', id).execute();
+  await db.deleteFrom("players").where("id", "=", id).execute();
 }
 
 export async function addStaff(
@@ -162,7 +163,7 @@ export async function addStaff(
   },
 ) {
   return db
-    .insertInto('staff')
+    .insertInto("staff")
     .values({
       team_id: data.teamId,
       name: data.name,
@@ -174,5 +175,5 @@ export async function addStaff(
 }
 
 export async function removeStaff(db: Kysely<Database>, id: string) {
-  await db.deleteFrom('staff').where('id', '=', id).execute();
+  await db.deleteFrom("staff").where("id", "=", id).execute();
 }

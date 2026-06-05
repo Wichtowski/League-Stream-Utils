@@ -1,8 +1,8 @@
-export type AppMode = 'online' | 'offline' | null;
+export type AppMode = "online" | "offline" | null;
 
 export interface AssetTreeNode {
   name: string;
-  type: 'file' | 'directory';
+  type: "file" | "directory";
   size?: number;
   children?: AssetTreeNode[];
 }
@@ -30,7 +30,7 @@ export interface SyncStatus {
 }
 
 export interface SyncProgress {
-  stage: 'pushing' | 'pulling' | 'complete' | 'error';
+  stage: "pushing" | "pulling" | "complete" | "error";
   table: string;
   current: number;
   total: number;
@@ -75,7 +75,7 @@ export interface ElectronAPI {
   deleteBackup: (backupId: string) => Promise<{ success: boolean }>;
 
   getAppMode: () => Promise<AppMode>;
-  setAppMode: (mode: 'online' | 'offline') => Promise<void>;
+  setAppMode: (mode: "online" | "offline" | null) => Promise<void>;
 
   syncPush: () => Promise<SyncResult>;
   syncPull: () => Promise<SyncResult>;
@@ -92,10 +92,11 @@ declare global {
 }
 
 export function isElectron(): boolean {
-  return typeof window !== 'undefined' && !!window.electronAPI;
+  return typeof window !== "undefined" && !!window.electronAPI;
 }
 
 export function getElectronAPI(): ElectronAPI | null {
-  if (typeof window === 'undefined') return null;
+  if (typeof window === "undefined") return null;
+
   return window.electronAPI ?? null;
 }

@@ -1,8 +1,2 @@
-export * from './queries';
-export {
-  useCameraConfigs,
-  useCameraConfig,
-  useUpdateCameraConfig,
-  useDeleteCameraConfig,
-} from './hooks';
-export { useCameraStore } from './store';
+export * from "./queries";
+export { useCameraStore } from "./store";

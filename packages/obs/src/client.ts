@@ -1,10 +1,10 @@
-import OBSWebSocket from 'obs-websocket-js';
+import OBSWebSocket from "obs-websocket-js";
 
-export type OBSConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'error';
+export type OBSConnectionStatus = "disconnected" | "connecting" | "connected" | "error";
 
 export class OBSClient {
   private obs = new OBSWebSocket();
-  private _status: OBSConnectionStatus = 'disconnected';
+  private _status: OBSConnectionStatus = "disconnected";
   private onStatusChange?: (status: OBSConnectionStatus) => void;
 
   get status() {
@@ -14,12 +14,12 @@ export class OBSClient {
   constructor(onChange?: (status: OBSConnectionStatus) => void) {
     this.onStatusChange = onChange;
 
-    this.obs.on('ConnectionClosed', () => {
-      this.setStatus('disconnected');
+    this.obs.on("ConnectionClosed", () => {
+      this.setStatus("disconnected");
     });
 
-    this.obs.on('ConnectionError', () => {
-      this.setStatus('error');
+    this.obs.on("ConnectionError", () => {
+      this.setStatus("error");
     });
   }
 
@@ -28,38 +28,40 @@ export class OBSClient {
     this.onStatusChange?.(status);
   }
 
-  async connect(url = 'ws://localhost:4455', password?: string) {
-    this.setStatus('connecting');
+  async connect(url = "ws://localhost:4455", password?: string) {
+    this.setStatus("connecting");
     try {
       await this.obs.connect(url, password);
-      this.setStatus('connected');
+      this.setStatus("connected");
     } catch {
-      this.setStatus('error');
-      throw new Error('Failed to connect to OBS');
+      this.setStatus("error");
+      throw new Error("Failed to connect to OBS");
     }
   }
 
   async disconnect() {
     await this.obs.disconnect();
-    this.setStatus('disconnected');
+    this.setStatus("disconnected");
   }
 
   async getScenes() {
-    const { scenes, currentProgramSceneName } = await this.obs.call('GetSceneList');
+    const { scenes, currentProgramSceneName } = await this.obs.call("GetSceneList");
+
     return { scenes, currentScene: currentProgramSceneName };
   }
 
   async setCurrentScene(sceneName: string) {
-    await this.obs.call('SetCurrentProgramScene', { sceneName });
+    await this.obs.call("SetCurrentProgramScene", { sceneName });
   }
 
   async getSceneItems(sceneName: string) {
-    const { sceneItems } = await this.obs.call('GetSceneItemList', { sceneName });
+    const { sceneItems } = await this.obs.call("GetSceneItemList", { sceneName });
+
     return sceneItems;
   }
 
   async setSceneItemEnabled(sceneName: string, sceneItemId: number, enabled: boolean) {
-    await this.obs.call('SetSceneItemEnabled', {
+    await this.obs.call("SetSceneItemEnabled", {
       sceneName,
       sceneItemId,
       sceneItemEnabled: enabled,
@@ -67,30 +69,30 @@ export class OBSClient {
   }
 
   async setInputSettings(inputName: string, settings: Record<string, unknown>) {
-    await this.obs.call('SetInputSettings', { inputName, inputSettings: settings });
+    await this.obs.call("SetInputSettings", { inputName, inputSettings: settings });
   }
 
   async getStreamStatus() {
-    return this.obs.call('GetStreamStatus');
+    return this.obs.call("GetStreamStatus");
   }
 
   async startStream() {
-    await this.obs.call('StartStream');
+    await this.obs.call("StartStream");
   }
 
   async stopStream() {
-    await this.obs.call('StopStream');
+    await this.obs.call("StopStream");
   }
 
   async getRecordStatus() {
-    return this.obs.call('GetRecordStatus');
+    return this.obs.call("GetRecordStatus");
   }
 
   async startRecord() {
-    await this.obs.call('StartRecord');
+    await this.obs.call("StartRecord");
   }
 
   async stopRecord() {
-    return this.obs.call('StopRecord');
+    return this.obs.call("StopRecord");
   }
 }

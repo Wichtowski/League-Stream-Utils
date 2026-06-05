@@ -1,0 +1,17 @@
+{
+  "title": "Commentators",
+  "subtitle": "Manage broadcast talent",
+  "add_commentator": "Add Commentator",
+  "failed_to_load": "Failed to load commentators",
+  "col_name": "Name",
+  "col_social": "Social",
+  "empty_state": "No commentators yet — add broadcast talent to assign them to matches.",
+  "modal_title": "Add Commentator",
+  "label_name": "Name",
+  "label_twitter": "Twitter (optional)",
+  "placeholder_name": "John Doe",
+  "placeholder_twitter": "@handle",
+  "toast_added": "Commentator added",
+  "toast_add_failed": "Failed to add commentator",
+  "toast_delete_failed": "Failed to delete commentator"
+}

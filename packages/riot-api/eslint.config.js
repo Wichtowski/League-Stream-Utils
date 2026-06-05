@@ -1,3 +1,3 @@
-import config from '@lsu/config/eslint';
+import config from "@lsu/config/eslint";
 
 export default config;

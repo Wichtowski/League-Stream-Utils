@@ -1,0 +1,18 @@
+{
+  "title": "Dev Tools",
+  "subtitle": "System status & diagnostics",
+  "api_health": "API Health",
+  "unreachable": "Unreachable",
+  "status": "Status",
+  "uptime": "Uptime",
+  "postgresql": "PostgreSQL",
+  "websocket_connections": "WebSocket Connections",
+  "clients": "Clients",
+  "active_sessions": "Active Sessions",
+  "runtime": "Runtime",
+  "environment": "Environment",
+  "electron": "Electron",
+  "web": "Web",
+  "node_env": "Node Env",
+  "unknown": "unknown"
+}

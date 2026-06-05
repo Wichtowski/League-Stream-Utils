@@ -1,0 +1,19 @@
+{
+  "title": "Draft",
+  "subtitle": "Twórz i zarządzaj sesjami draftu",
+  "new_session": "Nowa sesja",
+  "failed_to_load": "Nie udało się załadować sesji",
+  "blue_side": "Niebieska strona",
+  "red_side": "Czerwona strona",
+  "blue": "Niebiescy",
+  "red": "Czerwoni",
+  "col_match": "Mecz",
+  "col_phase": "Faza",
+  "col_turn": "Tura",
+  "col_status": "Status",
+  "delete_session": "Usunąć tę sesję?",
+  "empty_state": "Brak sesji draftu — utwórz jedną, aby rozpocząć",
+  "modal_title": "Nowa sesja draftu",
+  "quick_create": "Szybkie tworzenie",
+  "quick_create_description": "Tworzy standardową sesję draftu BO3 z domyślnymi 30-sekundowymi timerami. Możesz skonfigurować drużyny i ustawienia po utworzeniu."
+}

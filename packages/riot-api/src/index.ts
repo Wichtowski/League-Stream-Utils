@@ -7,7 +7,7 @@ export {
   fetchSummonerSpells,
   fetchRunes,
   getImageUrls,
-} from './ddragon';
+} from "./ddragon";
 
 export {
   lcuFetch,
@@ -16,6 +16,6 @@ export {
   getGameflowPhase,
   parseLockfile,
   extractBans,
-} from './lcu';
+} from "./lcu";
 
-export { saveToCache, loadFromCache, clearCache, clearAllCaches, isCacheValid } from './cache';
+export { saveToCache, loadFromCache, clearCache, clearAllCaches, isCacheValid } from "./cache";

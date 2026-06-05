@@ -1,4 +1,5 @@
-import { create } from 'zustand';
+import { create } from "zustand";
+
 import {
   isElectron,
   getElectronAPI,
@@ -8,7 +9,7 @@ import {
   type SyncResult,
   type SyncStatus,
   type SyncProgress,
-} from './index';
+} from "./index";
 
 interface ElectronStore {
   isElectronEnv: boolean;
@@ -46,7 +47,7 @@ export const useElectronStore = create<ElectronStore>((set) => ({
     const api = getElectronAPI();
     if (!api) return;
     try {
-      if (typeof api.listAssetTree !== 'function') return;
+      if (typeof api.listAssetTree !== "function") return;
       const tree = await api.listAssetTree();
       set({ assetTree: tree });
     } catch {
@@ -88,7 +89,7 @@ interface OBSElectronStore {
 export const useOBSElectron = create<OBSElectronStore>((set) => ({
   connected: false,
   scenes: [],
-  currentScene: '',
+  currentScene: "",
   connecting: false,
   error: null,
 
@@ -100,8 +101,8 @@ export const useOBSElectron = create<OBSElectronStore>((set) => ({
       await api.obsConnect(url, password);
       const { scenes, currentScene } = await api.obsGetScenes();
       set({ connected: true, scenes, currentScene, connecting: false });
-    } catch (e: any) {
-      set({ error: e.message ?? 'Connection failed', connecting: false });
+    } catch (e: unknown) {
+      set({ error: e instanceof Error ? e.message : "Connection failed", connecting: false });
     }
   },
 
@@ -109,7 +110,7 @@ export const useOBSElectron = create<OBSElectronStore>((set) => ({
     const api = getElectronAPI();
     if (!api) return;
     await api.obsDisconnect();
-    set({ connected: false, scenes: [], currentScene: '' });
+    set({ connected: false, scenes: [], currentScene: "" });
   },
 
   switchScene: async (sceneName) => {
@@ -198,10 +199,12 @@ export const useDownloadProgress = create<DownloadProgressStore>((set) => ({
   subscribe: () => {
     const api = getElectronAPI();
     if (!api) return () => {};
+
     return api.onAssetProgress((progress) => {
       set((state) => {
         const categories = { ...state.categories, [progress.category]: progress };
-        const active = Object.values(categories).some((c) => c.stage !== 'complete');
+        const active = Object.values(categories).some((c) => c.stage !== "complete");
+
         return { categories, active };
       });
     });
@@ -212,7 +215,7 @@ interface AppModeStore {
   mode: AppMode;
   loading: boolean;
   load: () => Promise<void>;
-  setMode: (mode: 'online' | 'offline' | null) => Promise<void>;
+  setMode: (mode: "online" | "offline" | null) => Promise<void>;
 }
 
 export const useAppMode = create<AppModeStore>((set) => ({
@@ -222,7 +225,8 @@ export const useAppMode = create<AppModeStore>((set) => ({
   load: async () => {
     const api = getElectronAPI();
     if (!api) {
-      set({ mode: 'online', loading: false });
+      set({ mode: "online", loading: false });
+
       return;
     }
     const mode = await api.getAppMode();
@@ -232,7 +236,7 @@ export const useAppMode = create<AppModeStore>((set) => ({
   setMode: async (mode) => {
     const api = getElectronAPI();
     if (api && mode) await api.setAppMode(mode);
-    if (api && !mode) await api.setAppMode(null as any);
+    if (api && !mode) await api.setAppMode(null);
     set({ mode });
   },
 }));
@@ -271,9 +275,11 @@ export const useSyncStore = create<SyncStore>((set, get) => ({
       const result = await api.syncPush();
       set({ syncing: false, lastResult: result });
       await get().refreshStatus();
+
       return result;
     } catch {
       set({ syncing: false });
+
       return null;
     }
   },
@@ -286,9 +292,11 @@ export const useSyncStore = create<SyncStore>((set, get) => ({
       const result = await api.syncPull();
       set({ syncing: false, lastResult: result });
       await get().refreshStatus();
+
       return result;
     } catch {
       set({ syncing: false });
+
       return null;
     }
   },
@@ -301,9 +309,11 @@ export const useSyncStore = create<SyncStore>((set, get) => ({
       const result = await api.syncFull();
       set({ syncing: false, lastResult: result });
       await get().refreshStatus();
+
       return result;
     } catch {
       set({ syncing: false });
+
       return null;
     }
   },
@@ -319,6 +329,7 @@ export const useSyncStore = create<SyncStore>((set, get) => ({
   subscribe: () => {
     const api = getElectronAPI();
     if (!api) return () => {};
+
     return api.onSyncProgress((progress) => {
       set({ progress: progress as SyncProgress });
     });

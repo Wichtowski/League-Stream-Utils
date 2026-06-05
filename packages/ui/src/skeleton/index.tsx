@@ -1,31 +1,31 @@
-'use client';
+"use client";
 
-import type { CSSProperties, HTMLAttributes } from 'react';
+import type { CSSProperties, HTMLAttributes } from "react";
 
 interface SkeletonProps extends HTMLAttributes<HTMLDivElement> {
   width?: string | number;
   height?: string | number;
-  rounded?: 'none' | 'sm' | 'md' | 'lg' | 'full';
+  rounded?: "none" | "sm" | "md" | "lg" | "full";
 }
 
 const roundedMap = {
-  none: '0',
-  sm: '0.25rem',
-  md: '0.5rem',
-  lg: '1rem',
-  full: '9999px',
+  none: "0",
+  sm: "0.25rem",
+  md: "0.5rem",
+  lg: "1rem",
+  full: "9999px",
 } as const;
 
 export function Skeleton({
   width,
-  height = '1rem',
-  rounded = 'md',
-  className = '',
+  height = "1rem",
+  rounded = "md",
+  className = "",
   style,
   ...rest
 }: SkeletonProps) {
   const base: CSSProperties = {
-    width: width ?? '100%',
+    width: width ?? "100%",
     height,
     borderRadius: roundedMap[rounded],
     ...style,
@@ -40,7 +40,7 @@ interface TableSkeletonProps {
   className?: string;
 }
 
-export function TableSkeleton({ rows = 5, cols = 4, className = '' }: TableSkeletonProps) {
+export function TableSkeleton({ rows = 5, cols = 4, className = "" }: TableSkeletonProps) {
   return (
     <div className={`w-full space-y-2 ${className}`}>
       <div className="flex gap-4">
@@ -63,7 +63,7 @@ interface CardSkeletonProps {
   className?: string;
 }
 
-export function CardSkeleton({ className = '' }: CardSkeletonProps) {
+export function CardSkeleton({ className = "" }: CardSkeletonProps) {
   return (
     <div className={`rounded-lg border border-white/10 p-4 space-y-3 ${className}`}>
       <Skeleton height="1.25rem" width="60%" />
@@ -78,7 +78,7 @@ interface FormSkeletonProps {
   className?: string;
 }
 
-export function FormSkeleton({ fields = 4, className = '' }: FormSkeletonProps) {
+export function FormSkeleton({ fields = 4, className = "" }: FormSkeletonProps) {
   return (
     <div className={`space-y-4 ${className}`}>
       {Array.from({ length: fields }).map((_, i) => (
@@ -96,7 +96,7 @@ interface PageSkeletonProps {
   className?: string;
 }
 
-export function PageSkeleton({ className = '' }: PageSkeletonProps) {
+export function PageSkeleton({ className = "" }: PageSkeletonProps) {
   return (
     <div className={`space-y-6 ${className}`}>
       <div className="space-y-2">
@@ -117,7 +117,7 @@ interface ListSkeletonProps {
   className?: string;
 }
 
-export function ListSkeleton({ items = 5, className = '' }: ListSkeletonProps) {
+export function ListSkeleton({ items = 5, className = "" }: ListSkeletonProps) {
   return (
     <div className={`space-y-3 ${className}`}>
       {Array.from({ length: items }).map((_, i) => (
@@ -133,15 +133,16 @@ export function ListSkeleton({ items = 5, className = '' }: ListSkeletonProps) {
   );
 }
 
-const avatarSizes = { sm: '2rem', md: '2.5rem', lg: '3.5rem' } as const;
+const avatarSizes = { sm: "2rem", md: "2.5rem", lg: "3.5rem" } as const;
 
 interface AvatarSkeletonProps {
-  size?: 'sm' | 'md' | 'lg';
+  size?: "sm" | "md" | "lg";
   className?: string;
 }
 
-export function AvatarSkeleton({ size = 'md', className = '' }: AvatarSkeletonProps) {
+export function AvatarSkeleton({ size = "md", className = "" }: AvatarSkeletonProps) {
   const s = avatarSizes[size];
+
   return <Skeleton width={s} height={s} rounded="full" className={className} />;
 }
 
@@ -150,11 +151,11 @@ interface TextSkeletonProps {
   className?: string;
 }
 
-export function TextSkeleton({ lines = 3, className = '' }: TextSkeletonProps) {
+export function TextSkeleton({ lines = 3, className = "" }: TextSkeletonProps) {
   return (
     <div className={`space-y-2 ${className}`}>
       {Array.from({ length: lines }).map((_, i) => (
-        <Skeleton key={i} height="0.875rem" width={i === lines - 1 ? '60%' : '100%'} />
+        <Skeleton key={i} height="0.875rem" width={i === lines - 1 ? "60%" : "100%"} />
       ))}
     </div>
   );
@@ -164,6 +165,6 @@ interface BadgeSkeletonProps {
   className?: string;
 }
 
-export function BadgeSkeleton({ className = '' }: BadgeSkeletonProps) {
+export function BadgeSkeleton({ className = "" }: BadgeSkeletonProps) {
   return <Skeleton width="3.5rem" height="1.25rem" rounded="full" className={className} />;
 }
