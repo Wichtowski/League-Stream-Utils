@@ -1,4 +1,4 @@
-import type { TeamSide } from './draft';
+import type { TeamSide } from "./draft";
 
 export interface Prediction {
   id: string;

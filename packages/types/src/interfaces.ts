@@ -10,17 +10,17 @@ import type {
   TournamentStatus,
   ImageFormat,
   WSMessageType,
-} from './enums';
+} from "./enums";
 
 export interface ImageUpload {
-  type: 'upload';
+  type: "upload";
   data: string;
   size: number;
   format: ImageFormat;
 }
 
 export interface ImageUrl {
-  type: 'url';
+  type: "url";
   url: string;
   size?: number;
   format?: ImageFormat;
@@ -167,7 +167,7 @@ export interface Match {
   blueTeamId: string;
   redTeamId: string;
   format: TournamentFormat;
-  status: 'scheduled' | 'live' | 'completed' | 'cancelled';
+  status: "scheduled" | "live" | "completed" | "cancelled";
   score: { blue: number; red: number };
   roundName?: string;
   matchNumber?: number;

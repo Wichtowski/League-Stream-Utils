@@ -1,9 +1,9 @@
-import type { ImageStorage, Team } from './team';
+import type { ImageStorage, Team } from "./team";
 
-export type TournamentFormat = 'bo1' | 'bo3' | 'bo5';
-export type TournamentType = 'ladder' | 'swiss' | 'round_robin' | 'groups';
-export type TournamentStatus = 'draft' | 'registration' | 'active' | 'completed' | 'cancelled';
-export type MatchStatus = 'scheduled' | 'live' | 'completed' | 'cancelled';
+export type TournamentFormat = "bo1" | "bo3" | "bo5";
+export type TournamentType = "ladder" | "swiss" | "round_robin" | "groups";
+export type TournamentStatus = "draft" | "registration" | "active" | "completed" | "cancelled";
+export type MatchStatus = "scheduled" | "live" | "completed" | "cancelled";
 
 export interface Tournament {
   id: string;

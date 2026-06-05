@@ -1,16 +1,16 @@
-import type { ImageFormat } from './image';
+import type { ImageFormat } from "./image";
 
-export type PlayerRole = 'TOP' | 'JUNGLE' | 'MID' | 'BOTTOM' | 'SUPPORT';
+export type PlayerRole = "TOP" | "JUNGLE" | "MID" | "BOTTOM" | "SUPPORT";
 
 export interface ImageUpload {
-  type: 'upload';
+  type: "upload";
   data: string;
   size: number;
   format: ImageFormat;
 }
 
 export interface ImageUrl {
-  type: 'url';
+  type: "url";
   url: string;
   size?: number;
   format?: ImageFormat;

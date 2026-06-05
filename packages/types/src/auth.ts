@@ -12,13 +12,13 @@ export interface JWTPayload {
   exp: number;
 }
 
-export type Role = 'developer' | 'admin' | 'organizer' | 'moderator' | 'commentator' | 'viewer';
-export type PermissionAction = 'create' | 'read' | 'update' | 'delete' | 'manage';
+export type Role = "developer" | "admin" | "organizer" | "moderator" | "commentator" | "viewer";
+export type PermissionAction = "create" | "read" | "update" | "delete" | "manage";
 export type PermissionResource =
-  | 'tournament'
-  | 'team'
-  | 'match'
-  | 'draft'
-  | 'camera'
-  | 'user'
-  | 'settings';
+  | "tournament"
+  | "team"
+  | "match"
+  | "draft"
+  | "camera"
+  | "user"
+  | "settings";

@@ -1,16 +1,16 @@
-import type { TeamSide } from './draft';
+import type { TeamSide } from "./draft";
 
 export type WSMessageType =
-  | 'join'
-  | 'ban'
-  | 'pick'
-  | 'hover'
-  | 'gameState'
-  | 'error'
-  | 'teamUpdate'
-  | 'ready'
-  | 'timerUpdate'
-  | 'configUpdate';
+  | "join"
+  | "ban"
+  | "pick"
+  | "hover"
+  | "gameState"
+  | "error"
+  | "teamUpdate"
+  | "ready"
+  | "timerUpdate"
+  | "configUpdate";
 
 export interface WSMessage {
   type: WSMessageType;

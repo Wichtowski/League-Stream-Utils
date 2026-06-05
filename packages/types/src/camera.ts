@@ -1,4 +1,4 @@
-import type { PlayerRole } from './team';
+import type { PlayerRole } from "./team";
 
 export interface CameraConfig {
   id: string;

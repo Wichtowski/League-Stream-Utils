@@ -1,4 +1,4 @@
-import type { ImageStorage } from './team';
+import type { ImageStorage } from "./team";
 
 export interface Commentator {
   id: string;

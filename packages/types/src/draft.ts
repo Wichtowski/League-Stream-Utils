@@ -1,20 +1,20 @@
-import type { Coach, ImageStorage, Team } from './team';
-import type { TournamentFormat } from './tournament';
+import type { Coach, ImageStorage, Team } from "./team";
+import type { TournamentFormat } from "./tournament";
 
 export type GamePhase =
-  | 'config'
-  | 'lobby'
-  | 'ban1'
-  | 'pick1'
-  | 'ban2'
-  | 'pick2'
-  | 'finalization'
-  | 'completed';
+  | "config"
+  | "lobby"
+  | "ban1"
+  | "pick1"
+  | "ban2"
+  | "pick2"
+  | "finalization"
+  | "completed";
 
-export type TeamSide = 'blue' | 'red';
-export type ActionType = 'pick' | 'ban';
-export type SessionType = 'static' | 'lcu' | 'tournament' | 'web';
-export type SessionStatus = 'waiting' | 'active' | 'paused' | 'completed';
+export type TeamSide = "blue" | "red";
+export type ActionType = "pick" | "ban";
+export type SessionType = "static" | "lcu" | "tournament" | "web";
+export type SessionStatus = "waiting" | "active" | "paused" | "completed";
 
 export interface draftAction {
   id: string;
