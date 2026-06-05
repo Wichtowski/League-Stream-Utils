@@ -1,5 +1,6 @@
-import type { ReactNode } from 'react';
-import { LinkButton } from './button';
+import type { ReactNode } from "react";
+
+import { LinkButton } from "./button";
 
 interface EmptyStateProps {
   message: string;

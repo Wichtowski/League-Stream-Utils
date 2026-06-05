@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { create } from 'zustand';
-import { devtools } from 'zustand/middleware';
+import { create } from "zustand";
+import { devtools } from "zustand/middleware";
 
 interface SelectionState {
   selectedTeamId: string | null;
@@ -26,6 +26,6 @@ export const useSelection = create<SelectionState>()(
       clearAll: () =>
         set({ selectedTeamId: null, selectedMatchId: null, selectedTournamentId: null }),
     }),
-    { name: 'selection' },
+    { name: "selection" },
   ),
 );

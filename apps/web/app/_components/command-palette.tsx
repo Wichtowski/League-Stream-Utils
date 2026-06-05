@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import {
   useState,
@@ -8,10 +8,15 @@ import {
   createContext,
   useContext,
   type ReactNode,
-} from 'react';
-import { useRouter, usePathname } from 'next/navigation';
-import { useQueryClient } from '@tanstack/react-query';
-import { useAuth } from '@/_components/auth-provider';
+} from "react";
+
+import { useRouter, usePathname } from "next/navigation";
+
+import { useQueryClient } from "@tanstack/react-query";
+
+import { useTranslation } from "@lsu/i18n";
+
+import { useAuth } from "@/_components/auth-provider";
 
 interface Command {
   id: string;
@@ -49,25 +54,25 @@ export function CommandPaletteProvider({ children }: { children: ReactNode }) {
     function handleKeyDown(e: KeyboardEvent) {
       const target = e.target as HTMLElement;
       const isInput =
-        target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
+        target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable;
 
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault();
         setIsOpen((v) => !v);
       }
-      if (e.key === 'Escape' && isOpen) {
+      if (e.key === "Escape" && isOpen) {
         e.preventDefault();
         setIsOpen(false);
       }
-      if ((e.metaKey || e.ctrlKey) && e.key === 'n' && !isInput) {
+      if ((e.metaKey || e.ctrlKey) && e.key === "n" && !isInput) {
         e.preventDefault();
-        if (pathname.startsWith('/modules/tournaments')) {
-          router.push('/modules/tournaments/new');
+        if (pathname.startsWith("/modules/tournaments")) {
+          router.push("/modules/tournaments/new");
         } else {
-          router.push('/modules/teams/new');
+          router.push("/modules/teams/new");
         }
       }
-      if (e.key === '/' && !isInput && !isOpen) {
+      if (e.key === "/" && !isInput && !isOpen) {
         e.preventDefault();
         const searchInput = document.querySelector<HTMLInputElement>(
           'input[type="search"], input[placeholder*="search" i], input[placeholder*="Search" i]',
@@ -75,8 +80,9 @@ export function CommandPaletteProvider({ children }: { children: ReactNode }) {
         searchInput?.focus();
       }
     }
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, pathname, router]);
 
   return (
@@ -92,78 +98,79 @@ function CommandPaletteModal({ onClose }: { onClose: () => void }) {
   const _pathname = usePathname();
   const { user } = useAuth();
   const qc = useQueryClient();
-  const [query, setQuery] = useState('');
+  const { t } = useTranslation("nav");
+  const [query, setQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   const commands: Command[] = [
     {
-      id: 'nav-draft',
-      label: 'Go to Draft',
-      group: 'Navigation',
-      shortcut: '',
-      action: () => router.push('/modules/draft'),
+      id: "nav-draft",
+      label: t("cmd_go_to_draft"),
+      group: t("cmd_group_navigation"),
+      shortcut: "",
+      action: () => router.push("/modules/draft"),
     },
     {
-      id: 'nav-tournaments',
-      label: 'Go to Tournaments',
-      group: 'Navigation',
-      action: () => router.push('/modules/tournaments'),
+      id: "nav-tournaments",
+      label: t("cmd_go_to_tournaments"),
+      group: t("cmd_group_navigation"),
+      action: () => router.push("/modules/tournaments"),
     },
     {
-      id: 'nav-teams',
-      label: 'Go to Teams',
-      group: 'Navigation',
-      action: () => router.push('/modules/teams'),
+      id: "nav-teams",
+      label: t("cmd_go_to_teams"),
+      group: t("cmd_group_navigation"),
+      action: () => router.push("/modules/teams"),
     },
     {
-      id: 'nav-cameras',
-      label: 'Go to Cameras',
-      group: 'Navigation',
-      action: () => router.push('/modules/cameras'),
+      id: "nav-cameras",
+      label: t("cmd_go_to_cameras"),
+      group: t("cmd_group_navigation"),
+      action: () => router.push("/modules/cameras"),
     },
     {
-      id: 'nav-commentators',
-      label: 'Go to Commentators',
-      group: 'Navigation',
-      action: () => router.push('/modules/commentators'),
+      id: "nav-commentators",
+      label: t("cmd_go_to_commentators"),
+      group: t("cmd_group_navigation"),
+      action: () => router.push("/modules/commentators"),
     },
     {
-      id: 'nav-settings',
-      label: 'Go to Settings',
-      group: 'Navigation',
-      shortcut: '⌘,',
-      action: () => router.push('/settings'),
+      id: "nav-settings",
+      label: t("cmd_go_to_settings"),
+      group: t("cmd_group_navigation"),
+      shortcut: "⌘,",
+      action: () => router.push("/settings"),
     },
     ...(user?.isAdmin
       ? [
           {
-            id: 'nav-admin',
-            label: 'Go to Admin',
-            group: 'Navigation',
-            action: () => router.push('/modules/admin'),
+            id: "nav-admin",
+            label: t("cmd_go_to_admin"),
+            group: t("cmd_group_navigation"),
+            action: () => router.push("/modules/admin"),
           },
         ]
       : []),
     {
-      id: 'act-new-team',
-      label: 'Create Team',
-      group: 'Actions',
-      shortcut: '⌘N',
-      action: () => router.push('/modules/teams/new'),
+      id: "act-new-team",
+      label: t("cmd_create_team"),
+      group: t("cmd_group_actions"),
+      shortcut: "⌘N",
+      action: () => router.push("/modules/teams/new"),
     },
     {
-      id: 'act-new-tournament',
-      label: 'Create Tournament',
-      group: 'Actions',
-      action: () => router.push('/modules/tournaments/new'),
+      id: "act-new-tournament",
+      label: t("cmd_create_tournament"),
+      group: t("cmd_group_actions"),
+      action: () => router.push("/modules/tournaments/new"),
     },
     {
-      id: 'nav-home',
-      label: 'Go to Dashboard',
-      group: 'Navigation',
-      action: () => router.push('/modules'),
+      id: "nav-home",
+      label: t("cmd_go_to_dashboard"),
+      group: t("cmd_group_navigation"),
+      action: () => router.push("/modules"),
     },
   ];
 
@@ -171,36 +178,36 @@ function CommandPaletteModal({ onClose }: { onClose: () => void }) {
   const entityCommands: Command[] = [];
   if (query.length >= 2) {
     const q = query.toLowerCase();
-    const teams = qc.getQueryData<any[]>(['teams']) ?? [];
+    const teams = qc.getQueryData<Record<string, string>[]>(["teams"]) ?? [];
     for (const t of teams) {
       if (t.name?.toLowerCase().includes(q) || t.tag?.toLowerCase().includes(q)) {
         entityCommands.push({
           id: `team-${t.id}`,
           label: `${t.name} [${t.tag}]`,
-          group: 'Teams',
+          group: t("cmd_group_teams"),
           action: () => router.push(`/modules/teams`),
         });
       }
     }
-    const tournaments = qc.getQueryData<any[]>(['tournaments']) ?? [];
+    const tournaments = qc.getQueryData<Record<string, string>[]>(["tournaments"]) ?? [];
     for (const t of tournaments) {
       if (t.name?.toLowerCase().includes(q)) {
         entityCommands.push({
           id: `tournament-${t.id}`,
           label: t.name,
-          group: 'Tournaments',
+          group: t("cmd_group_tournaments"),
           action: () => router.push(`/modules/tournaments`),
         });
       }
     }
-    const commentators = qc.getQueryData<any[]>(['commentators']) ?? [];
+    const commentators = qc.getQueryData<Record<string, string>[]>(["commentators"]) ?? [];
     for (const c of commentators) {
       if (c.name?.toLowerCase().includes(q)) {
         entityCommands.push({
           id: `commentator-${c.id}`,
           label: c.name,
-          group: 'Commentators',
-          action: () => router.push('/modules/commentators'),
+          group: t("cmd_group_commentators"),
+          action: () => router.push("/modules/commentators"),
         });
       }
     }
@@ -213,6 +220,7 @@ function CommandPaletteModal({ onClose }: { onClose: () => void }) {
 
   const groups = filtered.reduce<Record<string, Command[]>>((acc, cmd) => {
     (acc[cmd.group] ??= []).push(cmd);
+
     return acc;
   }, {});
 
@@ -230,13 +238,13 @@ function CommandPaletteModal({ onClose }: { onClose: () => void }) {
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {
-    if (e.key === 'ArrowDown') {
+    if (e.key === "ArrowDown") {
       e.preventDefault();
       setSelectedIndex((i) => Math.min(i + 1, filtered.length - 1));
-    } else if (e.key === 'ArrowUp') {
+    } else if (e.key === "ArrowUp") {
       e.preventDefault();
       setSelectedIndex((i) => Math.max(i - 1, 0));
-    } else if (e.key === 'Enter' && filtered[selectedIndex]) {
+    } else if (e.key === "Enter" && filtered[selectedIndex]) {
       e.preventDefault();
       runCommand(filtered[selectedIndex]);
     }
@@ -244,7 +252,7 @@ function CommandPaletteModal({ onClose }: { onClose: () => void }) {
 
   useEffect(() => {
     const el = listRef.current?.querySelector(`[data-index="${selectedIndex}"]`);
-    el?.scrollIntoView({ block: 'nearest' });
+    el?.scrollIntoView({ block: "nearest" });
   }, [selectedIndex]);
 
   let flatIndex = -1;
@@ -270,20 +278,20 @@ function CommandPaletteModal({ onClose }: { onClose: () => void }) {
             <input
               ref={inputRef}
               type="text"
-              placeholder="Type a command or search..."
+              placeholder={t("cmd_placeholder")}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={handleKeyDown}
               className="flex-1 bg-transparent text-sm text-gray-100 outline-none placeholder:text-text-muted"
             />
             <kbd className="hidden rounded border border-border-subtle bg-surface px-1.5 py-0.5 text-[10px] text-text-muted sm:inline-block">
-              ESC
+              {t("cmd_esc")}
             </kbd>
           </div>
 
           <div ref={listRef} className="max-h-72 overflow-y-auto py-2">
             {filtered.length === 0 ? (
-              <p className="px-4 py-6 text-center text-sm text-text-muted">No results found</p>
+              <p className="px-4 py-6 text-center text-sm text-text-muted">{t("cmd_no_results")}</p>
             ) : (
               Object.entries(groups).map(([group, cmds]) => (
                 <div key={group}>
@@ -293,6 +301,7 @@ function CommandPaletteModal({ onClose }: { onClose: () => void }) {
                   {cmds.map((cmd) => {
                     flatIndex++;
                     const idx = flatIndex;
+
                     return (
                       <button
                         key={cmd.id}
@@ -301,8 +310,8 @@ function CommandPaletteModal({ onClose }: { onClose: () => void }) {
                         onMouseEnter={() => setSelectedIndex(idx)}
                         className={`flex w-full items-center gap-3 px-4 py-2 text-sm transition-colors ${
                           idx === selectedIndex
-                            ? 'bg-indigo-500/15 text-gray-100'
-                            : 'text-gray-300 hover:bg-surface-overlay'
+                            ? "bg-indigo-500/15 text-gray-100"
+                            : "text-gray-300 hover:bg-surface-overlay"
                         }`}
                       >
                         <span className="flex-1 text-left">{cmd.label}</span>

@@ -1,7 +1,8 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { createContext, useContext } from 'react';
+import { createContext, useContext } from "react";
+
+import Link from "next/link";
 
 export interface BreadcrumbItem {
   label: string;
@@ -26,6 +27,7 @@ export function Breadcrumbs({ items }: { items: BreadcrumbItem[] }) {
     <nav className="mb-4 flex items-center gap-1.5 text-sm text-text-muted">
       {items.map((item, i) => {
         const isLast = i === items.length - 1;
+
         return (
           <span key={i} className="flex items-center gap-1.5">
             {i > 0 && (
@@ -42,7 +44,7 @@ export function Breadcrumbs({ items }: { items: BreadcrumbItem[] }) {
               </svg>
             )}
             {isLast || !item.href ? (
-              <span className={isLast ? 'text-gray-200 font-medium' : ''}>{item.label}</span>
+              <span className={isLast ? "text-gray-200 font-medium" : ""}>{item.label}</span>
             ) : (
               <Link href={item.href} className="transition-colors hover:text-gray-200">
                 {item.label}

@@ -1,11 +1,13 @@
-import type { ReactNode } from 'react';
-import type { Metadata } from 'next';
-import './globals.css';
-import { Providers } from './providers';
+import type { ReactNode } from "react";
+
+import type { Metadata } from "next";
+
+import "./globals.css";
+import { Providers } from "./providers";
 
 export const metadata: Metadata = {
-  title: 'League Stream Utils',
-  description: 'Tournament management & streaming tools for League of Legends',
+  title: "League Stream Utils",
+  description: "Tournament management & streaming tools for League of Legends",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

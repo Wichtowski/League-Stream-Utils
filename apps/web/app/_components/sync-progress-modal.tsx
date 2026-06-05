@@ -1,35 +1,39 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { isElectron } from '@lsu/electron-bridge';
-import { useSyncStore } from '@lsu/electron-bridge/hooks';
+import { useEffect } from "react";
 
-const stageLabels: Record<string, string> = {
-  pushing: 'Pushing to cloud',
-  pulling: 'Pulling from cloud',
-  complete: 'Sync complete',
-  error: 'Sync failed',
+import { isElectron } from "@lsu/electron-bridge";
+import { useSyncStore } from "@lsu/electron-bridge/hooks";
+import { useTranslation } from "@lsu/i18n";
+
+const stageLabelsKeys: Record<string, string> = {
+  pushing: "sync_pushing",
+  pulling: "sync_pulling",
+  complete: "sync_complete",
+  error: "sync_failed",
 };
 
 const stageColors: Record<string, string> = {
-  pushing: 'from-indigo-500 to-violet-500',
-  pulling: 'from-cyan-500 to-blue-500',
-  complete: 'from-emerald-500 to-green-500',
-  error: 'from-red-500 to-pink-500',
+  pushing: "from-indigo-500 to-violet-500",
+  pulling: "from-cyan-500 to-blue-500",
+  complete: "from-emerald-500 to-green-500",
+  error: "from-red-500 to-pink-500",
 };
 
 export function SyncProgressModal() {
   const { syncing, progress } = useSyncStore();
   const subscribe = useSyncStore((s) => s.subscribe);
+  const { t } = useTranslation("modules");
 
   useEffect(() => {
     if (!isElectron()) return;
     const unsub = subscribe();
+
     return unsub;
   }, [subscribe]);
 
   if (!syncing || !progress) return null;
-  if (progress.stage === 'complete') return null;
+  if (progress.stage === "complete") return null;
 
   const percentage = progress.total > 0 ? Math.round((progress.current / progress.total) * 100) : 0;
 
@@ -41,7 +45,7 @@ export function SyncProgressModal() {
             className={`h-3 w-3 rounded-full animate-pulse bg-gradient-to-r ${stageColors[progress.stage] ?? stageColors.pushing}`}
           />
           <h3 className="text-sm font-medium text-gray-100">
-            {stageLabels[progress.stage] ?? 'Syncing...'}
+            {t(stageLabelsKeys[progress.stage] ?? "sync_syncing")}
           </h3>
         </div>
 
@@ -60,11 +64,11 @@ export function SyncProgressModal() {
 
         {progress.table && (
           <p className="text-[11px] text-text-muted">
-            Table: <span className="font-mono text-gray-300">{progress.table}</span>
+            {t("sync_table")} <span className="font-mono text-gray-300">{progress.table}</span>
           </p>
         )}
 
-        {progress.stage === 'error' && (
+        {progress.stage === "error" && (
           <div className="mt-3 rounded-md border border-red-500/30 bg-red-500/10 p-2">
             <p className="text-xs text-red-400">{progress.detail}</p>
           </div>

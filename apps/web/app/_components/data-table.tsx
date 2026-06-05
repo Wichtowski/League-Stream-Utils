@@ -1,6 +1,8 @@
-'use client';
+"use client";
 
-import type { ReactNode } from 'react';
+import type { ReactNode } from "react";
+
+import { useTranslation } from "@lsu/i18n";
 
 interface Column<T> {
   key: string;
@@ -22,12 +24,14 @@ export function DataTable<T>({
   data,
   keyExtractor,
   onRowClick,
-  emptyMessage = 'No data',
+  emptyMessage,
 }: DataTableProps<T>) {
+  const { t } = useTranslation();
+  const empty = emptyMessage ?? t("no_data");
   if (data.length === 0) {
     return (
       <div className="rounded-lg border border-border-subtle bg-surface-raised p-12 text-center text-sm text-text-muted">
-        {emptyMessage}
+        {empty}
       </div>
     );
   }
@@ -40,7 +44,7 @@ export function DataTable<T>({
             {columns.map((col) => (
               <th
                 key={col.key}
-                className={`px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-muted ${col.className ?? ''}`}
+                className={`px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-muted ${col.className ?? ""}`}
               >
                 {col.header}
               </th>
@@ -52,10 +56,10 @@ export function DataTable<T>({
             <tr
               key={keyExtractor(item)}
               onClick={() => onRowClick?.(item)}
-              className={`bg-surface transition-colors hover:bg-surface-raised ${onRowClick ? 'cursor-pointer' : ''}`}
+              className={`bg-surface transition-colors hover:bg-surface-raised ${onRowClick ? "cursor-pointer" : ""}`}
             >
               {columns.map((col) => (
-                <td key={col.key} className={`px-4 py-3 ${col.className ?? ''}`}>
+                <td key={col.key} className={`px-4 py-3 ${col.className ?? ""}`}>
                   {col.render(item)}
                 </td>
               ))}

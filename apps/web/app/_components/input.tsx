@@ -1,20 +1,16 @@
-'use client';
+"use client";
 
-import type {
-  InputHTMLAttributes,
-  TextareaHTMLAttributes,
-  SelectHTMLAttributes,
-} from 'react';
+import type { InputHTMLAttributes, TextareaHTMLAttributes, SelectHTMLAttributes } from "react";
 
 const inputBase =
-  'w-full rounded-lg border border-border-subtle bg-surface px-3 py-2 text-sm outline-none transition-colors placeholder:text-text-muted/50 focus:border-indigo-500 disabled:opacity-50';
+  "w-full rounded-lg border border-border-subtle bg-surface px-3 py-2 text-sm outline-none transition-colors placeholder:text-text-muted/50 focus:border-indigo-500 disabled:opacity-50";
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   error?: string;
 }
 
-export function Input({ label, error, id, className = '', ...props }: InputProps) {
+export function Input({ label, error, id, className = "", ...props }: InputProps) {
   return (
     <div className="space-y-1">
       {label && (
@@ -24,7 +20,7 @@ export function Input({ label, error, id, className = '', ...props }: InputProps
       )}
       <input
         id={id}
-        className={`${inputBase} ${error ? 'border-red-500' : ''} ${className}`}
+        className={`${inputBase} ${error ? "border-red-500" : ""} ${className}`}
         {...props}
       />
       {error && <p className="text-xs text-red-400">{error}</p>}
@@ -36,7 +32,7 @@ interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
   label?: string;
 }
 
-export function Textarea({ label, id, className = '', ...props }: TextareaProps) {
+export function Textarea({ label, id, className = "", ...props }: TextareaProps) {
   return (
     <div className="space-y-1">
       {label && (
@@ -54,7 +50,7 @@ interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   options: { value: string; label: string }[];
 }
 
-export function Select({ label, id, options, className = '', ...props }: SelectProps) {
+export function Select({ label, id, options, className = "", ...props }: SelectProps) {
   return (
     <div className="space-y-1">
       {label && (

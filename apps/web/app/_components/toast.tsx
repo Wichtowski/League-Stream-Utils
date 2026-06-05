@@ -1,9 +1,10 @@
-'use client';
+"use client";
 
-import { create } from 'zustand';
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
-type ToastType = 'success' | 'error' | 'info';
+import { create } from "zustand";
+
+type ToastType = "success" | "error" | "info";
 
 interface Toast {
   id: string;
@@ -33,32 +34,33 @@ export function toast(type: ToastType, message: string) {
   useToastStore.getState().add(type, message);
 }
 
-toast.success = (message: string) => toast('success', message);
-toast.error = (message: string) => toast('error', message);
-toast.info = (message: string) => toast('info', message);
+toast.success = (message: string) => toast("success", message);
+toast.error = (message: string) => toast("error", message);
+toast.info = (message: string) => toast("info", message);
 toast.promise = async <T,>(
   promise: Promise<T>,
   messages: { loading: string; success: string; error: string },
 ): Promise<T> => {
   const store = useToastStore.getState();
   const id = `${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
-  store.add('info', messages.loading);
+  store.add("info", messages.loading);
   try {
     const result = await promise;
     store.remove(id);
-    toast('success', messages.success);
+    toast("success", messages.success);
+
     return result;
   } catch (err) {
     store.remove(id);
-    toast('error', messages.error);
+    toast("error", messages.error);
     throw err;
   }
 };
 
 const typeStyles: Record<ToastType, string> = {
-  success: 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300',
-  error: 'border-red-500/40 bg-red-500/10 text-red-300',
-  info: 'border-indigo-500/40 bg-indigo-500/10 text-indigo-300',
+  success: "border-emerald-500/40 bg-emerald-500/10 text-emerald-300",
+  error: "border-red-500/40 bg-red-500/10 text-red-300",
+  info: "border-indigo-500/40 bg-indigo-500/10 text-indigo-300",
 };
 
 export function ToastContainer() {
@@ -86,7 +88,7 @@ function ToastItem({ toast: t, onDismiss }: { toast: Toast; onDismiss: () => voi
   return (
     <div
       className={`flex items-center gap-3 rounded-lg border px-4 py-3 text-sm shadow-lg backdrop-blur-sm transition-all duration-200 ${
-        visible ? 'translate-x-0 opacity-100' : 'translate-x-4 opacity-0'
+        visible ? "translate-x-0 opacity-100" : "translate-x-4 opacity-0"
       } ${typeStyles[t.type]}`}
     >
       <span className="flex-1">{t.message}</span>

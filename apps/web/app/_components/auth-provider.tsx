@@ -1,10 +1,13 @@
-'use client';
+"use client";
 
-import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
-import { useRouter } from 'next/navigation';
-import { getCachedUser, setCachedUser, clearCachedUser } from '@lsu/auth/client';
-import { isElectron } from '@lsu/electron-bridge';
-import { useAppMode } from '@lsu/electron-bridge/hooks';
+import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
+
+import { useRouter } from "next/navigation";
+
+import { getCachedUser, setCachedUser, clearCachedUser } from "@lsu/auth/client";
+import { isElectron } from "@lsu/electron-bridge";
+import { useAppMode } from "@lsu/electron-bridge/hooks";
+import { i18n } from "@lsu/i18n/instance";
 
 interface User {
   id: string;
@@ -14,7 +17,7 @@ interface User {
   impersonatedBy?: string;
 }
 
-type AppMode = 'online' | 'offline' | null;
+type AppMode = "online" | "offline" | null;
 
 interface AuthContextValue {
   user: User | null;
@@ -29,9 +32,9 @@ interface AuthContextValue {
 }
 
 const OFFLINE_USER: User = {
-  id: 'local',
-  username: 'Local User',
-  email: '',
+  id: "local",
+  username: i18n.t("auth:local_user"),
+  email: "",
   isAdmin: true,
 };
 
@@ -41,7 +44,7 @@ const AuthContext = createContext<AuthContextValue>({
   appMode: null,
   isOffline: false,
   isDeveloper: false,
-  debug: '',
+  debug: "",
   logout: async () => {},
   refresh: async () => {},
   switchToOnline: async () => {},
@@ -62,13 +65,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refresh = useCallback(async () => {
     const currentMode = useAppMode.getState().mode;
-    if (currentMode === 'offline') {
+    if (currentMode === "offline") {
       setUser(OFFLINE_USER);
       setLoading(false);
+
       return;
     }
     try {
-      const res = await fetch('/api/v1/auth/validate', { credentials: 'include' });
+      const res = await fetch("/api/v1/auth/validate", { credentials: "include" });
       const data = await res.json();
       if (data.user) {
         setUser(data.user);
@@ -93,39 +97,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   const logout = useCallback(async () => {
-    if (appMode === 'offline') {
+    if (appMode === "offline") {
       // Clear the offline cookie and reset Electron mode so user
       // returns to the mode selection screen
-      document.cookie = 'app_mode=; path=/; max-age=0';
-      await setMode(null as any);
+      document.cookie = "app_mode=; path=/; max-age=0";
+      await setMode(null);
     } else {
-      await fetch('/api/v1/auth/logout', { method: 'POST', credentials: 'include' });
+      await fetch("/api/v1/auth/logout", { method: "POST", credentials: "include" });
     }
     setUser(null);
     clearCachedUser();
-    router.push('/');
+    router.push("/");
   }, [router, appMode, setMode]);
 
   const switchToOnline = useCallback(async () => {
-    document.cookie = 'app_mode=; path=/; max-age=0';
-    await setMode('online');
+    document.cookie = "app_mode=; path=/; max-age=0";
+    await setMode("online");
     setUser(null);
     clearCachedUser();
     // Try to auto-login with existing tokens
     try {
-      const res = await fetch('/api/v1/auth/validate', { credentials: 'include' });
+      const res = await fetch("/api/v1/auth/validate", { credentials: "include" });
       const data = await res.json();
       if (data.user) {
         setUser(data.user);
         setCachedUser(data.user);
-        router.push('/modules');
+        router.push("/modules");
+
         return;
       }
     } catch {}
-    router.push('/login');
+    router.push("/login");
   }, [router, setMode]);
 
-  const isOffline = appMode === 'offline';
+  const isOffline = appMode === "offline";
   const isDeveloper = isOffline && !!user?.isAdmin;
   const combinedLoading = loading || (isElectron() && modeLoading);
 
@@ -134,8 +139,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     `modeLoading=${modeLoading}`,
     `appMode=${appMode}`,
     `authLoading=${loading}`,
-    `user=${user?.username ?? 'null'}`,
-  ].join(' | ');
+    `user=${user?.username ?? "null"}`,
+  ].join(" | ");
 
   return (
     <AuthContext.Provider

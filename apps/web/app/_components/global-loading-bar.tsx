@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useIsFetching, useIsMutating } from '@tanstack/react-query';
+import { useIsFetching, useIsMutating } from "@tanstack/react-query";
 
 export function GlobalLoadingBar() {
   const fetching = useIsFetching();
