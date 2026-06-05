@@ -1,5 +1,5 @@
-import { verifyToken } from './jwt';
-import { checkRateLimit, getRateLimitHeaders } from './rate-limit';
+import { verifyToken } from "./jwt";
+import { checkRateLimit, getRateLimitHeaders } from "./rate-limit";
 
 interface RequestLike {
   headers: { get(name: string): string | null };
@@ -8,31 +8,32 @@ interface RequestLike {
 
 export function getClientIp(request: RequestLike): string {
   return (
-    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
-    request.headers.get('x-real-ip') ??
-    '127.0.0.1'
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+    request.headers.get("x-real-ip") ??
+    "127.0.0.1"
   );
 }
 
 function getTokenFromRequest(request: RequestLike): string | null {
-  const authHeader = request.headers.get('authorization');
-  if (authHeader?.startsWith('Bearer ')) {
+  const authHeader = request.headers.get("authorization");
+  if (authHeader?.startsWith("Bearer ")) {
     return authHeader.slice(7);
   }
-  return request.cookies?.get('access_token')?.value ?? null;
+
+  return request.cookies?.get("access_token")?.value ?? null;
 }
 
 function isOfflineMode(request: RequestLike): boolean {
-  return request.cookies?.get('app_mode')?.value === 'offline';
+  return request.cookies?.get("app_mode")?.value === "offline";
 }
 
 const OFFLINE_AUTH = {
   authenticated: true as const,
   user: {
-    userId: 'local',
-    username: 'Local User',
+    userId: "local",
+    username: "Local User",
     isAdmin: true,
-    sessionId: 'local',
+    sessionId: "local",
     impersonatedBy: undefined,
   },
 };
@@ -47,7 +48,7 @@ export async function withAuth(request: RequestLike) {
   if (!checkRateLimit(ip)) {
     return {
       authenticated: false as const,
-      error: 'Rate limit exceeded',
+      error: "Rate limit exceeded",
       status: 429,
       headers: getRateLimitHeaders(ip),
     };
@@ -55,12 +56,12 @@ export async function withAuth(request: RequestLike) {
 
   const token = getTokenFromRequest(request);
   if (!token) {
-    return { authenticated: false as const, error: 'No token provided', status: 401 };
+    return { authenticated: false as const, error: "No token provided", status: 401 };
   }
 
-  const payload = await verifyToken(token, 'access');
+  const payload = await verifyToken(token, "access");
   if (!payload) {
-    return { authenticated: false as const, error: 'Invalid or expired token', status: 401 };
+    return { authenticated: false as const, error: "Invalid or expired token", status: 401 };
   }
 
   return {
@@ -77,8 +78,8 @@ export async function withAuth(request: RequestLike) {
 
 export function securityHeaders() {
   return {
-    'X-Frame-Options': 'DENY',
-    'X-Content-Type-Options': 'nosniff',
-    'Referrer-Policy': 'strict-origin-when-cross-origin',
+    "X-Frame-Options": "DENY",
+    "X-Content-Type-Options": "nosniff",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
   };
 }

@@ -1,6 +1,8 @@
-const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
-const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token';
-const GOOGLE_USERINFO_URL = 'https://www.googleapis.com/oauth2/v3/userinfo';
+const GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
+const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
+const GOOGLE_USERINFO_URL = "https://www.googleapis.com/oauth2/v3/userinfo";
+
+import { externalClient } from "./external-client";
 
 interface GoogleConfig {
   clientId: string;
@@ -14,7 +16,7 @@ function getConfig(): GoogleConfig {
   const callbackUrl = process.env.GOOGLE_CALLBACK_URL;
 
   if (!clientId || !clientSecret || !callbackUrl) {
-    throw new Error('Google OAuth not configured');
+    throw new Error("Google OAuth not configured");
   }
 
   return { clientId, clientSecret, callbackUrl };
@@ -25,11 +27,12 @@ export function getGoogleAuthUrl(): string {
   const params = new URLSearchParams({
     client_id: config.clientId,
     redirect_uri: config.callbackUrl,
-    response_type: 'code',
-    scope: 'openid email profile',
-    access_type: 'offline',
-    prompt: 'consent',
+    response_type: "code",
+    scope: "openid email profile",
+    access_type: "offline",
+    prompt: "consent",
   });
+
   return `${GOOGLE_AUTH_URL}?${params}`;
 }
 
@@ -41,20 +44,17 @@ interface GoogleTokens {
 
 export async function exchangeGoogleCode(code: string): Promise<GoogleTokens> {
   const config = getConfig();
-  const response = await fetch(GOOGLE_TOKEN_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
+
+  return externalClient.post<GoogleTokens>(
+    GOOGLE_TOKEN_URL,
+    new URLSearchParams({
       client_id: config.clientId,
       client_secret: config.clientSecret,
       code,
-      grant_type: 'authorization_code',
+      grant_type: "authorization_code",
       redirect_uri: config.callbackUrl,
     }),
-  });
-
-  if (!response.ok) throw new Error('Failed to exchange Google code');
-  return response.json();
+  );
 }
 
 interface GoogleUser {
@@ -66,10 +66,7 @@ interface GoogleUser {
 }
 
 export async function getGoogleUser(accessToken: string): Promise<GoogleUser> {
-  const response = await fetch(GOOGLE_USERINFO_URL, {
+  return externalClient.get<GoogleUser>(GOOGLE_USERINFO_URL, {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
-
-  if (!response.ok) throw new Error('Failed to fetch Google user info');
-  return response.json();
 }

@@ -1,4 +1,4 @@
-import { hash, compare } from 'bcryptjs';
+import { hash, compare } from "bcryptjs";
 
 const SALT_ROUNDS = 12;
 const PASSWORD_HISTORY_SIZE = 5;
@@ -16,6 +16,7 @@ export async function verifyPassword(plain: string, hashed: string): Promise<boo
 export function validatePasswordStrength(password: string): string | null {
   if (password.length < MIN_LENGTH) return `Password must be at least ${MIN_LENGTH} characters`;
   if (password.length > MAX_LENGTH) return `Password must be at most ${MAX_LENGTH} characters`;
+
   return null;
 }
 
@@ -23,5 +24,6 @@ export async function isPasswordReused(password: string, history: string[]): Pro
   for (const old of history.slice(0, PASSWORD_HISTORY_SIZE)) {
     if (await compare(password, old)) return true;
   }
+
   return false;
 }

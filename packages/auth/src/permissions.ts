@@ -1,10 +1,11 @@
-import type { Kysely } from 'kysely';
-import type { Database } from '@lsu/db/types';
+import type { Kysely } from "kysely";
+
+import type { Database } from "@lsu/db/types";
 
 export async function requirePermission(
   db: Kysely<Database>,
   userId: string,
-  permission: 'developer' | 'admin' | 'organizer' | 'moderator' | 'commentator' | 'viewer',
+  permission: "developer" | "admin" | "organizer" | "moderator" | "commentator" | "viewer",
 ): Promise<boolean> {
   const ROLE_HIERARCHY: Record<string, number> = {
     developer: 6,
@@ -16,14 +17,15 @@ export async function requirePermission(
   };
 
   const rows = await db
-    .selectFrom('user_permissions')
-    .select('role')
-    .where('user_id', '=', userId)
+    .selectFrom("user_permissions")
+    .select("role")
+    .where("user_id", "=", userId)
     .execute();
 
   if (rows.length === 0) return false;
 
   const requiredLevel = ROLE_HIERARCHY[permission] ?? 0;
+
   return rows.some((r) => (ROLE_HIERARCHY[r.role] ?? 0) >= requiredLevel);
 }
 
@@ -31,9 +33,9 @@ export async function requireTournamentRole(
   db: Kysely<Database>,
   userId: string,
   tournamentId: string,
-  role: 'organizer' | 'moderator' | 'commentator' | 'viewer',
+  role: "organizer" | "moderator" | "commentator" | "viewer",
 ): Promise<boolean> {
-  const isAdmin = await requirePermission(db, userId, 'admin');
+  const isAdmin = await requirePermission(db, userId, "admin");
   if (isAdmin) return true;
 
   const ROLE_HIERARCHY: Record<string, number> = {
@@ -44,15 +46,16 @@ export async function requireTournamentRole(
   };
 
   const rows = await db
-    .selectFrom('tournament_permissions')
-    .select('role')
-    .where('user_id', '=', userId)
-    .where('tournament_id', '=', tournamentId)
+    .selectFrom("tournament_permissions")
+    .select("role")
+    .where("user_id", "=", userId)
+    .where("tournament_id", "=", tournamentId)
     .execute();
 
   if (rows.length === 0) return false;
 
   const requiredLevel = ROLE_HIERARCHY[role] ?? 0;
+
   return rows.some((r) => (ROLE_HIERARCHY[r.role] ?? 0) >= requiredLevel);
 }
 
@@ -62,9 +65,9 @@ export async function isTeamOwner(
   teamId: string,
 ): Promise<boolean> {
   const team = await db
-    .selectFrom('teams')
-    .select('owner_id')
-    .where('id', '=', teamId)
+    .selectFrom("teams")
+    .select("owner_id")
+    .where("id", "=", teamId)
     .executeTakeFirst();
 
   return team?.owner_id === userId;
@@ -76,9 +79,9 @@ export async function isTournamentOrganizer(
   tournamentId: string,
 ): Promise<boolean> {
   const tournament = await db
-    .selectFrom('tournaments')
-    .select('organizer_id')
-    .where('id', '=', tournamentId)
+    .selectFrom("tournaments")
+    .select("organizer_id")
+    .where("id", "=", tournamentId)
     .executeTakeFirst();
 
   return tournament?.organizer_id === userId;
@@ -89,7 +92,8 @@ export async function canManageTournament(
   userId: string,
   tournamentId: string,
 ): Promise<boolean> {
-  const isAdmin = await requirePermission(db, userId, 'admin');
+  const isAdmin = await requirePermission(db, userId, "admin");
   if (isAdmin) return true;
+
   return isTournamentOrganizer(db, userId, tournamentId);
 }

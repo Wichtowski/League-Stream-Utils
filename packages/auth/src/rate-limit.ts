@@ -21,10 +21,12 @@ export function checkRateLimit(key: string, limit = MAX_REQUESTS): boolean {
 
   if (!entry || now > entry.resetAt) {
     store.set(key, { count: 1, resetAt: now + WINDOW_MS });
+
     return true;
   }
 
   entry.count++;
+
   return entry.count <= limit;
 }
 
@@ -32,9 +34,10 @@ export function getRateLimitHeaders(key: string, limit = MAX_REQUESTS) {
   const entry = store.get(key);
   const remaining = entry ? Math.max(0, limit - entry.count) : limit;
   const reset = entry ? Math.ceil((entry.resetAt - Date.now()) / 1000) : 0;
+
   return {
-    'X-RateLimit-Limit': String(limit),
-    'X-RateLimit-Remaining': String(remaining),
-    'X-RateLimit-Reset': String(reset),
+    "X-RateLimit-Limit": String(limit),
+    "X-RateLimit-Remaining": String(remaining),
+    "X-RateLimit-Reset": String(reset),
   };
 }
