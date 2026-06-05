@@ -1,7 +1,9 @@
-import type { NextRequest } from 'next/server';
-import { resendVerificationEmail, withAuth } from '@lsu/auth';
-import { getDbForRequest } from '@lsu/db';
-import { json, error } from '@/api/_helpers';
+import type { NextRequest } from "next/server";
+
+import { resendVerificationEmail, withAuth } from "@lsu/auth";
+import { getDbForRequest } from "@lsu/db";
+
+import { json, error } from "@/api/_helpers";
 
 export async function POST(request: NextRequest) {
   const auth = await withAuth(request);
@@ -9,14 +11,14 @@ export async function POST(request: NextRequest) {
 
   const db = getDbForRequest(request);
   const user = await db
-    .selectFrom('users')
-    .select('email')
-    .where('id', '=', auth.user.userId)
+    .selectFrom("users")
+    .select("email")
+    .where("id", "=", auth.user.userId)
     .executeTakeFirst();
 
-  if (!user) return error('User not found', 404);
+  if (!user) return error("User not found", 404);
 
   await resendVerificationEmail(db, auth.user.userId, user.email);
 
-  return json({ message: 'Verification email sent' });
+  return json({ message: "Verification email sent" });
 }

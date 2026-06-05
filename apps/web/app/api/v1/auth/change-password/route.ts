@@ -1,7 +1,9 @@
-import type { NextRequest } from 'next/server';
-import { changePassword, withAuth, getClientIp } from '@lsu/auth';
-import { getDbForRequest } from '@lsu/db';
-import { json, error, unauthorized, parseBody } from '@/api/_helpers';
+import type { NextRequest } from "next/server";
+
+import { changePassword, withAuth, getClientIp } from "@lsu/auth";
+import { getDbForRequest } from "@lsu/db";
+
+import { json, error, unauthorized, parseBody } from "@/api/_helpers";
 
 export async function POST(request: NextRequest) {
   const auth = await withAuth(request);
@@ -9,7 +11,7 @@ export async function POST(request: NextRequest) {
 
   const body = await parseBody<{ currentPassword: string; newPassword: string }>(request);
   if (!body?.currentPassword || !body?.newPassword) {
-    return error('Current and new password required');
+    return error("Current and new password required");
   }
 
   const db = getDbForRequest(request);

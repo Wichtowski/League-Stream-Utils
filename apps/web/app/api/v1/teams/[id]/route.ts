@@ -1,9 +1,11 @@
-import type { NextRequest } from 'next/server';
-import { withAuth } from '@lsu/auth';
-import { isTeamOwner, requirePermission } from '@lsu/auth/permissions';
-import { getDbForRequest } from '@lsu/db';
-import { getTeam, updateTeam, deleteTeam } from '@lsu/team/queries';
-import { json, error, unauthorized, forbidden, notFound, parseBody } from '@/api/_helpers';
+import type { NextRequest } from "next/server";
+
+import { withAuth } from "@lsu/auth";
+import { isTeamOwner, requirePermission } from "@lsu/auth/permissions";
+import { getDbForRequest } from "@lsu/db";
+import { getTeam, updateTeam, deleteTeam } from "@lsu/team/queries";
+
+import { json, error, unauthorized, forbidden, notFound, parseBody } from "@/api/_helpers";
 
 interface Params {
   params: Promise<{ id: string }>;
@@ -16,7 +18,8 @@ export async function GET(request: NextRequest, { params }: Params) {
   const { id } = await params;
   const db = getDbForRequest(request);
   const team = await getTeam(db, id);
-  if (!team) return notFound('Team not found');
+  if (!team) return notFound("Team not found");
+
   return json(team);
 }
 
@@ -28,7 +31,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
   const db = getDbForRequest(request);
 
   const isOwner = await isTeamOwner(db, auth.user.userId, id);
-  const isAdmin = await requirePermission(db, auth.user.userId, 'admin');
+  const isAdmin = await requirePermission(db, auth.user.userId, "admin");
   if (!isOwner && !isAdmin) return forbidden();
 
   const body = await parseBody<{
@@ -38,10 +41,11 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     country?: string;
   }>(request);
 
-  if (!body) return error('Request body required');
+  if (!body) return error("Request body required");
 
   const team = await updateTeam(db, id, body);
-  if (!team) return notFound('Team not found');
+  if (!team) return notFound("Team not found");
+
   return json(team);
 }
 
@@ -53,9 +57,10 @@ export async function DELETE(request: NextRequest, { params }: Params) {
   const db = getDbForRequest(request);
 
   const isOwner = await isTeamOwner(db, auth.user.userId, id);
-  const isAdmin = await requirePermission(db, auth.user.userId, 'admin');
+  const isAdmin = await requirePermission(db, auth.user.userId, "admin");
   if (!isOwner && !isAdmin) return forbidden();
 
   await deleteTeam(db, id);
+
   return json({ success: true });
 }

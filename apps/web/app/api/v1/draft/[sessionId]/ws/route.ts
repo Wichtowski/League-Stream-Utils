@@ -1,10 +1,12 @@
-import type { NextRequest } from 'next/server';
-import { getSession } from '@lsu/draft/queries';
-import { getPhaseForTurn, getTeamForTurn } from '@lsu/draft';
-import { addClient, removeClient, broadcast } from './room';
-import { createLogger } from '@lsu/logger';
+import type { NextRequest } from "next/server";
 
-const log = createLogger('draft-ws');
+import { getPhaseForTurn, getTeamForTurn } from "@lsu/draft";
+import { getSession } from "@lsu/draft/queries";
+import { createLogger } from "@lsu/logger";
+
+import { addClient, removeClient, broadcast } from "./room";
+
+const log = createLogger("draft-ws");
 
 export async function GET(
   request: NextRequest,
@@ -12,17 +14,19 @@ export async function GET(
 ) {
   const { sessionId } = await params;
 
-  const upgradeHeader = request.headers.get('upgrade');
-  if (upgradeHeader?.toLowerCase() !== 'websocket') {
-    return new Response('Expected WebSocket upgrade', { status: 426 });
+  const upgradeHeader = request.headers.get("upgrade");
+  if (upgradeHeader?.toLowerCase() !== "websocket") {
+    return new Response("Expected WebSocket upgrade", { status: 426 });
   }
 
   const session = await getSession(sessionId);
   if (!session) {
-    return new Response('Session not found', { status: 404 });
+    return new Response("Session not found", { status: 404 });
   }
 
-  const { 0: clientWs, 1: serverWs } = new (globalThis as any).WebSocketPair();
+  const { 0: clientWs, 1: serverWs } = new (
+    globalThis as unknown as { WebSocketPair: new () => [WebSocket, WebSocket] }
+  ).WebSocketPair();
 
   serverWs.accept();
 
@@ -31,7 +35,7 @@ export async function GET(
   const turnNumber = session.turnNumber ?? 0;
   serverWs.send(
     JSON.stringify({
-      type: 'state',
+      type: "state",
       phase: getPhaseForTurn(turnNumber),
       team: getTeamForTurn(turnNumber),
       turnNumber,
@@ -40,14 +44,14 @@ export async function GET(
     }),
   );
 
-  serverWs.addEventListener('message', async (event: MessageEvent) => {
+  serverWs.addEventListener("message", async (event: MessageEvent) => {
     try {
-      const msg = JSON.parse(typeof event.data === 'string' ? event.data : '');
-      log.debug('ws message', { sessionId, type: msg.type });
+      const msg = JSON.parse(typeof event.data === "string" ? event.data : "");
+      log.debug("ws message", { sessionId, type: msg.type });
 
-      if (msg.type === 'action') {
+      if (msg.type === "action") {
         broadcast(sessionId, {
-          type: 'action',
+          type: "action",
           action: msg.action,
           phase: msg.phase,
           team: msg.team,
@@ -56,17 +60,17 @@ export async function GET(
         });
       }
     } catch {
-      log.warn('malformed ws message', { sessionId });
+      log.warn("malformed ws message", { sessionId });
     }
   });
 
-  serverWs.addEventListener('close', () => {
+  serverWs.addEventListener("close", () => {
     removeClient(client);
   });
 
-  serverWs.addEventListener('error', () => {
+  serverWs.addEventListener("error", () => {
     removeClient(client);
   });
 
-  return new Response(null, { status: 101, webSocket: clientWs } as any);
+  return new Response(null, { status: 101, webSocket: clientWs } as ResponseInit);
 }

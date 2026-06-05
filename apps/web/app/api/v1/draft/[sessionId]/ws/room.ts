@@ -1,6 +1,6 @@
-import { createLogger } from '@lsu/logger';
+import { createLogger } from "@lsu/logger";
 
-const log = createLogger('draft-ws');
+const log = createLogger("draft-ws");
 
 type WSClient = {
   ws: WebSocket;
@@ -13,7 +13,8 @@ export function addClient(sessionId: string, ws: WebSocket): WSClient {
   const client: WSClient = { ws, sessionId };
   if (!sessions.has(sessionId)) sessions.set(sessionId, new Set());
   sessions.get(sessionId)!.add(client);
-  log.info('client connected', { sessionId, clients: sessions.get(sessionId)!.size });
+  log.info("client connected", { sessionId, clients: sessions.get(sessionId)!.size });
+
   return client;
 }
 
@@ -23,7 +24,7 @@ export function removeClient(client: WSClient) {
     room.delete(client);
     if (room.size === 0) sessions.delete(client.sessionId);
   }
-  log.info('client disconnected', { sessionId: client.sessionId, clients: room?.size ?? 0 });
+  log.info("client disconnected", { sessionId: client.sessionId, clients: room?.size ?? 0 });
 }
 
 export function broadcast(sessionId: string, msg: Record<string, unknown>, exclude?: WSClient) {
@@ -51,5 +52,6 @@ export function getActiveSessionIds(): string[] {
 export function getTotalClientCount(): number {
   let total = 0;
   for (const room of sessions.values()) total += room.size;
+
   return total;
 }

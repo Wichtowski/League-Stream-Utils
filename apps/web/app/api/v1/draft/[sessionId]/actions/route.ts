@@ -1,9 +1,12 @@
-import type { NextRequest } from 'next/server';
-import { withAuth } from '@lsu/auth';
-import { pushAction, undoLastAction, updateSessionState, getSession } from '@lsu/draft/queries';
-import { validateAction, getPhaseForTurn, getTeamForTurn } from '@lsu/draft/engine';
-import { TOTAL_DRAFT_TURNS } from '@lsu/types';
-import { json, error, unauthorized, notFound, parseBody } from '@/api/_helpers';
+import type { NextRequest } from "next/server";
+
+import { withAuth } from "@lsu/auth";
+import { validateAction, getPhaseForTurn, getTeamForTurn } from "@lsu/draft/engine";
+import { pushAction, undoLastAction, updateSessionState, getSession } from "@lsu/draft/queries";
+import { TOTAL_DRAFT_TURNS } from "@lsu/types";
+import type { draftAction } from "@lsu/types";
+
+import { json, error, unauthorized, notFound, parseBody } from "@/api/_helpers";
 
 interface Params {
   params: Promise<{ sessionId: string }>;
@@ -15,18 +18,18 @@ export async function POST(request: NextRequest, { params }: Params) {
 
   const { sessionId } = await params;
   const body = await parseBody<{
-    action: 'pick' | 'ban' | 'undo';
+    action: "pick" | "ban" | "undo";
     championId?: number;
   }>(request);
 
-  if (!body?.action) return error('action required');
+  if (!body?.action) return error("action required");
 
   const session = await getSession(sessionId);
-  if (!session) return notFound('Session not found');
+  if (!session) return notFound("Session not found");
 
-  if (body.action === 'undo') {
+  if (body.action === "undo") {
     const updated = await undoLastAction(sessionId);
-    if (!updated) return error('Nothing to undo');
+    if (!updated) return error("Nothing to undo");
 
     const newTurn = Math.max(0, session.turnNumber - 1);
     await updateSessionState(sessionId, {
@@ -34,15 +37,16 @@ export async function POST(request: NextRequest, { params }: Params) {
       currentPhase: getPhaseForTurn(newTurn),
       currentTeam: getTeamForTurn(newTurn),
     });
+
     return json({ success: true, turnNumber: newTurn });
   }
 
-  if (!body.championId) return error('championId required');
+  if (!body.championId) return error("championId required");
 
   const validationError = validateAction(
     session.turnNumber,
     body.championId,
-    session.actions as any,
+    session.actions as draftAction[],
   );
   if (validationError) return error(validationError);
 
@@ -61,9 +65,9 @@ export async function POST(request: NextRequest, { params }: Params) {
 
   await updateSessionState(sessionId, {
     turnNumber: nextTurn,
-    currentPhase: isCompleted ? 'completed' : getPhaseForTurn(nextTurn),
+    currentPhase: isCompleted ? "completed" : getPhaseForTurn(nextTurn),
     currentTeam: isCompleted ? team : getTeamForTurn(nextTurn),
-    status: isCompleted ? 'completed' : 'active',
+    status: isCompleted ? "completed" : "active",
     completedAt: isCompleted ? new Date() : undefined,
   });
 

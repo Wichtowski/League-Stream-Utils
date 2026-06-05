@@ -1,12 +1,14 @@
-import type { NextRequest } from 'next/server';
-import { register, getClientIp } from '@lsu/auth';
-import { getDbForRequest } from '@lsu/db';
-import { json, error, parseBody } from '@/api/_helpers';
+import type { NextRequest } from "next/server";
+
+import { register, getClientIp } from "@lsu/auth";
+import { getDbForRequest } from "@lsu/db";
+
+import { json, error, parseBody } from "@/api/_helpers";
 
 export async function POST(request: NextRequest) {
   const body = await parseBody<{ username: string; email: string; password: string }>(request);
   if (!body?.username || !body?.email || !body?.password) {
-    return error('Username, email, and password required');
+    return error("Username, email, and password required");
   }
 
   const db = getDbForRequest(request);

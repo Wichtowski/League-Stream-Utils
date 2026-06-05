@@ -1,7 +1,9 @@
-import type { NextRequest } from 'next/server';
-import { withAuth } from '@lsu/auth';
-import { getDbForRequest } from '@lsu/db';
-import { json, error, unauthorized, parseBody } from '@/api/_helpers';
+import type { NextRequest } from "next/server";
+
+import { withAuth } from "@lsu/auth";
+import { getDbForRequest } from "@lsu/db";
+
+import { json, error, unauthorized, parseBody } from "@/api/_helpers";
 
 export async function GET(request: NextRequest) {
   const auth = await withAuth(request);
@@ -9,10 +11,11 @@ export async function GET(request: NextRequest) {
 
   const db = getDbForRequest(request);
   const all = await db
-    .selectFrom('commentators')
+    .selectFrom("commentators")
     .selectAll()
-    .orderBy('created_at', 'desc')
+    .orderBy("created_at", "desc")
     .execute();
+
   return json(all);
 }
 
@@ -25,16 +28,17 @@ export async function POST(request: NextRequest) {
     socialLinks?: Record<string, string>;
   }>(request);
 
-  if (!body?.name) return error('name required');
+  if (!body?.name) return error("name required");
 
   const db = getDbForRequest(request);
   const created = await db
-    .insertInto('commentators')
+    .insertInto("commentators")
     .values({
       name: body.name,
       social_links: body.socialLinks ? JSON.stringify(body.socialLinks) : null,
     })
     .returningAll()
     .executeTakeFirstOrThrow();
+
   return json(created, 201);
 }

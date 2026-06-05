@@ -1,20 +1,22 @@
-import { getDb, sql } from '@lsu/db';
-import { json } from '@/api/_helpers';
-import { getTotalClientCount, getActiveSessionIds } from '../draft/[sessionId]/ws/room';
+import { getDb, sql } from "@lsu/db";
+
+import { json } from "@/api/_helpers";
+
+import { getTotalClientCount, getActiveSessionIds } from "../draft/[sessionId]/ws/room";
 
 export async function GET() {
   const checks: Record<string, unknown> = {
-    status: 'ok',
+    status: "ok",
     uptime: process.uptime(),
     timestamp: new Date().toISOString(),
   };
 
   try {
     await sql`SELECT 1`.execute(getDb());
-    checks.postgres = 'connected';
+    checks.postgres = "connected";
   } catch {
-    checks.postgres = 'disconnected';
-    checks.status = 'degraded';
+    checks.postgres = "disconnected";
+    checks.status = "degraded";
   }
 
   checks.websockets = {
@@ -22,6 +24,7 @@ export async function GET() {
     activeSessions: getActiveSessionIds().length,
   };
 
-  const statusCode = checks.status === 'ok' ? 200 : 503;
+  const statusCode = checks.status === "ok" ? 200 : 503;
+
   return json(checks, statusCode);
 }

@@ -1,7 +1,9 @@
-import type { NextRequest } from 'next/server';
-import { withAuth } from '@lsu/auth';
-import { getDbForRequest } from '@lsu/db';
-import { json, unauthorized, forbidden } from '@/api/_helpers';
+import type { NextRequest } from "next/server";
+
+import { withAuth } from "@lsu/auth";
+import { getDbForRequest } from "@lsu/db";
+
+import { json, unauthorized, forbidden } from "@/api/_helpers";
 
 export async function GET(request: NextRequest) {
   const auth = await withAuth(request);
@@ -12,36 +14,36 @@ export async function GET(request: NextRequest) {
   const checks: Record<string, { status: string; detail?: string }> = {};
 
   try {
-    await db.selectFrom('users').select('id').limit(1).execute();
-    checks.database = { status: 'ok' };
-  } catch (e: any) {
-    checks.database = { status: 'error', detail: e.message };
+    await db.selectFrom("users").select("id").limit(1).execute();
+    checks.database = { status: "ok" };
+  } catch (e: unknown) {
+    checks.database = { status: "error", detail: e instanceof Error ? e.message : String(e) };
   }
 
   const { count: userCount } = await db
-    .selectFrom('users')
-    .select((eb) => eb.fn.countAll<number>().as('count'))
+    .selectFrom("users")
+    .select((eb) => eb.fn.countAll<number>().as("count"))
     .executeTakeFirstOrThrow();
 
   const { count: tournamentCount } = await db
-    .selectFrom('tournaments')
-    .select((eb) => eb.fn.countAll<number>().as('count'))
+    .selectFrom("tournaments")
+    .select((eb) => eb.fn.countAll<number>().as("count"))
     .executeTakeFirstOrThrow();
 
   const { count: teamCount } = await db
-    .selectFrom('teams')
-    .select((eb) => eb.fn.countAll<number>().as('count'))
+    .selectFrom("teams")
+    .select((eb) => eb.fn.countAll<number>().as("count"))
     .executeTakeFirstOrThrow();
 
   const { count: sessionCount } = await db
-    .selectFrom('sessions')
-    .select((eb) => eb.fn.countAll<number>().as('count'))
-    .where('is_valid', '=', true)
-    .where('expires_at', '>', new Date())
+    .selectFrom("sessions")
+    .select((eb) => eb.fn.countAll<number>().as("count"))
+    .where("is_valid", "=", true)
+    .where("expires_at", ">", new Date())
     .executeTakeFirstOrThrow();
 
   return json({
-    status: Object.values(checks).every((c) => c.status === 'ok') ? 'healthy' : 'degraded',
+    status: Object.values(checks).every((c) => c.status === "ok") ? "healthy" : "degraded",
     checks,
     stats: {
       users: userCount,

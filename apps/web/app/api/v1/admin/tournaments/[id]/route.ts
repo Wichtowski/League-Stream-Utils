@@ -1,7 +1,9 @@
-import type { NextRequest } from 'next/server';
-import { withAuth } from '@lsu/auth';
-import { getDbForRequest } from '@lsu/db';
-import { json, error, unauthorized, forbidden, notFound, parseBody } from '@/api/_helpers';
+import type { NextRequest } from "next/server";
+
+import { withAuth } from "@lsu/auth";
+import { getDbForRequest } from "@lsu/db";
+
+import { json, error, unauthorized, forbidden, notFound, parseBody } from "@/api/_helpers";
 
 interface Params {
   params: Promise<{ id: string }>;
@@ -17,7 +19,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     status?: string;
     organizerId?: string;
   }>(request);
-  if (!body) return error('Request body required');
+  if (!body) return error("Request body required");
 
   const db = getDbForRequest(request);
   const set: Record<string, unknown> = { updated_at: new Date() };
@@ -25,20 +27,20 @@ export async function PATCH(request: NextRequest, { params }: Params) {
   if (body.organizerId) set.organizer_id = body.organizerId;
 
   const updated = await db
-    .updateTable('tournaments')
+    .updateTable("tournaments")
     .set(set)
-    .where('id', '=', id)
-    .returning(['id', 'name', 'status', 'organizer_id'])
+    .where("id", "=", id)
+    .returning(["id", "name", "status", "organizer_id"])
     .executeTakeFirst();
 
-  if (!updated) return notFound('Tournament not found');
+  if (!updated) return notFound("Tournament not found");
 
   await db
-    .insertInto('permission_audit')
+    .insertInto("permission_audit")
     .values({
       user_id: null,
-      action: 'admin_tournament_update',
-      resource: 'tournaments',
+      action: "admin_tournament_update",
+      resource: "tournaments",
       resource_id: id,
       metadata: JSON.stringify(body),
       performed_by: auth.user.userId,
@@ -57,20 +59,20 @@ export async function DELETE(request: NextRequest, { params }: Params) {
   const db = getDbForRequest(request);
 
   const tournament = await db
-    .selectFrom('tournaments')
-    .select('id')
-    .where('id', '=', id)
+    .selectFrom("tournaments")
+    .select("id")
+    .where("id", "=", id)
     .executeTakeFirst();
-  if (!tournament) return notFound('Tournament not found');
+  if (!tournament) return notFound("Tournament not found");
 
-  await db.deleteFrom('tournaments').where('id', '=', id).execute();
+  await db.deleteFrom("tournaments").where("id", "=", id).execute();
 
   await db
-    .insertInto('permission_audit')
+    .insertInto("permission_audit")
     .values({
       user_id: null,
-      action: 'admin_tournament_delete',
-      resource: 'tournaments',
+      action: "admin_tournament_delete",
+      resource: "tournaments",
       resource_id: id,
       performed_by: auth.user.userId,
     })

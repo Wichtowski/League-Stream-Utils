@@ -1,12 +1,14 @@
-import type { NextRequest } from 'next/server';
-import { login, getClientIp } from '@lsu/auth';
-import { getDbForRequest } from '@lsu/db';
-import { json, error, parseBody, setCookies } from '@/api/_helpers';
+import type { NextRequest } from "next/server";
+
+import { login, getClientIp } from "@lsu/auth";
+import { getDbForRequest } from "@lsu/db";
+
+import { json, error, parseBody, setCookies } from "@/api/_helpers";
 
 export async function POST(request: NextRequest) {
   const body = await parseBody<{ username: string; password: string }>(request);
   if (!body?.username || !body?.password) {
-    return error('Username and password required');
+    return error("Username and password required");
   }
 
   const db = getDbForRequest(request);
@@ -16,7 +18,7 @@ export async function POST(request: NextRequest) {
     body.username,
     body.password,
     ip,
-    request.headers.get('user-agent') ?? undefined,
+    request.headers.get("user-agent") ?? undefined,
   );
 
   if (!result.success) {
@@ -25,5 +27,6 @@ export async function POST(request: NextRequest) {
 
   const response = json({ user: result.user });
   setCookies(response, result.tokens);
+
   return response;
 }
