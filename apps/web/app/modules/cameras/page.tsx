@@ -38,7 +38,7 @@ export default function CamerasPage() {
 
             return (
               <div
-                key={config._id ?? config.teamId}
+                key={config.id ?? config.teamId}
                 className="rounded-lg border border-border-subtle bg-surface-raised p-4"
               >
                 <div className="flex items-center justify-between mb-3">

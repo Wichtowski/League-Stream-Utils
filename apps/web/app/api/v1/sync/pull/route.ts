@@ -1,5 +1,7 @@
 import type { NextRequest } from "next/server";
 
+import { sql } from "kysely";
+
 import { withAuth } from "@lsu/auth";
 import { getDb } from "@lsu/db";
 
@@ -69,11 +71,12 @@ export async function POST(request: NextRequest) {
   }[] = [];
 
   for (const table of requestedTables) {
-    let query = db.selectFrom(table).selectAll();
-
-    if (since) {
-      query = query.where("updated_at" as never, ">", since) as typeof query;
-    }
+    const query = db
+      .selectFrom(table)
+      .selectAll()
+      .$if(since !== null, (qb) =>
+        qb.where(sql.ref("updated_at"), ">", sql.lit(since!.toISOString())),
+      );
 
     const rows = await query.execute();
 
