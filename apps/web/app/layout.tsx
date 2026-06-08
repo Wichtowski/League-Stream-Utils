@@ -1,11 +1,9 @@
 import type { ReactNode } from "react";
 
-import type { Metadata } from "next";
-
 import "./globals.css";
 import { Providers } from "./providers";
 
-export const metadata: Metadata = {
+export const metadata: Record<string, string> = {
   title: "League Stream Utils",
   description: "Tournament management & streaming tools for League of Legends",
 };

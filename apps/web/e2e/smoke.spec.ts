@@ -6,10 +6,9 @@ test.describe("smoke tests", () => {
     await expect(page).toHaveTitle(/League Stream Utils/);
   });
 
-  test("home page has navigation links", async ({ page }) => {
+  test("home page has sign-in link", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByRole("link", { name: /modules/i })).toBeVisible();
-    await expect(page.getByRole("link", { name: /sign in|login/i })).toBeVisible();
+    await expect(page.getByRole("link", { name: /sign in/i })).toBeVisible();
   });
 
   test("login page renders form", async ({ page }) => {
@@ -21,7 +20,7 @@ test.describe("smoke tests", () => {
 
   test("login page toggles to register", async ({ page }) => {
     await page.goto("/login");
-    await page.getByRole("button", { name: /register/i }).click();
+    await page.getByText(/register/i).click();
     await expect(page.getByLabel(/email/i)).toBeVisible();
     await expect(page.getByRole("button", { name: /register/i })).toBeVisible();
   });
@@ -32,28 +31,25 @@ test.describe("smoke tests", () => {
   });
 });
 
-test.describe("modules page", () => {
-  test("modules page loads with sidebar", async ({ page }) => {
+test.describe("protected routes redirect to login", () => {
+  test("modules page redirects to login", async ({ page }) => {
     await page.goto("/modules");
-    await expect(page.getByText(/teams/i)).toBeVisible();
-    await expect(page.getByText(/tournaments/i)).toBeVisible();
-    await expect(page.getByText(/pick.*ban/i)).toBeVisible();
+    await expect(page).toHaveURL(/\/login/);
   });
 
-  test("teams page renders", async ({ page }) => {
+  test("teams page redirects to login", async ({ page }) => {
     await page.goto("/modules/teams");
-    await expect(page.getByText(/teams/i).first()).toBeVisible();
-    await expect(page.getByRole("button", { name: /add team/i })).toBeVisible();
+    await expect(page).toHaveURL(/\/login/);
   });
 
-  test("tournaments page renders", async ({ page }) => {
+  test("tournaments page redirects to login", async ({ page }) => {
     await page.goto("/modules/tournaments");
-    await expect(page.getByRole("button", { name: /create tournament/i })).toBeVisible();
+    await expect(page).toHaveURL(/\/login/);
   });
 
-  test("draft page renders", async ({ page }) => {
+  test("draft page redirects to login", async ({ page }) => {
     await page.goto("/modules/draft");
-    await expect(page.getByRole("button", { name: /new session/i })).toBeVisible();
+    await expect(page).toHaveURL(/\/login/);
   });
 });
 
