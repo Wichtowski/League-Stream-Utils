@@ -1,5 +1,5 @@
 import { PICK_BAN_ORDER, TOTAL_DRAFT_TURNS } from "@lsu/types";
-import type { GamePhase, TeamSide, ActionType, draftAction } from "@lsu/types";
+import type { GamePhase, TeamSide, ActionType, DraftAction } from "@lsu/types";
 
 export function getCurrentTurn(turnNumber: number) {
   if (turnNumber < 0 || turnNumber >= TOTAL_DRAFT_TURNS) return null;
@@ -22,23 +22,23 @@ export function getActionTypeForTurn(turnNumber: number): ActionType {
   return PICK_BAN_ORDER[turnNumber]?.type ?? "pick";
 }
 
-export function isChampionTaken(championId: number, actions: draftAction[]): boolean {
+export function isChampionTaken(championId: number, actions: DraftAction[]): boolean {
   return actions.some((a) => a.championId === championId && !a.undone);
 }
 
-export function isChampionBanned(championId: number, actions: draftAction[]): boolean {
+export function isChampionBanned(championId: number, actions: DraftAction[]): boolean {
   return actions.some((a) => a.championId === championId && a.type === "ban" && !a.undone);
 }
 
-export function getTeamPicks(side: TeamSide, actions: draftAction[]): draftAction[] {
+export function getTeamPicks(side: TeamSide, actions: DraftAction[]): DraftAction[] {
   return actions.filter((a) => a.teamSide === side && a.type === "pick" && !a.undone);
 }
 
-export function getTeamBans(side: TeamSide, actions: draftAction[]): draftAction[] {
+export function getTeamBans(side: TeamSide, actions: DraftAction[]): DraftAction[] {
   return actions.filter((a) => a.teamSide === side && a.type === "ban" && !a.undone);
 }
 
-export function getFearlessBannedChampions(previousGames: draftAction[][]): Set<number> {
+export function getFearlessBannedChampions(previousGames: DraftAction[][]): Set<number> {
   const banned = new Set<number>();
   for (const game of previousGames) {
     for (const action of game) {
@@ -54,7 +54,7 @@ export function getFearlessBannedChampions(previousGames: draftAction[][]): Set<
 export function validateAction(
   turnNumber: number,
   championId: number,
-  actions: draftAction[],
+  actions: DraftAction[],
   fearlessBanned?: Set<number>,
 ): string | null {
   if (turnNumber >= TOTAL_DRAFT_TURNS) return "Draft is complete";

@@ -1,4 +1,4 @@
-import type { NextConfig } from "next";
+type NextConfig = Record<string, unknown>;
 
 const config: NextConfig = {
   reactStrictMode: true,

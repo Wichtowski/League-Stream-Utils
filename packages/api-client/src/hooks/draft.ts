@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
-import type { draftSession } from "@lsu/types";
+import type { DraftSession } from "@lsu/types";
 
 import { useApiClient } from "../context";
 import { keys } from "../keys";
@@ -43,8 +43,8 @@ export function useDeleteDraftSession() {
     mutationFn: (id: string) => api.draft.remove(id),
     onMutate: async (id) => {
       await qc.cancelQueries({ queryKey: keys.draft.all });
-      const previous = qc.getQueryData<draftSession[]>(keys.draft.all);
-      qc.setQueryData<draftSession[]>(keys.draft.all, (old) =>
+      const previous = qc.getQueryData<DraftSession[]>(keys.draft.all);
+      qc.setQueryData<DraftSession[]>(keys.draft.all, (old) =>
         (old ?? []).filter((s) => s.id !== id),
       );
 

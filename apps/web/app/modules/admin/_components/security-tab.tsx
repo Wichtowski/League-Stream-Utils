@@ -12,7 +12,7 @@ import { Select } from "@/_components/input";
 
 interface SecurityEventRow {
   id: string;
-  event_type: string;
+  type: string;
   username?: string;
   ip?: string;
   created_at: string;
@@ -22,7 +22,7 @@ interface LoginAttemptRow {
   id: string;
   username: string;
   ip: string;
-  attempted_at: string;
+  created_at: string;
 }
 
 const eventBadgeVariant: Record<string, "default" | "success" | "warning" | "error" | "info"> = {
@@ -86,9 +86,7 @@ export function SecurityTab() {
                 key: "event_type",
                 header: t("security_col_event"),
                 render: (e: SecurityEventRow) => (
-                  <Badge variant={eventBadgeVariant[e.event_type] ?? "default"}>
-                    {e.event_type}
-                  </Badge>
+                  <Badge variant={eventBadgeVariant[e.type] ?? "default"}>{e.type}</Badge>
                 ),
                 className: "w-40",
               },
@@ -148,7 +146,7 @@ export function SecurityTab() {
                 header: t("security_failed_col_time"),
                 render: (a: LoginAttemptRow) => (
                   <span className="text-xs text-text-muted">
-                    {new Date(a.attempted_at).toLocaleString()}
+                    {new Date(a.created_at).toLocaleString()}
                   </span>
                 ),
                 className: "w-44",

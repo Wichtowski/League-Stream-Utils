@@ -31,6 +31,7 @@ export async function POST(request: NextRequest) {
     return error("Name, tag, and colors required");
   }
 
+  const db = getDbForRequest(request);
   const team = await createTeam(db, { ...body, ownerId: auth.user.userId });
 
   return json(team, 201);

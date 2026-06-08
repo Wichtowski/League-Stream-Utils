@@ -42,14 +42,14 @@ export function setCookies(
   response.cookies.set("access_token", tokens.accessToken, {
     httpOnly: true,
     secure,
-    sameSite: "lax",
+    sameSite: "Lax",
     path: "/",
     maxAge: 3600,
   });
   response.cookies.set("refresh_token", tokens.refreshToken, {
     httpOnly: true,
     secure,
-    sameSite: "lax",
+    sameSite: "Lax",
     path: "/",
     maxAge: 7 * 24 * 3600,
   });

@@ -4,7 +4,7 @@ import { withAuth } from "@lsu/auth";
 import { validateAction, getPhaseForTurn, getTeamForTurn } from "@lsu/draft/engine";
 import { pushAction, undoLastAction, updateSessionState, getSession } from "@lsu/draft/queries";
 import { TOTAL_DRAFT_TURNS } from "@lsu/types";
-import type { draftAction } from "@lsu/types";
+import type { DraftAction } from "@lsu/types";
 
 import { json, error, unauthorized, notFound, parseBody } from "@/api/_helpers";
 
@@ -46,7 +46,7 @@ export async function POST(request: NextRequest, { params }: Params) {
   const validationError = validateAction(
     session.turnNumber,
     body.championId,
-    session.actions as draftAction[],
+    session.actions as DraftAction[],
   );
   if (validationError) return error(validationError);
 

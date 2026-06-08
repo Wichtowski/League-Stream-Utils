@@ -8,7 +8,7 @@ import {
   useDeleteDraftSession,
 } from "@lsu/api-client/hooks";
 import { useTranslation } from "@lsu/i18n";
-import type { draftSession } from "@lsu/types";
+import type { DraftSession } from "@lsu/types";
 import { Skeleton } from "@lsu/ui/skeleton";
 
 import { Badge } from "@/_components/badge";
@@ -73,7 +73,7 @@ export default function DraftPage() {
             {
               key: "teams",
               header: t("col_match"),
-              render: (s: draftSession) => (
+              render: (s: DraftSession) => (
                 <div className="flex items-center gap-2">
                   <span className="text-blue-400">{s.teams?.blue?.name ?? t("blue")}</span>
                   <span className="text-text-muted">{t("vs", { ns: "common" })}</span>
@@ -84,7 +84,7 @@ export default function DraftPage() {
             {
               key: "phase",
               header: t("col_phase"),
-              render: (s: draftSession) => (
+              render: (s: DraftSession) => (
                 <span className="text-text-muted capitalize">{s.currentPhase}</span>
               ),
               className: "w-28",
@@ -92,7 +92,7 @@ export default function DraftPage() {
             {
               key: "turn",
               header: t("col_turn"),
-              render: (s: draftSession) => (
+              render: (s: DraftSession) => (
                 <span className="text-text-muted">{s.turnNumber}/22</span>
               ),
               className: "w-20",
@@ -100,7 +100,7 @@ export default function DraftPage() {
             {
               key: "status",
               header: t("col_status"),
-              render: (s: draftSession) => (
+              render: (s: DraftSession) => (
                 <Badge variant={statusVariant[s.status] ?? "default"}>{s.status}</Badge>
               ),
               className: "w-28",
@@ -108,13 +108,13 @@ export default function DraftPage() {
             {
               key: "actions",
               header: "",
-              render: (s: draftSession) => (
+              render: (s: DraftSession) => (
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={(e) => {
                     e.stopPropagation();
-                    if (confirm(t("delete_session"))) deleteSession.mutate(s.sessionId);
+                    if (confirm(t("delete_session"))) deleteSession.mutate(s.id);
                   }}
                 >
                   {t("delete", { ns: "common" })}
@@ -124,7 +124,7 @@ export default function DraftPage() {
             },
           ]}
           data={sessions ?? []}
-          keyExtractor={(s: draftSession) => s.sessionId ?? s._id}
+          keyExtractor={(s: DraftSession) => s.id}
           emptyMessage={t("empty_state")}
         />
       )}

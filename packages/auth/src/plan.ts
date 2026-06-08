@@ -21,7 +21,7 @@ export const PLAN_LIMITS: Record<"free" | "pro", PlanLimits> = {
   },
 };
 
-export async function getUserPlan(db: Kysely<Database>, userId: string) {
+export async function getUserPlan(db: Kysely<Database>, userId: string): Promise<"free" | "pro"> {
   const user = await db
     .selectFrom("users")
     .select(["plan", "plan_expires_at"])

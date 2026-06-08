@@ -13,7 +13,6 @@ import {
   useAdminImpersonate,
   useAdminResendVerification,
 } from "@lsu/api-client/hooks";
-import type { User } from "@lsu/api-client/hooks";
 import { useTranslation } from "@lsu/i18n";
 import { Skeleton } from "@lsu/ui/skeleton";
 

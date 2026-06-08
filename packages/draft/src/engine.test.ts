@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 
-import type { draftAction } from "@lsu/types";
+import type { DraftAction } from "@lsu/types";
 
 import {
   getCurrentTurn,
@@ -102,12 +102,12 @@ describe("draft engine", () => {
   });
 
   describe("champion state checks", () => {
-    const actions: draftAction[] = [
-      { championId: 1, type: "ban", teamSide: "blue", turnNumber: 0, undone: false },
-      { championId: 2, type: "pick", teamSide: "blue", turnNumber: 6, undone: false },
-      { championId: 3, type: "pick", teamSide: "red", turnNumber: 7, undone: false },
-      { championId: 4, type: "ban", teamSide: "red", turnNumber: 1, undone: true },
-    ];
+    const actions = [
+      { championId: 1, type: "ban", teamSide: "blue", undone: false },
+      { championId: 2, type: "pick", teamSide: "blue", undone: false },
+      { championId: 3, type: "pick", teamSide: "red", undone: false },
+      { championId: 4, type: "ban", teamSide: "red", undone: true },
+    ] as DraftAction[];
 
     it("isChampionTaken detects taken champions", () => {
       expect(isChampionTaken(1, actions)).toBe(true);
@@ -143,13 +143,13 @@ describe("draft engine", () => {
 
   describe("getFearlessBannedChampions", () => {
     it("collects all picks from previous games", () => {
-      const previousGames: draftAction[][] = [
+      const previousGames = [
         [
-          { championId: 10, type: "pick", teamSide: "blue", turnNumber: 6, undone: false },
-          { championId: 20, type: "pick", teamSide: "red", turnNumber: 7, undone: false },
-          { championId: 30, type: "ban", teamSide: "blue", turnNumber: 0, undone: false },
+          { championId: 10, type: "pick", teamSide: "blue", undone: false },
+          { championId: 20, type: "pick", teamSide: "red", undone: false },
+          { championId: 30, type: "ban", teamSide: "blue", undone: false },
         ],
-      ];
+      ] as DraftAction[][];
       const banned = getFearlessBannedChampions(previousGames);
       expect(banned.has(10)).toBe(true);
       expect(banned.has(20)).toBe(true);
@@ -157,9 +157,9 @@ describe("draft engine", () => {
     });
 
     it("respects undone picks", () => {
-      const previousGames: draftAction[][] = [
-        [{ championId: 10, type: "pick", teamSide: "blue", turnNumber: 6, undone: true }],
-      ];
+      const previousGames = [
+        [{ championId: 10, type: "pick", teamSide: "blue", undone: true }],
+      ] as DraftAction[][];
       const banned = getFearlessBannedChampions(previousGames);
       expect(banned.has(10)).toBe(false);
     });
@@ -176,9 +176,9 @@ describe("draft engine", () => {
     });
 
     it("returns error for already taken champion", () => {
-      const actions: draftAction[] = [
-        { championId: 5, type: "ban", teamSide: "blue", turnNumber: 0, undone: false },
-      ];
+      const actions = [
+        { championId: 5, type: "ban", teamSide: "blue", undone: false },
+      ] as DraftAction[];
       expect(validateAction(1, 5, actions)).toBe("Champion already selected");
     });
 

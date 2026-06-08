@@ -16,7 +16,7 @@ export type ActionType = "pick" | "ban";
 export type SessionType = "static" | "lcu" | "tournament" | "web";
 export type SessionStatus = "waiting" | "active" | "paused" | "completed";
 
-export interface draftAction {
+export interface DraftAction {
   id: string;
   type: ActionType;
   championId: number;
@@ -33,7 +33,7 @@ export interface DraftTimer {
   startedAt?: Date;
 }
 
-export interface draftConfig {
+export interface DraftConfig {
   seriesType: TournamentFormat;
   currentGame: number;
   totalGames: number;
@@ -58,17 +58,17 @@ export interface draftConfig {
   timers: { pickPhase: number; banPhase: number };
 }
 
-export interface draftSession {
+export interface DraftSession {
   id: string;
   type?: SessionType;
-  config: draftConfig;
+  config: DraftConfig;
   status: SessionStatus;
   currentPhase: GamePhase;
   currentTeam: TeamSide;
   turnNumber: number;
   timer: DraftTimer;
   teams: { blue: Team; red: Team };
-  actions?: draftAction[];
+  actions?: DraftAction[];
   createdAt: Date;
   startedAt?: Date;
   completedAt?: Date;

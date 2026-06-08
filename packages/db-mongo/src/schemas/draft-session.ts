@@ -1,9 +1,8 @@
 import mongoose from "mongoose";
 
 const { Schema, model, models } = mongoose;
-type Document = mongoose.Document;
 
-interface draftActionDoc {
+interface DraftActionDoc {
   type: "pick" | "ban";
   championId: number;
   teamSide: "blue" | "red";
@@ -12,7 +11,7 @@ interface draftActionDoc {
   undone?: boolean;
 }
 
-export interface draftSessionDoc extends Document {
+interface DraftSessionFields {
   sessionId: string;
   type: "static" | "lcu" | "tournament" | "web";
   config: Record<string, unknown>;
@@ -30,7 +29,7 @@ export interface draftSessionDoc extends Document {
     blue: Record<string, unknown>;
     red: Record<string, unknown>;
   };
-  actions: draftActionDoc[];
+  actions: DraftActionDoc[];
   password?: string;
   createdBy: string;
   createdAt: Date;
@@ -38,7 +37,9 @@ export interface draftSessionDoc extends Document {
   completedAt?: Date;
 }
 
-const draftActionSchema = new Schema<draftActionDoc>(
+export type DraftSessionDoc = mongoose.Document & DraftSessionFields;
+
+const draftActionSchema = new Schema<DraftActionDoc>(
   {
     type: { type: String, enum: ["pick", "ban"], required: true },
     championId: { type: Number, required: true },
@@ -50,7 +51,7 @@ const draftActionSchema = new Schema<draftActionDoc>(
   { _id: true },
 );
 
-const draftSessionSchema = new Schema<draftSessionDoc>(
+const draftSessionSchema = new Schema<DraftSessionFields>(
   {
     sessionId: { type: String, required: true, unique: true, index: true },
     type: { type: String, enum: ["static", "lcu", "tournament", "web"], default: "web" },
@@ -85,5 +86,5 @@ const draftSessionSchema = new Schema<draftSessionDoc>(
 draftSessionSchema.index({ createdAt: 1 }, { expireAfterSeconds: 86400 });
 
 export const draftSessionModel =
-  (models["draftSession"] as ReturnType<typeof model<draftSessionDoc>>) ??
-  model<draftSessionDoc>("draftSession", draftSessionSchema, "draft_sessions");
+  (models["DraftSession"] as mongoose.Model<DraftSessionFields>) ??
+  model<DraftSessionFields>("DraftSession", draftSessionSchema, "draft_sessions");

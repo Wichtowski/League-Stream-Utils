@@ -1,7 +1,6 @@
 import mongoose from "mongoose";
 
 const { Schema, model, models } = mongoose;
-type Document = mongoose.Document;
 
 interface CameraPlayerDoc {
   role: "TOP" | "JUNGLE" | "MID" | "BOTTOM" | "SUPPORT";
@@ -9,12 +8,14 @@ interface CameraPlayerDoc {
   playerName?: string;
 }
 
-export interface CameraConfigDoc extends Document {
+interface CameraConfigFields {
   teamId: string;
   userId: string;
   players: CameraPlayerDoc[];
   updatedAt: Date;
 }
+
+export type CameraConfigDoc = mongoose.Document & CameraConfigFields;
 
 const cameraPlayerSchema = new Schema<CameraPlayerDoc>(
   {
@@ -29,7 +30,7 @@ const cameraPlayerSchema = new Schema<CameraPlayerDoc>(
   { _id: false },
 );
 
-const cameraConfigSchema = new Schema<CameraConfigDoc>(
+const cameraConfigSchema = new Schema<CameraConfigFields>(
   {
     teamId: { type: String, required: true },
     userId: { type: String, required: true },
@@ -41,5 +42,5 @@ const cameraConfigSchema = new Schema<CameraConfigDoc>(
 cameraConfigSchema.index({ teamId: 1, userId: 1 }, { unique: true });
 
 export const CameraConfigModel =
-  (models["CameraConfig"] as ReturnType<typeof model<CameraConfigDoc>>) ??
-  model<CameraConfigDoc>("CameraConfig", cameraConfigSchema, "camera_configs");
+  (models["CameraConfig"] as mongoose.Model<CameraConfigFields>) ??
+  model<CameraConfigFields>("CameraConfig", cameraConfigSchema, "camera_configs");

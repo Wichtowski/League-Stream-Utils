@@ -21,11 +21,13 @@
     "@lsu/types": "workspace:*",
     "bcryptjs": "^3.0.2",
     "jose": "^6.0.11",
+    "kysely": "^0.29.2",
     "nodemailer": "^6.10.1"
   },
   "devDependencies": {
     "@lsu/config": "workspace:*",
     "@types/bcryptjs": "^2.4.6",
+    "@types/nodemailer": "^8.0.0",
     "typescript": "^5.8.3",
     "vitest": "^3.2.1"
   }

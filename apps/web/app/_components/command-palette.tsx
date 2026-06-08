@@ -179,22 +179,22 @@ function CommandPaletteModal({ onClose }: { onClose: () => void }) {
   if (query.length >= 2) {
     const q = query.toLowerCase();
     const teams = qc.getQueryData<Record<string, string>[]>(["teams"]) ?? [];
-    for (const t of teams) {
-      if (t.name?.toLowerCase().includes(q) || t.tag?.toLowerCase().includes(q)) {
+    for (const team of teams) {
+      if (team.name?.toLowerCase().includes(q) || team.tag?.toLowerCase().includes(q)) {
         entityCommands.push({
-          id: `team-${t.id}`,
-          label: `${t.name} [${t.tag}]`,
+          id: `team-${team.id}`,
+          label: `${team.name} [${team.tag}]`,
           group: t("cmd_group_teams"),
           action: () => router.push(`/modules/teams`),
         });
       }
     }
     const tournaments = qc.getQueryData<Record<string, string>[]>(["tournaments"]) ?? [];
-    for (const t of tournaments) {
-      if (t.name?.toLowerCase().includes(q)) {
+    for (const tourney of tournaments) {
+      if (tourney.name?.toLowerCase().includes(q)) {
         entityCommands.push({
-          id: `tournament-${t.id}`,
-          label: t.name,
+          id: `tournament-${tourney.id}`,
+          label: tourney.name,
           group: t("cmd_group_tournaments"),
           action: () => router.push(`/modules/tournaments`),
         });

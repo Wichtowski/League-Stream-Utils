@@ -69,7 +69,10 @@ export class OBSClient {
   }
 
   async setInputSettings(inputName: string, settings: Record<string, unknown>) {
-    await this.obs.call("SetInputSettings", { inputName, inputSettings: settings });
+    await this.obs.call("SetInputSettings", {
+      inputName,
+      inputSettings: settings as Record<string, never>,
+    });
   }
 
   async getStreamStatus() {

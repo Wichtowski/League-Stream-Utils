@@ -21,7 +21,6 @@ export function registerAssetHandlers() {
     }
 
     const fileStream = createWriteStream(fullPath);
-    // @ts-expect-error Node stream compatibility
     await pipeline(response.body, fileStream);
 
     return { path: fullPath };

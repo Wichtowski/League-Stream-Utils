@@ -1,6 +1,6 @@
 import { useEffect, useRef, useCallback } from "react";
 
-import type { GamePhase, TeamSide, draftAction, DraftTimer } from "@lsu/types";
+import type { GamePhase, TeamSide, DraftAction, DraftTimer } from "@lsu/types";
 
 import { usedraftStore } from "./store";
 
@@ -63,10 +63,10 @@ export function usedraftSocket(sessionId: string | null) {
         if (msg.team) s.setTeam(msg.team as TeamSide);
         if (typeof msg.turnNumber === "number") s.setTurn(msg.turnNumber);
         if (msg.timer) s.setTimer(msg.timer as DraftTimer);
-        if (Array.isArray(msg.actions)) s.setActions(msg.actions as draftAction[]);
+        if (Array.isArray(msg.actions)) s.setActions(msg.actions as DraftAction[]);
         break;
       case "action":
-        if (msg.action) s.addAction(msg.action as draftAction);
+        if (msg.action) s.addAction(msg.action as DraftAction);
         if (msg.phase) s.setPhase(msg.phase as GamePhase);
         if (msg.team) s.setTeam(msg.team as TeamSide);
         if (typeof msg.turnNumber === "number") s.setTurn(msg.turnNumber);

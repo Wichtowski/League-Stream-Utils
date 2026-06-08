@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
         const existing = await db
           .selectFrom(change.table)
           .select(["id", "updated_at"] as never[])
-          .where("id" as never, "=", change.local_id)
+          .where("id" as never, "=", change.local_id as never)
           .executeTakeFirst();
 
         if (existing) {
@@ -119,7 +119,7 @@ export async function POST(request: NextRequest) {
                 sync_status: "synced",
                 last_synced_at: new Date(),
               } as never)
-              .where("id" as never, "=", change.local_id)
+              .where("id" as never, "=", change.local_id as never)
               .execute();
             applied.push(i);
           } else {
@@ -134,7 +134,7 @@ export async function POST(request: NextRequest) {
       } else if (change.action === "delete") {
         await db
           .deleteFrom(change.table)
-          .where("id" as never, "=", change.local_id)
+          .where("id" as never, "=", change.local_id as never)
           .execute();
         applied.push(i);
       }

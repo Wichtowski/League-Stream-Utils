@@ -74,7 +74,7 @@ export interface TeamsTable extends SyncFields {
   id: Generated<string>;
   name: string;
   tag: string;
-  logo: JSONColumnType<unknown> | null;
+  logo: JSONColumnType<Record<string, unknown>> | null;
   colors: JSONColumnType<{ primary: string; secondary: string; accent: string }>;
   country: string | null;
   owner_id: string;
@@ -89,7 +89,7 @@ export interface PlayersTable extends SyncFields {
   tag: string;
   role: "TOP" | "JUNGLE" | "MID" | "BOTTOM" | "SUPPORT";
   is_sub: ColumnType<boolean, boolean | undefined, boolean>;
-  profile_image: JSONColumnType<unknown> | null;
+  profile_image: JSONColumnType<Record<string, unknown>> | null;
   puuid: string | null;
   first_name: string | null;
   last_name: string | null;
@@ -104,7 +104,7 @@ export interface StaffTable extends SyncFields {
   team_id: string;
   name: string;
   role: string;
-  profile_image: JSONColumnType<unknown> | null;
+  profile_image: JSONColumnType<Record<string, unknown>> | null;
   created_at: ColumnType<Date, Date | undefined, never>;
 }
 
@@ -120,7 +120,7 @@ export interface TournamentsTable extends SyncFields {
     string | undefined,
     string
   >;
-  logo: JSONColumnType<unknown> | null;
+  logo: JSONColumnType<Record<string, unknown>> | null;
   description: string | null;
   organizer_id: string;
   start_date: Date | null;
@@ -140,7 +140,7 @@ export interface TournamentTeamsTable extends SyncFields {
 export interface BracketsTable extends SyncFields {
   id: Generated<string>;
   tournament_id: string;
-  data: JSONColumnType<unknown>;
+  data: JSONColumnType<Record<string, unknown>>;
   created_at: ColumnType<Date, Date | undefined, never>;
   updated_at: ColumnType<Date, Date | undefined, Date>;
 }
@@ -178,7 +178,7 @@ export interface MatchGamesTable extends SyncFields {
 export interface CommentatorsTable extends SyncFields {
   id: Generated<string>;
   name: string;
-  profile_image: JSONColumnType<unknown> | null;
+  profile_image: JSONColumnType<Record<string, unknown>> | null;
   social_links: JSONColumnType<Record<string, string>> | null;
   created_at: ColumnType<Date, Date | undefined, never>;
 }
@@ -200,7 +200,7 @@ export interface ChampionsTable {
   image: string;
   title: string | null;
   tags: JSONColumnType<string[]> | null;
-  spells: JSONColumnType<unknown> | null;
+  spells: JSONColumnType<Record<string, unknown>[]> | null;
   patch_version: string;
   updated_at: ColumnType<Date, Date | undefined, Date>;
 }

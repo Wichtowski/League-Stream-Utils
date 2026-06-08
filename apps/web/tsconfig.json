@@ -10,6 +10,7 @@
     "jsx": "react-jsx",
     "paths": {
       "@/*": ["./app/*"],
+      "next": ["./node_modules/vinext/dist/shims/metadata.d.ts"],
       "next/server": ["./node_modules/vinext/dist/shims/server.d.ts"],
       "next/navigation": ["./node_modules/vinext/dist/shims/navigation.d.ts"],
       "next/headers": ["./node_modules/vinext/dist/shims/headers.d.ts"],

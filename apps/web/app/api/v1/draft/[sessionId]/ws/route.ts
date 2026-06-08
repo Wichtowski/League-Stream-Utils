@@ -28,7 +28,7 @@ export async function GET(
     globalThis as unknown as { WebSocketPair: new () => [WebSocket, WebSocket] }
   ).WebSocketPair();
 
-  serverWs.accept();
+  (serverWs as unknown as { accept: () => void }).accept();
 
   const client = addClient(sessionId, serverWs);
 

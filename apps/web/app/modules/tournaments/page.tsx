@@ -104,7 +104,7 @@ export default function TournamentsPage() {
                 key: "teams",
                 header: t("col_teams"),
                 render: (row: Tournament) => (
-                  <span className="text-text-muted">{row.tournamentTeams?.length ?? 0}</span>
+                  <span className="text-text-muted">{row.registeredTeams?.length ?? 0}</span>
                 ),
                 className: "w-20",
               },

@@ -4,4 +4,4 @@ export {
   useCreateTeam,
   useUpdateTeam,
   useDeleteTeam,
-} from "@lsu/api-client/h2ooks";
+} from "@lsu/api-client/hooks";

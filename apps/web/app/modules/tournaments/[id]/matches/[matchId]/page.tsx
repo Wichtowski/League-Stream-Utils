@@ -60,7 +60,10 @@ export default function MatchDetailPage({
     );
   }
 
-  const m = match as unknown as Record<string, unknown>;
+  const m = match as unknown as Record<string, unknown> & {
+    tournament?: { name?: string };
+    scheduledAt?: string | number | Date;
+  };
   const format = (m.format as string) ?? "bo1";
   const needed = maxWins(format);
   const blueScore = (m.scoreBlue ?? m.score_blue ?? 0) as number;
@@ -71,8 +74,8 @@ export default function MatchDetailPage({
   const redTeam = (m.redTeam ?? m.red_team) as Record<string, unknown> | undefined;
   const blueName = (blueTeam?.name as string) ?? t("match_blue_team");
   const redName = (redTeam?.name as string) ?? t("match_red_team");
-  const blueColors = blueTeam?.colors as Record<string, string> | undefined;
-  const redColors = redTeam?.colors as Record<string, string> | undefined;
+  const blueColors = blueTeam?.colors as { primary: string; secondary: string } | undefined;
+  const redColors = redTeam?.colors as { primary: string; secondary: string } | undefined;
 
   function recordWin(side: "blue" | "red") {
     const newBlue = side === "blue" ? blueScore + 1 : blueScore;

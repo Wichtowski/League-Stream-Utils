@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import React, { useMemo } from "react";
 
 import { useSearchParams, useRouter } from "next/navigation";
 
@@ -23,7 +23,7 @@ const ALL_TABS = [
 
 type TabKey = (typeof ALL_TABS)[number]["key"];
 
-const TAB_COMPONENTS: Record<TabKey, () => JSX.Element> = {
+const TAB_COMPONENTS: Record<TabKey, () => React.JSX.Element> = {
   users: UsersTab,
   tournaments: TournamentsTab,
   security: SecurityTab,

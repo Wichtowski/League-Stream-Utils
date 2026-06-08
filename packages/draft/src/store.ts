@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 
-import type { GamePhase, TeamSide, draftAction, DraftTimer } from "@lsu/types";
+import type { GamePhase, TeamSide, DraftAction, DraftTimer } from "@lsu/types";
 
 interface draftUIState {
   sessionId: string | null;
@@ -10,7 +10,7 @@ interface draftUIState {
   currentTeam: TeamSide;
   turnNumber: number;
   timer: DraftTimer;
-  actions: draftAction[];
+  actions: DraftAction[];
   selectedChampionId: number | null;
   wsError: string | null;
 
@@ -20,8 +20,8 @@ interface draftUIState {
   setTeam: (team: TeamSide) => void;
   setTurn: (turn: number) => void;
   setTimer: (timer: DraftTimer) => void;
-  addAction: (action: draftAction) => void;
-  setActions: (actions: draftAction[]) => void;
+  addAction: (action: DraftAction) => void;
+  setActions: (actions: DraftAction[]) => void;
   selectChampion: (id: number | null) => void;
   setError: (error: string | null) => void;
   reset: () => void;
@@ -34,7 +34,7 @@ const initialState = {
   currentTeam: "blue" as TeamSide,
   turnNumber: 0,
   timer: { remaining: 30, totalTime: 30, isActive: false },
-  actions: [] as draftAction[],
+  actions: [] as DraftAction[],
   selectedChampionId: null,
   wsError: null,
 };

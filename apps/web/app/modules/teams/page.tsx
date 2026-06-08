@@ -235,7 +235,7 @@ function TeamCameraPanel({
   const updateConfig = useUpdateCameraConfig();
   const { t } = useTranslation("teams");
   const [players, setPlayers] = useState<
-    Array<{ role: string; streamUrl: string; playerName: string }>
+    Array<{ role: (typeof ROLES)[number]; streamUrl: string; playerName: string }>
   >([]);
   const [initialized, setInitialized] = useState<string | null>(null);
 
