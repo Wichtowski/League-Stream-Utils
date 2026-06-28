@@ -1,0 +1,22 @@
+{
+  "name": "@lsu/electron-bridge",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./hooks": "./src/hooks.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src/"
+  },
+  "dependencies": {
+    "zustand": "^5.0.5"
+  },
+  "devDependencies": {
+    "@lsu/config": "workspace:*",
+    "@types/react": "^19.2.15",
+    "typescript": "^5.8.3"
+  }
+}

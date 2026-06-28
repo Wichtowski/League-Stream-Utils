@@ -1,0 +1,19 @@
+{
+  "name": "@lsu/logger",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src/",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@lsu/config": "workspace:*",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.1"
+  }
+}

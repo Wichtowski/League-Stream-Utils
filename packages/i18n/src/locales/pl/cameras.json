@@ -1,0 +1,8 @@
+{
+  "title": "Kamery",
+  "subtitle": "Konfiguruj URL-e streamów graczy",
+  "empty_state": "Brak konfiguracji kamer — skonfiguruj URL-e streamów ze strony szczegółów drużyny",
+  "confirm_delete": "Usunąć tę konfigurację kamery?",
+  "active": "Aktywne",
+  "not_set": "Nie ustawiono"
+}

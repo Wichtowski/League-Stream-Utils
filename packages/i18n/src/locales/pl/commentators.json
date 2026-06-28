@@ -1,0 +1,17 @@
+{
+  "title": "Komentatorzy",
+  "subtitle": "Zarządzaj talentami transmisyjnymi",
+  "add_commentator": "Dodaj komentatora",
+  "failed_to_load": "Nie udało się załadować komentatorów",
+  "col_name": "Imię",
+  "col_social": "Social",
+  "empty_state": "Brak komentatorów — dodaj talenty transmisyjne, aby przypisać je do meczów.",
+  "modal_title": "Dodaj komentatora",
+  "label_name": "Imię",
+  "label_twitter": "Twitter (opcjonalnie)",
+  "placeholder_name": "Jan Kowalski",
+  "placeholder_twitter": "@handle",
+  "toast_added": "Komentator dodany",
+  "toast_add_failed": "Nie udało się dodać komentatora",
+  "toast_delete_failed": "Nie udało się usunąć komentatora"
+}

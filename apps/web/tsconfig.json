@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "paths": {
+      "@/*": ["./app/*"],
+      "next/server": ["./node_modules/vinext/dist/shims/server"],
+      "next/navigation": ["./node_modules/vinext/dist/shims/navigation"],
+      "next/headers": ["./node_modules/vinext/dist/shims/headers"],
+      "next/link": ["./node_modules/vinext/dist/shims/link"],
+      "@lsu/db": ["../../packages/db/src"],
+      "@lsu/db/*": ["../../packages/db/src/*"],
+      "@lsu/db-mongo": ["../../packages/db-mongo/src"],
+      "@lsu/types": ["../../packages/types/src"],
+      "@lsu/ui": ["../../packages/ui/src"],
+      "@lsu/ui/*": ["../../packages/ui/src/*"]
+    }
+  },
+  "include": ["app", "vite.config.ts", "next.config.ts"],
+  "exclude": ["node_modules", "dist"]
+}

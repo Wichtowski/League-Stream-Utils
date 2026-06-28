@@ -1,0 +1,27 @@
+{
+  "name": "@lsu/ui",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./skeleton": "./src/skeleton/index.ts",
+    "./theme": "./src/theme/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src/"
+  },
+  "dependencies": {
+    "@lsu/i18n": "workspace:*"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@lsu/config": "workspace:*",
+    "@types/react": "^19.1.6",
+    "typescript": "^5.8.3"
+  }
+}

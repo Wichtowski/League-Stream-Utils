@@ -1,0 +1,18 @@
+{
+  "title": "Narzędzia deweloperskie",
+  "subtitle": "Status systemu i diagnostyka",
+  "api_health": "Stan API",
+  "unreachable": "Nieosiągalny",
+  "status": "Status",
+  "uptime": "Czas działania",
+  "postgresql": "PostgreSQL",
+  "websocket_connections": "Połączenia WebSocket",
+  "clients": "Klienci",
+  "active_sessions": "Aktywne sesje",
+  "runtime": "Runtime",
+  "environment": "Środowisko",
+  "electron": "Electron",
+  "web": "Web",
+  "node_env": "Node Env",
+  "unknown": "nieznany"
+}

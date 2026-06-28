@@ -1,0 +1,22 @@
+{
+  "name": "@lsu/riot-api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./ddragon": "./src/ddragon.ts",
+    "./cache": "./src/cache.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src/"
+  },
+  "dependencies": {
+    "@lsu/types": "workspace:*"
+  },
+  "devDependencies": {
+    "@lsu/config": "workspace:*",
+    "typescript": "^5.8.3"
+  }
+}

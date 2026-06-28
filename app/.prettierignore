@@ -1,8 +1,0 @@
-prettier.config.ts
-.gitignore
-.next
-/node_modules
-/dist
-/build
-/public
-.env

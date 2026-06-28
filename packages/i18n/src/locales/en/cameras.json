@@ -1,0 +1,8 @@
+{
+  "title": "Cameras",
+  "subtitle": "Configure player stream URLs",
+  "empty_state": "No camera configs yet — configure stream URLs from a team's detail page",
+  "confirm_delete": "Delete this camera config?",
+  "active": "Active",
+  "not_set": "Not set"
+}

@@ -1,0 +1,41 @@
+{
+  "name": "league-stream-utils",
+  "version": "2.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo dev",
+    "dev:web": "turbo dev --filter=@lsu/web",
+    "dev:electron": "turbo dev --filter=@lsu/web --filter=@lsu/electron",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "typecheck": "turbo typecheck",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "db:generate": "turbo db:generate --filter=@lsu/db",
+    "db:migrate": "turbo db:migrate --filter=@lsu/db",
+    "db:push": "turbo db:push --filter=@lsu/db",
+    "db:studio": "turbo db:studio --filter=@lsu/db",
+    "db:seed": "turbo db:seed --filter=@lsu/db",
+    "docker:up": "docker compose -f docker/docker-compose.yml up -d",
+    "docker:down": "docker compose -f docker/docker-compose.yml down",
+    "docker:reset": "docker compose -f docker/docker-compose.yml down -v && docker compose -f docker/docker-compose.yml up -d",
+    "test": "turbo test",
+    "test:e2e": "turbo test:e2e --filter=@lsu/web",
+    "clean": "turbo clean && rm -rf node_modules"
+  },
+  "devDependencies": {
+    "eslint": "^9.28.0",
+    "prettier": "^3.6.2",
+    "turbo": "^2.9.16",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.1"
+  },
+  "packageManager": "bun@1.3.11",
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}
